@@ -3,15 +3,13 @@
 //
 
 #include <iostream>
-#include "SimpleInterval.h"
+#include "ActivityProfileState.h"
 
 int main(int argc, char **argv)
 {
-    SimpleInterval* interval = new SimpleInterval("chr1", 1, 100);
-    SimpleInterval* interval2 = new SimpleInterval("chr1", 98, 120);
-    std::cout << interval->overlaps(interval2) << std::endl;
-    interval= interval->intersect(interval2);
-    interval->printfInterval();
-    delete interval;
-    return 0;
+    SimpleInterval* simpleInterval = new SimpleInterval("chr1", 100, 100);
+    SimpleInterval* simpleInterval2 = new SimpleInterval("chr1", 130, 170);
+    ActivityProfileState* activityProfileState = new ActivityProfileState(simpleInterval, 0.11);
+    std::cout << activityProfileState << std::endl;
+    std::cout << activityProfileState->getOffset(simpleInterval2) << std::endl;
 }

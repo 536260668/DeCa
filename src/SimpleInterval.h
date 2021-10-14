@@ -29,7 +29,7 @@ private:
     bool contiguous(Locatable* other);
 
 public:
-    SimpleInterval(std::string contig, int start, int end) : contig(std::move(contig)), start(start), end(end)  {}
+    SimpleInterval(std::string contig, int start, int end);
 
     /**
      * Makes an interval by parsing the string.
@@ -58,10 +58,6 @@ public:
     SimpleInterval(std::string str);
 
     virtual ~SimpleInterval() = default;
-    /**
-     * Print SimpleInterval information
-     */
-    void printfInterval() const;
 
     /**
      * Test that these are valid values for constructing a SimpleInterval:
@@ -86,7 +82,7 @@ public:
 
     bool operator==(const SimpleInterval& interval) const;
 
-    int hashCode();
+    int hashCode() const;
 
     bool equal(const SimpleInterval& interval) const {return *this == interval;}
 
@@ -114,7 +110,7 @@ public:
       * @return true if this interval overlaps other, otherwise false
       * @throws IllegalArgumentException if margin is negative
       */
-    bool overlapsWithMargin(Locatable *other, int margin);
+    bool overlapsWithMargin(Locatable *other, int margin) const;
 
     /**
      * Determines whether this interval overlaps the provided locatable.
@@ -157,5 +153,7 @@ public:
     SimpleInterval* expandWithinContig(int padding, int contigLength);
 
     //TODO:SimpleInterval* expandWithinContig(int padding, SAMSequenceDictionary sequenceDictionary);
+
+    friend std::ostream & operator<<(std::ostream &os, SimpleInterval* simpleInterval);
 };
 #endif //MUTECT2CPP_MASTER_SIMPLEINTERVAL_H

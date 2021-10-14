@@ -4,6 +4,12 @@
 
 #include "SimpleInterval.h"
 
+SimpleInterval::SimpleInterval(std::string contig, int start, int end) {
+    validatePositions(contig, start, end);
+    this->contig = contig;
+    this->start = start;
+    this->end = end;
+}
 
 SimpleInterval::SimpleInterval(std::string str) {
     Mutect2Utils::validateArg(!str.empty(), "Null object is not allowed here.");
@@ -50,9 +56,6 @@ void SimpleInterval::validatePositions(const std::string& contig, const int star
     }
 }
 
-void SimpleInterval::printfInterval() const {
-    std::cout << "Interval" << start << "~" << end << std::endl;
-}
 
 bool SimpleInterval::isValid(const std::string& contig, const int start, const int end) {
     return (!contig.empty()) && start > 0 && end >= start;
@@ -77,7 +80,7 @@ bool SimpleInterval::operator==(const SimpleInterval &interval) const {
         return false;
 }
 
-int SimpleInterval::hashCode() {
+int SimpleInterval::hashCode() const{
     std::hash<std::string> h;
     int result = start;
     result = 31 * result + end;
@@ -85,7 +88,7 @@ int SimpleInterval::hashCode() {
     return result;
 }
 
-bool SimpleInterval::overlapsWithMargin(Locatable *other, const int margin) {
+bool SimpleInterval::overlapsWithMargin(Locatable *other, const int margin) const {
     Mutect2Utils::validateArg(margin >= 0, "Given margin is negative.");
     if( other == nullptr || other->getContig().empty())
         return false;
@@ -124,4 +127,9 @@ SimpleInterval* SimpleInterval::expandWithinContig(const int padding, const int 
         throw std::invalid_argument("Padding must be >= 0.");
 
     return IntervalUtils::trimIntervalToContig(contig, start - padding, end + padding, contigLength);
+}
+
+std::ostream & operator<<(std::ostream &os, SimpleInterval* simpleInterval) {
+    os << "contig:" << simpleInterval->contig << "  start:" << simpleInterval->start << "   end:" << simpleInterval->end << std::endl;
+    return os;
 }
