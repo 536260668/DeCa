@@ -31,7 +31,7 @@ private:
 public:
     SimpleInterval(const std::string& contig, int start, int end);
 
-    SimpleInterval(SimpleInterval& simpleInterval);
+    SimpleInterval(SimpleInterval const &simpleInterval);
 
     /**
      * Makes an interval by parsing the string.
@@ -90,16 +90,16 @@ public:
 
     bool equal(const SimpleInterval& interval) const {return *this == interval;}
 
-    std::string getContig() override {return contig;}
+    std::string getContig() const override {return contig;}
 
-    int getStart() override {return start;}
+    int getStart() const override {return start;}
 
     /**
     * @return the 0-based start position (from the GA4GH spec).
     */
     long getGA4GHStart() const {return start - 1;}
 
-    int getEnd() override {return end;}
+    int getEnd() const override {return end;}
 
     long getGA4GHEnd() const {return end;}
 

@@ -10,9 +10,9 @@
 
 class Locatable {
 public:
-    virtual std::string getContig() = 0;
-    virtual int getStart() = 0;
-    virtual int getEnd() = 0;
+    virtual std::string getContig() const = 0;
+    virtual int getStart() const = 0;
+    virtual int getEnd() const = 0;
 
     virtual int getLengthOnReference();
     virtual bool contains(Locatable* other);

@@ -25,11 +25,13 @@ private:
     double resultValue;
 
 public:
-    ActivityProfileState(SimpleInterval& loc, double activeProb, Type resultState, double resultValue);
+    ActivityProfileState(SimpleInterval const &loc, double activeProb, Type resultState, double resultValue);
 
-    ActivityProfileState(SimpleInterval& loc, double activeProb);
+    ActivityProfileState(SimpleInterval const &loc, double activeProb);
 
-    virtual ~ActivityProfileState() {std::cout << "ActivityProfileState析构函数" << std::endl;}
+    ActivityProfileState(ActivityProfileState const &activityProfileState);
+
+    virtual ~ActivityProfileState() = default;
 
     double isActiveProb() const;
 

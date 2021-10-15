@@ -5,14 +5,25 @@
 #include "AssemblyRegion.h"
 #include "IntervalUtils.h"
 
-AssemblyRegion::AssemblyRegion(SimpleInterval& activeRegionLoc,
-                               std::vector<ActivityProfileState> supportingStates, const bool isActivate,
-                               const int extension) : activeRegionLoc(activeRegionLoc), supportingStates(std::move(supportingStates)), isActivate(isActivate), extension(extension){
+AssemblyRegion::AssemblyRegion(SimpleInterval const &activeRegionLoc,
+                               std::vector<ActivityProfileState> supportingStates, const bool isActive,
+                               const int extension) : activeRegionLoc(activeRegionLoc), supportingStates(std::move(supportingStates)), isActive(isActive), extension(extension){
     std::string contig = activeRegionLoc.getContig();
     SimpleInterval* simpleInterval = trimIntervalToContig(contig, activeRegionLoc.getStart() - extension, activeRegionLoc.getEnd() + extension);
     extendedLoc = *simpleInterval;
     spanIncludingReads = extendedLoc;
     delete simpleInterval;
+    checkStates(this->activeRegionLoc);
+}
+
+AssemblyRegion::AssemblyRegion(SimpleInterval const &activeRegionLoc, const int extension) : activeRegionLoc(activeRegionLoc),  isActive(
+        true), extension(extension){
+    std::string contig = activeRegionLoc.getContig();
+    SimpleInterval* simpleInterval = trimIntervalToContig(contig, activeRegionLoc.getStart() - extension, activeRegionLoc.getEnd() + extension);
+    extendedLoc = *simpleInterval;
+    spanIncludingReads = extendedLoc;
+    delete simpleInterval;
+    checkStates(this->activeRegionLoc);
 }
 
 SimpleInterval *AssemblyRegion::trimIntervalToContig(std::string& contig, const int start, const int stop) {
@@ -33,4 +44,18 @@ void AssemblyRegion::checkStates(SimpleInterval &activeRegion) {
 }
 
 AssemblyRegion::~AssemblyRegion() = default;
+
+std::ostream & operator<<(std::ostream & os, AssemblyRegion & assemblyRegion) {
+    os << "AssemblyRegion " << assemblyRegion.activeRegionLoc << "active:   " << assemblyRegion.isActive << std::endl;
+    return os;
+}
+
+void AssemblyRegion::setIsActive(const bool value) {isActive = value;}
+
+bool AssemblyRegion::equalsIgnoreReads(const AssemblyRegion &other) {
+    if(!(activeRegionLoc == other.getSpan()) || isActive != other.getIsActive() || extension != other.getExtension())
+        return false;
+    return extendedLoc == other.getExtendedSpan();
+}
+void AssemblyRegion::setFinalized(bool value) {hasBeenFinalized = value;}
 

@@ -14,12 +14,17 @@ Type ActivityProfileState::getResultState() const {return resultState;}
 
 double ActivityProfileState::getResultValue() const {return resultValue;}
 
-ActivityProfileState::ActivityProfileState(SimpleInterval& loc, const double activeProb, const Type resultState, const double resultValue) : loc(loc), activeProb(activeProb), resultState(resultState), resultValue(resultValue){
-    Mutect2Utils::validateArg(loc.size() == 1, "Location for an ActivityProfileState must have to size 1 bp.");
+ActivityProfileState::ActivityProfileState(SimpleInterval const &loc, const double activeProb, const Type resultState, const double resultValue) : loc(loc), activeProb(activeProb), resultState(resultState), resultValue(resultValue){
+    Mutect2Utils::validateArg(this->loc.size() == 1, "Location for an ActivityProfileState must have to size 1 bp.");
+    Mutect2Utils::validateArg(this->resultValue >= 0, "Result value isn't null and its < 0, which is illegal");
+}
+
+ActivityProfileState::ActivityProfileState(SimpleInterval const &loc, const double activeProb) : loc(loc), activeProb(activeProb), resultState(NONE), resultValue(0){
+    Mutect2Utils::validateArg(this->loc.size() == 1, "Location for an ActivityProfileState must have to size 1 bp.");
     Mutect2Utils::validateArg(resultValue >= 0, "Result value isn't null and its < 0, which is illegal");
 }
 
-ActivityProfileState::ActivityProfileState(SimpleInterval& loc, const double activeProb) : loc(loc), activeProb(activeProb), resultState(resultState), resultValue(resultValue){
+ActivityProfileState::ActivityProfileState(const ActivityProfileState &activityProfileState) : loc(activityProfileState.loc), activeProb(activityProfileState.activeProb), resultState(activityProfileState.resultState), resultValue(activityProfileState.resultValue){
     Mutect2Utils::validateArg(loc.size() == 1, "Location for an ActivityProfileState must have to size 1 bp.");
     Mutect2Utils::validateArg(resultValue >= 0, "Result value isn't null and its < 0, which is illegal");
 }
