@@ -7,9 +7,9 @@
 
 int main(int argc, char **argv)
 {
-    SimpleInterval* simpleInterval = new SimpleInterval("chr1", 100, 100);
-    SimpleInterval* simpleInterval2 = new SimpleInterval("chr1", 130, 170);
-    ActivityProfileState* activityProfileState = new ActivityProfileState(simpleInterval, 0.11);
-    std::cout << activityProfileState << std::endl;
-    std::cout << activityProfileState->getOffset(simpleInterval2) << std::endl;
+    SimpleInterval simpleInterval1("chr1", 100, 200);
+    SimpleInterval simpleInterval2("chr1", 150, 250);
+    SimpleInterval* ptr = simpleInterval1.expandWithinContig(90,20);
+    std::cout << *ptr << std::endl;
+    delete ptr;
 }

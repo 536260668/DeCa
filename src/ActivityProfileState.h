@@ -19,15 +19,17 @@ enum Type {
 
 class ActivityProfileState {
 private:
-    SimpleInterval* loc;
+    SimpleInterval loc;
     double activeProb;
     Type resultState;
     double resultValue;
 
 public:
-    ActivityProfileState(SimpleInterval* loc, double activeProb, Type resultState, double resultValue);
+    ActivityProfileState(SimpleInterval& loc, double activeProb, Type resultState, double resultValue);
 
-    ActivityProfileState(SimpleInterval* loc, double activeProb);
+    ActivityProfileState(SimpleInterval& loc, double activeProb);
+
+    virtual ~ActivityProfileState() {std::cout << "ActivityProfileState析构函数" << std::endl;}
 
     double isActiveProb() const;
 
@@ -41,7 +43,7 @@ public:
      *
      * @param activeProb probability (should be between 0.0 and 1.0) that the site is active
      */
-     void setIsActiveProb(double activeProb);
+    void setIsActiveProb(double activeProb);
 
     /**
     * @return The type of the value returned by {@link #getResultValue}
@@ -52,18 +54,18 @@ public:
      * @return Numeric value associated with {@link #getResultState}. If {@link #getResultState} is HIGH_QUALITY_SOFT_CLIPS,
      *         this is the number of bp affected by the soft clips
      */
-     double getResultValue() const;
+    double getResultValue() const;
 
     /**
     * The offset of state w.r.t. our current region's start location
     * @param regionStartLoc the start of the region, as a Locatable
     * @return the position of this profile relative to the start of this region
     */
-    int getOffset(Locatable *regionStartLoc) const;
+    int getOffset(Locatable *regionStartLoc);
 
-    SimpleInterval* getLoc() const;
+    SimpleInterval getLoc();
 
-    friend std::ostream & operator<<(std::ostream & os, const ActivityProfileState * activityProfileState);
+    friend std::ostream & operator<<(std::ostream & os, ActivityProfileState& activityProfileState);
 };
 
 

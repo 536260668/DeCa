@@ -29,7 +29,9 @@ private:
     bool contiguous(Locatable* other);
 
 public:
-    SimpleInterval(std::string contig, int start, int end);
+    SimpleInterval(const std::string& contig, int start, int end);
+
+    SimpleInterval(SimpleInterval& simpleInterval);
 
     /**
      * Makes an interval by parsing the string.
@@ -55,7 +57,9 @@ public:
       *
       * @param str non-empty string to be parsed
      */
-    SimpleInterval(std::string str);
+    SimpleInterval(std::string& str);
+
+    SimpleInterval() {};
 
     virtual ~SimpleInterval() = default;
 
@@ -123,13 +127,13 @@ public:
     /**
       * Returns the intersection of the two intervals. The intervals must overlap or IllegalArgumentException will be thrown.
      */
-    SimpleInterval* intersect(Locatable* other);
+    SimpleInterval intersect(Locatable* other);
 
     /**
       * Returns a new SimpleInterval that represents the entire span of this and other.  Requires that
       * this and that SimpleInterval are contiguous.
       */
-    SimpleInterval* mergeWithContiguous(Locatable* other);
+    SimpleInterval mergeWithContiguous(Locatable* other);
 
     /**
       * Returns a new SimpleInterval that represents the region between the endpoints of this and other.
@@ -139,7 +143,7 @@ public:
       * @param other the other interval with which to calculate the span
       * @return a new SimpleInterval that represents the region between the endpoints of this and other.
       */
-    SimpleInterval* spanWith(Locatable* other);
+    SimpleInterval spanWith(Locatable* other);
 
     /**
       * Returns a new SimpleInterval that represents this interval as expanded by the specified amount in both
@@ -154,6 +158,6 @@ public:
 
     //TODO:SimpleInterval* expandWithinContig(int padding, SAMSequenceDictionary sequenceDictionary);
 
-    friend std::ostream & operator<<(std::ostream &os, SimpleInterval* simpleInterval);
+    friend std::ostream & operator<<(std::ostream &os, const SimpleInterval& simpleInterval);
 };
 #endif //MUTECT2CPP_MASTER_SIMPLEINTERVAL_H

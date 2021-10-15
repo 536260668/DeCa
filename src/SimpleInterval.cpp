@@ -4,50 +4,51 @@
 
 #include "SimpleInterval.h"
 
-SimpleInterval::SimpleInterval(std::string contig, int start, int end) {
+SimpleInterval::SimpleInterval(const std::string& contig, int start, int end) : contig(contig), start(start), end(end){
     validatePositions(contig, start, end);
-    this->contig = contig;
-    this->start = start;
-    this->end = end;
 }
 
-SimpleInterval::SimpleInterval(std::string str) {
+SimpleInterval::SimpleInterval(SimpleInterval& simpleInterval) : contig(simpleInterval.contig), start(simpleInterval.start), end(simpleInterval.end){
+    validatePositions(contig, start, end);
+}
+
+SimpleInterval::SimpleInterval(std::string& str) {
     Mutect2Utils::validateArg(!str.empty(), "Null object is not allowed here.");
 
-    std::string contig;
-    int start;
-    int end;
+    std::string m_contig;
+    int m_start;
+    int m_end;
 
     const int colonIndex = str.find_last_of(CONTIG_SEPARATOR);
     if(colonIndex == -1) {
-        contig = str;
-        start = 1;
-        end = INT32_MAX;
+        m_contig = str;
+        m_start = 1;
+        m_end = INT32_MAX;
     } else {
-        contig = str.substr(0, colonIndex);
+        m_contig = str.substr(0, colonIndex);
         const int dashIndex = str.find(START_END_SEPARATOR, colonIndex);
         if(dashIndex == -1) {
             if(str.find_last_of(END_OF_CONTIG) == str.size() - END_OF_CONTIG.size()) {
                 std::string pos = str.substr(colonIndex+1, str.size()-colonIndex-2);
-                start = parsePosition(pos);
-                end = INT32_MAX;
+                m_start = parsePosition(pos);
+                m_end = INT32_MAX;
             } else {
                 std::string pos = str.substr(colonIndex+1, str.size()-colonIndex-1);
-                start = parsePosition(pos);
-                end = start;
+                m_start = parsePosition(pos);
+                m_end = m_start;
             }
         } else {
             std::string pos = str.substr(colonIndex+1, dashIndex-colonIndex-1);
-            start = parsePosition(pos);
+            m_start = parsePosition(pos);
             pos = str.substr(dashIndex+1, str.size()-dashIndex-1);
-            end = parsePosition(pos);
+            m_end = parsePosition(pos);
         }
     }
 
-    validatePositions(contig, start, end);
-    this->contig = contig;
-    this->start = start;
-    this->end = end;
+    validatePositions(m_contig, m_start, m_end);
+    contig = m_contig;
+    start = m_start;
+    end = m_end;
 }
 
 void SimpleInterval::validatePositions(const std::string& contig, const int start, const int end) {
@@ -100,15 +101,17 @@ bool SimpleInterval::overlaps(Locatable *other) {
     return overlapsWithMargin(other, 0);
 }
 
-SimpleInterval* SimpleInterval::intersect(Locatable *other) {
+SimpleInterval SimpleInterval::intersect(Locatable *other) {
     Mutect2Utils::validateArg(overlaps(other), "SimpleInterval::intersect(): The two intervals need to overlap.");
-    return new SimpleInterval(getContig(), std::max(start, other->getStart()), std::min(end, other->getEnd()));
+    SimpleInterval simpleInterval(getContig(), std::max(start, other->getStart()), std::min(end, other->getEnd()));
+    return simpleInterval;
 }
 
-SimpleInterval* SimpleInterval::mergeWithContiguous(Locatable* other){
+SimpleInterval SimpleInterval::mergeWithContiguous(Locatable* other){
     Mutect2Utils::validateArg(other != nullptr, "Null object is not allowed here.");
     Mutect2Utils::validateArg(contiguous(other), "The two intervals need to be contiguous.");
-    return new SimpleInterval(getContig(), std::min(start, other->getStart()), std::max(end, other->getEnd()));
+    SimpleInterval simpleInterval(getContig(), std::min(start, other->getStart()), std::max(end, other->getEnd()));
+    return simpleInterval;
 }
 
 bool SimpleInterval::contiguous(Locatable *other) {
@@ -116,10 +119,11 @@ bool SimpleInterval::contiguous(Locatable *other) {
     return contig == other->getContig() && start <= other->getEnd() + 1 && other->getStart() <= end + 1;
 }
 
-SimpleInterval* SimpleInterval::spanWith(Locatable *other) {
+SimpleInterval SimpleInterval::spanWith(Locatable *other) {
     Mutect2Utils::validateArg(other != nullptr, "Null object is not allowed here.");
     Mutect2Utils::validateArg(contig == other->getContig(), "Cannot get span for intervals on different contigs.");
-    return new SimpleInterval(getContig(), std::min(start, other->getStart()), std::max(end, other->getEnd()));
+    SimpleInterval simpleInterval(getContig(), std::min(start, other->getStart()), std::max(end, other->getEnd()));
+    return simpleInterval;
 }
 
 SimpleInterval* SimpleInterval::expandWithinContig(const int padding, const int contigLength) {
@@ -129,7 +133,8 @@ SimpleInterval* SimpleInterval::expandWithinContig(const int padding, const int 
     return IntervalUtils::trimIntervalToContig(contig, start - padding, end + padding, contigLength);
 }
 
-std::ostream & operator<<(std::ostream &os, SimpleInterval* simpleInterval) {
-    os << "contig:" << simpleInterval->contig << "  start:" << simpleInterval->start << "   end:" << simpleInterval->end << std::endl;
+std::ostream & operator<<(std::ostream &os, const SimpleInterval& simpleInterval) {
+    os << "contig:" << simpleInterval.contig << "  start:" << simpleInterval.start << "   end:" << simpleInterval.end << std::endl;
     return os;
 }
+

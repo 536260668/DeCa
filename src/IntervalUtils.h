@@ -25,6 +25,7 @@ public:
      * @return a valid interval over contig, or null if a meaningful interval cannot be created
      */
     static SimpleInterval* trimIntervalToContig(std::string contig, int start, int stop, int contigLength);
+
 };
 
 #endif //MUTECT2CPP_MASTER_INTERVALUTILS_H
