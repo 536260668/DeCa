@@ -7,18 +7,20 @@
 
 #include <vector>
 #include <set>
+#include <htslib/sam.h>
 #include "SimpleInterval.h"
 #include "ActivityProfileState.h"
+#include "SAMRecord.h"
 
 class AssemblyRegion : public Locatable{
 private:
-    //SAMFileHeader header;
+    sam_hdr_t *hdr;
 
     /**
      * The reads included in this assembly region.  May be empty upon creation, and expand / contract
      * as reads are added or removed from this region.
      */
-    //std::vector<GATKReads> reads;
+    std::vector<SAMRecord> reads;
 
     /**
      * An ordered list (by genomic coordinate) of the ActivityProfileStates that went
@@ -130,12 +132,12 @@ public:
     * The reads are sorted by their coordinate position.
     * @return an unmodifiable and inmutable copy of the reads in the assembly region.
    */
-    //TODO:std::vector<GATKReads> getReads() const {}
+    std::vector<SAMRecord> getReads() const;
 
     /**
      * Returns the header for the reads in this region.
      */
-    //TODO:SAMFileHeader getHeader() {}
+    sam_hdr_t* getHeader();
 
     /**
      * Intersect this assembly region with the allowed intervals, returning a list of active regions

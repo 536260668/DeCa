@@ -59,3 +59,11 @@ bool AssemblyRegion::equalsIgnoreReads(const AssemblyRegion &other) {
 }
 void AssemblyRegion::setFinalized(bool value) {hasBeenFinalized = value;}
 
+sam_hdr_t * AssemblyRegion::getHeader()
+{
+    return hdr;
+}
+
+std::vector<SAMRecord> AssemblyRegion::getReads() const {
+    return reads;
+}
