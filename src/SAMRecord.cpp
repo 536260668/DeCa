@@ -77,3 +77,7 @@ bool SAMRecord::isReverseStrand()
 {
     return (read->core.flag & BAM_FREVERSE) != 0;
 }
+
+char *SAMRecord::getReadName() {
+    return bam_get_qname(read);
+}

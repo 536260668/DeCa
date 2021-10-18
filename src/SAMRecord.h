@@ -68,6 +68,8 @@ public:
      * @return True if this read is on the reverse strand as opposed to the forward strand, otherwise false.
      */
      bool isReverseStrand();
+
+     char * getReadName();
 };
 
 
