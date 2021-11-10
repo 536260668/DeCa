@@ -12,7 +12,7 @@ class Kmer {
 private:
     uint8_t  *bases;
     int start;
-    const int length;
+    int length;
     int hash;
 
     /**

@@ -14,6 +14,7 @@ private:
 
 public:
     BaseEdge(bool isRef, int multiplicity);
+    BaseEdge() : isRef(false), multiplicity(0) {}
     virtual ~BaseEdge() = default;;
 
     /**

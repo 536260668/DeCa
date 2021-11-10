@@ -28,7 +28,15 @@ public:
 
     bool operator<(const MultiDeBruijnVertex &other) const;
 
-    int getKmerSize() {return getLength();}
+    int getKmerSize() const {return getLength();}
+
+    uint8_t getSuffix() const {
+        return  sequence[getKmerSize() - 1];
+    }
+
+    uint8_t * getAdditionalSequence(bool source) override;
+
+    uint8_t *getSuffixAsArray() const;
 };
 
 

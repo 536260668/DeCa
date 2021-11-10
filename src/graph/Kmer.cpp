@@ -41,6 +41,8 @@ Kmer Kmer::subKmer(const int newStart, const int newLength) {
 }
 
 uint8_t *Kmer::getBases() const {
+    if(length == 0)
+        return nullptr;
     uint8_t * res = new uint8_t[length];
     memcpy(res, bases+start, sizeof(uint8_t)*length);
     return res;
@@ -68,14 +70,21 @@ int Kmer::getDifferingPositions(Kmer other, int maxDistance, int *differingIndec
 }
 
 bool Kmer::operator<(const Kmer &other) const {
-    if( this->length > other.length)
+    if(this->length > other.length)
         return false;
+    if(this->length < other.length)
+        return true;
     if(this->hash > other.hash)
         return false;
+    if(this->hash < other.hash)
+        return true;
     for(int i = 0; i < length; i++)
         if(this->bases[this->start+i] > other.bases[other.start+i])
             return false;
-    return true;
+        else if(this->bases[this->start+i] < other.bases[other.start+i])
+            return true;
+        else continue;
+    return false;
 }
 
 bool Kmer::operator==(const Kmer &other) const {

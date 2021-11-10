@@ -17,6 +17,8 @@ private:
 public:
     MultiSampleEdge(bool isRef, int multiplicity, int singleSampleCapacity);
 
+    MultiSampleEdge() : BaseEdge(BaseEdge()), singleSampleCapacity(0) {}
+
     void flushSingleSampleMultiplicity();
 
     void incMultiplicity(int incr) override;
@@ -24,6 +26,10 @@ public:
     int getPruningMultiplicity() const;
 
     int getCurrentSingleSampleMultiplicity() const {return currentSingleSampleMultiplicity;}
+
+    bool operator==(const MultiSampleEdge & other) const;
+
+    bool operator<(const MultiSampleEdge & other) const;
 
 };
 

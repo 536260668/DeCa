@@ -65,6 +65,8 @@ public:
     std::string getAdditionalInfo() const{return additionalInfo;}
 
     bool hasAmbiguousSequence();
+
+    virtual uint8_t * getAdditionalSequence(bool source) {return getSequence();}
 };
 
 

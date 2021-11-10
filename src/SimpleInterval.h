@@ -22,6 +22,7 @@ static const std::string END_OF_CONTIG = "+";
 class SimpleInterval : public Locatable
 {
 private:
+    static const long serialVersionUID = 1L;
     int start;
     int end;
     std::string contig;
@@ -61,8 +62,6 @@ public:
     SimpleInterval() {};
 
     virtual ~SimpleInterval() = default;
-
-    void clearContig();
 
     /**
      * Test that these are valid values for constructing a SimpleInterval:

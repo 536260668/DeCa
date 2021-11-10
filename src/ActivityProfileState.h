@@ -5,7 +5,6 @@
 #ifndef MUTECT2CPP_MASTER_ACTIVITYPROFILESTATE_H
 #define MUTECT2CPP_MASTER_ACTIVITYPROFILESTATE_H
 #include "SimpleInterval.h"
-#include "htslib/sam.h"
 #include <iostream>
 
 class SimpleInterval;
@@ -31,8 +30,6 @@ public:
     ActivityProfileState(SimpleInterval const &loc, double activeProb);
 
     ActivityProfileState(ActivityProfileState const &activityProfileState);
-
-    ActivityProfileState(const char * refName, hts_pos_t pos, double activeProb);
 
     virtual ~ActivityProfileState() = default;
 

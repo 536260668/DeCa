@@ -2,26 +2,18 @@
 // Created by 梦想家xixi on 2021/10/14.
 //
 
-#include "assert.h"
 #include "AssemblyRegion.h"
 #include "IntervalUtils.h"
 
 AssemblyRegion::AssemblyRegion(SimpleInterval const &activeRegionLoc,
                                std::vector<ActivityProfileState> supportingStates, const bool isActive,
-                               const int extension, sam_hdr_t * header) : activeRegionLoc(activeRegionLoc), supportingStates(std::move(supportingStates)), isActive(isActive),
-                               extension(extension), hdr(header){
-
+                               const int extension) : activeRegionLoc(activeRegionLoc), supportingStates(std::move(supportingStates)), isActive(isActive), extension(extension){
     std::string contig = activeRegionLoc.getContig();
     SimpleInterval* simpleInterval = trimIntervalToContig(contig, activeRegionLoc.getStart() - extension, activeRegionLoc.getEnd() + extension);
-    assert(simpleInterval != nullptr);
     extendedLoc = *simpleInterval;
-
     spanIncludingReads = extendedLoc;
-
     delete simpleInterval;
-
     checkStates(this->activeRegionLoc);
-
 }
 
 AssemblyRegion::AssemblyRegion(SimpleInterval const &activeRegionLoc, const int extension) : activeRegionLoc(activeRegionLoc),  isActive(
@@ -35,8 +27,8 @@ AssemblyRegion::AssemblyRegion(SimpleInterval const &activeRegionLoc, const int 
 }
 
 SimpleInterval *AssemblyRegion::trimIntervalToContig(std::string& contig, const int start, const int stop) {
-    const int contigLength = sam_hdr_tid2len(hdr, sam_hdr_name2tid(hdr, contig.c_str()));
-    return IntervalUtils::trimIntervalToContig(contig, start, stop, contigLength);
+//    const int contigLength = header.getSequence(contig).getSequenceLength();
+    return IntervalUtils::trimIntervalToContig(contig, start, stop, 10);
 }
 
 void AssemblyRegion::checkStates(SimpleInterval &activeRegion) {

@@ -7,8 +7,8 @@
 
 MultiSampleEdge::MultiSampleEdge(bool isRef, int multiplicity, int singleSampleCapacity) : BaseEdge(isRef, multiplicity), singleSampleCapacity(singleSampleCapacity){
     Mutect2Utils::validateArg(singleSampleCapacity > 0, "singleSampleCapacity must be > 0");
-    singleSampleMultiplicities.push(singleSampleCapacity);
     singleSampleMultiplicities.push(multiplicity);
+    currentSingleSampleMultiplicity = multiplicity;
 }
 
 void MultiSampleEdge::flushSingleSampleMultiplicity() {
@@ -28,4 +28,12 @@ void MultiSampleEdge::incMultiplicity(int incr) {
 
 int MultiSampleEdge::getPruningMultiplicity() const{
     return singleSampleMultiplicities.top();
+}
+
+bool MultiSampleEdge::operator==(const MultiSampleEdge &other) const{
+    return (long)this == (long)&other;
+}
+
+bool MultiSampleEdge::operator<(const MultiSampleEdge &other) const{
+    return (long)this < (long)&other;
 }

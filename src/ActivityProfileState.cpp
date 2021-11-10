@@ -29,12 +29,6 @@ ActivityProfileState::ActivityProfileState(const ActivityProfileState &activityP
     Mutect2Utils::validateArg(resultValue >= 0, "Result value isn't null and its < 0, which is illegal");
 }
 
-ActivityProfileState::ActivityProfileState(const char *refName, hts_pos_t pos, double activeProb)
-{
-    this->loc = SimpleInterval(std::string(refName), pos, pos);
-    this->activeProb = activeProb;
-}
-
 int ActivityProfileState::getOffset(Locatable *regionStartLoc) {
     Mutect2Utils::validateArg(regionStartLoc != nullptr, "Null object is not allowed here.");
     return loc.getStart() - regionStartLoc->getStart();

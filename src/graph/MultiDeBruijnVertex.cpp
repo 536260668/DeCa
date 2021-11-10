@@ -27,3 +27,13 @@ bool MultiDeBruijnVertex::operator<(const MultiDeBruijnVertex &other) const {
             return false;
     return true;
 }
+
+uint8_t *MultiDeBruijnVertex::getAdditionalSequence(bool source) {
+    return source ? BaseVertex::getAdditionalSequence(source) : getSuffixAsArray();
+}
+
+uint8_t *MultiDeBruijnVertex::getSuffixAsArray() const {
+    uint8_t * res = new uint8_t[1];
+    res[0] = getSuffix();
+    return res;
+}
