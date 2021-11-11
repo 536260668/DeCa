@@ -82,7 +82,7 @@ private:
     void checkStates(SimpleInterval& activeRegion);
 
 public:
-    AssemblyRegion(SimpleInterval const &activeRegionLoc, std::vector<ActivityProfileState> supportingStates, bool isActive, int extension);
+    AssemblyRegion(SimpleInterval const &activeRegionLoc, std::vector<ActivityProfileState> supportingStates, bool isActive, int extension, sam_hdr_t * header);
 
     /**
      * Simple interface to create an assembly region that isActive without any profile state

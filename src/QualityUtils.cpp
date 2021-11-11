@@ -5,21 +5,26 @@
 #include "QualityUtils.h"
 #include "Mutect2Utils.h"
 #include <cmath>
+#include <assert.h>
 
 double QualityUtils::qualToErrorProbCache[255] {0};
 
-uint8_t QualityUtils::errorProbToQual(double prob, uint8_t maxQual) {
-    Mutect2Utils::validateArg(Mutect2Utils::goodProbability(prob), "errorRate must be good probability");
-    double d = std::round(-10.0*std::log10(prob));
-    return boundQual((int)d, maxQual);
+uint8_t QualityUtils::errorProbToQual(double errorRate, uint8_t maxQual)
+{
+    assert(errorRate >= 0.0 && errorRate <= 1.0);
+    double d = round(-10.0 * log10(errorRate));
+    int qual = std::isinf(d) ? INT32_MAX : (int)d;   // if d is infinity, (int)d will be -2147483647
+
+    return boundQual(qual, maxQual);
 }
 
 uint8_t QualityUtils::boundQual(int qual, uint8_t maxQual) {
     return (uint8_t)(std::max(std::min(qual, maxQual & 0xff), 1) & 0xff);
 }
 
-uint8_t QualityUtils::errorProbToQual(double errorRate) {
-    return errorProbToQual(errorRate, 93);
+uint8_t QualityUtils::errorProbToQual(double errorRate)
+{
+    return errorProbToQual(errorRate, MAX_SAM_QUAL_SCORE);
 }
 
 void QualityUtils::initial() {

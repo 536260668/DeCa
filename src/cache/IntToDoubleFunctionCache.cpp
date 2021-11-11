@@ -5,6 +5,7 @@
 #include "IntToDoubleFunctionCache.h"
 #include "Mutect2Utils.h"
 #include <cmath>
+#include <cstring>
 
 double IntToDoubleFunctionCache::get(int i) {
     Mutect2Utils::validateArg(i >= 0, "Cache doesn't apply to negative number");

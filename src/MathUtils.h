@@ -5,6 +5,7 @@
 #ifndef MUTECT2CPP_MASTER_MATHUTILS_H
 #define MUTECT2CPP_MASTER_MATHUTILS_H
 
+#include <vector>
 #include "cache/DigammaCache.h"
 #include "cache/Log10FactorialCache.h"
 
@@ -21,6 +22,17 @@ public:
     static double log10Factorial(int n);
 
     static double fastBernoulliEntropy(double p);
+
+    /**
+     * Calculate f(x) = Normal(x | mu = mean, sigma = sd)
+     * @param mean the desired mean of the Normal distribution
+     * @param sd the desired standard deviation of the Normal distribution
+     * @param x the value to evaluate
+     * @return a well-formed double
+     */
+    static double normalDistribution(double mean, double sd, double x);
+
+    static std::vector<double> * normalizeSumToZero(std::vector<double> * array);
 };
 
 
