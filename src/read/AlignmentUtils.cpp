@@ -38,7 +38,7 @@ bool AlignmentUtils::needsConsolidation(Cigar *c) {
     for(CigarElement cur : c->getCigarElements()) {
         if(cur.getLength() == 0 || lastOp == cur.getOperator())
             return true;
-        lastOp = cur.getOperator()
+        lastOp = cur.getOperator();
     }
     return false;
 }

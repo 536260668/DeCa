@@ -16,7 +16,7 @@ uint8_t *Haplotype::copyArray(uint8_t *base, int length) {
 Haplotype::Haplotype(uint8_t *bases, int length) : Allele(copyArray(bases, length), length, false){}
 
 void Haplotype::setCigar(Cigar *cigar) {
-    this->cigar = *AlignmentUtils::consolidateCigar(&cigar);
+    this->cigar = *AlignmentUtils::consolidateCigar(cigar);
     Mutect2Utils::validateArg(this->cigar.getReadLength() == getLength(), "Read length is not equal to the read length of the cigar");
 }
 

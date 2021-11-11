@@ -1,0 +1,8 @@
+include_directories("${PROJECT_SOURCE_DIR}/src")
+include_directories("${PROJECT_SOURCE_DIR}/src/cache")
+include_directories("${PROJECT_SOURCE_DIR}/src/cigar")
+include_directories("${PROJECT_SOURCE_DIR}/src/haplotype")
+include_directories("${PROJECT_SOURCE_DIR}/src/path")
+include_directories("${PROJECT_SOURCE_DIR}/src/read")
+aux_source_directory(. DIR_LIB_SRCS)
+add_library(GraphFunctions ${DIR_LIB_SRCS} ./set/ArraySet.cpp ./BaseGraph/DFS_CycleDetect.cpp ./BaseGraph/DirectedEdgeContainer.cpp ./BaseGraph/DirectedSpecifics.cpp ./BaseGraph/Specifics.cpp)
