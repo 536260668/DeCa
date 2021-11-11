@@ -5,6 +5,7 @@
 #ifndef MUTECT2CPP_MASTER_PATH_H
 #define MUTECT2CPP_MASTER_PATH_H
 
+#include <cstring>
 #include <vector>
 #include "graph/BaseGraph/DirectedSpecifics.h"
 #include "Mutect2Utils.h"

@@ -28,7 +28,7 @@ add_executable(Mutect2Cpp_master ${DIR_SRCS})
 
 
 # counterpart of gcc -L
-target_link_libraries(Mutect2Cpp_master ${PROJECT_SOURCE_DIR}/../htslib/libhts.dylib)
+target_link_libraries(Mutect2Cpp_master ${PROJECT_SOURCE_DIR}/../htslib/libhts.so)
 target_link_libraries(Mutect2Cpp_master CigarFunctions)
 target_link_libraries(Mutect2Cpp_master ReadFunctions)
 target_link_libraries(Mutect2Cpp_master CacheFunctions)

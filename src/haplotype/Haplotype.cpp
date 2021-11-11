@@ -2,6 +2,7 @@
 // Created by 梦想家xixi on 2021/11/9.
 //
 
+#include <cstring>
 #include "Haplotype.h"
 #include "read/AlignmentUtils.h"
 

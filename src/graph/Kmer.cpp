@@ -5,6 +5,7 @@
 #include "Kmer.h"
 #include "Mutect2Utils.h"
 #include <iostream>
+#include <cstring>
 
 Kmer::Kmer(uint8_t *kmer, const int length)  : bases(kmer), start(0), length(length){
     Mutect2Utils::validateArg(start >= 0, "start must be >= 0");

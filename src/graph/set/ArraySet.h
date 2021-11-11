@@ -6,6 +6,7 @@
 #define MUTECT2CPP_MASTER_ARRAYSET_H
 
 #include <vector>
+#include <algorithm>
 template<class T>
 class ArraySet {
 private:

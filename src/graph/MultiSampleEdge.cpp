@@ -4,6 +4,7 @@
 
 #include "MultiSampleEdge.h"
 #include "Mutect2Utils.h"
+#include <stdexcept>
 
 MultiSampleEdge::MultiSampleEdge(bool isRef, int multiplicity, int singleSampleCapacity) : BaseEdge(isRef, multiplicity), singleSampleCapacity(singleSampleCapacity){
     Mutect2Utils::validateArg(singleSampleCapacity > 0, "singleSampleCapacity must be > 0");

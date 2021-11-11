@@ -2,6 +2,7 @@
 // Created by 梦想家xixi on 2021/11/8.
 //
 
+#include <cstring>
 #include "Allele.h"
 #include <stdexcept>
 #include "StringUtils.h"
@@ -22,8 +23,8 @@ Allele Allele::REF_N(new uint8_t[1]{'N'}, 1, true);
 Allele Allele::ALT_N(new uint8_t[1]{'N'}, 1, false);
 Allele Allele::SPAN_DEL(new uint8_t[1]{'*'}, 1, false);
 Allele Allele::NO_CALL(new uint8_t[1]{'.'}, 1, false);
-Allele Allele::NON_REF_ALLELE(new uint8_t[]{'<', 'N', 'O', 'N', '_', 'R', 'E', 'F', '>'}, 9, false);
-Allele Allele::UNSPECIFIED_ALTERNATE_ALLELE(new uint8_t[]{'<', '*', '>'}, 3, true);
+Allele Allele::NON_REF_ALLELE(new uint8_t[9]{'<', 'N', 'O', 'N', '_', 'R', 'E', 'F', '>'}, 9, false);
+Allele Allele::UNSPECIFIED_ALTERNATE_ALLELE(new uint8_t[3]{'<', '*', '>'}, 3, true);
 
 Allele::Allele(uint8_t *bases, int length, bool isRef) : isRef(false), bases(nullptr), length(0){
     if(wouldBeNullAllele(bases, length)) {
