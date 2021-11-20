@@ -29,3 +29,15 @@ BaseEdge BaseEdge::add(BaseEdge &edge) {
     return *this;
 }
 
+BaseEdge *BaseEdge::makeOREdge(std::vector<BaseEdge *> edges, int multiplicity) {
+    Mutect2Utils::validateArg(!edges.empty(), "have no edge");
+    bool anyRef = false;
+    for(BaseEdge* edge : edges) {
+        if(edge->getIsRef()) {
+            anyRef = true;
+            break;
+        }
+    }
+    return new BaseEdge(anyRef, multiplicity);
+}
+

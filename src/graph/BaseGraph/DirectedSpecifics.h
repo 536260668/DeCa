@@ -8,14 +8,22 @@
 #include "Specifics.h"
 #include "Mutect2Utils.h"
 #include "DirectedEdgeContainer.h"
+#include "BaseGraphIterator.h"
 #include <stdexcept>
 #include <string>
+#include <deque>
 #include <map>
 #include <set>
 
 static const std::string NOT_IN_DIRECTED_GRAPH = "no such operation in a directed graph";
 
 static const std::string LOOPS_NOT_ALLOWED = "loops not allowed";
+
+
+
+template<class T, class E>
+class BaseGraphIterator;
+
 
 template<class V>
 class IntrusiveEdge{
@@ -42,7 +50,6 @@ private:
         Mutect2Utils::validateArg(allVector.find(vertex) != allVector.end(), "no such vertex in graph");
         return vertexMapDirected.find(vertex)->second;
     }
-
 
 
     bool allowingLoops;
@@ -241,6 +248,45 @@ public:
         }
     }
 
+    E* removeEdge(V* sourceVertex, V* targetVertex) {
+        E* e = getEdge(sourceVertex, targetVertex);
+
+        if(e != nullptr) {
+            removeEdgeFromTouchingVertices(e);
+            edgeMap.erase(e);
+        }
+        return e;
+    }
+
+    E* addEdge(V* sourceVertex, V* targetVertex) {
+        assertVertexExist(sourceVertex);
+        assertVertexExist(targetVertex);
+        if(!allowingMultipleEdges
+           && containsEdge(sourceVertex, targetVertex)) {
+            return nullptr;
+        }
+        if (!allowingLoops && sourceVertex == targetVertex) {
+            throw std::invalid_argument(LOOPS_NOT_ALLOWED);
+        }
+        E* e = createEdge(sourceVertex, targetVertex);
+        if(containsEdge(e)) {
+            return nullptr;
+        } else {
+            edgeMap.insert(std::pair<E*, IntrusiveEdge<V>>(e, IntrusiveEdge<V>(sourceVertex, targetVertex)));
+            addEdgeToTouchingVertices(e);
+            return e;
+        }
+
+    }
+
+    bool containsEdge(V* sourceVertex, V* targetVertex) {
+        return getEdge(sourceVertex, targetVertex) != nullptr;
+    }
+
+    virtual E* createEdge(V* sourceVertex, V* targetVertex) {
+        return new E();
+    }
+
     virtual bool removeVertex(V *v) {
         if(containsVertex(v)) {
             ArraySet<E*> touchingEdgesList = edgesof(v);
@@ -275,6 +321,261 @@ public:
         return modified;
     }
 
+    bool isRefSink(V* v) {
+        Mutect2Utils::validateArg(v != nullptr, "Attempting to pull sequence from a null vertex.");
+
+        for(E* e : outgoingEdgesOf(v)){
+            if(e->getIsRef())
+                return false;
+        }
+
+        for(E* e : incomingEdgesOf(v)){
+            if(e->getIsRef())
+                return true;
+        }
+
+        return getVertexSet().size() == 1;
+    }
+
+    E* incomingEdgeOf(V* v) {
+        Mutect2Utils::validateArg(v, "Null is not allowed there");
+        ArraySet<E*> edgesSet = incomingEdgesOf(v);
+        Mutect2Utils::validateArg(edgesSet.size() <= 1, "Cannot get a single incoming edge for a vertex with multiple incoming edges");
+        return edgesSet.empty() ? nullptr : *edgesSet.begin();
+    }
+
+    E* outgoingEdgeOf(V* v) {
+        Mutect2Utils::validateArg(v, "Null is not allowed there");
+        ArraySet<E*> edgesSet = outgoingEdgesOf(v);
+        Mutect2Utils::validateArg(edgesSet.size() <= 1, "Cannot get a single incoming edge for a vertex with multiple incoming edges");
+        return edgesSet.empty() ? nullptr : *edgesSet.begin();
+    }
+
+    V* getNextReferenceVertex(V* v, bool allowNonRefPaths, E* blacklistedEdge) {
+        if(v == nullptr)
+            return nullptr;
+        ArraySet<E*> outgoingEdges = outgoingEdgesOf(v);
+
+        if(outgoingEdges.empty())
+            return nullptr;
+
+        for(E* edgeToTest : outgoingEdges) {
+            if(edgeToTest->getIsRef()) {
+                return getEdgeTarget(edgeToTest);
+            }
+        }
+
+        if(!allowNonRefPaths)
+            return nullptr;
+
+        std::vector<E*> edges;
+        for(E* edgeToTest : outgoingEdges) {
+            if(edgeToTest == blacklistedEdge) {
+                edges.template emplace_back(edgeToTest);
+            }
+            if(edges.size() > 1)
+                break;
+        }
+        return edges.size() == 1 ? getEdgeTarget(edges.at(0)) : nullptr;
+    }
+
+    V* getPrevReferenceVertex(V* v) {
+        if(v == nullptr)
+            return nullptr;
+        ArraySet<E*> edges = incomingEdgesOf(v);
+        std::vector<V*> allVertexs;
+        for(E* edge : edges) {
+            V* v = getEdgeSource(edge);
+            if(isReferenceNode(v))
+                allVertexs.template emplace_back(v);
+        }
+        return allVertexs.size() > 0 ? allVertexs.at(0) : nullptr;
+    }
+
+    bool isReferenceNode(V* v) {
+        Mutect2Utils::validateArg(v != nullptr, "Attempting to test a null vertex.");
+        for(E* edge : edgesof(v)) {
+            if(edge->getIsRef()) {
+                return true;
+            }
+        }
+        return getVertexSet().size() == 1;
+    }
+
+    V* getReferenceSourceVertex() {
+        for(V* vertex : getVertexSet()) {
+            if(isRefSource(vertex))
+                return vertex;
+        }
+        return nullptr;
+    }
+
+    V* getReferenceSinkVertex() {
+        for(V* vertex : getVertexSet()) {
+            if(isRefSink(vertex))
+                return vertex;
+        }
+        return nullptr;
+    }
+
+
+    /**
+     * Remove all vertices in the graph that aren't on a path from the reference source vertex to the reference sink vertex
+     *
+     * More aggressive reference pruning algorithm than removeVerticesNotConnectedToRefRegardlessOfEdgeDirection,
+     * as it requires vertices to not only be connected by a series of directed edges but also prunes away
+     * paths that do not also meet eventually with the reference sink vertex
+     */
+    void removePathsNotConnectedToRef() {
+        if (getReferenceSourceVertex() == nullptr || getReferenceSinkVertex() == nullptr) {
+            throw std::invalid_argument("Graph must have ref source and sink vertices");
+        }
+        ArraySet<V*> onPathFromRefSource;
+        BaseGraphIterator<V, E> sourceIter = BaseGraphIterator<V, E>(this, getReferenceSourceVertex(), false, true);
+        while(sourceIter.hasNext()) {
+            onPathFromRefSource.insert(sourceIter.next());
+        }
+        ArraySet<V*> onPathFromRefSink;
+        BaseGraphIterator<V, E> sinkIter = BaseGraphIterator<V, E>(this, getReferenceSinkVertex(), true, false);
+        while(sinkIter.hasNext()) {
+            onPathFromRefSink.insert(sinkIter.next());
+        }
+        ArraySet<V*> allVertex = getVertexSet();
+        ArraySet<V*> verticesToRemove;
+        for(V* v : allVertex) {
+            verticesToRemove.insert(v);
+        }
+        for(V* v : onPathFromRefSource) {
+            if(onPathFromRefSink.find(v) == onPathFromRefSink.end()) {
+                onPathFromRefSource.erase(v);
+            }
+        }
+        for(V* v : onPathFromRefSource) {
+            verticesToRemove.erase(v);
+        }
+
+        std::vector<V*> vertices;
+        for(V* v : verticesToRemove) {
+            vertices.emplace_back(v);
+        }
+        removeAllVertices(vertices);
+
+        if ( getSinks().size() > 1 )
+            throw std::length_error("Should have eliminated all but the reference sink");
+
+        if ( getSources().size() > 1 )
+            throw std::length_error("hould have eliminated all but the reference source");
+    }
+
+    ArraySet<V*> incomingVerticesOf(V* v) {
+        Mutect2Utils::validateArg(v, "Null is not allowed there.");
+        ArraySet<V*> ret;
+        for(E* e : incomingEdgesOf(v)) {
+            ret.insert(getEdgeSource(e));
+        }
+        return ret;
+    }
+
+    ArraySet<V*> outgoingVerticesOf(V* v) {
+        Mutect2Utils::validateArg(v, "Null is not allowed there.");
+        ArraySet<V*> ret;
+        for(E* e : outgoingEdgesOf(v)) {
+            ret.insert(getEdgeTarget(e));
+        }
+        return ret;
+    }
+
+    ArraySet<V*> getSinks() {
+        ArraySet<V*> ret;
+        for(V* v : getVertexSet()) {
+            if(isSink(v))
+                ret.insert(v);
+        }
+        return ret;
+    }
+
+    ArraySet<V*> getSources() {
+        ArraySet<V*> ret;
+        for(V* v : getVertexSet()) {
+            if(isSource(v))
+                ret.insert(v);
+        }
+        return ret;
+    }
+
+    void cleanNonRefPaths() {
+        if(getReferenceSourceVertex() == nullptr || getReferenceSinkVertex() == nullptr ) {
+            return;
+        }
+        std::set<E*> edgesToCheck;
+        for(E* e : incomingEdgesOf(getReferenceSourceVertex())) {
+            edgesToCheck.insert(e);
+        }
+        while(!edgesToCheck.empty()) {
+            E* e = *(edgesToCheck.begin());
+            if(!e->getIsRef()) {
+                for(E* e : incomingEdgesOf(getEdgeSource(e))) {
+                    edgesToCheck.insert(e);
+                }
+                removeEdge(e);
+            }
+            edgesToCheck.erase(e);
+        }
+
+        for(E* e : outgoingEdgesOf(getReferenceSinkVertex())) {
+            edgesToCheck.insert(e);
+        }
+        while(!edgesToCheck.empty()) {
+            E* e = *(edgesToCheck.begin());
+            if(!e->getIsRef()) {
+                for(E* e : outgoingEdgesOf(getEdgeTarget(e))) {
+                    edgesToCheck.insert(e);
+                }
+                removeEdge(e);
+            }
+            edgesToCheck.erase(e);
+        }
+
+        Specifics<V,E>::removeSingletonOrphanVertices();
+    }
+
+
+    bool isRefSource(V *v){
+        return Specifics<V,E>::isRefSource(v);
+    }
+
+    void removeVerticesNotConnectedToRefRegardlessOfEdgeDirection() {
+        ArraySet<V*> toRemove = getVertexSet();
+        V* refV = getReferenceSourceVertex();
+        if(refV != nullptr) {
+            BaseGraphIterator<V, E> iter = BaseGraphIterator<V, E>(this, refV, true, true);
+            while(iter.hasNext()) {
+                toRemove.erase(iter.next());
+            }
+        }
+        removeAllVertices(toRemove.getArraySet());
+    }
+
+    void addOrUpdateEdge(V* source, V* target, E* e) {
+        Mutect2Utils::validateArg(source, "source");
+        Mutect2Utils::validateArg(target, "target");
+        Mutect2Utils::validateArg(e, "edge");
+
+        E* prev = getEdge(source, target);
+        if(prev != nullptr) {
+            prev->add(*e);
+        } else {
+            addEdge(source, target, e);
+        }
+    }
+
+    ArraySet<E*> getEdgeSet() {
+        ArraySet<E*> ret;
+        for(std::pair<E*, IntrusiveEdge<V>> edgePair : edgeMap) {
+            ret.insert(edgePair.first);
+        }
+        return ret;
+    }
 };
 
 

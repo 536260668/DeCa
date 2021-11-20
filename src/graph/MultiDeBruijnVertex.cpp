@@ -37,3 +37,11 @@ uint8_t *MultiDeBruijnVertex::getSuffixAsArray() const {
     res[0] = getSuffix();
     return res;
 }
+
+MultiDeBruijnVertex::MultiDeBruijnVertex(uint8_t *sequence, int length) : BaseVertex(sequence, length) , mergeIdenticalNodes(false){
+    hashCode = mergeIdenticalNodes ? BaseVertex::getHashCode() : (long) this;
+}
+
+int MultiDeBruijnVertex::getAdditionalLength(bool source) {
+    return source ? getLength() : 1;
+}

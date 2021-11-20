@@ -60,7 +60,7 @@ public:
     static Allele* create(uint8_t base, bool isRef);
     static Allele* create(uint8_t base);
     static Allele* extend(Allele * left, uint8_t * right, int length);
-    bool getIsNoCall() const {return isNoCall;}
+    bool getIsNoCall() const  {return isNoCall;}
     bool getIsCalled() const {return !isNoCall;}
     bool getIsReference() const {return isRef;}
     bool getIsNonReference() const {return !isRef;}
@@ -70,6 +70,7 @@ public:
     uint8_t* getBases() const {return bases;}
     bool operator<(const Allele & other) const;
     int getLength() const;
+    int getBasesLength() const {return length;}
 
 protected:
     Allele(uint8_t* bases, int length, bool isRef);

@@ -143,3 +143,5 @@ std::ostream & operator<<(std::ostream &os, const SimpleInterval& simpleInterval
     return os;
 }
 
+SimpleInterval::SimpleInterval(Locatable *pLocatable) : contig(pLocatable->getContig()), start(pLocatable->getStart()), end(pLocatable->getEnd()){}
+

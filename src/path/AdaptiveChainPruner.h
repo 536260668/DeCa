@@ -76,6 +76,7 @@ private:
             for(viter = newchains.begin() + 100; viter != newchains.end(); viter++) {
                 result.insert(*viter);
             }
+            return result;
         }
     }
 

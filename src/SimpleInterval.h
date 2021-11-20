@@ -160,5 +160,7 @@ public:
     //TODO:SimpleInterval* expandWithinContig(int padding, SAMSequenceDictionary sequenceDictionary);
 
     friend std::ostream & operator<<(std::ostream &os, const SimpleInterval& simpleInterval);
+
+    SimpleInterval(Locatable *pLocatable);
 };
 #endif //MUTECT2CPP_MASTER_SIMPLEINTERVAL_H

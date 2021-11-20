@@ -74,3 +74,15 @@ bool BaseVertex::hasAmbiguousSequence() {
     }
     return false;
 }
+
+bool BaseVertex::seqEquals(BaseVertex *other) {
+    if(length != other->getLength())
+        return false;
+
+    uint8_t * otherSeq = other->getSequence();
+    for(int i = 0; i < length; i++){
+        if(otherSeq[i] != sequence[i])
+            return false;
+    }
+    return true;
+}

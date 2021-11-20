@@ -13,7 +13,7 @@
 class Haplotype : public Allele{
 private:
     Locatable* genomeLocation;
-    Cigar cigar;
+    Cigar* cigar;
     int alignmentStartHapwrtRef;
     double score;
     static uint8_t * copyArray(uint8_t * base, int length);
@@ -46,6 +46,8 @@ public:
     */
     Haplotype(uint8_t* bases, bool isRef, int length, int alignmentStartHapwrtRef, Cigar * cigar);
 
+    Haplotype(uint8_t* bases, int length, Locatable* loc);
+
     /**
     * Set the cigar of this haplotype to cigar.
     *
@@ -54,6 +56,37 @@ public:
     * @param cigar a cigar whose readLength == length()
     */
      void setCigar(Cigar *cigar);
+
+    /**
+    * Create a new Haplotype derived from this one that exactly spans the provided location
+    *
+    * Note that this haplotype must have a contain a genome loc for this operation to be successful.  If no
+    * GenomeLoc is contained than @throws an IllegalStateException
+    *
+    * Also loc must be fully contained within this Haplotype's genomeLoc.  If not an IllegalArgumentException is
+    * thrown.
+    *
+    * @param loc a location completely contained within this Haplotype's location
+    * @return a new Haplotype within only the bases spanning the provided location, or null for some reason the haplotype would be malformed if
+    */
+     Haplotype* trim(Locatable* loc);
+
+    /**
+    * Get the cigar for this haplotype.  Note that the cigar is guaranteed to be consolidated
+    * in that multiple adjacent equal operates will have been merged
+    * @return the cigar of this haplotype
+    */
+     Cigar* getCigar();
+
+     void setGenomeLocation(Locatable* genomeLocation);
+
+     void setScore(double score);
+
+     void setAlignmentStartHapwrtRef(int alignmentStartHapwrtRef) {
+         this->alignmentStartHapwrtRef = alignmentStartHapwrtRef;
+     }
+
+    int getAlignmentStartHapwrtRef() const;
 };
 
 

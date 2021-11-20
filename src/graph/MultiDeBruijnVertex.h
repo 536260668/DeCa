@@ -22,6 +22,8 @@ public:
     */
     MultiDeBruijnVertex(uint8_t* sequence, int length, bool mergeIdenticalNodes);
 
+    MultiDeBruijnVertex(uint8_t* sequence, int length);
+
     ~MultiDeBruijnVertex() override = default;
 
     bool operator==(const MultiDeBruijnVertex &other) const;
@@ -37,6 +39,8 @@ public:
     uint8_t * getAdditionalSequence(bool source) override;
 
     uint8_t *getSuffixAsArray() const;
+
+    int getAdditionalLength(bool source);
 };
 
 

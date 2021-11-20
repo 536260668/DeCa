@@ -11,8 +11,11 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <deque>
 #include "Kmer.h"
 #include "BaseGraph/DirectedSpecifics.h"
+#include "DanglingChainMergeHelper.h"
+#include "SeqGraph.h"
 
 typedef struct{
     std::string name;
@@ -23,9 +26,20 @@ typedef struct{
     bool isRef;
 }SequenceForKmers;
 
+enum TraversalDirection {
+    downwards,
+    upwards
+};
+
 class ReadThreadingGraph : public DirectedSpecifics<MultiDeBruijnVertex, MultiSampleEdge>{
 protected:
     int kmerSize;
+
+    DanglingChainMergeHelper* generateCigarAgainstDownwardsReferencePath(MultiDeBruijnVertex* vertex, int pruneFactor, int minDanglingBranchLength, bool recoverAll);
+
+    DanglingChainMergeHelper* generateCigarAgainstUpwardsReferencePath(MultiDeBruijnVertex* vertex, int pruneFactor, int minDanglingBranchLength, bool recoverAll);
+
+    uint8_t * getBasesForPath(std::vector<MultiDeBruijnVertex*> path, int & length, bool expandSource);
 
 private:
     int numPruningSamples;
@@ -43,6 +57,10 @@ private:
     bool increaseCountsThroughBranches = false;
 
     static const bool INCREASE_COUNTS_BACKWARDS = true;
+
+    static const int MAX_CIGAR_COMPLEXITY = 3;
+
+    int maxMismatchesInDanglingHead = -1;
     /**
      * Determines whether a base can safely be used for assembly.
      * Currently disallows Ns and/or those with low quality
@@ -115,6 +133,48 @@ private:
 
      void increaseCountsInMatchedKmers(SequenceForKmers & seqForKmers, MultiDeBruijnVertex* vertex, uint8_t* originalKmer, int offset);
 
+    /**
+    * Attempt to attach vertex with out-degree == 0 to the graph
+    *
+    * @param vertex the vertex to recover
+    * @param pruneFactor  the prune factor to use in ignoring chain pieces
+    * @param minDanglingBranchLength the minimum length of a dangling branch for us to try to merge it
+    * @param aligner
+    * @return 1 if we successfully recovered the vertex and 0 otherwise
+    */
+     int recoverDanglingTail(MultiDeBruijnVertex* v, int pruneFactor, int minDanglingBranchLength, bool recoverAll);
+
+
+    std::deque<MultiDeBruijnVertex*> findPathUpwardsToLowestCommonAncestor(MultiDeBruijnVertex* vertex, int pruneFactor, bool giveUpAtBranch);
+
+    bool hasIncidentRefEdge(MultiDeBruijnVertex* v);
+
+    MultiSampleEdge* getHeaviestIncomingEdge(MultiDeBruijnVertex* v);
+
+    MultiSampleEdge* getHeaviestOutgoingEdge(MultiDeBruijnVertex* v);
+
+    std::vector<MultiDeBruijnVertex*> getReferencePath(MultiDeBruijnVertex* start, TraversalDirection direction, MultiSampleEdge* blacklistedEdge);
+
+    /**
+     * Attempt to attach vertex with in-degree == 0, or a vertex on its path, to the graph
+     *
+     * @param vertex the vertex to recover
+     * @param pruneFactor  the prune factor to use in ignoring chain pieces
+     * @param minDanglingBranchLength the minimum length of a dangling branch for us to try to merge it
+     * @param recoverAll recover even branches with forks
+     * @param aligner
+     * @return 1 if we successfully recovered a vertex and 0 otherwise
+     */
+    int recoverDanglingHead(MultiDeBruijnVertex* v, int pruneFactor, int minDanglingBranchLength, bool recoverAll);
+
+    std::deque<MultiDeBruijnVertex*> findPathDownwardsToHighestCommonDescendantOfReference(MultiDeBruijnVertex* vertex, int pruneFactor, bool giveUpAtBranch);
+
+    int bestPrefixMatch(const uint8_t* path1, const uint8_t* path2, int maxIndex);
+
+    int getMaxMismatches(int lengthOfDanglingBranch) const;
+
+    bool extendDanglingPathAgainstReference(DanglingChainMergeHelper* danglingHeadMergeResult, int numNodesToExtend);
+
 public:
     ReadThreadingGraph(uint8_t minBaseQualityToUseInAssembly, int kmerSize, bool alreadyBuilt, Kmer ref, int numPruningSamples) : minBaseQualityToUseInAssembly(minBaseQualityToUseInAssembly), kmerSize(kmerSize), alreadyBuilt(
             false), refSource(ref), numPruningSamples(numPruningSamples){}
@@ -143,12 +203,42 @@ public:
      */
      void addRead(SAMRecord read);
 
-     bool removeVertex(MultiDeBruijnVertex* V);
+     bool removeVertex(MultiDeBruijnVertex* V) override;
 
      void setPending();
 
 
-    void removeSingletonOrphanVertices();
+    void removeSingletonOrphanVertices() override;
+
+    /**
+     * Try to recover dangling tails
+     *
+     * @param pruneFactor  the prune factor to use in ignoring chain pieces
+     * @param minDanglingBranchLength the minimum length of a dangling branch for us to try to merge it
+     * @param recoverAll recover even branches with forks
+     * @param aligner
+     */
+    void recoverDanglingTails(int pruneFactor, int minDanglingBranchLength, bool recoverAll);
+
+    static bool cigarIsOkayToMerge(Cigar* cigar, bool requireFirstElementM, bool requireLastElementM);
+
+    void recoverDanglingHeads(int pruneFactor, int minDanglingBranchLength, bool recoverAll);
+
+    /**
+     * Actually merge the dangling tail if possible
+     *
+     * @param danglingTailMergeResult   the result from generating a Cigar for the dangling tail against the reference
+     * @return 1 if merge was successful, 0 otherwise
+     */
+    int mergeDanglingTail(DanglingChainMergeHelper* danglingTailMergeResult);
+
+    static int longestSuffixMatch(uint8_t* seq, int seqLength, uint8_t* kmer, int kmerLength, int seqStart);
+
+    int mergeDanglingHead(DanglingChainMergeHelper* danglingTailMergeResult);
+
+    MultiSampleEdge* createEdge(MultiDeBruijnVertex*, MultiDeBruijnVertex*) override;
+
+    SeqGraph* toSequenceGraph();
 };
 
 

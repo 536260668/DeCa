@@ -39,12 +39,15 @@ public:
     }
     void erase(T t) {
         typename std::vector<T>::iterator iter = std::find(arraySet.begin(), arraySet.end(), t);
-        arraySet.erase(iter);
+        if(iter != arraySet.end())
+            arraySet.erase(iter);
     }
     void clear() {arraySet.clear();}
     bool empty() {return arraySet.size() == 0;};
 
     T  operator[](int i) {return arraySet[i];}
+
+    std::vector<T> & getArraySet() {return arraySet;}
 };
 
 

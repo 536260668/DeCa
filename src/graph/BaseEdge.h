@@ -23,11 +23,11 @@ public:
      */
     int getMultiplicity() const {return multiplicity;}
 
-    virtual /**
+     /**
      * Increase the multiplicity of this edge by incr
      * @param incr the change in this multiplicity, must be >= 0
      */
-    void incMultiplicity(int incr);
+     virtual void incMultiplicity(int incr);
 
     /**
      * Set the multiplicity of this edge to value
@@ -57,6 +57,8 @@ public:
      * @return this
      */
     BaseEdge add(BaseEdge &edge);
+
+    static BaseEdge* makeOREdge(std::vector<BaseEdge*> edges, int multiplicity);
 };
 
 

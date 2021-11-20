@@ -66,6 +66,8 @@ public:
 
     bool hasAmbiguousSequence();
 
+    bool seqEquals(BaseVertex* other);
+
     virtual uint8_t * getAdditionalSequence(bool source) {return getSequence();}
 };
 

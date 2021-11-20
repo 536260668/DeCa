@@ -21,6 +21,8 @@ public:
     static bool goodProbability(double result);
     static double logLikelihoodRatio(int nRef, std::vector<uint8_t> altQuals, int repeatFactor);
     static double logLikelihoodRatio(int refCount, int altCount, double errorProbability);
+    static int lastIndexOf(const uint8_t* reference, int refLength, const uint8_t* query, int queryLength);
+    static uint8_t* copyOfRange(uint8_t* original, int ,int from, int to, int & length);
 };
 
 #endif //MUTECT2CPP_MASTER_MUTECT2UTILS_H
