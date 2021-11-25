@@ -12,6 +12,7 @@
 #include <stdexcept>
 #include <string>
 #include <deque>
+#include <list>
 #include <map>
 #include <set>
 
@@ -234,7 +235,7 @@ public:
     }
 
     uint8_t * getAdditionalSequence(V* v) {
-        return v->getAdditionalSequence();
+        return v->getAdditionalSequence(isSource(v));
     }
 
     bool removeEdge(E* e) {
@@ -312,7 +313,43 @@ public:
         return modified;
     }
 
+    bool removeAllEdges(std::list<E*> edges) {
+        bool modified = false;
+        for(auto e : edges) {
+            modified |= removeEdge(e);
+        }
+
+        return modified;
+    }
+
+    bool removeAllEdges(std::set<E*> edges) {
+        bool modified = false;
+        for(auto e : edges) {
+            modified |= removeEdge(e);
+        }
+
+        return modified;
+    }
+
     bool removeAllVertices(std::vector<V*> vertices) {
+        bool modified = false;
+
+        for(V *v : vertices) {
+            modified |= removeVertex(v);
+        }
+        return modified;
+    }
+
+    bool removeAllVertices(std::list<V*> vertices) {
+        bool modified = false;
+
+        for(V *v : vertices) {
+            modified |= removeVertex(v);
+        }
+        return modified;
+    }
+
+    bool removeAllVertices(std::set<V*> vertices) {
         bool modified = false;
 
         for(V *v : vertices) {
@@ -575,6 +612,16 @@ public:
             ret.insert(edgePair.first);
         }
         return ret;
+    }
+
+    bool containsAllVertices(ArraySet<V*> & vertices) {
+        if(vertices.empty())
+            throw std::invalid_argument("null vertex");
+        for(V* v : vertices) {
+            if(!containsVertex(v))
+                return false;
+        }
+        return true;
     }
 };
 

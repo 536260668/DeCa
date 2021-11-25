@@ -10,6 +10,8 @@
 #include "utils/MergeTails.h"
 #include "utils/SharedSequenceMerger.h"
 #include "utils/SplitCommonSuffices.h"
+#include "utils/GraphUtils.h"
+
 
 BaseEdge *SeqGraph::createEdge(SeqVertex *sourceVertex, SeqVertex *targetVertrx) {
     return new BaseEdge(false, 1);
@@ -88,11 +90,7 @@ bool SeqGraph::mergeLinearChain(std::list<SeqVertex *> &linearChain) {
     for(BaseEdge* edge : DirectedSpecifics<SeqVertex, BaseEdge>::incomingEdgesOf(first)) {
         addEdge(getEdgeSource(edge), addedVertex, new BaseEdge(edge->getIsRef(), edge->getMultiplicity()));
     }
-    std::vector<SeqVertex*> removeVertex;
-    for(SeqVertex* v : linearChain) {
-        removeVertex.emplace_back(v);
-    }
-    DirectedSpecifics<SeqVertex, BaseEdge>::removeAllVertices(removeVertex);
+    DirectedSpecifics<SeqVertex, BaseEdge>::removeAllVertices(linearChain);
     return true;
 }
 
@@ -132,9 +130,10 @@ void SeqGraph::simplifyGraph(int maxCycles) {
             break;
         }
         if(i > 5) {
-            if(prevGraph != nullptr )
+            if(prevGraph != nullptr && GraphUtils::graphEquals(prevGraph, this))
                 break;
         }
+        prevGraph = new SeqGraph(*this);
     }
 }
 
@@ -147,3 +146,14 @@ bool SeqGraph::simplifyGraphOnce(int iteration) {
     didSomeWork |= zipLinearChains();
     return didSomeWork;
 }
+
+SeqGraph::SeqGraph(SeqGraph &seqGraph) : kmerSize(seqGraph.kmerSize), DirectedSpecifics<SeqVertex, BaseEdge>(){
+    vertexMapDirected = seqGraph.vertexMapDirected;
+    edgeMap = seqGraph.edgeMap;
+}
+
+SeqGraph *SeqGraph::clone() {
+    SeqGraph* ret = new SeqGraph(*this);
+    return ret;
+}
+

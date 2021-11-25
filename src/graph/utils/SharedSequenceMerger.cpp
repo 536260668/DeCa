@@ -58,7 +58,7 @@ bool SharedSequenceMerger::merge(SeqGraph *graph, SeqVertex *v) {
         }
         graph->removeAllVertices(prevs.getArraySet());
         graph->removeVertex(v);
-        graph->removeAllEdges(std::vector<BaseEdge*>(edgesToRemove.begin(), edgesToRemove.end()));
+        graph->removeAllEdges(edgesToRemove);
         return true;
     }
 }

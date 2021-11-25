@@ -22,7 +22,6 @@ private:
     // the graph from which this path originated
     DirectedSpecifics<T, E> graph;
 
-    int kmerSize;
 
 public:
     /**
@@ -30,7 +29,7 @@ public:
      * @param initialVertex the starting vertex of the path
      * @param graph the graph this path will follow through
      */
-    Path(T* initialVertex, DirectedSpecifics<T, E> graph, int kmerSize) :  lastVertex(lastVertex), graph(graph), kmerSize(kmerSize){
+    Path(T* initialVertex, DirectedSpecifics<T, E> graph) :  lastVertex(initialVertex), graph(graph){
         Mutect2Utils::validateArg(initialVertex, "initialVertex cannot be null");
         Mutect2Utils::validateArg(graph.containsVertex(initialVertex), "Vertex must be part of graph.");
     }
@@ -38,7 +37,7 @@ public:
     /**
      * Constructor that does not check arguments' validity i.e. doesn't check that edges are in order
      */
-    Path(std::vector<E*> edgesInOrder, T* lastVertex, DirectedSpecifics<T, E> graph, int kmerSize) : lastVertex(lastVertex), graph(graph), edgesInOrder(edgesInOrder), kmerSize(kmerSize){}
+    Path(std::vector<E*> edgesInOrder, T* lastVertex, DirectedSpecifics<T, E> graph) : lastVertex(lastVertex), graph(graph), edgesInOrder(edgesInOrder){}
 
     /**
      * Create a new Path extending p with edge
@@ -49,18 +48,18 @@ public:
      * @throws IllegalArgumentException if {@code p} or {@code edge} are {@code null}, or {@code edge} is
      * not part of {@code p}'s graph, or {@code edge} does not have as a source the last vertex in {@code p}.
      */
-     Path(Path<T, E> p, E* edge, int kmerSize) : graph(p.graph), lastVertex(p.graph.getEdgeTarget(edge)), kmerSize(kmerSize) {
-         Mutect2Utils::validateArg(edge, "Edge cannot be null");
-         Mutect2Utils::validateArg(p.graph.getEdgeTarget(edge) == p.lastVertex, "Edges added to path must be contiguous.");
-         for(typename std::vector<E*>::iterator iter = p.edgesInOrder.begin(); iter != p.edgesInOrder.end(); iter++) {
-             edgesInOrder.insert(*iter);
-         }
-         edgesInOrder.insert(edge);
-     }
+    Path(Path<T, E> p, E* edge) : graph(p.graph), lastVertex(p.graph.getEdgeTarget(edge)) {
+        Mutect2Utils::validateArg(edge, "Edge cannot be null");
+        Mutect2Utils::validateArg(p.graph.getEdgeSource(edge) == p.lastVertex, "Edges added to path must be contiguous.");
+        for(typename std::vector<E*>::iterator iter = p.edgesInOrder.begin(); iter != p.edgesInOrder.end(); iter++) {
+            edgesInOrder.template emplace_back(*iter);
+        }
+        edgesInOrder.template emplace_back(edge);
+    }
 
     int length() const {return edgesInOrder.size();}
 
-    Path(E* edge, Path<T,E> p, int kmerSize) : graph(p.graph), lastVertex(p.lastVertex), kmerSize(kmerSize){
+    Path(E* edge, Path<T,E> p) : graph(p.graph), lastVertex(p.lastVertex){
          Mutect2Utils::validateArg(edge, "Edge cannot be null");
          Mutect2Utils::validateArg(p.graph.containsEdge(edge), "Graph must contain edge ");
          Mutect2Utils::validateArg(p.graph.getEdgeTarget(edge) == p.getFirstVertex(), "Edges added to path must be contiguous");
@@ -86,8 +85,6 @@ public:
 
     E* getLastEdge() {return edgesInOrder[edgesInOrder.size()-1];}
 
-    T* getLastVertex() {return lastVertex;}
-
     std::vector<T*> getVertices() {
          std::vector<T*> res;
          res.emplace_back(getFirstVertex());
@@ -106,24 +103,36 @@ public:
      }
 
      //返回指针需要delete
-     uint8_t * getBases() {
+     uint8_t * getBases(int & reslength) {
          if(getEdges().empty()) {return graph.getAdditionalSequence(lastVertex);}
-
-         uint8_t * res;
-         uint8_t * bases = graph.getAdditionalSequence(graph.getEdgeSource(edgesInOrder[0]));
-         res = bases;
+         T* source = graph.getEdgeSource(edgesInOrder[0]);
+         uint8_t * bases = graph.getAdditionalSequence(source);
+         int basesLength = graph.isSource(source) ? source->getLength() : 1;
+         uint8_t * res = bases;
+         int length = basesLength;
+         int start = basesLength;
          for(int i = 0; i < edgesInOrder.size(); i++) {
-             uint8_t * tmp = new uint8_t[kmerSize+i+1];
-             memcpy(tmp, res, kmerSize+i);
-             delete[] bases;
-             bases = graph.getAdditionalSequence(graph.getEdgeTarget(edgesInOrder[i]));
-             memcpy(tmp+kmerSize+i, bases, 1);
-             delete[] res;
-             res = tmp;
+             T* target = graph.getEdgeTarget(edgesInOrder[i]);
+             if(length <= start) {
+                 length *= 2;
+                 uint8_t * tmp = new uint8_t[length];
+                 memcpy(tmp, res, start);
+                 delete[] res;
+                 res = tmp;
+             }
+             bases = graph.getAdditionalSequence(target);
+             basesLength = graph.isSource(target) ? target->getLength() : 1;
+             memcpy(res+start, bases, basesLength);
+             start += basesLength;
          }
-         delete[] bases;
-         return res;
+         uint8_t * tmp = new uint8_t[start];
+         memcpy(tmp, res, start);
+         delete[] res;
+         reslength = start;
+         return tmp;
      }
+
+    T* getLastVertex() {return lastVertex;}
 };
 
 #endif //MUTECT2CPP_MASTER_PATH_H

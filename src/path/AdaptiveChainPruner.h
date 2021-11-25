@@ -19,7 +19,7 @@ private:
     int maxUnprunedVariants;
 
 public:
-    AdaptiveChainPruner(const double initialErrorProbability, const double logOddsThreshold, const int maxUnprunedVariants, const int kmerSize) : ChainPruner<V, E>(kmerSize),
+    AdaptiveChainPruner(const double initialErrorProbability, const double logOddsThreshold, const int maxUnprunedVariants) : ChainPruner<V, E>(),
     initialErrorProbability(initialErrorProbability), logOddsThreshold(logOddsThreshold), maxUnprunedVariants(maxUnprunedVariants) {
         Mutect2Utils::validateArg(initialErrorProbability > 0, "Must have positive error probability");
     }

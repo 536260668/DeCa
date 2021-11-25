@@ -38,7 +38,7 @@ bool CommonSuffixSplitter::split(SeqGraph *graph, SeqVertex *v) {
         }
     }
     graph->removeAllVertices(toSplit.getArraySet());
-    graph->removeAllEdges(std::vector<BaseEdge*>(edgesToRemove.begin(), edgesToRemove.end()));
+    graph->removeAllEdges(edgesToRemove);
     return true;
 }
 

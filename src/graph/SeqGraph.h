@@ -59,6 +59,7 @@ public:
     int getKmerSize() const{return kmerSize;}
     BaseEdge* createEdge(SeqVertex* sourceVertex, SeqVertex* targetVertrx);
     SeqGraph(int kmer) : kmerSize(kmer), DirectedSpecifics<SeqVertex, BaseEdge>(){}
+    SeqGraph(SeqGraph & seqGraph);
 
     /**
      * Zip up all of the simple linear chains present in this graph.
@@ -81,6 +82,8 @@ public:
      void simplifyGraph();
 
     void simplifyGraph(int maxCycles);
+
+    SeqGraph* clone();
 
 };
 

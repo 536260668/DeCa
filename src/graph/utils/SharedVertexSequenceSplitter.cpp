@@ -25,7 +25,7 @@ SharedVertexSequenceSplitter::commonPrefixAndSuffixOfVertices(ArraySet<SeqVertex
     int prefixLength;
     uint8_t * prefix = Mutect2Utils::copyOfRange(kmer, length, 0, prefixLen, prefixLength);
     int suffixLength;
-    uint8_t * suffix = Mutect2Utils::copyOfRange(kmer, length, length = suffixLen, length, suffixLength);
+    uint8_t * suffix = Mutect2Utils::copyOfRange(kmer, length, length - suffixLen, length, suffixLength);
     return  new std::pair<SeqVertex *, SeqVertex *>(new SeqVertex(prefix, prefixLength), new SeqVertex(suffix, suffixLength));
 }
 
@@ -106,7 +106,11 @@ void SharedVertexSequenceSplitter::updateGraph(SeqVertex *top, SeqVertex *bot) {
     }
 
     outer->removeAllVertices(toSplits.getArraySet());
-    outer->removeAllEdges(std::vector<BaseEdge*>(edgesToRemove.begin(), edgesToRemove.end()));
+    std::vector<BaseEdge*> edgesToRemoveVector;
+    for(BaseEdge* baseEdge : edgesToRemove) {
+        edgesToRemoveVector.emplace_back(baseEdge);
+    }
+    outer->removeAllEdges(edgesToRemoveVector);
 
     for(SeqVertex* v : getNewMiddles()) {
         outer->addVertex(v);

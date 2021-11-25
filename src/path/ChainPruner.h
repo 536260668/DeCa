@@ -14,12 +14,9 @@
 
 template<class V, class E>
 class ChainPruner {
-private:
-    int kmerSize;
 public:
     ChainPruner() = default;
 
-    ChainPruner(int kmerSize) : kmerSize(kmerSize) {}
 
     void pruneLowWeightChains(DirectedSpecifics<V,E> & graph) {
         std::vector<Path<V, E>*> chains = findAllChains(graph);
@@ -75,7 +72,7 @@ private:
             edges.template emplace_back(nextEdge);
             lastVertex = graph.getEdgeTarget(nextEdge);
         }
-        return new Path<V,E>(edges, lastVertex, graph, kmerSize);
+        return new Path<V,E>(edges, lastVertex, graph);
     }
 
 protected:

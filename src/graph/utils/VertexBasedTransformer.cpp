@@ -20,6 +20,7 @@ bool VertexBasedTransformer::transformUntilComplete() {
                 break;
             }
         }
-        return didAtLeastOneTransform;
+
     }
+    return didAtLeastOneTransform;
 }

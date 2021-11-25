@@ -8,6 +8,7 @@
 #include <list>
 #include <set>
 #include "SeqVertex.h"
+#include "BaseEdge.h"
 #include "BaseGraph/DirectedSpecifics.h"
 
 class GraphUtils {
@@ -30,6 +31,30 @@ public:
         ArraySet<E*> edges2 = g2->getEdgeSet();
         if(vertices1.size() != vertices2.size() || edges1.size() != edges2.size())
             return false;
+        for(BaseVertex* v1 : vertices1) {
+            bool flag = false;
+            for(BaseVertex* v2 : vertices2) {
+                if(*v1 == *v2) {
+                    flag = true;
+                    break;
+                }
+            }
+            if(!flag) {
+                return false;
+            }
+        }
+        for(BaseEdge* edge1 : edges1) {
+            bool flag = false;
+            for(BaseEdge* edge2 : edges2) {
+                if(*g1->getEdgeSource(edge1) == *g2->getEdgeSource(edge2) && *g1->getEdgeTarget(edge1) == *g2->getEdgeTarget(edge2)) {
+                    flag = true;
+                    break;
+                }
+            }
+            if(!flag) {
+                return false;
+            }
+        }
         return true;
     };
 };
