@@ -3,3 +3,20 @@
 //
 
 #include "FastGenotype.h"
+
+#include <utility>
+
+FastGenotype::FastGenotype(std::string sampleName, std::vector<Allele *> &alleles, bool isPhased, int GQ, int DP,
+                           int *AD, int ADLength, int *PL, int PLLength, const std::string& filters,
+                           std::map<std::string, void *> extendedAttributes) : Genotype(std::move(sampleName), filters) , alleles(alleles), _isPhased(isPhased), GQ(GQ),
+                           DP(DP), AD(AD), PL(PL), extendedAttributes(std::move(extendedAttributes)){}
+
+int *FastGenotype::getAD(int &length) {
+    length = ADLength;
+    return AD;
+}
+
+int *FastGenotype::getPL(int &length) {
+    length = PLLength;
+    return PL;
+}
