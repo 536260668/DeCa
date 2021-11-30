@@ -10,7 +10,7 @@
 SmithWatermanAlignment *SWNativeAlignerWrapper::align(uint8_t *reference, int refLength, uint8_t *alternate, int altLength, SWParameters *parameters,
                                                       SWOverhangStrategy overhangStrategy) {
     Mutect2Utils::validateArg(parameters, "Null is not allowed there");
-    Mutect2Utils::validateArg(overhangStrategy, "Null is not allowed there");
+    //Mutect2Utils::validateArg(overhangStrategy, "Null is not allowed there");
 
     int matchIndex = -1;
     if(overhangStrategy == SWOverhangStrategy::SOFTCLIP || overhangStrategy == SWOverhangStrategy::IGNORE) {

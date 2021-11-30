@@ -10,7 +10,7 @@ IntelSmithWaterman::align(uint8_t *refArray, int refLength, uint8_t *altArray, i
                           SWOverhangStrategy overhangStrategy) {
     int intStrategy = getStrategy(overhangStrategy);
     int cigarLength = 2*std::max(refLength, altLength);
-    uint8_t * cigar = new uint8_t[cigarLength];
+    uint8_t * cigar = new uint8_t[cigarLength]{0};
     int offset = SmithWaterman_align(refArray, refLength, altArray, altLength, cigar, cigarLength, parameters->getMatchValue(), parameters->getMismatchPenalty(),parameters->getGapOpenPenalty(), parameters->getGapExtendPenalty(), intStrategy);
     std::string ret = std::string((char*)cigar);
     return new SWNativeAlignerResult(trim(ret), offset);

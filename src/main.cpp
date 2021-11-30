@@ -17,6 +17,7 @@
 #include "M2ArgumentCollection.h"
 #include "ActivityProfile.h"
 #include "BandPassActivityProfile.h"
+#include "variantcontext/GenotypeLikelihoods.h"
 
 typedef struct {     // auxiliary data structure
     samFile *fp;     // the file handle
@@ -77,6 +78,7 @@ static int read_bam(void *data, bam1_t *b) // read level filters better go here 
 
 int main(int argc, char *argv[])
 {
+
     int c, n=0, reg_tid, tid;
     hts_pos_t beg, end, pos = -1, last_pos = -1;
     char * reg;

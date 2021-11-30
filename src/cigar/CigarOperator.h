@@ -16,8 +16,6 @@ private:
     bool consumesReadBases;
     bool consumesReferenceBases;
 
-
-
 public:
     CigarOperatorUtils(bool consumesReadBases, bool consumesReferenceBases, char character) : consumesReadBases(consumesReadBases), consumesReferenceBases(consumesReferenceBases), character(character){}
     static std::map<CigarOperator, CigarOperatorUtils> cigarMap;

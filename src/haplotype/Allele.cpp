@@ -221,3 +221,27 @@ bool Allele::operator<(const Allele &other) const {
 int Allele::getLength() const {
     return isSymbolic ? 0 : length;
 }
+
+bool Allele::operator==(const Allele &other) const {
+    if(this == &other)
+        return true;
+    if(this->isRef != other.getIsReference() || this->isNoCall != other.getIsNoCall())
+        return false;
+    if(this->bases == other.getBases())
+        return true;
+    if(this->getLength() != other.getLength())
+        return false;
+    for(int i = 0; i < length; i++) {
+        if(bases[i] != other.bases[i])
+            return false;
+    }
+    return true;
+}
+
+std::string Allele::getBaseString() {
+    char* tmp = new char[length+1]{0};
+    memcpy(tmp, bases, length);
+    std::string ret = tmp;
+    delete[] tmp;
+    return ret;
+}

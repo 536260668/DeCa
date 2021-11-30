@@ -69,8 +69,10 @@ public:
     bool getIsSingleBreakend() const {return wouldBeSingleBreakend(bases, length);}
     uint8_t* getBases() const {return bases;}
     bool operator<(const Allele & other) const;
+    bool operator==(const Allele & other) const;
     int getLength() const;
     int getBasesLength() const {return length;}
+    std::string getBaseString();
 
 protected:
     Allele(uint8_t* bases, int length, bool isRef);

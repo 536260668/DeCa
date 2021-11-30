@@ -8,6 +8,7 @@
 #include <string>
 #include <cfloat>
 #include <vector>
+#include <set>
 
 static double POSITIVE_INFINITY = DBL_MAX;
 
@@ -23,6 +24,31 @@ public:
     static double logLikelihoodRatio(int refCount, int altCount, double errorProbability);
     static int lastIndexOf(const uint8_t* reference, int refLength, const uint8_t* query, int queryLength);
     static uint8_t* copyOfRange(uint8_t* original, int ,int from, int to, int & length);
+
+    template<class T>
+    static bool isVectorEquals(std::vector<T> a1, std::vector<T> a2){
+        if(a1.size() != a2.size())
+            return false;
+        for(int i = 0; i < a1.size(); i++) {
+            if(!((*a1.at(i)) == (*a2.at(i))))
+                return false;
+        }
+        return true;
+    }
+    template<class T>
+    static bool isSetEquals(std::set<T> a1, std::set<T> a2){
+        if(a1.size() != a2.size())
+            return false;
+        typename std::set<T>::iterator iter1 = a1.begin();
+        typename std::set<T>::iterator iter2 = a2.begin();
+        while(iter1 != a1.end()) {
+            if(!((**iter1) == (**iter2)))
+                return false;
+            iter1++;
+            iter2++;
+        }
+        return true;
+    }
 };
 
 #endif //MUTECT2CPP_MASTER_MUTECT2UTILS_H

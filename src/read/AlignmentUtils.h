@@ -52,8 +52,22 @@ public:
      */
     static Cigar* removeTrailingDeletions(Cigar* c);
 
+    static Cigar* trimCigarByBases(Cigar* cigar, int start, int end);
+
+    static Cigar* leftAlignSingleIndel(Cigar* cigar, uint8_t* refSeq, int refLength, uint8_t* readSeq, int readLength, int refIndex, int readIndex, bool cleanupCigar);
+
+    static Cigar* leftAlignSingleIndel(Cigar* cigar, uint8_t* refSeq, int refLength, uint8_t* readSeq, int readLength, int refIndex, int readIndex, int leftmostAllowedAlignment, bool cleanupCigar1);
+
+    static Cigar* cleanUpCigar(Cigar* c);
+
 private:
     static Cigar* trimCigar(Cigar * cigar, int start, int end, bool byReference);
+
+    static void ensureLeftAlignmentHasGoodArguments(Cigar* cigar, uint8_t* refSeq, uint8_t* readSeq, int refIndex, int readIndex);
+
+    static uint8_t * createIndelString(Cigar* cigar, int indexOfIndel, uint8_t * refSeq, int refLength, uint8_t * readSeq, int readLength, int refIndex, int readIndex, int &);
+
+    static Cigar* moveCigarLeft(Cigar* cigar, int indexOfIndel);
 
 protected:
     /**
@@ -74,6 +88,10 @@ protected:
      * @return the position after we've traversed all elt.length bases of elt
      */
     static int addCigarElements(std::vector<CigarElement> & dest, int pos, int start, int end, CigarElement elt);
+
+    static bool isIndelAlignedTooFarLeft(Cigar* cigar, int leftmostAllowedAlignment);
+
+    static bool cigarHasZeroSizeElement(Cigar* c);
 };
 
 #endif //MUTECT2CPP_MASTER_ALIGNMENTUTILS_H

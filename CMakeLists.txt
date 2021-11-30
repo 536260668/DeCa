@@ -19,6 +19,7 @@ include_directories("${PROJECT_SOURCE_DIR}/src/graph")
 include_directories("${PROJECT_SOURCE_DIR}/src/intel/smithwaterman")
 include_directories("${PROJECT_SOURCE_DIR}/src/smithwaterman")
 include_directories("${PROJECT_SOURCE_DIR}/src/Mutect2")
+include_directories("${PROJECT_SOURCE_DIR}/src/variantcontext")
 
 add_subdirectory(./src/cache)
 add_subdirectory(./src/cigar)
@@ -29,6 +30,7 @@ add_subdirectory(./src/graph)
 add_subdirectory(./src/intel/smithwaterman)
 add_subdirectory(./src/smithwaterman)
 add_subdirectory(./src/Mutect2)
+add_subdirectory(./src/variantcontext)
 
 add_executable(Mutect2Cpp_master ${DIR_SRCS})
 
@@ -44,6 +46,6 @@ target_link_libraries(Mutect2Cpp_master PathFunctions)
 target_link_libraries(Mutect2Cpp_master smithwatermanFunctions)
 target_link_libraries(Mutect2Cpp_master SWFunctions)
 target_link_libraries(Mutect2Cpp_master Mutect2Functions)
-
+target_link_libraries(Mutect2Cpp_master VariantContext)
 
 

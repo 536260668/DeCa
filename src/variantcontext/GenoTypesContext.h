@@ -1,0 +1,16 @@
+//
+// Created by lhh on 11/12/21.
+//
+
+#ifndef MUTECT2CPP_MASTER_GENOTYPESCONTEXT_H
+#define MUTECT2CPP_MASTER_GENOTYPESCONTEXT_H
+
+
+
+
+class GenoTypesContext {
+
+};
+
+
+#endif //MUTECT2CPP_MASTER_GENOTYPESCONTEXT_H
