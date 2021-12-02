@@ -10,4 +10,4 @@ include_directories("${PROJECT_SOURCE_DIR}/src/smithwaterman")
 
 aux_source_directory(. DIR_LIB_SRCS)
 
-add_library(Mutect2Functions ${DIR_LIB_SRCS})
+add_library(Mutect2Functions ${DIR_LIB_SRCS} AssemblyResultSet.cpp AssemblyResultSet.h)

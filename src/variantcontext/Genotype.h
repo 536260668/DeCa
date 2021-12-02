@@ -53,7 +53,7 @@ public:
     bool operator<(const Genotype & other) const;
     bool sameGenotype(Genotype* other, bool ignorePhase);
     bool sameGenotype(Genotype* other);
-    virtual std::map<std::string, void*> getExtendedAttributes() = 0;
+    virtual std::map<std::string, void*> &getExtendedAttributes() = 0;
     bool hasExtendedAttribute(const std::string &key);
     void* getExtendedAttribute(const std::string&, void* defaultValue);
     void* getExtendedAttribute(const std::string&);

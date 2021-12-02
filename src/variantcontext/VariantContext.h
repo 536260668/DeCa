@@ -15,6 +15,16 @@
 #include "GenoTypesContext.h"
 #include "CommonInfo.h"
 
+class GenoTypesContext;
+
+enum VariantContextType{VariantContext_NO_VARIATION,
+    VariantContext_SNP,
+    VariantContext_MNP,
+    VariantContext_INDEL,
+    VariantContext_SYMBOLIC,
+    VariantContext_MIXED,
+    VariantContext_NULL};
+
 //TODO: add GenoTypesContext class 2021.11.11
 class VariantContext {
 private:
@@ -26,10 +36,10 @@ private:
     CommonInfo commonInfo;
 
     /** A set of the alleles segregating in this context */
-    std::vector<Allele> * alleles;
 
 
-    std::vector<Allele> * makeAlleles(std::vector<Allele> & alleles);
+
+    std::vector<Allele*> makeAlleles(std::vector<Allele> & alleles);
 
 public:
     /**
@@ -47,6 +57,9 @@ public:
      * @param validationToPerform     set of validation steps to take
      */
 protected:
+    VariantContextType type;
+    std::vector<Allele*>  alleles;
+    GenoTypesContext* genotypes;
     VariantContext(std::string source,
                          std::string ID,
                          std::string contig,

@@ -8,6 +8,8 @@
 #include "DirectedSpecifics.h"
 #include <map>
 
+template<class V, class E>
+class DirectedSpecifics;
 
 template<class V, class E>
 class DFS_CycleDetect {

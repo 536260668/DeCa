@@ -32,7 +32,7 @@ add_subdirectory(./src/smithwaterman)
 add_subdirectory(./src/Mutect2)
 add_subdirectory(./src/variantcontext)
 
-add_executable(Mutect2Cpp_master ${DIR_SRCS})
+add_executable(Mutect2Cpp_master ${DIR_SRCS} src/tools/haplotypecaller/ReadErrorCorrector.cpp src/tools/haplotypecaller/ReadErrorCorrector.h src/tools/haplotypecaller/CountedKmer.cpp src/tools/haplotypecaller/CountedKmer.h src/tools/haplotypecaller/KMerCounter.cpp src/tools/haplotypecaller/KMerCounter.h)
 
 
 # counterpart of gcc -L

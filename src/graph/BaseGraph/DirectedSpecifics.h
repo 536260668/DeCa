@@ -15,6 +15,7 @@
 #include <list>
 #include <map>
 #include <set>
+#include "DFS_CycleDetect.h"
 
 static const std::string NOT_IN_DIRECTED_GRAPH = "no such operation in a directed graph";
 
@@ -623,6 +624,8 @@ public:
         }
         return true;
     }
+
+
 };
 
 

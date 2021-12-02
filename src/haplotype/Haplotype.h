@@ -87,6 +87,8 @@ public:
      }
 
     int getAlignmentStartHapwrtRef() const;
+
+     Locatable* getGenomeLocation() {return genomeLocation;}
 };
 
 

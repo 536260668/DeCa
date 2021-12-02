@@ -3,6 +3,19 @@
 //
 
 #include "ReadThreadingAssembler.h"
+#include "AssemblyResultSet.h"
+#include "graph/KBestHaplotypeFinder.h"
+#include "graph/ReadThreadingGraph.h"
+#include "read/CigarUtils.h"
+
+class HaplotypeComp
+{
+public:
+    bool operator()(const Haplotype* left, const Haplotype* right)
+    {
+        return (*left) < (*right);
+    }
+};
 
 AssemblyResult *
 ReadThreadingAssembler::getAssemblyResult(Haplotype *refHaplotype, int kmerSize, ReadThreadingGraph *rtgraph) {
@@ -45,4 +58,104 @@ AssemblyResult *ReadThreadingAssembler::cleanupSeqGraph(SeqGraph *seqGraph) {
         seqGraph->addEdge(complete, dummy, new BaseEdge(true, 0));
     }
     return new AssemblyResult(ASSEMBLED_SOME_VARIATION, seqGraph, nullptr);
+}
+
+
+std::vector<Haplotype *>
+ReadThreadingAssembler::findBestPaths(const std::list<SeqGraph *>& graphs, Haplotype *refHaplotype, SimpleInterval *refLoc,
+                                      SimpleInterval *activeRegionWindow,
+                                      const std::map<SeqGraph *, AssemblyResult *>& assemblyResultByGraph, AssemblyResultSet* assemblyResultSet) const {
+    std::set<Haplotype*, HaplotypeComp> returnHaplotypes;
+    int activeRegionStart = refHaplotype->getAlignmentStartHapwrtRef();
+    int failedCigars = 0;
+
+    for(SeqGraph* graph : graphs) {
+        SeqVertex* source = graph->getReferenceSourceVertex();
+        SeqVertex* sink = graph->getReferenceSinkVertex();
+        Mutect2Utils::validateArg(source != nullptr && sink != nullptr, "Both source and sink cannot be null");
+
+        for(KBestHaplotype* kBestHaplotype : KBestHaplotypeFinder(graph, source, sink).findBestHaplotypes(numBestHaplotypesPerGraph)) {
+            Haplotype* h = kBestHaplotype->getHaplotype();
+            if(returnHaplotypes.find(h) == returnHaplotypes.end()) {
+                if(kBestHaplotype->getIsReference()) {
+                    refHaplotype->setScore(kBestHaplotype->getScore());
+                }
+                Cigar* cigar = CigarUtils::calculateCigar(refHaplotype->getBases(), refHaplotype->getLength(), h->getBases(), h->getLength());
+
+                h->setCigar(cigar);
+                h->setAlignmentStartHapwrtRef(activeRegionStart);
+                h->setGenomeLocation(activeRegionWindow);
+                returnHaplotypes.insert(h);
+                assemblyResultSet->add(h, assemblyResultByGraph.at(graph));
+            }
+        }
+    }
+    if(returnHaplotypes.find(refHaplotype) == returnHaplotypes.end()) {
+        returnHaplotypes.insert(refHaplotype);
+    }
+    //TODO:验证
+    return {returnHaplotypes.begin(), returnHaplotypes.end()};
+}
+
+AssemblyResultSet *ReadThreadingAssembler::runLocalAssembly(AssemblyRegion *assemblyRegion, Haplotype *refHaplotype,
+                                                            uint8_t *fullReferenceWithPadding, int refLength, SimpleInterval *refLoc,
+                                                            ReadErrorCorrector *readErrorCorrector) {
+    Mutect2Utils::validateArg(assemblyRegion, "Assembly engine cannot be used with a null AssemblyRegion.");
+    Mutect2Utils::validateArg(refHaplotype, "Active region must have an extended location.");
+    Mutect2Utils::validateArg(fullReferenceWithPadding, "fullReferenceWithPadding");
+    Mutect2Utils::validateArg(refLoc, "refLoc");
+    Mutect2Utils::validateArg(refLength == refLoc->size(), "Reference bases and reference loc must be the same size.");
+
+    std::vector<SAMRecord*> correctedReads;
+    if(readErrorCorrector != nullptr) {
+        //TODO::readErrorCorrector
+        readErrorCorrector->addReadsToKmers(assemblyRegion->getReads());
+        correctedReads = assemblyRegion->getReads();
+    } else {
+        correctedReads = assemblyRegion->getReads();
+    }
+    std::vector<SeqGraph*> nonRefGraphs;
+    AssemblyResultSet * resultSet = new AssemblyResultSet();
+    resultSet->setRegionForGenotyping(assemblyRegion);
+    resultSet->setFullReferenceWithPadding(fullReferenceWithPadding, refLength);
+    resultSet->setPaddedReferenceLoc(refLoc);
+    SimpleInterval activeRegionExtendedLocation = assemblyRegion->getExtendedSpan();
+    refHaplotype->setGenomeLocation(&activeRegionExtendedLocation);
+    resultSet->add(refHaplotype);
+    std::map<SeqGraph*, AssemblyResult*> assemblyResultByGraph;
+}
+
+std::vector<AssemblyResult *> ReadThreadingAssembler::assemble(std::vector<SAMRecord> &reads, Haplotype *refHaplotype) {
+    std::vector<AssemblyResult *> results;
+}
+
+AssemblyResult *
+ReadThreadingAssembler::createGraph(std::vector<SAMRecord *> reads, Haplotype *refHaplotype, int kmerSize,
+                                    bool allowLowComplexityGraphs, bool allowNonUniqueKmersInRef) {
+    if(refHaplotype->getLength() < kmerSize) {
+        return new AssemblyResult(FAILED, nullptr, nullptr);
+    }
+    SequenceForKmers tmp = {"ref", refHaplotype->getBases(), 0, refHaplotype->getLength(), 1, true};
+    if(!allowNonUniqueKmersInRef && !ReadThreadingGraph::determineNonUniqueKmers(tmp, kmerSize).empty()) {
+        return nullptr;
+    }
+    ReadThreadingGraph* rtgraph = new ReadThreadingGraph(kmerSize, debugGraphTransformations, minBaseQualityToUseInAssembly, numPruningSamples);
+    rtgraph->setThreadingStartOnlyAtExistingVertex(!recoverAllDanglingBranches);
+    rtgraph->addSequence("ref", refHaplotype->getBases(), refHaplotype->getLength(), true);
+
+    for(SAMRecord* read : reads) {
+        rtgraph->addRead(*read);
+    }
+
+    rtgraph->buildGraphIfNecessary();
+    chainPruner->pruneLowWeightChains(*rtgraph);
+    if(rtgraph->hasCycles()) {
+        return nullptr;
+    }
+
+    if(! allowLowComplexityGraphs && rtgraph->isLowComplexity()) {
+        return nullptr;
+    }
+
+    return getAssemblyResult(refHaplotype, kmerSize, rtgraph);
 }

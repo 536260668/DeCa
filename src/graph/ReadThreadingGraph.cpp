@@ -739,6 +739,37 @@ SeqGraph *ReadThreadingGraph::toSequenceGraph() {
     return seqGraph;
 }
 
+ReadThreadingGraph::ReadThreadingGraph(int kmerSize, bool debugGraphTransformations,
+                                       uint8_t minBaseQualityToUseInAssembly, int numPruningSamples) : minBaseQualityToUseInAssembly(minBaseQualityToUseInAssembly), debugGraphTransformations(debugGraphTransformations),
+                                                                                                       refSource(Kmer(nullptr, 0)){
+    Mutect2Utils::validateArg(kmerSize > 0, "bad minkKmerSize");
+    resetToInitialState();
+}
+
+void ReadThreadingGraph::resetToInitialState() {
+    pending.clear();
+    nonUniqueKmers.clear();
+    uniqueKmers.clear();
+    alreadyBuilt = false;
+}
+
+void ReadThreadingGraph::addSequence(std::string seqName, uint8_t *sequence, int length, int count, bool isRef) {
+    addSequence(std::move(seqName), ANONYMOUS_SAMPLE, sequence, 0, length, count, isRef);
+}
+
+void ReadThreadingGraph::addSequence(std::string seqName, uint8_t* sequence, int length, bool isRef) {
+    addSequence(std::move(seqName), sequence, length, 1, isRef);
+}
+
+bool ReadThreadingGraph::isLowComplexity() {
+    return nonUniqueKmers.size() * 4 > uniqueKmers.size();
+}
+
+bool ReadThreadingGraph::hasCycles() {
+    DFS_CycleDetect<MultiDeBruijnVertex,MultiSampleEdge> detect = DFS_CycleDetect<MultiDeBruijnVertex,MultiSampleEdge>(*this);
+    return detect.detectCycles();
+}
+
 
 
 

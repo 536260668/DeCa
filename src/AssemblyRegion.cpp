@@ -72,6 +72,6 @@ sam_hdr_t * AssemblyRegion::getHeader()
     return hdr;
 }
 
-std::vector<SAMRecord> AssemblyRegion::getReads() const {
+std::vector<SAMRecord*> AssemblyRegion::getReads() const {
     return reads;
 }

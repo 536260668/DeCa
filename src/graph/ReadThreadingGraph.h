@@ -52,6 +52,8 @@ private:
 
     const uint8_t minBaseQualityToUseInAssembly;
 
+    bool debugGraphTransformations;
+
     bool startThreadingOnlyAtExistingVertex;
 
     bool increaseCountsThroughBranches = false;
@@ -61,6 +63,8 @@ private:
     static const int MAX_CIGAR_COMPLEXITY = 3;
 
     int maxMismatchesInDanglingHead = -1;
+
+    inline static std::string ANONYMOUS_SAMPLE = "XXX_UNNAMED_XXX";
     /**
      * Determines whether a base can safely be used for assembly.
      * Currently disallows Ns and/or those with low quality
@@ -175,9 +179,13 @@ private:
 
     bool extendDanglingPathAgainstReference(DanglingChainMergeHelper* danglingHeadMergeResult, int numNodesToExtend);
 
+    void resetToInitialState();
+
 public:
     ReadThreadingGraph(uint8_t minBaseQualityToUseInAssembly, int kmerSize, bool alreadyBuilt, Kmer ref, int numPruningSamples) : minBaseQualityToUseInAssembly(minBaseQualityToUseInAssembly), kmerSize(kmerSize), alreadyBuilt(
             false), refSource(ref), numPruningSamples(numPruningSamples){}
+
+    ReadThreadingGraph(int kmerSize, bool debugGraphTransformations, uint8_t minBaseQualityToUseInAssembly, int numPruningSamples);
 
     static std::vector<Kmer> determineNonUniqueKmers(SequenceForKmers &sequenceForKmers, int kmerSize);
 
@@ -239,6 +247,14 @@ public:
     MultiSampleEdge* createEdge(MultiDeBruijnVertex*, MultiDeBruijnVertex*) override;
 
     SeqGraph* toSequenceGraph();
+
+    void addSequence(std::string seqName, uint8_t* sequence, int length, int count, bool isRef);
+
+    void addSequence(std::string seqName, uint8_t* sequence, int length, bool isRef);
+
+    bool isLowComplexity();
+
+    bool hasCycles();
 };
 
 
