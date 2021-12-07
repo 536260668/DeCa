@@ -68,6 +68,7 @@ public:
     bool getIsBreakpoint() const {return wouldBeBreakpoint(bases, length);}
     bool getIsSingleBreakend() const {return wouldBeSingleBreakend(bases, length);}
     uint8_t* getBases() const {return bases;}
+    bool equals(Allele & other, bool ignoreRefState);
     bool operator<(const Allele & other) const;
     bool operator==(const Allele & other) const;
     int getLength() const;

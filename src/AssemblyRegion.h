@@ -20,7 +20,7 @@ private:
      * The reads included in this assembly region.  May be empty upon creation, and expand / contract
      * as reads are added or removed from this region.
      */
-    std::vector<SAMRecord*> reads;
+    std::vector<SAMRecord> reads;
 
     /**
      * An ordered list (by genomic coordinate) of the ActivityProfileStates that went
@@ -132,7 +132,7 @@ public:
     * The reads are sorted by their coordinate position.
     * @return an unmodifiable and inmutable copy of the reads in the assembly region.
    */
-    std::vector<SAMRecord*> getReads() const;
+    std::vector<SAMRecord> & getReads();
 
     /**
      * Returns the header for the reads in this region.

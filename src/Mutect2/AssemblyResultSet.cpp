@@ -3,6 +3,7 @@
 //
 
 #include "AssemblyResultSet.h"
+#include "param/ParamUtils.h"
 
 bool AssemblyResultSet::add(Haplotype *h, AssemblyResult *ar) {
     Mutect2Utils::validateArg(h, "input haplotype cannot be null");
@@ -80,4 +81,20 @@ bool AssemblyResultSet::add(Haplotype *h) {
     haplotypes.insert(h);
     updateReferenceHaplotype(h);
     return true;
+}
+
+std::set<VariantContext *> AssemblyResultSet::getVariationEvents(int maxMnpDistance) {
+    ParamUtils::isPositiveOrZero(maxMnpDistance, "maxMnpDistance may not be negative.");
+    bool sameMnpDistance = lastMaxMnpDistanceUsed != -1 && maxMnpDistance == lastMaxMnpDistanceUsed;
+    lastMaxMnpDistanceUsed = maxMnpDistance;
+    bool flag = false;
+    for(Haplotype* haplotype : haplotypes) {
+        if(haplotype->getIsReference() && haplotype->getEventMap().empty()) {
+            flag = true;
+            break;
+        }
+    }
+    if(variationEvents.empty() || !sameMnpDistance) {
+
+    }
 }

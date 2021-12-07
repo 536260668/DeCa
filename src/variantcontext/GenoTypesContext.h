@@ -11,9 +11,10 @@ class Genotype;
 
 class GenoTypesContext {
 protected:
-    std::vector<std::string> sampleNamesInOrder;
-    std::map<std::string, int> sampleNameToOffset;
-    std::vector<Genotype*> notToBeDirectlyAccessedGenotypes;
+    std::vector<std::string> * sampleNamesInOrder;
+    std::map<std::string, int> * sampleNameToOffset;
+    std::vector<Genotype*> * notToBeDirectlyAccessedGenotypes;
+    std::vector<Genotype*> * getGenotypes();
 
 private:
     int maxPloidy;
@@ -22,7 +23,12 @@ private:
 
 public:
     explicit GenoTypesContext(int n = 10);
-    explicit GenoTypesContext(std::vector<Genotype*> genotypes);
+    explicit GenoTypesContext(std::vector<Genotype*> & genotypes);
+    GenoTypesContext(std::vector<Genotype*> * genotypes, std::map<std::string, int> * sampleNameToOffset, std::vector<std::string> * sampleNamesInOrder);
+    static GenoTypesContext NO_GENOTYPES;
+    GenoTypesContext & setImmutable();
+    int getSize();
+    Genotype* get(int i);
 };
 
 

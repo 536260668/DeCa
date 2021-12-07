@@ -4,6 +4,7 @@
 
 #include "CommonInfo.h"
 #include <cmath>
+#include "StringUtils.h"
 
 CommonInfo::CommonInfo(std::string name, double log10PError, std::set<std::string> filters): name(name), filters(filters)
 {
@@ -20,4 +21,21 @@ void CommonInfo::setLog10PError(double log10PError)
     if ( std::isnan(this->log10PError) )
         throw "BUG: log10PError should not be NaN";
     this->log10PError = log10PError;
+}
+
+bool CommonInfo::hasAttribute(std::string & key) {
+    return attributes.find(key) != attributes.end();
+}
+
+int CommonInfo::getAttributeAsInt(std::string &key, int defaultValue) {
+    void* x = getAttribute(key);
+    if(x != nullptr && (attributeTotypeMap.at(x) == 4 && *((std::string*) x) != ".")) {
+        return attributeTotypeMap.at(x) == 1 ? *((int*) x) : StringUtils::parseInt(*((std::string*) x));
+    } else {
+        return defaultValue;
+    }
+}
+
+void *CommonInfo::getAttribute(std::string &key) {
+    return attributes.at(key);
 }

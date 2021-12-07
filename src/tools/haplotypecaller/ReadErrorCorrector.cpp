@@ -57,9 +57,9 @@ void ReadErrorCorrector::addReadKmers(SAMRecord *read) {
     }
 }
 
-void ReadErrorCorrector::addReadsToKmers(std::vector<SAMRecord *> reads) {
-    for(SAMRecord* read : reads) {
-        addReadKmers(read);
+void ReadErrorCorrector::addReadsToKmers(std::vector<SAMRecord > reads) {
+    for(SAMRecord read : reads) {
+        addReadKmers(&read);
     }
 }
 

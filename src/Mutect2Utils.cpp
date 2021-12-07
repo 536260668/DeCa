@@ -79,6 +79,7 @@ int Mutect2Utils::lastIndexOf(const uint8_t *reference, int refLength, const uin
     return -1;
 }
 
+//需要delete
 uint8_t *Mutect2Utils::copyOfRange(uint8_t *original, int originalLength, int from, int to, int &length) {
     int newLength = to - from;
     if(newLength < 0)

@@ -245,3 +245,24 @@ std::string Allele::getBaseString() {
     delete[] tmp;
     return ret;
 }
+
+bool Allele::equals(Allele &other, bool ignoreRefState) {
+    if(this == &other)
+        return true;
+    if(isRef != other.isRef && !ignoreRefState)
+        return false;
+    if(isNoCall != other.isNoCall)
+        return false;
+    if(bases == other.bases)
+        return true;
+    else{
+        if(length != other.length)
+            return false;
+        for(int i = 0; i < length; i++) {
+            if(bases[i] != other.bases[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+}

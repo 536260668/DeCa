@@ -23,13 +23,22 @@ private:
     bool removePathsNotConnectedToRef = true;
     bool justReturnRawGraph = false;
     bool debugGraphTransformations = false;
+    std::vector<int> kmerSizes;
+    bool dontIncreaseKmerSizesForCycles;
+    int MAX_KMER_ITERATIONS_TO_ATTEMPT = 6;
+    bool allowNonUniqueKmersInRef;
     ChainPruner<MultiDeBruijnVertex, MultiSampleEdge>* chainPruner;
     static const uint8_t DEFAULT_MIN_BASE_QUALITY_TO_USE = 10;
+    static const int KMER_SIZE_ITERATION_INCREASE = 10;
     AssemblyResult* getAssemblyResult(Haplotype* refHaplotype, int kmerSize, ReadThreadingGraph* rtgraph);
     AssemblyResult* cleanupSeqGraph(SeqGraph* seqGraph);
     std::vector<Haplotype*> findBestPaths(const std::list<SeqGraph*>& graph, Haplotype* refHaplotype, SimpleInterval* refLoc, SimpleInterval* activeRegionWindow,
                                           const std::map<SeqGraph*, AssemblyResult*>& assemblyResultByGraph, AssemblyResultSet* assemblyResultSet) const;
-    AssemblyResult* createGraph(std::vector<SAMRecord*> reads, Haplotype* refHaplotype, int kmerSize, bool allowLowComplexityGraphs, bool allowNonUniqueKmersInRef);
+    std::vector<Haplotype*> findBestPaths(const std::vector<SeqGraph *>& graphs, Haplotype *refHaplotype, SimpleInterval *refLoc,
+                  SimpleInterval *activeRegionWindow, const std::map<SeqGraph *, AssemblyResult *>& assemblyResultByGraph, AssemblyResultSet* assemblyResultSet) const;
+    AssemblyResult* createGraph(std::vector<SAMRecord> reads, Haplotype* refHaplotype, int kmerSize, bool allowLowComplexityGraphs, bool allowNonUniqueKmersInRef);
+    static void addResult(std::vector<AssemblyResult*> & results, AssemblyResult* maybeNullResult);
+    static int arrayMaxInt(std::vector<int> array);
 
 public:
     AssemblyResultSet* runLocalAssembly(AssemblyRegion * assemblyRegion, Haplotype* refHaplotype, uint8_t* fullReferenceWithPadding, int refLength, SimpleInterval* refLoc, ReadErrorCorrector* readErrorCorrector);

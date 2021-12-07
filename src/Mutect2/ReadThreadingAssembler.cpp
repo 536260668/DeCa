@@ -106,7 +106,7 @@ AssemblyResultSet *ReadThreadingAssembler::runLocalAssembly(AssemblyRegion *asse
     Mutect2Utils::validateArg(refLoc, "refLoc");
     Mutect2Utils::validateArg(refLength == refLoc->size(), "Reference bases and reference loc must be the same size.");
 
-    std::vector<SAMRecord*> correctedReads;
+    std::vector<SAMRecord> correctedReads;
     if(readErrorCorrector != nullptr) {
         //TODO::readErrorCorrector
         readErrorCorrector->addReadsToKmers(assemblyRegion->getReads());
@@ -123,14 +123,38 @@ AssemblyResultSet *ReadThreadingAssembler::runLocalAssembly(AssemblyRegion *asse
     refHaplotype->setGenomeLocation(&activeRegionExtendedLocation);
     resultSet->add(refHaplotype);
     std::map<SeqGraph*, AssemblyResult*> assemblyResultByGraph;
+    for(AssemblyResult* result : assemble(correctedReads, refHaplotype)) {
+        if(result->getStatus() == ASSEMBLED_SOME_VARIATION) {
+            //TODO:do some QC on the graph
+            assemblyResultByGraph.insert(std::pair<SeqGraph*, AssemblyResult*>(result->getGraph(), result));
+            nonRefGraphs.emplace_back(result->getGraph());
+        }
+    }
+    findBestPaths(nonRefGraphs, refHaplotype, refLoc, &activeRegionExtendedLocation, assemblyResultByGraph, resultSet);
+    return resultSet;
 }
 
 std::vector<AssemblyResult *> ReadThreadingAssembler::assemble(std::vector<SAMRecord> &reads, Haplotype *refHaplotype) {
     std::vector<AssemblyResult *> results;
+    for(int kmerSize : kmerSizes) {
+        addResult(results, createGraph(reads, refHaplotype, kmerSize, dontIncreaseKmerSizesForCycles, allowNonUniqueKmersInRef));
+    }
+
+    if(results.empty() && !dontIncreaseKmerSizesForCycles) {
+        int kmerSize = arrayMaxInt(kmerSizes) + KMER_SIZE_ITERATION_INCREASE;
+        int numIterations = 1;
+        while(results.empty() && numIterations <= MAX_KMER_ITERATIONS_TO_ATTEMPT) {
+            bool lastAttempt = numIterations == MAX_KMER_ITERATIONS_TO_ATTEMPT;
+            addResult(results, createGraph(reads, refHaplotype, kmerSize, lastAttempt, lastAttempt));
+            kmerSize += KMER_SIZE_ITERATION_INCREASE;
+            numIterations++;
+        }
+    }
+    return results;
 }
 
 AssemblyResult *
-ReadThreadingAssembler::createGraph(std::vector<SAMRecord *> reads, Haplotype *refHaplotype, int kmerSize,
+ReadThreadingAssembler::createGraph(std::vector<SAMRecord> reads, Haplotype *refHaplotype, int kmerSize,
                                     bool allowLowComplexityGraphs, bool allowNonUniqueKmersInRef) {
     if(refHaplotype->getLength() < kmerSize) {
         return new AssemblyResult(FAILED, nullptr, nullptr);
@@ -143,8 +167,8 @@ ReadThreadingAssembler::createGraph(std::vector<SAMRecord *> reads, Haplotype *r
     rtgraph->setThreadingStartOnlyAtExistingVertex(!recoverAllDanglingBranches);
     rtgraph->addSequence("ref", refHaplotype->getBases(), refHaplotype->getLength(), true);
 
-    for(SAMRecord* read : reads) {
-        rtgraph->addRead(*read);
+    for(SAMRecord read : reads) {
+        rtgraph->addRead(read);
     }
 
     rtgraph->buildGraphIfNecessary();
@@ -158,4 +182,57 @@ ReadThreadingAssembler::createGraph(std::vector<SAMRecord *> reads, Haplotype *r
     }
 
     return getAssemblyResult(refHaplotype, kmerSize, rtgraph);
+}
+
+void ReadThreadingAssembler::addResult(std::vector<AssemblyResult *> &results, AssemblyResult *maybeNullResult) {
+    if(maybeNullResult != nullptr) {
+        results.emplace_back(maybeNullResult);
+    }
+}
+
+int ReadThreadingAssembler::arrayMaxInt(std::vector<int> array) {
+    Mutect2Utils::validateArg(!array.empty(), "Array size cannot be 0!");
+    int ret = 0;
+    for(int tmp : array) {
+        if(ret < tmp)
+            ret = tmp;
+    }
+    return ret;
+}
+
+std::vector<Haplotype *>
+ReadThreadingAssembler::findBestPaths(const std::vector<SeqGraph *> &graphs, Haplotype *refHaplotype,
+                                      SimpleInterval *refLoc, SimpleInterval *activeRegionWindow,
+                                      const std::map<SeqGraph *, AssemblyResult *> &assemblyResultByGraph,
+                                      AssemblyResultSet *assemblyResultSet) const {
+    std::set<Haplotype*, HaplotypeComp> returnHaplotypes;
+    int activeRegionStart = refHaplotype->getAlignmentStartHapwrtRef();
+    int failedCigars = 0;
+
+    for(SeqGraph* graph : graphs) {
+        SeqVertex* source = graph->getReferenceSourceVertex();
+        SeqVertex* sink = graph->getReferenceSinkVertex();
+        Mutect2Utils::validateArg(source != nullptr && sink != nullptr, "Both source and sink cannot be null");
+
+        for(KBestHaplotype* kBestHaplotype : KBestHaplotypeFinder(graph, source, sink).findBestHaplotypes(numBestHaplotypesPerGraph)) {
+            Haplotype* h = kBestHaplotype->getHaplotype();
+            if(returnHaplotypes.find(h) == returnHaplotypes.end()) {
+                if(kBestHaplotype->getIsReference()) {
+                    refHaplotype->setScore(kBestHaplotype->getScore());
+                }
+                Cigar* cigar = CigarUtils::calculateCigar(refHaplotype->getBases(), refHaplotype->getLength(), h->getBases(), h->getLength());
+
+                h->setCigar(cigar);
+                h->setAlignmentStartHapwrtRef(activeRegionStart);
+                h->setGenomeLocation(activeRegionWindow);
+                returnHaplotypes.insert(h);
+                assemblyResultSet->add(h, assemblyResultByGraph.at(graph));
+            }
+        }
+    }
+    if(returnHaplotypes.find(refHaplotype) == returnHaplotypes.end()) {
+        returnHaplotypes.insert(refHaplotype);
+    }
+    //TODO:验证
+    return {returnHaplotypes.begin(), returnHaplotypes.end()};
 }

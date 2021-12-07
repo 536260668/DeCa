@@ -49,7 +49,7 @@ public:
 
     ReadErrorCorrector(int kmerLength, uint8_t minTailQuality, int minObservationsForKmerToBeSolid, uint8_t* fullReferenceWithPadding, int refLength);
 
-    void addReadsToKmers(std::vector<SAMRecord*> reads);
+    void addReadsToKmers(std::vector<SAMRecord> reads);
 
 protected:
     void addReadKmers(SAMRecord* read);

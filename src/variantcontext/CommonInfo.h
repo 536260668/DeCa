@@ -7,6 +7,7 @@
 
 #include <string>
 #include <set>
+#include <map>
 
 /**
  * Common utility routines for VariantContext and Genotype
@@ -19,12 +20,24 @@ public:
 
     void setLog10PError(double log10PError);
 
+    bool hasAttribute(std::string &key);
+
+    int getAttributeAsInt(std::string &key, int defaultValue);
+
+    void* getAttribute(std::string &key);
 
 private:
     double log10PError = NO_LOG10_PERROR;
     std::string name;
     std::set<std::string> filters;
-    // map<string, object> attributes;  // TODO: add attributes field
+    std::map<std::string, void*> attributes;
+
+    /* 1:int
+     * 2:double
+     * 3:bool
+     * 4:std::string
+     */
+    std::map<void*, int> attributeTotypeMap;
 };
 
 
