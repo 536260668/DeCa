@@ -25,7 +25,7 @@ private:
     bool wasTrimmed = false;
     int lastMaxMnpDistanceUsed = -1;
     std::set<int> kmerSizes;
-    std::set<VariantContext> variationEvents;
+    std::set<VariantContext*, VariantContextComparator> variationEvents;
     bool add(AssemblyResult* ar);
     void updateReferenceHaplotype(Haplotype* newHaplotype);
 
@@ -36,7 +36,10 @@ public:
     void setRegionForGenotyping(AssemblyRegion* regionForGenotyping);
     void setFullReferenceWithPadding(uint8_t* fullReferenceWithPadding, int length);
     void setPaddedReferenceLoc(SimpleInterval* paddedReferenceLoc);
-    std::set<VariantContext*> getVariationEvents(int maxMnpDistance);
+    std::set<VariantContext*, VariantContextComparator> & getVariationEvents(int maxMnpDistance);
+
+    void regenerateVariationEvents(int distance);
+    std::vector<Haplotype*> getHaplotypeList();
 };
 
 

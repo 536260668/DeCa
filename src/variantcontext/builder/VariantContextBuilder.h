@@ -35,6 +35,10 @@ public:
     VariantContext* make(bool leaveModifyableAsIs);
 
     VariantContext* make();
+
+    void setStop(long stop);
+
+    void setAlleles(std::vector<Allele*> * alleles);
 };
 
 

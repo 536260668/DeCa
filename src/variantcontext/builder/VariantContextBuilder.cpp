@@ -24,6 +24,15 @@ VariantContext *VariantContextBuilder::make() {
     return make(false);
 }
 
-VariantContextBuilder::VariantContextBuilder(VariantContext *parent) : alleles(&parent->getAlleles()), attribute(parent.){
+VariantContextBuilder::VariantContextBuilder(VariantContext *parent) : alleles(&parent->getAlleles()), attribute(&parent->getAttributes()),attributesCanBeModified(false),
+contig(parent->getContig()), filters(parent->getFiltersMaybeNull()), genotypes(parent->getGenotypes()), ID(parent->getID()), log10PError(parent->getLog10PError()),
+source(parent->getSource()), start(parent->getStart()), stop(parent->getEnd()), fullyDecoded(parent->isFullyDecoded()){}
 
+void VariantContextBuilder::setStop(long stop) {
+    this->stop = stop;
+}
+
+void VariantContextBuilder::setAlleles(std::vector<Allele *> * alleles) {
+    this->alleles = alleles;
+    toValidate.insert(ALLELES);
 }

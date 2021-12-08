@@ -26,6 +26,14 @@ public:
 
     void* getAttribute(std::string &key);
 
+    std::map<std::string, void*> & getAttributes();
+
+    std::set<std::string> * getFiltersMaybeNull();
+
+    double getLog10PError() const;
+
+    std::string & getName();
+
 private:
     double log10PError = NO_LOG10_PERROR;
     std::string name;

@@ -142,7 +142,9 @@ void EventMap::addVC(VariantContext *vc, bool merge) {
     if(variantMap.find(vc->getStart()) != variantMap.end()) {
         Mutect2Utils::validateArg(merge, "Will not merge previously bound variant contexts as merge is false");
         VariantContext* prev = variantMap.at(vc->getStart());
-    }
+        variantMap.insert(std::pair<int, VariantContext*>(vc->getStart(), makeBlock(prev, vc)));
+    } else
+        variantMap.insert(std::pair<int, VariantContext*>(vc->getStart(), vc));
 }
 
 VariantContext *EventMap::makeBlock(VariantContext *vc1, VariantContext *vc2) {
@@ -155,5 +157,77 @@ VariantContext *EventMap::makeBlock(VariantContext *vc1, VariantContext *vc2) {
     }
 
     Allele* new_ref, * new_alt;
+    VariantContextBuilder b(vc1);
+    if(vc1->isSNP()) {
+        if(*(vc1->getReference()) == (*(vc2->getReference()))) {
+            new_ref = vc1->getReference();
+            uint8_t * vc1Bases = vc1->getAlternateAllele(0)->getBases();
+            int vc1Length = vc1->getAlternateAllele(0)->getBasesLength();
+            uint8_t * vc2Bases = vc2->getAlternateAllele(0)->getBases();
+            int vc2Length = vc2->getAlternateAllele(0)->getBasesLength();
+            int tmpLength = vc1Length + vc2Length - 1;
+            uint8_t * tmp = new uint8_t[tmpLength];
+            memcpy(tmp, vc1Bases, vc1Length);
+            memcpy(tmp+vc1Length, vc2Bases+1, vc2Length-1);
+            new_alt = Allele::create(tmp, tmpLength, false);
+        } else {
+            new_ref = vc2->getReference();
+            new_alt = vc1->getAlternateAllele(0);
+            b.setStop(vc2->getEnd());
+        }
+    } else {
+        VariantContext* insertion = vc1->isSimpleInsertion() ? vc1 : vc2;
+        VariantContext* deletion  = vc1->isSimpleInsertion() ? vc2 : vc1;
+        new_ref = deletion->getReference();
+        new_alt = insertion->getAlternateAllele(0);
+        b.setStop(deletion->getEnd());
+    }
+    std::vector<Allele*> alleles{new_alt, new_ref};
+    b.setAlleles(&alleles);
+    return b.make();
+}
 
+bool EventMap::empty() {
+    return variantMap.empty();
+}
+
+std::set<int> EventMap::buildEventMapsForHaplotypes(std::vector<Haplotype *> & haplotypes, uint8_t *ref, int refLength,
+                                                    Locatable *refLoc, bool debug, int maxMnpDistance) {
+    Mutect2Utils::validateArg(maxMnpDistance >= 0, "maxMnpDistance may not be negative.");
+    std::set<int> startPosKeySet;
+    int hapNumber = 0;
+    for(Haplotype* h : haplotypes) {
+        h->setEventMap(new EventMap(h, ref, refLength, refLoc, "HC" + std::to_string(hapNumber), maxMnpDistance));
+        for(int i : h->getEventMap()->getStartPositions()) {
+            startPosKeySet.insert(i);
+        }
+    }
+    return startPosKeySet;
+}
+
+std::set<int> EventMap::getStartPositions() {
+    std::set<int> ret;
+    for(std::pair<int, VariantContext*> pair_vc : variantMap) {
+        ret.insert(pair_vc.first);
+    }
+    return {ret.begin(), ret.end()};
+}
+
+std::set<VariantContext *, VariantContextComparator>
+EventMap::getAllVariantContexts(std::vector<Haplotype *> haplotypes) {
+    std::set<VariantContext *, VariantContextComparator> ret;
+    for(Haplotype* h : haplotypes) {
+        for(VariantContext* vc : h->getEventMap()->getVariantContexts()) {
+            ret.insert(vc);
+        }
+    }
+    return ret;
+}
+
+std::vector<VariantContext *> EventMap::getVariantContexts() {
+    std::vector<VariantContext *> ret;
+    for(std::pair<int, VariantContext*> pair_vc : variantMap) {
+        ret.emplace_back(pair_vc.second);
+    }
+    return ret;
 }

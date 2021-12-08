@@ -90,7 +90,14 @@ public:
     bool hasAllele(Allele* allele, bool ignoreRefState, bool considerRefAllele);
     std::vector<Allele*> getAlternateAlleles();
     Allele* getAlternateAllele(int i);
-
+    std::map<std::string, void*> & getAttributes();
+    std::string & getContig();
+    std::set<std::string>  * getFiltersMaybeNull();
+    GenoTypesContext* getGenotypes();
+    std::string & getID();
+    double getLog10PError();
+    std::string  & getSource();
+    bool isFullyDecoded();
 
     VariantContext(std::string &source,
                    std::string &ID,

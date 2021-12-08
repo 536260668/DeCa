@@ -9,11 +9,15 @@
 #include "Allele.h"
 #include "Locatable.h"
 #include "cigar/Cigar.h"
+#include "EventMap.h"
+
+class EventMap;
 
 class Haplotype : public Allele{
 private:
     Locatable* genomeLocation;
     Cigar* cigar;
+    EventMap * eventMap;
     int alignmentStartHapwrtRef;
     double score;
     static uint8_t * copyArray(uint8_t * base, int length);
@@ -89,6 +93,10 @@ public:
     int getAlignmentStartHapwrtRef() const;
 
      Locatable* getGenomeLocation() {return genomeLocation;}
+
+     EventMap* getEventMap();
+
+     void setEventMap(EventMap* eventMap);
 };
 
 

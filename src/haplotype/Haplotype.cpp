@@ -67,4 +67,12 @@ int Haplotype::getAlignmentStartHapwrtRef() const{
     return alignmentStartHapwrtRef;
 }
 
+EventMap *Haplotype::getEventMap() {
+    return eventMap;
+}
+
+void Haplotype::setEventMap(EventMap *eventMap) {
+    this->eventMap = eventMap;
+}
+
 

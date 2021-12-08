@@ -21,7 +21,7 @@ VariantContext::VariantContext(std::string &source,
 
     this->ID = ID == VCFConstants::EMPTY_ID_FIELD ? VCFConstants::EMPTY_ID_FIELD : ID;
 
-    this->alleles = makeAlleles(*alleles);
+    this->alleles = std::move(makeAlleles(*alleles));
 
     // TODO: finish this method 2021.11.13
 
@@ -294,6 +294,38 @@ bool VariantContext::isSimpleIndel() {
 
 bool VariantContext::isSimpleInsertion() {
     return isSimpleIndel() && getReference()->getLength() == 1;
+}
+
+std::map<std::string, void *> & VariantContext::getAttributes() {
+    return commonInfo.getAttributes();
+}
+
+std::string &VariantContext::getContig() {
+    return contig;
+}
+
+std::set<std::string> *VariantContext::getFiltersMaybeNull() {
+    return commonInfo.getFiltersMaybeNull();
+}
+
+GenoTypesContext *VariantContext::getGenotypes() {
+    return genotypes;
+}
+
+std::string &VariantContext::getID() {
+    return ID;
+}
+
+double VariantContext::getLog10PError() {
+    return commonInfo.getLog10PError();
+}
+
+std::string &VariantContext::getSource() {
+    return commonInfo.getName();
+}
+
+bool VariantContext::isFullyDecoded() {
+    return fullyDecoded;
 }
 
 //std::vector<Allele> *VariantContext::makeAlleles(std::vector<Allele> &alleles)

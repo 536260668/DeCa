@@ -39,3 +39,22 @@ int CommonInfo::getAttributeAsInt(std::string &key, int defaultValue) {
 void *CommonInfo::getAttribute(std::string &key) {
     return attributes.at(key);
 }
+
+std::map<std::string, void *> &CommonInfo::getAttributes(){
+    return attributes;
+}
+
+std::set<std::string>* CommonInfo::getFiltersMaybeNull() {
+    if(filters.empty())
+        return nullptr;
+    else
+        return &filters;
+}
+
+double CommonInfo::getLog10PError() const {
+    return log10PError;
+}
+
+std::string & CommonInfo::getName() {
+    return name;
+}

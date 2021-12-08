@@ -83,18 +83,36 @@ bool AssemblyResultSet::add(Haplotype *h) {
     return true;
 }
 
-std::set<VariantContext *> AssemblyResultSet::getVariationEvents(int maxMnpDistance) {
+std::set<VariantContext *, VariantContextComparator> & AssemblyResultSet::getVariationEvents(int maxMnpDistance) {
     ParamUtils::isPositiveOrZero(maxMnpDistance, "maxMnpDistance may not be negative.");
     bool sameMnpDistance = lastMaxMnpDistanceUsed != -1 && maxMnpDistance == lastMaxMnpDistanceUsed;
     lastMaxMnpDistanceUsed = maxMnpDistance;
     bool flag = false;
     for(Haplotype* haplotype : haplotypes) {
-        if(haplotype->getIsReference() && haplotype->getEventMap().empty()) {
+        if(haplotype->getIsReference() && haplotype->getEventMap()->empty()) {
             flag = true;
             break;
         }
     }
     if(variationEvents.empty() || !sameMnpDistance) {
-
+        regenerateVariationEvents(maxMnpDistance);
     }
+    return variationEvents;
+}
+
+void AssemblyResultSet::regenerateVariationEvents(int maxMnpDistance) {
+    std::vector<Haplotype*> haplotypeList = getHaplotypeList();
+    EventMap::buildEventMapsForHaplotypes(haplotypeList, fullReferenceWithPadding, fullReferenceWithPaddingLength, paddedReferenceLoc, false, maxMnpDistance);
+    variationEvents = EventMap::getAllVariantContexts(haplotypeList);
+    lastMaxMnpDistanceUsed = maxMnpDistance;
+    for(Haplotype* haplotype : haplotypeList) {
+        if(haplotype->getIsNonReference()) {
+            variationPresent = true;
+            break;
+        }
+    }
+}
+
+std::vector<Haplotype *> AssemblyResultSet::getHaplotypeList() {
+    return {haplotypes.begin(), haplotypes.end()};
 }
