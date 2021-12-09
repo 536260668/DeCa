@@ -207,6 +207,8 @@ public:
     void setFinalized(bool value);
 
     bool isFinalized() const {return hasBeenFinalized;}
+
+    void setRead(std::vector<SAMRecord> & reads);
 };
 
 

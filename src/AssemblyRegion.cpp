@@ -35,7 +35,8 @@ AssemblyRegion::AssemblyRegion(SimpleInterval const &activeRegionLoc, const int 
 }
 
 SimpleInterval *AssemblyRegion::trimIntervalToContig(std::string& contig, const int start, const int stop) {
-    const int contigLength = sam_hdr_tid2len(hdr, sam_hdr_name2tid(hdr, contig.c_str()));
+    //const int contigLength = sam_hdr_tid2len(hdr, sam_hdr_name2tid(hdr, contig.c_str()));
+    int contigLength = 1000000;
     return IntervalUtils::trimIntervalToContig(contig, start, stop, contigLength);
 }
 
@@ -74,4 +75,8 @@ sam_hdr_t * AssemblyRegion::getHeader()
 
 std::vector<SAMRecord> & AssemblyRegion::getReads(){
     return reads;
+}
+
+void AssemblyRegion::setRead(std::vector<SAMRecord> &reads) {
+    this->reads = reads;
 }

@@ -18,9 +18,17 @@ class SAMRecord {
 private:
     bam1_t * read;
     sam_hdr_t * header;
+
+    //test
+    uint8_t * bases;
+    int baseLength;
+    uint8_t * baseQualities;
+    int baseQualitiesLength;
+    std::string name;
+
 public:
     SAMRecord(bam1_t * samRecord, sam_hdr_t * header);
-
+    SAMRecord(uint8_t* base, int baseLength, uint8_t* baseQualities, int baseQualitiesLength, std::string &name);
     /**
     * zero-based start
     */
@@ -69,7 +77,7 @@ public:
      */
      bool isReverseStrand();
 
-     char * getReadName();
+     std::string getReadName();
 };
 
 

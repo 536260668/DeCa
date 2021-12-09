@@ -42,6 +42,7 @@ protected:
 };
 
 class VariantContextComparator {
+public:
     bool operator() (VariantContext* a1, VariantContext* a2) {
         return a1->getStart() < a2->getStart();
     }

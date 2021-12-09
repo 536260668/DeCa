@@ -41,8 +41,10 @@ private:
     static int arrayMaxInt(std::vector<int> array);
 
 public:
+    ReadThreadingAssembler(int pruneFactor, int numPruningSamples, int numBestHaplotypesPerGraph, bool allowNonUniqueKmersInRef, std::vector<int> kmerSizes);
     AssemblyResultSet* runLocalAssembly(AssemblyRegion * assemblyRegion, Haplotype* refHaplotype, uint8_t* fullReferenceWithPadding, int refLength, SimpleInterval* refLoc, ReadErrorCorrector* readErrorCorrector);
     std::vector<AssemblyResult*> assemble(std::vector<SAMRecord> & reads, Haplotype* refHaplotype);
+    void setMinDanglingBranchLength(int minDanglingBranchLength);
 
 protected:
     uint8_t minBaseQualityToUseInAssembly = DEFAULT_MIN_BASE_QUALITY_TO_USE;

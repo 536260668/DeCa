@@ -69,6 +69,8 @@ public:
     bool seqEquals(BaseVertex* other);
 
     virtual uint8_t * getAdditionalSequence(bool source) {return getSequence();}
+
+    virtual int getAdditionalSequenceLength(bool source) {return getLength();}
 };
 
 

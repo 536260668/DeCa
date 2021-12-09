@@ -24,33 +24,39 @@ Allele Allele::ALT_N(new uint8_t[1]{'N'}, 1, false);
 Allele Allele::SPAN_DEL(new uint8_t[1]{'*'}, 1, false);
 Allele Allele::NO_CALL(new uint8_t[1]{'.'}, 1, false);
 Allele Allele::NON_REF_ALLELE(new uint8_t[9]{'<', 'N', 'O', 'N', '_', 'R', 'E', 'F', '>'}, 9, false);
-Allele Allele::UNSPECIFIED_ALTERNATE_ALLELE(new uint8_t[3]{'<', '*', '>'}, 3, true);
+Allele Allele::UNSPECIFIED_ALTERNATE_ALLELE(new uint8_t[3]{'<', '*', '>'}, 3, false);
 
 Allele::Allele(uint8_t *bases, int length, bool isRef) : isRef(false), bases(nullptr), length(0){
+    this->isRef = false;
+    this->isNoCall = false;
+    this->isSymbolic = false;
+    this->bases = nullptr;
     if(wouldBeNullAllele(bases, length)) {
         throw std::invalid_argument("Null alleles are not supported");
     } else if(wouldBeNoCallAllele(bases, length)) {
         this->bases = const_cast<uint8_t *>(EMPTY_ALLELE_BASES);
+        this->length = length;
         this->isNoCall = true;
-        if(isRef) {
+        if (isRef) {
             throw std::invalid_argument("Cannot tag a NoCall allele as the reference allele");
-        } else {
+        }
+    } else {
             if(wouldBeSymbolicAllele(bases, length)) {
                 this->isSymbolic = true;
                 if(isRef) {
                     throw std::invalid_argument("Cannot tag a symbolic allele as the reference allele");
-                } else {
+                }
+            } else {
                     StringUtils::toUpperCase(bases, length);
                 }
 
                 this ->isRef = isRef;
                 this->bases = bases;
+                this->length = length;
                 if(!acceptableAlleleBases(bases, length, isRef)) {
                     throw std::invalid_argument("Unexpected base in allele bases");
                 }
-            }
         }
-    }
 }
 
 bool Allele::wouldBeNullAllele(const uint8_t *bases, int length){

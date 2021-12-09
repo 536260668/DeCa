@@ -41,6 +41,8 @@ public:
     uint8_t *getSuffixAsArray() const;
 
     int getAdditionalLength(bool source);
+
+    int getAdditionalSequenceLength(bool isSource);
 };
 
 

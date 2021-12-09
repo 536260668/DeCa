@@ -24,7 +24,8 @@ void ReadThreadingGraph::addRead(SAMRecord read) {
             if(start != -1 && len >= kmerSize) {
                 std::string name = read.getReadName();
                 name += '_' + std::to_string(start) + '_' + std::to_string(end);
-                addSequence(name, (std::string &) "SAMFileHeader{VN=1.6, GO=none, SO=coordinate}", sequence, start, end, 1, false);
+                std::string sampleName = "SAMFileHeader{VN=1.6, GO=none, SO=coordinate}";
+                addSequence(name, sampleName, sequence, start, end, 1, false);
             }
             lastGood = -1;
         } else if(lastGood == -1) {
@@ -255,6 +256,7 @@ void ReadThreadingGraph::setThreadingStartOnlyAtExistingVertex(bool value) {
 }
 
 void ReadThreadingGraph::setPending() {
+    pending.clear();
     uint8_t* byte997137 = new uint8_t[99]{67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84};
     SequenceForKmers sequenceForKmers7135 = {.name = "HWI-ST729_110151799:2:41:9503:140222_0_99", .sequence = byte997137, .start = 0, .stop = 99, .count = 1, .isRef = false};
     std::vector<SequenceForKmers> v3;
@@ -740,8 +742,8 @@ SeqGraph *ReadThreadingGraph::toSequenceGraph() {
 }
 
 ReadThreadingGraph::ReadThreadingGraph(int kmerSize, bool debugGraphTransformations,
-                                       uint8_t minBaseQualityToUseInAssembly, int numPruningSamples) : minBaseQualityToUseInAssembly(minBaseQualityToUseInAssembly), debugGraphTransformations(debugGraphTransformations),
-                                                                                                       refSource(Kmer(nullptr, 0)){
+                                       uint8_t minBaseQualityToUseInAssembly, int numPruningSamples) : kmerSize(kmerSize), minBaseQualityToUseInAssembly(minBaseQualityToUseInAssembly), debugGraphTransformations(debugGraphTransformations),
+                                                                                                       refSource(Kmer(nullptr, 0)), numPruningSamples(numPruningSamples){
     Mutect2Utils::validateArg(kmerSize > 0, "bad minkKmerSize");
     resetToInitialState();
 }

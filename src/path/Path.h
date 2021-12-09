@@ -107,8 +107,9 @@ public:
          if(getEdges().empty()) {return graph.getAdditionalSequence(lastVertex);}
          T* source = graph.getEdgeSource(edgesInOrder[0]);
          uint8_t * bases = graph.getAdditionalSequence(source);
-         int basesLength = graph.isSource(source) ? source->getLength() : 1;
-         uint8_t * res = bases;
+         int basesLength = graph.getAdditionalSequenceLength(source);
+         uint8_t * res = new uint8_t[basesLength];
+         memcpy(res, bases, basesLength);
          int length = basesLength;
          int start = basesLength;
          for(int i = 0; i < edgesInOrder.size(); i++) {
@@ -121,7 +122,7 @@ public:
                  res = tmp;
              }
              bases = graph.getAdditionalSequence(target);
-             basesLength = graph.isSource(target) ? target->getLength() : 1;
+             basesLength = graph.getAdditionalSequenceLength(target);
              memcpy(res+start, bases, basesLength);
              start += basesLength;
          }

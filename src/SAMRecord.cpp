@@ -27,9 +27,9 @@ const char *SAMRecord::GetReferenceName()
 
 std::string SAMRecord::getContig()
 {
-    if (IsUnmapped()) { return nullptr; }
-
-    return std::string(GetReferenceName());
+    //if (IsUnmapped()) { return nullptr; }
+    return "chr1";
+    //return std::string(GetReferenceName());
 }
 
 hts_pos_t SAMRecord::GetEnd()
@@ -54,9 +54,8 @@ hts_pos_t SAMRecord::getFragmentLength()
 
 uint8_t * SAMRecord::getBaseQualities()
 {
+    return baseQualities;
     //return bam_get_qual(read);
-    uint8_t * res = new uint8_t[86]{34, 35, 33, 35, 36, 35, 35, 35, 29, 35, 33, 37, 35, 36, 36, 37, 36, 36, 37, 36, 36, 36, 35, 34, 36, 37, 36, 30, 37, 38, 36, 35, 27, 36, 34, 37, 36, 38, 36, 36, 35, 36, 37, 38, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 18, 20, 20, 20, 4, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20};
-    return res;
 }
 
 uint8_t SAMRecord::getBaseQuality(int i)
@@ -67,15 +66,14 @@ uint8_t SAMRecord::getBaseQuality(int i)
 
 uint8_t *SAMRecord::getBases()
 {
+    return bases;
     //return bam_get_seq(read);
-    uint8_t * res = new uint8_t[86]{65, 84, 65, 67, 65, 67, 67, 67, 71, 71, 67, 65, 67, 67, 67, 84, 71, 84, 67, 67, 84, 71, 71, 65, 67, 65, 67, 71, 67, 84, 71, 84, 84, 71, 71, 67, 67, 84, 71, 71, 65, 84, 67, 84, 71, 65, 71, 67, 67, 67, 84, 71, 71, 84, 71, 71, 65, 71, 71, 84, 67, 65, 65, 65, 71, 67, 67, 65, 67, 67, 84, 84, 84, 71, 71, 84, 84, 67, 84, 71, 67, 67, 65, 84, 84, 71};
-    return res;
 }
 
 int32_t SAMRecord::getLength()
 {
-    //return read->core.l_qseq;
-    return 86;
+    return baseLength;
+    // return read->core.l_qseq;
 }
 
 bool SAMRecord::isReverseStrand()
@@ -83,8 +81,11 @@ bool SAMRecord::isReverseStrand()
     return (read->core.flag & BAM_FREVERSE) != 0;
 }
 
-char *SAMRecord::getReadName() {
+std::string SAMRecord::getReadName() {
+    return name.c_str();
     //return bam_get_qname(read);
-    char * res = new char[10]{'c','h','1'};
-    return res;
 }
+
+SAMRecord::SAMRecord(uint8_t *base, int baseLength, uint8_t *baseQualities, int baseQualitiesLength,
+                     std::string &name) : bases(base), baseLength(baseLength), baseQualities(baseQualities),baseQualitiesLength(baseQualitiesLength), name(name), header(
+        nullptr), read(nullptr){}

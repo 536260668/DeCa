@@ -239,6 +239,10 @@ public:
         return v->getAdditionalSequence(isSource(v));
     }
 
+    int getAdditionalSequenceLength(V* v) {
+        return v->getAdditionalSequenceLength(isSource(v));
+    }
+
     bool removeEdge(E* e) {
         if(containsEdge(e)) {
             removeEdgeFromTouchingVertices(e);

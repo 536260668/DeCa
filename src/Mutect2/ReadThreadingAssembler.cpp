@@ -7,6 +7,7 @@
 #include "graph/KBestHaplotypeFinder.h"
 #include "graph/ReadThreadingGraph.h"
 #include "read/CigarUtils.h"
+#include "AdaptiveChainPruner.h"
 
 class HaplotypeComp
 {
@@ -170,7 +171,8 @@ ReadThreadingAssembler::createGraph(std::vector<SAMRecord> reads, Haplotype *ref
     for(SAMRecord read : reads) {
         rtgraph->addRead(read);
     }
-
+    //TODO:DELETE
+    rtgraph->setPending();
     rtgraph->buildGraphIfNecessary();
     chainPruner->pruneLowWeightChains(*rtgraph);
     if(rtgraph->hasCycles()) {
@@ -235,4 +237,15 @@ ReadThreadingAssembler::findBestPaths(const std::vector<SeqGraph *> &graphs, Hap
     }
     //TODO:验证
     return {returnHaplotypes.begin(), returnHaplotypes.end()};
+}
+
+ReadThreadingAssembler::ReadThreadingAssembler(int pruneFactor, int numPruningSamples, int numBestHaplotypesPerGraph,
+                                               bool allowNonUniqueKmersInRef, std::vector<int> kmerSizes) : pruneFactor(pruneFactor), numPruningSamples(numPruningSamples), numBestHaplotypesPerGraph(numBestHaplotypesPerGraph)
+                                               , allowNonUniqueKmersInRef(allowNonUniqueKmersInRef), kmerSizes(std::move(kmerSizes)){
+    chainPruner = new AdaptiveChainPruner<MultiDeBruijnVertex, MultiSampleEdge>(0.001, 2.302585092994046, 100);
+    setMinDanglingBranchLength(4);
+}
+
+void ReadThreadingAssembler::setMinDanglingBranchLength(int minDanglingBranchLength) {
+    this->minDanglingBranchLength = minDanglingBranchLength;
 }

@@ -5,10 +5,21 @@
 #include "GenotypeLikelihoods.h"
 #include <regex>
 #include <utility>
+#include <vector>
 #include <cmath>
 #include <sstream>
 #include "StringUtils.h"
 #include "utils/GeneralUtils.h"
+
+int GenotypeLikelihoods::numLikelihoodCache[5][10] = {0};
+
+int GenotypeLikelihoods::allelePairLength = 0;
+
+GenotypeLikelihoodsAllelePair** GenotypeLikelihoods::diploidPLIndexToAlleleIndex = nullptr;
+
+std::map<int, std::vector<std::vector<int>>> GenotypeLikelihoods::anyploidPloidyToPLIndexToAlleleIndices;
+
+int* GenotypeLikelihoods::PLindexConversion = nullptr;
 
 GenotypeLikelihoods *GenotypeLikelihoods::fromGLField(std::string & GLs) {
     int length;

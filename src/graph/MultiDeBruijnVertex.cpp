@@ -45,3 +45,7 @@ MultiDeBruijnVertex::MultiDeBruijnVertex(uint8_t *sequence, int length) : BaseVe
 int MultiDeBruijnVertex::getAdditionalLength(bool source) {
     return source ? getLength() : 1;
 }
+
+int MultiDeBruijnVertex::getAdditionalSequenceLength(bool isSource) {
+    return isSource ? getLength() : 1;
+}

@@ -17,5 +17,6 @@ Haplotype *KBestHaplotype::getHaplotype() {
     int length = 0;
     uint8_t * base = getBases(length);
     Haplotype* haplotype = new Haplotype(base, length, getIsReference());
+    haplotype->setScore(score);
     return haplotype;
 }
