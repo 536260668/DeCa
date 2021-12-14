@@ -17,7 +17,7 @@ int BaseVertex::hashCode(uint8_t *a, int length) {
 }
 
 BaseVertex::BaseVertex(uint8_t * const sequence, const int length) : sequence(sequence), length(length){
-    Mutect2Utils::validateArg(sequence != nullptr, "Sequence cannot be null");
+    Mutect2Utils::validateArg(sequence != nullptr ||  length == 0, "Sequence cannot be null");
     cashedHashCode = hashCode(sequence, length);
 }
 

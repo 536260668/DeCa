@@ -97,6 +97,8 @@ public:
      EventMap* getEventMap();
 
      void setEventMap(EventMap* eventMap);
+
+     bool operator<(const Haplotype & other) const;
 };
 
 

@@ -16,8 +16,8 @@ VariantContext *VariantContextBuilder::make(bool leaveModifyableAsIs) {
         attributesCanBeModified = false;
     }
 
-    return new VariantContext(source, ID, contig, start, stop, alleles, genotypes, log10PError, filters, attribute, fullyDecoded,
-                              toValidate);
+    VariantContext* ret = new VariantContext(source, ID, contig, start, stop, alleles, genotypes, log10PError, filters, attribute, fullyDecoded,toValidate);
+    return ret;
 }
 
 VariantContext *VariantContextBuilder::make() {

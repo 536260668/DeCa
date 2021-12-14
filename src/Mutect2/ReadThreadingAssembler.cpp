@@ -235,6 +235,7 @@ ReadThreadingAssembler::findBestPaths(const std::vector<SeqGraph *> &graphs, Hap
     if(returnHaplotypes.find(refHaplotype) == returnHaplotypes.end()) {
         returnHaplotypes.insert(refHaplotype);
     }
+
     //TODO:验证
     return {returnHaplotypes.begin(), returnHaplotypes.end()};
 }

@@ -14,7 +14,8 @@ VariantContext::VariantContext(std::string &source,
                                double log10PError,
                                std::set<std::string>* filters, std::map<std::string, void*> *attributes,
                                bool fullyDecoded,
-                               std::set<Validation> & validationToPerform) : contig(contig), start(start), stop(stop), commonInfo(source, log10PError, *filters)
+                               const std::set<Validation>&  validationToPerform) : contig(contig), start(start), stop(stop), commonInfo(
+        CommonInfo(source, log10PError, filters))
 {
     if(ID.empty() || std::equal(ID.begin(), ID.end(), ""))
         throw "ID field cannot be the null or the empty string";
@@ -46,12 +47,12 @@ VariantContext::VariantContext(std::string &source,
 }
 
 std::vector<Allele *> VariantContext::makeAlleles(std::vector<Allele *> &_alleles) {
-    std::vector<Allele*> alleleList(_alleles.size());
+    std::vector<Allele*> alleleList;
     bool sawRef = false;
     for(Allele* allele : _alleles) {
         int i = 0;
         for(int alleleListSize = _alleles.size(); i < alleleListSize; ++i) {
-            if((*allele).equals(*alleleList.at(i), true)) {
+            if(i < alleleList.size() && alleleList.at(i) != nullptr && (*allele).equals(*alleleList.at(i), true)) {
                 throw std::invalid_argument("Duplicate allele added to VariantContext");
             }
         }
@@ -159,7 +160,7 @@ void VariantContext::validateAlleles() {
             }
             alreadySeenRef = true;
         }
-        if(!allele->getIsNoCall()) {
+        if(allele->getIsNoCall()) {
             throw std::invalid_argument("BUG: Cannot add a no call allele to a variant context");
         }
     }

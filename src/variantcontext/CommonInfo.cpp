@@ -5,21 +5,24 @@
 #include "CommonInfo.h"
 #include <cmath>
 #include "StringUtils.h"
+#include <stdexcept>
 
-CommonInfo::CommonInfo(std::string name, double log10PError, std::set<std::string> filters): name(name), filters(filters)
+CommonInfo::CommonInfo(std::string & name, double log10PError, std::set<std::string> * filters): name(name)
 {
     setLog10PError(log10PError);
-
+    if(filters != nullptr){
+        this->filters = *filters;
+    }
 }
 
 void CommonInfo::setLog10PError(double log10PError)
 {
     if ( log10PError > 0 && log10PError != NO_LOG10_PERROR)
-        throw "BUG: log10PError cannot be > 0 : ";
+        throw std::invalid_argument("BUG: log10PError cannot be > 0 : ");
     if (std::isinf(this->log10PError))
-        throw "BUG: log10PError should not be Infinity";
+        throw std::invalid_argument("BUG: log10PError should not be Infinity");
     if ( std::isnan(this->log10PError) )
-        throw "BUG: log10PError should not be NaN";
+        throw std::invalid_argument("BUG: log10PError should not be nan");
     this->log10PError = log10PError;
 }
 

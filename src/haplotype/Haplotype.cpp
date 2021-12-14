@@ -75,4 +75,25 @@ void Haplotype::setEventMap(EventMap *eventMap) {
     this->eventMap = eventMap;
 }
 
+bool Haplotype::operator<(const Haplotype &other) const {
+    if(this->getLength() < other.getLength())
+        return true;
+    else if(this->getLength() > other.getLength())
+        return false;
+    else {
+        uint8_t * bases = this->getBases();
+        uint8_t * otherBases = other.getBases();
+        for(int i = 0; i < this->getLength(); i++) {
+            if(bases[i] < otherBases[i])
+                return true;
+            else if (bases[i] > otherBases[i])
+                return false;
+            else {
+                continue;
+            }
+        }
+        return false;
+    }
+}
+
 

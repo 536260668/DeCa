@@ -16,7 +16,7 @@ class CommonInfo {
 public:
     constexpr static double NO_LOG10_PERROR = 1.0;
 
-    CommonInfo(std::string name, double log10PError, std::set<std::string> filters);
+    CommonInfo(std::string & name, double log10PError, std::set<std::string> * filters);
 
     void setLog10PError(double log10PError);
 

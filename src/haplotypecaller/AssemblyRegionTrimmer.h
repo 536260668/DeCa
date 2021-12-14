@@ -1,0 +1,14 @@
+//
+// Created by 梦想家xixi on 2021/12/14.
+//
+
+#ifndef MUTECT2CPP_MASTER_ASSEMBLYREGIONTRIMMER_H
+#define MUTECT2CPP_MASTER_ASSEMBLYREGIONTRIMMER_H
+
+
+class AssemblyRegionTrimmer {
+
+};
+
+
+#endif //MUTECT2CPP_MASTER_ASSEMBLYREGIONTRIMMER_H

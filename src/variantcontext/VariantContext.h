@@ -109,7 +109,7 @@ public:
                    double log10PError,
                    std::set<std::string>* filters, std::map<std::string, void*>* attributes,
                    bool fullyDecoded,
-                   std::set<Validation> & validationToPerform
+                   const std::set<Validation>&  validationToPerform
     );
 protected:
     VariantContextType type;
