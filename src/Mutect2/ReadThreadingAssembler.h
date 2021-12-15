@@ -42,9 +42,13 @@ private:
 
 public:
     ReadThreadingAssembler(int pruneFactor, int numPruningSamples, int numBestHaplotypesPerGraph, bool allowNonUniqueKmersInRef, std::vector<int> kmerSizes);
+    ReadThreadingAssembler(int maxAllowedPathsForReadThreadingAssembler, std::vector<int> kmerSizes, bool dontIncreaseKmerSizesForCycles, bool allowNonUniqueKmersInRef, int numPruningSamples,
+                           int pruneFactor, bool useAdaptivePruning, double initialErrorRateForPruning, double pruningLogOddsThreshold, int maxUnprunedVariants);
     AssemblyResultSet* runLocalAssembly(AssemblyRegion * assemblyRegion, Haplotype* refHaplotype, uint8_t* fullReferenceWithPadding, int refLength, SimpleInterval* refLoc, ReadErrorCorrector* readErrorCorrector);
     std::vector<AssemblyResult*> assemble(std::vector<SAMRecord> & reads, Haplotype* refHaplotype);
     void setMinDanglingBranchLength(int minDanglingBranchLength);
+    void setRecoverDanglingBranches(bool recoverAllDanglingBranches);
+    void setRecoverAllDanglingBranches(bool recoverAllDanglingBranches);
 
 protected:
     uint8_t minBaseQualityToUseInAssembly = DEFAULT_MIN_BASE_QUALITY_TO_USE;

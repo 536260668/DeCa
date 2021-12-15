@@ -31,8 +31,11 @@ add_subdirectory(./src/intel/smithwaterman)
 add_subdirectory(./src/smithwaterman)
 add_subdirectory(./src/Mutect2)
 add_subdirectory(./src/variantcontext)
+add_subdirectory(./src/haplotypecaller)
+add_subdirectory(./src/utils)
+add_subdirectory(./src/tools)
 
-add_executable(Mutect2Cpp_master ${DIR_SRCS} src/tools/haplotypecaller/ReadErrorCorrector.cpp src/tools/haplotypecaller/ReadErrorCorrector.h src/tools/haplotypecaller/CountedKmer.cpp src/tools/haplotypecaller/CountedKmer.h src/tools/haplotypecaller/KMerCounter.cpp src/tools/haplotypecaller/KMerCounter.h src/param/ParamUtils.cpp src/param/ParamUtils.h src/utils/BaseUtils.cpp src/utils/BaseUtils.h src/haplotypecaller/AssemblyBasedCallerUtils.cpp src/haplotypecaller/AssemblyBasedCallerUtils.h src/haplotypecaller/AssemblyRegionTrimmer.cpp src/haplotypecaller/AssemblyRegionTrimmer.h src/haplotypecaller/AssemblyRegionTrimmer_Result.cpp src/haplotypecaller/AssemblyRegionTrimmer_Result.h)
+add_executable(Mutect2Cpp_master ${DIR_SRCS} )
 
 
 # counterpart of gcc -L
@@ -47,5 +50,9 @@ target_link_libraries(Mutect2Cpp_master smithwatermanFunctions)
 target_link_libraries(Mutect2Cpp_master SWFunctions)
 target_link_libraries(Mutect2Cpp_master Mutect2Functions)
 target_link_libraries(Mutect2Cpp_master VariantContext)
+target_link_libraries(Mutect2Cpp_master HaplotypeCallerFunctions)
+target_link_libraries(Mutect2Cpp_master UtilsFunctions)
+target_link_libraries(Mutect2Cpp_master ToolsFunctions)
+
 
 

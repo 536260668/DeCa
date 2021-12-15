@@ -3,6 +3,8 @@
 //
 
 #include "ReadThreadingAssembler.h"
+
+#include <utility>
 #include "AssemblyResultSet.h"
 #include "graph/KBestHaplotypeFinder.h"
 #include "graph/ReadThreadingGraph.h"
@@ -249,4 +251,22 @@ ReadThreadingAssembler::ReadThreadingAssembler(int pruneFactor, int numPruningSa
 
 void ReadThreadingAssembler::setMinDanglingBranchLength(int minDanglingBranchLength) {
     this->minDanglingBranchLength = minDanglingBranchLength;
+}
+
+ReadThreadingAssembler::ReadThreadingAssembler(int maxAllowedPathsForReadThreadingAssembler, std::vector<int> kmerSizes,
+                                               bool dontIncreaseKmerSizesForCycles, bool allowNonUniqueKmersInRef,
+                                               int numPruningSamples, int pruneFactor, bool useAdaptivePruning,
+                                               double initialErrorRateForPruning, double pruningLogOddsThreshold, int maxUnprunedVariants) : kmerSizes(std::move(kmerSizes)), dontIncreaseKmerSizesForCycles(dontIncreaseKmerSizesForCycles), allowNonUniqueKmersInRef(allowNonUniqueKmersInRef),
+                                               numPruningSamples(numPruningSamples), pruneFactor(pruneFactor), numBestHaplotypesPerGraph(maxAllowedPathsForReadThreadingAssembler){
+    Mutect2Utils::validateArg(maxAllowedPathsForReadThreadingAssembler >= 1, "numBestHaplotypesPerGraph should be >= 1");
+    chainPruner = new AdaptiveChainPruner<MultiDeBruijnVertex, MultiSampleEdge>(initialErrorRateForPruning, pruningLogOddsThreshold, maxUnprunedVariants);
+}
+
+void ReadThreadingAssembler::setRecoverDanglingBranches(bool recoverDanglingBranches) {
+    this->recoverDanglingBranches = recoverDanglingBranches;
+}
+
+void ReadThreadingAssembler::setRecoverAllDanglingBranches(bool recoverAllDanglingBranches) {
+    this->recoverAllDanglingBranches = recoverAllDanglingBranches;
+    recoverDanglingBranches = true;
 }
