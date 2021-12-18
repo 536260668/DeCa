@@ -20,7 +20,7 @@ private:
      * The reads included in this assembly region.  May be empty upon creation, and expand / contract
      * as reads are added or removed from this region.
      */
-    std::vector<SAMRecord> reads;
+    std::vector<SAMRecord>* reads;
 
     /**
      * An ordered list (by genomic coordinate) of the ActivityProfileStates that went
@@ -118,13 +118,13 @@ public:
      * Get the span of this assembly region including the extension value
      * @return a non-null SimpleInterval
      */
-    SimpleInterval getExtendedSpan() const {return extendedLoc;}
+    SimpleInterval& getExtendedSpan() {return extendedLoc;}
 
     /**
      * Get the raw span of this assembly region (excluding the extension)
      * @return a non-null SimpleInterval
      */
-     SimpleInterval getSpan() const {return activeRegionLoc;}
+     SimpleInterval& getSpan() {return activeRegionLoc;}
 
     /**
     * Get an unmodifiable copy of the list of reads currently in this assembly region.
@@ -132,7 +132,7 @@ public:
     * The reads are sorted by their coordinate position.
     * @return an unmodifiable and inmutable copy of the reads in the assembly region.
    */
-    std::vector<SAMRecord> & getReads();
+    std::vector<SAMRecord> * getReads();
 
     /**
      * Returns the header for the reads in this region.
@@ -161,7 +161,7 @@ public:
     * @param extensionSize the extensionSize size we want for the newly trimmed active region
     * @return a non-null, empty assembly region
     */
-    //TODO:AssemblyRegion trim(SimpleInterval span, int extensionSize);
+    AssemblyRegion* trim(SimpleInterval* span, SimpleInterval* extendedSpan);
 
     /**
      * Get the extension applied to this region

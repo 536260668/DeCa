@@ -17,6 +17,7 @@ VariantContext::VariantContext(std::string &source,
                                const std::set<Validation>&  validationToPerform) : contig(contig), start(start), stop(stop), commonInfo(
         CommonInfo(source, log10PError, filters))
 {
+    type = VariantContext_NULL;
     if(ID.empty() || std::equal(ID.begin(), ID.end(), ""))
         throw "ID field cannot be the null or the empty string";
 
@@ -216,7 +217,7 @@ std::vector<Allele *> VariantContext::getAlternateAlleles() {
 }
 
 int VariantContext::getStart() {
-    return (int)stop;
+    return (int)start;
 }
 
 bool VariantContext::isBiallelic() {

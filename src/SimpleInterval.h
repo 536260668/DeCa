@@ -12,7 +12,7 @@
 #include <stdexcept>
 #include <sstream>
 #include <algorithm>
-
+#include "samtools/SAMSequenceDictionary.h"
 #include "Locatable.h"
 
 static const char CONTIG_SEPARATOR = ':';
@@ -128,13 +128,13 @@ public:
     /**
       * Returns the intersection of the two intervals. The intervals must overlap or IllegalArgumentException will be thrown.
      */
-    SimpleInterval intersect(Locatable* other);
+    SimpleInterval* intersect(Locatable* other);
 
     /**
       * Returns a new SimpleInterval that represents the entire span of this and other.  Requires that
       * this and that SimpleInterval are contiguous.
       */
-    SimpleInterval mergeWithContiguous(Locatable* other);
+    SimpleInterval* mergeWithContiguous(Locatable* other);
 
     /**
       * Returns a new SimpleInterval that represents the region between the endpoints of this and other.
@@ -144,7 +144,7 @@ public:
       * @param other the other interval with which to calculate the span
       * @return a new SimpleInterval that represents the region between the endpoints of this and other.
       */
-    SimpleInterval spanWith(Locatable* other);
+    SimpleInterval* spanWith(Locatable* other);
 
     /**
       * Returns a new SimpleInterval that represents this interval as expanded by the specified amount in both
@@ -156,6 +156,8 @@ public:
       *         directions, bounded by the contig start/stop if necessary.
       */
     SimpleInterval* expandWithinContig(int padding, int contigLength);
+
+    SimpleInterval* expandWithinContig(int padding, SAMSequenceDictionary* sequenceDictionary);
 
     //TODO:SimpleInterval* expandWithinContig(int padding, SAMSequenceDictionary sequenceDictionary);
 

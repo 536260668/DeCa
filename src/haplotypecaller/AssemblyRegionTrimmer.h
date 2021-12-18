@@ -6,12 +6,21 @@
 #define MUTECT2CPP_MASTER_ASSEMBLYREGIONTRIMMER_H
 
 #include "ReadThreadingAssemblerArgumentCollection.h"
+#include "samtools/SAMSequenceDictionary.h"
+#include "AssemblyRegionTrimmer_Result.h"
 
 class AssemblyRegionTrimmer {
 private:
     int usableExtension;
     bool emitReferenceConfidence;
     ReadThreadingAssemblerArgumentCollection* assemblyArgs;
+    SAMSequenceDictionary* sequenceDictionary;
+    void checkUserArguments();
+
+public:
+    AssemblyRegionTrimmer(ReadThreadingAssemblerArgumentCollection* assemblyArgs, SAMSequenceDictionary* sequenceDictionary, bool isGGA, bool emitReferenceConfidence);
+    AssemblyRegionTrimmer_Result* trim(AssemblyRegion* originalRegion, std::set<VariantContext *, VariantContextComparator> & allVariantsWithinExtendedRegion);
+    std::pair<SimpleInterval*, SimpleInterval*> * nonVariantTargetRegions(AssemblyRegion* targetRegion, SimpleInterval* variantSpan);
 };
 
 

@@ -106,17 +106,17 @@ bool SimpleInterval::overlaps(Locatable *other) {
     return overlapsWithMargin(other, 0);
 }
 
-SimpleInterval SimpleInterval::intersect(Locatable *other) {
+SimpleInterval* SimpleInterval::intersect(Locatable *other) {
     Mutect2Utils::validateArg(overlaps(other), "SimpleInterval::intersect(): The two intervals need to overlap.");
-    SimpleInterval simpleInterval(getContig(), std::max(start, other->getStart()), std::min(end, other->getEnd()));
-    return simpleInterval;
+    SimpleInterval* ret = new SimpleInterval(getContig(), std::max(start, other->getStart()), std::min(end, other->getEnd()));
+    return ret;
 }
 
-SimpleInterval SimpleInterval::mergeWithContiguous(Locatable* other){
+SimpleInterval* SimpleInterval::mergeWithContiguous(Locatable* other){
     Mutect2Utils::validateArg(other != nullptr, "Null object is not allowed here.");
     Mutect2Utils::validateArg(contiguous(other), "The two intervals need to be contiguous.");
-    SimpleInterval simpleInterval(getContig(), std::min(start, other->getStart()), std::max(end, other->getEnd()));
-    return simpleInterval;
+    SimpleInterval* ret = new SimpleInterval(getContig(), std::min(start, other->getStart()), std::max(end, other->getEnd()));
+    return ret;
 }
 
 bool SimpleInterval::contiguous(Locatable *other) {
@@ -124,11 +124,11 @@ bool SimpleInterval::contiguous(Locatable *other) {
     return contig == other->getContig() && start <= other->getEnd() + 1 && other->getStart() <= end + 1;
 }
 
-SimpleInterval SimpleInterval::spanWith(Locatable *other) {
+SimpleInterval* SimpleInterval::spanWith(Locatable *other) {
     Mutect2Utils::validateArg(other != nullptr, "Null object is not allowed here.");
     Mutect2Utils::validateArg(contig == other->getContig(), "Cannot get span for intervals on different contigs.");
-    SimpleInterval simpleInterval(getContig(), std::min(start, other->getStart()), std::max(end, other->getEnd()));
-    return simpleInterval;
+    SimpleInterval* ret = new SimpleInterval(getContig(), std::min(start, other->getStart()), std::max(end, other->getEnd()));
+    return ret;
 }
 
 SimpleInterval* SimpleInterval::expandWithinContig(const int padding, const int contigLength) {
@@ -144,4 +144,10 @@ std::ostream & operator<<(std::ostream &os, const SimpleInterval& simpleInterval
 }
 
 SimpleInterval::SimpleInterval(Locatable *pLocatable) : contig(pLocatable->getContig()), start(pLocatable->getStart()), end(pLocatable->getEnd()){}
+
+SimpleInterval *SimpleInterval::expandWithinContig(int padding, SAMSequenceDictionary *sequenceDictionary) {
+    Mutect2Utils::validateArg(sequenceDictionary, "null is not allowed there");
+    SAMSequenceRecord& contigRecord = sequenceDictionary->getSequence(contig);
+    return expandWithinContig(padding, contigRecord.getSequenceLength());
+}
 

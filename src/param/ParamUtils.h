@@ -6,6 +6,7 @@
 #define MUTECT2CPP_MASTER_PARAMUTILS_H
 
 #include "Mutect2Utils.h"
+#include <string>
 
 class ParamUtils {
 public:

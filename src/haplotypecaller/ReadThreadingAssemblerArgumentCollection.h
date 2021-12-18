@@ -36,12 +36,11 @@ public:
     virtual ReadThreadingAssembler* makeReadThreadingAssembler() = 0;
     virtual bool consensusMode() { return false; }
 
-protected:
-    bool dontTrimActiveRegions = false;
-    int discoverExtension = 25;
     int ggaExtension = 300;
-    int indelPadding = 150;
+    int discoverExtension = 25;
     int snpPadding = 20;
+    int indelPadding = 150;
+    bool dontTrimActiveRegions = false;
 
 };
 

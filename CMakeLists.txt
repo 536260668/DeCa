@@ -34,8 +34,11 @@ add_subdirectory(./src/variantcontext)
 add_subdirectory(./src/haplotypecaller)
 add_subdirectory(./src/utils)
 add_subdirectory(./src/tools)
+add_subdirectory(./src/samtools)
+add_subdirectory(./src/param)
+add_subdirectory(./src/clipping)
 
-add_executable(Mutect2Cpp_master ${DIR_SRCS} )
+add_executable(Mutect2Cpp_master ${DIR_SRCS})
 
 
 # counterpart of gcc -L
@@ -53,6 +56,9 @@ target_link_libraries(Mutect2Cpp_master VariantContext)
 target_link_libraries(Mutect2Cpp_master HaplotypeCallerFunctions)
 target_link_libraries(Mutect2Cpp_master UtilsFunctions)
 target_link_libraries(Mutect2Cpp_master ToolsFunctions)
+target_link_libraries(Mutect2Cpp_master SamtoolsFunctions)
+target_link_libraries(Mutect2Cpp_master ParamFunctions)
+target_link_libraries(Mutect2Cpp_master ClippingFunctions)
 
 
 

@@ -112,10 +112,10 @@ AssemblyResultSet *ReadThreadingAssembler::runLocalAssembly(AssemblyRegion *asse
     std::vector<SAMRecord> correctedReads;
     if(readErrorCorrector != nullptr) {
         //TODO::readErrorCorrector
-        readErrorCorrector->addReadsToKmers(assemblyRegion->getReads());
-        correctedReads = assemblyRegion->getReads();
+        readErrorCorrector->addReadsToKmers(*assemblyRegion->getReads());
+        correctedReads = *assemblyRegion->getReads();
     } else {
-        correctedReads = assemblyRegion->getReads();
+        correctedReads = *assemblyRegion->getReads();
     }
     std::vector<SeqGraph*> nonRefGraphs;
     AssemblyResultSet * resultSet = new AssemblyResultSet();

@@ -14,7 +14,7 @@ private:
 protected:
     int maxSize() override {return CACHE_SIZE;}
 
-    double compute(int n);
+    double compute(int n) override;
 };
 
 

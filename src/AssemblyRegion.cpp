@@ -62,9 +62,9 @@ std::ostream & operator<<(std::ostream & os, AssemblyRegion & assemblyRegion) {
 void AssemblyRegion::setIsActive(const bool value) {isActive = value;}
 
 bool AssemblyRegion::equalsIgnoreReads(const AssemblyRegion &other) {
-    if(!(activeRegionLoc == other.getSpan()) || isActive != other.getIsActive() || extension != other.getExtension())
+    if(!(activeRegionLoc == other.activeRegionLoc) || isActive != other.getIsActive() || extension != other.getExtension())
         return false;
-    return extendedLoc == other.getExtendedSpan();
+    return extendedLoc == activeRegionLoc;
 }
 void AssemblyRegion::setFinalized(bool value) {hasBeenFinalized = value;}
 
@@ -73,10 +73,32 @@ sam_hdr_t * AssemblyRegion::getHeader()
     return hdr;
 }
 
-std::vector<SAMRecord> & AssemblyRegion::getReads(){
+std::vector<SAMRecord> * AssemblyRegion::getReads(){
     return reads;
 }
 
 void AssemblyRegion::setRead(std::vector<SAMRecord> &reads) {
-    this->reads = reads;
+    this->reads = &reads;
+}
+
+AssemblyRegion *AssemblyRegion::trim(SimpleInterval *span, SimpleInterval *extendedSpan) {
+    Mutect2Utils::validateArg(span, "Active region extent cannot be null");
+    Mutect2Utils::validateArg(extendedSpan, "Active region extended span cannot be null");
+    Mutect2Utils::validateArg(extendedSpan->contains(span), "The requested extended span must fully contain the requested span");
+
+    SimpleInterval* subActive = getSpan().intersect(span);
+    int requiredOnRight = std::max(extendedSpan->getEnd() - subActive->getEnd(), 0);
+    int requiredOnLeft = std::max(subActive->getStart() - extendedSpan->getStart(), 0);
+    int requiredExtension = std::min(std::max(requiredOnLeft, requiredOnRight), getExtension());
+
+    AssemblyRegion* result = new AssemblyRegion(subActive, std::vector<ActivityProfileState>(), isActive, requiredExtension, hdr);
+    std::vector<SAMRecord> * myReads = getReads();
+    SimpleInterval resultExtendedLoc = result->getExtendedSpan();
+    int resultExtendedLocStart = resultExtendedLoc.getStart();
+    int resultExtendedLocStop = resultExtendedLoc.getEnd();
+
+    std::vector<SAMRecord> trimmedReads;
+    for(SAMRecord& read : *myReads) {
+
+    }
 }
