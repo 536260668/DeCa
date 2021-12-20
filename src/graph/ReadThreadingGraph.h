@@ -5,7 +5,7 @@
 #ifndef MUTECT2CPP_MASTER_READTHREADINGGRAPH_H
 #define MUTECT2CPP_MASTER_READTHREADINGGRAPH_H
 
-#include "SAMRecord.h"
+#include "samtools/SAMRecord.h"
 #include "MultiDeBruijnVertex.h"
 #include "MultiSampleEdge.h"
 #include <map>

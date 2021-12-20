@@ -10,7 +10,7 @@
 #include <htslib/sam.h>
 #include "SimpleInterval.h"
 #include "ActivityProfileState.h"
-#include "SAMRecord.h"
+#include "samtools/SAMRecord.h"
 
 class AssemblyRegion : public Locatable{
 private:

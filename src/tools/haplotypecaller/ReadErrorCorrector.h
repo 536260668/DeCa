@@ -7,7 +7,7 @@
 
 
 #include "KMerCounter.h"
-#include "SAMRecord.h"
+#include "samtools/SAMRecord.h"
 #include <cstdint>
 
 class ReadErrorCorrector {

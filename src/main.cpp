@@ -7,6 +7,7 @@
 #include "graph/ReadThreadingGraph.h"
 #include "ReadThreadingGraph.h"
 #include <iostream>
+#include "samtools/SAMRecord.h"
 #include "path/AdaptiveChainPruner.h"
 #include "graph/utils/GraphUtils.h"
 #include "intel/smithwaterman/IntelSmithWaterman.h"

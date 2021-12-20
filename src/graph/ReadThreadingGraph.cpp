@@ -22,7 +22,7 @@ void ReadThreadingGraph::addRead(SAMRecord read) {
             int len = end - start;
 
             if(start != -1 && len >= kmerSize) {
-                std::string name = read.getReadName();
+                std::string name = read.getName();
                 name += '_' + std::to_string(start) + '_' + std::to_string(end);
                 std::string sampleName = "SAMFileHeader{VN=1.6, GO=none, SO=coordinate}";
                 addSequence(name, sampleName, sequence, start, end, 1, false);

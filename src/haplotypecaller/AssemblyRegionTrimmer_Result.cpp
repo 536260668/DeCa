@@ -93,6 +93,6 @@ bool AssemblyRegionTrimmer_Result::isVariationPresent() {
 
 AssemblyRegion *AssemblyRegionTrimmer_Result::getCallableRegion() {
     if(callableRegion == nullptr && extendedSpan == nullptr) {
-        callableRegion = emitReferenceConfidence ? originalRegion
+       // callableRegion = emitReferenceConfidence ? originalRegion
     }
 }
