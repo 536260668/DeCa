@@ -26,3 +26,104 @@ ReadClipper::hardClipToRegion(SAMRecord *read, int refStart, int refStop, int al
         return ReadUtils::emptyRead(read);
     }
 }
+
+ReadClipper::ReadClipper(SAMRecord *read) : read(read), wasClipped(false){
+}
+
+SAMRecord *ReadClipper::hardClipBothEndsByReferenceCoordinates(const int left, const int right) {
+    if(read->getLength() == 0 || left == right) {
+        return ReadUtils::emptyRead(read);
+    }
+    SAMRecord* leftTailRead = clipByReferenceCoordinates(right, -1, HARDCLIP_BASES, true);
+    if(left > leftTailRead->getEnd()) {
+        return ReadUtils::emptyRead(read);
+    }
+    ReadClipper clipper = ReadClipper(leftTailRead);
+    return clipper.hardClipByReferenceCoordinatesLeftTail(left);
+}
+
+SAMRecord *
+ReadClipper::clipByReferenceCoordinates(int refStart, int refStop, ClippingRepresentation clippingOp, bool runAsserts) {
+    if(read->getLength() == 0) {
+        return read;
+    }
+    if(clippingOp == SOFTCLIP_BASES && read->isUnmapped()) {
+        throw std::invalid_argument("Cannot soft-clip read by reference coordinates because it is unmapped");
+    }
+    int start;
+    int stop;
+
+    if(refStart < 0) {
+        if(refStop < 0) {
+            throw std::invalid_argument("Only one of refStart or refStop must be < 0");
+        }
+        start = 0;
+        stop = ReadUtils::getReadCoordinateForReferenceCoordinate(read, refStop, LEFT_TAIL);
+    } else {
+        if(refStop >= 0) {
+            throw std::invalid_argument("Either refStart or refStop must be < 0");
+        }
+        start = ReadUtils::getReadCoordinateForReferenceCoordinate(read, refStart, RIGHT_TAIL);
+        stop = read->getLength() - 1;
+    }
+
+    if(start < 0 || stop > read->getLength() - 1) {
+        throw std::invalid_argument("Trying to clip before the start or after the end of a read");
+    }
+
+    if(start > stop) {
+        throw std::invalid_argument("START > STOP -- this should never happen, please check read");
+    }
+
+    if(start > 0 && stop < read->getLength() - 1) {
+        throw std::invalid_argument("Trying to clip the middle of the read");
+    }
+    addOp(ClippingOp(start, stop));
+    SAMRecord* clippedRead = clipRead(clippingOp, runAsserts);
+    ops.clear();
+    return clippedRead;
+}
+
+void ReadClipper::addOp(const ClippingOp &op) {
+    ops.emplace_back(op);
+}
+
+SAMRecord *ReadClipper::clipRead(ClippingRepresentation algorithm, bool runAsserts) {
+    Mutect2Utils::validateArg(algorithm != NULL_ClippingRepresentation, "null is not allowed there.");
+    if(ops.empty()) {
+        return read;
+    }
+    SAMRecord* clippedRead = read;
+    for(ClippingOp op : ops) {
+        int readLength = clippedRead->getLength();
+        if(op.start < readLength) {
+            ClippingOp fixedOperation = op;
+            if(op.stop >= readLength) {
+                fixedOperation = ClippingOp(op.start, readLength - 1);
+            }
+            clippedRead = fixedOperation.apply(algorithm, clippedRead, runAsserts);
+        }
+    }
+    wasClipped = true;
+    ops.clear();
+    if(clippedRead->isEmpty()) {
+        return ReadUtils::emptyRead(clippedRead);
+    }
+    return clippedRead;
+}
+
+SAMRecord *ReadClipper::hardClipByReferenceCoordinatesLeftTail(int refStop) {
+    return clipByReferenceCoordinates(-1, refStop, HARDCLIP_BASES, true);
+}
+
+SAMRecord *ReadClipper::hardClipBothEndsByReferenceCoordinates(SAMRecord *read, int left, int right) {
+    return ReadClipper(read).hardClipBothEndsByReferenceCoordinates(left, right);
+}
+
+SAMRecord *ReadClipper::hardClipByReferenceCoordinatesLeftTail(SAMRecord *read, int refStop) {
+    return ReadClipper(read).clipByReferenceCoordinates(-1, refStop, HARDCLIP_BASES, true);
+}
+
+SAMRecord *ReadClipper::hardClipByReferenceCoordinatesRightTail(SAMRecord *read, int refStart) {
+    return ReadClipper(read).clipByReferenceCoordinates(refStart, -1, HARDCLIP_BASES, true);
+}

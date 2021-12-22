@@ -209,6 +209,19 @@ public:
     bool isFinalized() const {return hasBeenFinalized;}
 
     void setRead(std::vector<SAMRecord> & reads);
+
+    bool readOverlapsRegion(SAMRecord* read);
+
+    /**
+     * Clear all of the reads currently in this region
+     */
+    void clearReads();
+
+    /**
+     * Add all readsToAdd to this region
+     * @param readsToAdd a collection of readsToAdd to add to this active region
+     */
+    void addAll(std::vector<SAMRecord>& readsToAdd);
 };
 
 

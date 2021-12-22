@@ -90,6 +90,10 @@ public:
     void setAttribute(std::string& attributeName, const std::string& attributeValue);
     void setAttribute(std::string &tag, void* value, Void_Type type, int length);
     void setAttribute(short tag, void* value, Void_Type type, int length);
+    int getSoftStart();
+    int getSoftEnd();
+    std::string & getContig();
+    std::string getAttributeAsString(std::string & attributeName);
 
 private:
     void setAttribute(short tag, void* value, Void_Type type, int length, bool isUnsignedArray);

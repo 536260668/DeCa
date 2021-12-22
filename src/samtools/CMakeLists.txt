@@ -1,2 +1,2 @@
 aux_source_directory(. DIR_LIB_SRCS)
-add_library(SamtoolsFunctions ${DIR_LIB_SRCS} SAMSequenceDictionary.cpp SAMSequenceDictionary.h SAMRecord.cpp SAMRecord.h SAMFlag.cpp SAMFlag.h SAMUtils.cpp SAMUtils.h SAMBinaryTagAndValue.cpp SAMBinaryTagAndValue.h)
+add_library(SamtoolsFunctions ${DIR_LIB_SRCS} SAMSequenceDictionary.cpp SAMSequenceDictionary.h SAMRecord.cpp SAMRecord.h SAMFlag.cpp SAMFlag.h SAMUtils.cpp SAMUtils.h SAMBinaryTagAndValue.cpp SAMBinaryTagAndValue.h SAMFileHeader.cpp SAMFileHeader.h AbstractSAMHeaderRecord.cpp AbstractSAMHeaderRecord.h)

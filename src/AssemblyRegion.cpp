@@ -5,6 +5,7 @@
 #include "assert.h"
 #include "AssemblyRegion.h"
 #include "IntervalUtils.h"
+#include "clipping/ReadClipper.h"
 
 AssemblyRegion::AssemblyRegion(SimpleInterval const &activeRegionLoc,
                                std::vector<ActivityProfileState> supportingStates, const bool isActive,
@@ -99,6 +100,33 @@ AssemblyRegion *AssemblyRegion::trim(SimpleInterval *span, SimpleInterval *exten
 
     std::vector<SAMRecord> trimmedReads;
     for(SAMRecord& read : *myReads) {
+        SAMRecord* clippedRead = ReadClipper::hardClipToRegion(&read, resultExtendedLocStart, resultExtendedLocStop);
+        if(result->readOverlapsRegion(clippedRead) && !clippedRead->isEmpty()) {
+            trimmedReads.emplace_back(*clippedRead);
+        }
+        delete clippedRead;
+    }
+    //TODO:sort
+    result->clearReads();
+    result->addAll(trimmedReads);
+    return result;
+}
 
+bool AssemblyRegion::readOverlapsRegion(SAMRecord *read) {
+    if(read->isEmpty() || read->getStart() > read->getEnd()) {
+        return false;
+    }
+    SimpleInterval readLoc(read->getContig(), read->getStart(), read->getEnd());
+    return readLoc.overlaps(&extendedLoc);
+}
+
+void AssemblyRegion::clearReads() {
+    spanIncludingReads = extendedLoc;
+    reads->clear();
+}
+
+void AssemblyRegion::addAll(std::vector<SAMRecord> &readsToAdd) {
+    for(SAMRecord & samRecord : readsToAdd) {
+        reads->emplace_back(samRecord);
     }
 }

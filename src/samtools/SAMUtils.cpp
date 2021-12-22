@@ -45,3 +45,50 @@ short SAMUtils::makeBinaryTag(std::string &tag) {
     char b = tag[0];
     return a << 8 | b;
 }
+
+uint8_t *SAMUtils::fastqToPhred(std::string &fastq) {
+    if(fastq.empty()) {
+        return nullptr;
+    } else {
+        int length = fastq.size();
+        uint8_t * scores = new uint8_t[length];
+        for(int i = 0; i < length; ++i) {
+            scores[i] = (uint8_t)fastqToPhred(fastq[i]);
+        }
+        return scores;
+    }
+}
+
+int SAMUtils::fastqToPhred(char ch) {
+    if(ch >= '!' && ch <= '~') {
+        return ch - 33;
+    } else {
+        throw std::invalid_argument("Invalid fastq character");
+    }
+}
+
+char SAMUtils::phredToFastq(int phredScore) {
+    if(phredScore >= 0 && phredScore <= 93) {
+        return (char)(33 + phredScore);
+    } else {
+        throw std::invalid_argument("Cannot encode phred score");
+    }
+}
+
+std::string SAMUtils::phredToFastq(uint8_t *buffer, int offset, int length) {
+    char* chars = new char[length];
+
+    for(int i = 0; i < length; ++i) {
+        chars[i] = phredToFastq(buffer[offset + i] & 255);
+    }
+    std::string ret(chars);
+    delete[] chars;
+    return ret;
+}
+
+std::string SAMUtils::phredToFastq(uint8_t *buffer, int length) {
+    if(buffer == nullptr)
+        return "";
+    else
+        return phredToFastq(buffer, 0, length);
+}

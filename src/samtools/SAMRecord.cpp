@@ -7,6 +7,7 @@
 #include "ReadConstants.h"
 #include "SAMUtils.h"
 #include "ReadUtils.h"
+#include <sstream>
 
 const std::string SAMRecord::NO_ALIGNMENT_REFERENCE_NAME = "*";
 
@@ -333,6 +334,103 @@ void SAMRecord::setAttribute(short tag, void *value, Void_Type type, int length)
 
 void SAMRecord::setAttribute(std::string &tag, void *value, Void_Type type, int length) {
     setAttribute(SAMUtils::makeBinaryTag(tag), value, type, length);
+}
+
+int SAMRecord::getSoftStart() {
+    return ReadUtils::getSoftStart(this);
+}
+
+int SAMRecord::getSoftEnd() {
+    return ReadUtils::getSoftStart(this);
+}
+
+std::string &SAMRecord::getContig() {
+    return getReadUnmappedFlag() ? (std::string&)"" : mReferenceName;
+}
+
+std::string SAMRecord::getAttributeAsString(std::string &attributeName) {
+    ReadUtils::assertAttributeNameIsLegal(attributeName);
+    if(mAttributes == nullptr) {
+        return "";
+    } else {
+        SAMBinaryTagAndValue* tmp = mAttributes->find(SAMUtils::makeBinaryTag(attributeName));
+        std::string ret;
+        switch (tmp->type) {
+            case Uint8_t_Array_Type:
+            {
+                char* val = (char*) tmp->value;
+                if(tmp->length == 0) {
+                    ret = "";
+                    break;
+                }
+                char * newVal = new char[tmp->length+1];
+                memcpy(newVal, val, tmp->length);
+                newVal[tmp->length] = 0;
+                ret = std::string(newVal);
+                delete[] newVal;
+                break;
+            }
+            case Uint8_Type:
+            {
+                char* val = (char*) tmp->value;
+                ret = *val;
+                break;
+            }
+            case Int_Array_Type:
+            {
+                std::stringstream ss;
+                for(int i = 0; i < tmp->length; i++) {
+                    ss << ((int*)tmp->value)[i];
+                    ss >> ret;
+                }
+            }
+            case Integer_Type:
+            {
+                std::stringstream ss;
+                ss << *((int*)tmp->value);
+                ss >> ret;
+            }
+            case Float_Array_Type:
+            {
+                std::stringstream ss;
+                for(int i = 0; i < tmp->length; i++) {
+                    ss << ((float *)tmp->value)[i];
+                    ss >> ret;
+                }
+            }
+            case Float_Type:
+            {
+                std::stringstream ss;
+                ss << *((float *)tmp->value);
+                ss >> ret;
+            }
+            case Long_Type:
+            {
+                std::stringstream ss;
+                ss << *((long *)tmp->value);
+                ss >> ret;
+            }
+            case String_Type:
+            {
+                return *((std::string*)tmp->value);
+            }
+            case Short_Type:
+            {
+                std::stringstream ss;
+                ss << *((short *)tmp->value);
+                ss >> ret;
+            }
+            case Short_Array_Type:
+            {
+                std::stringstream ss;
+                for(int i = 0; i < tmp->length; i++) {
+                    ss << ((short *)tmp->value)[i];
+                    ss >> ret;
+                }
+            }
+        }
+        return ret;
+    }
 }
 
 

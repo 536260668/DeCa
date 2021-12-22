@@ -6,15 +6,36 @@
 #define MUTECT2CPP_MASTER_READCLIPPER_H
 
 #include "samtools/SAMRecord.h"
+#include "ClippingOp.h"
+
+enum ClippingRepresentation{
+    WRITE_NS,
+    WRITE_Q0S,
+    WRITE_NS_Q0S,
+    SOFTCLIP_BASES,
+    HARDCLIP_BASES,
+    REVERT_SOFTCLIPPED_BASES,
+    NULL_ClippingRepresentation
+};
 
 class ReadClipper {
 public:
-    static SAMRecord* hardClipToRegion(SAMRecord * read, int refStart, int refStop);
     SAMRecord* read;
     bool wasClipped;
+    std::vector<ClippingOp> ops;
+    ReadClipper(SAMRecord* read);
+    void addOp(const ClippingOp & op);
+    static SAMRecord* hardClipToRegion(SAMRecord * read, int refStart, int refStop);
+    static SAMRecord* hardClipBothEndsByReferenceCoordinates(SAMRecord* read, int left, int right);
+    static SAMRecord* hardClipByReferenceCoordinatesLeftTail(SAMRecord* read, int refStop);
+    static SAMRecord* hardClipByReferenceCoordinatesRightTail(SAMRecord* read, int refStop);
 
 private:
     static SAMRecord* hardClipToRegion(SAMRecord * read, int refStart, int refStop, int alignmentStart, int alignmentStop);
+    SAMRecord* hardClipBothEndsByReferenceCoordinates(int left, int right);
+    SAMRecord* clipByReferenceCoordinates(int refStart, int refStop, ClippingRepresentation clippingOp, bool runAsserts);
+    SAMRecord* clipRead(ClippingRepresentation algorithm, bool runAsserts);
+    SAMRecord* hardClipByReferenceCoordinatesLeftTail(int refStop);
 };
 
 
