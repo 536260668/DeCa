@@ -94,6 +94,17 @@ public:
     int getSoftEnd();
     std::string & getContig();
     std::string getAttributeAsString(std::string & attributeName);
+    bool isReverseStrand() const;
+    bool mateIsReverseStrand();
+    bool getMateNegativeStrandFlagUnchecked();
+    bool isFirstOfPair();
+    bool getFirstOfPairFlag();
+    bool isSecondOfPair();
+    bool getSecondOfPairFlag();
+    bool isSecondaryAlignment() const;
+    bool failsVendorQualityCheck() const;
+    bool isDuplicate() const;
+    bool isSupplementaryAlignment() const;
 
 private:
     void setAttribute(short tag, void* value, Void_Type type, int length, bool isUnsignedArray);

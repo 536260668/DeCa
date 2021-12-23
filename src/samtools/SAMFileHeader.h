@@ -5,26 +5,55 @@
 #ifndef MUTECT2CPP_MASTER_SAMFILEHEADER_H
 #define MUTECT2CPP_MASTER_SAMFILEHEADER_H
 
-#include <string>
+#include "AbstractSAMHeaderRecord.h"
+#include "SAMReadGroupRecord.h"
+#include "SAMProgramRecord.h"
+#include "SAMSequenceDictionary.h"
 #include <set>
+#include <vector>
+#include <map>
 
-class SAMFileHeader {
+enum SortOrder{
+    SAMFileHeader_unsorted,
+    SAMFileHeader_queryname,
+    SAMFileHeader_coordinate,
+    SAMFileHeader_duplicate,
+    SAMFileHeader_unknown,
+    SAMFileHeader_SortOrder_null
+};
+
+enum GroupOrder{
+    SAMFileHeader_none,
+    SAMFileHeader_query,
+    SAMFileHeader_reference,
+    SAMFileHeader_GroupOrder_null,
+};
+
+class SAMFileHeader : public AbstractSAMHeaderRecord{
 public:
-    static const std::string READ_GROUP_ID_TAG;
-    static const std::string SEQUENCING_CENTER_TAG;
-    static const std::string DESCRIPTION_TAG;
-    static const std::string DATE_RUN_PRODUCED_TAG;
-    static const std::string FLOW_ORDER_TAG;
-    static const std::string KEY_SEQUENCE_TAG;
-    static const std::string LIBRARY_TAG;
-    static const std::string PROGRAM_GROUP_TAG;
-    static const std::string PREDICTED_MEDIAN_INSERT_SIZE_TAG;
-    static const std::string PLATFORM_TAG;
-    static const std::string PLATFORM_MODEL_TAG;
-    static const std::string PLATFORM_UNIT_TAG;
-    static const std::string READ_GROUP_SAMPLE_TAG;
-    static const std::string BARCODE_TAG;
+    static const std::string VERSION_TAG;
+    static const std::string SORT_ORDER_TAG;
+    static const std::string GROUP_ORDER_TAG;
+    static const std::string CURRENT_VERSION;
+    static const std::set<std::string> ACCEPTABLE_VERSIONS;
     static const std::set<std::string> STANDARD_TAGS;
+    //需要init
+    SAMFileHeader();
+    void init();
+    void setAttribute(std::string& key, std::string& value) override;
+
+    int getSequenceIndex(std::string &basicString);
+
+private:
+    std::vector<SAMReadGroupRecord> mReadGroups;
+    std::vector<SAMProgramRecord> mProgramRecords;
+    std::map<std::string, SAMReadGroupRecord> mReadGroupMap;
+    std::map<std::string, SAMProgramRecord> mProgramRecordMap;
+    SAMSequenceDictionary mSequenceDictionary;
+    std::vector<std::string> mComments;
+    std::string textHeader;
+    SortOrder sortOrder;
+    GroupOrder groupOrder;
 };
 
 

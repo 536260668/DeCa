@@ -226,5 +226,63 @@ uint8_t *ReadUtils::getBaseDeletionQualities(SAMRecord *read, int &length) {
 }
 
 void ReadUtils::setInsertionBaseQualities(SAMRecord *read, uint8_t *quals, int length) {
-    read->setAttribute(BQSR_BASE_INSERTION_QUALITIES, quals == nullptr ? nullptr : SAMUtils::p)
+    read->setAttribute(BQSR_BASE_INSERTION_QUALITIES, quals == nullptr ? "" : SAMUtils::phredToFastq(quals, length));
 }
+
+void ReadUtils::setDeletionBaseQualities(SAMRecord *read, uint8_t *quals, int length) {
+    read->setAttribute(BQSR_BASE_DELETION_QUALITIES, quals  == nullptr ? "" : SAMUtils::phredToFastq(quals, length));
+}
+
+int ReadUtils::getAssignedReferenceIndex(SAMRecord *read, SAMFileHeader *header) {
+    return header->getSequenceIndex(read->getAssignedContig());
+}
+
+int ReadUtils::getSAMFlagsForRead(SAMRecord *read) {
+    int samFlags = 0;
+
+    if(read->isPaired()) {
+        samFlags |= 1;
+    }
+    if(read->isProperlyPaired()) {
+        samFlags |= 2;
+    }
+    if(read->isUnmapped()) {
+        samFlags |= 4;
+    }
+    if(read->isPaired() && read->mateIsUnmapped()) {
+        samFlags |= 8;
+    }
+    if(!read->isUnmapped() && read->isReverseStrand()) {
+        samFlags |= 16;
+    }
+    if(read->isPaired() && ! read->mateIsUnmapped() && read->mateIsReverseStrand()) {
+        samFlags |= 32;
+    }
+    if(read->isFirstOfPair()) {
+        samFlags |= 64;
+    }
+    if(read->isSecondOfPair()) {
+        samFlags |= 128;
+    }
+    if(read->isSecondaryAlignment()) {
+        samFlags |= 256;
+    }
+    if(read->failsVendorQualityCheck()) {
+        samFlags |= 512;
+    }
+    if(read->isDuplicate()) {
+        samFlags |= 1024;
+    }
+    if(read->isSupplementaryAlignment()) {
+        samFlags |= 2048;
+    }
+    return samFlags;
+}
+
+int ReadUtils::getMateReferenceIndex(SAMRecord *read, SAMFileHeader *header) {
+    if(read->mateIsUnmapped()) {
+        return -1;
+    }
+    return header->getSequenceIndex(read->getMateContig());
+}
+

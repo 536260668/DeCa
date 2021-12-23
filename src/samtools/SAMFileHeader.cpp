@@ -4,18 +4,36 @@
 
 #include "SAMFileHeader.h"
 
-const std::string SAMFileHeader::READ_GROUP_ID_TAG = "ID";
-const std::string SAMFileHeader::SEQUENCING_CENTER_TAG = "CN";
-const std::string SAMFileHeader::DESCRIPTION_TAG = "DS";
-const std::string SAMFileHeader::DATE_RUN_PRODUCED_TAG = "DT";
-const std::string SAMFileHeader::FLOW_ORDER_TAG = "FO";
-const std::string SAMFileHeader::KEY_SEQUENCE_TAG = "KS";
-const std::string SAMFileHeader::LIBRARY_TAG = "LB";
-const std::string SAMFileHeader::PROGRAM_GROUP_TAG = "PG";
-const std::string SAMFileHeader::PREDICTED_MEDIAN_INSERT_SIZE_TAG = "PI";
-const std::string SAMFileHeader::PLATFORM_TAG = "PL";
-const std::string SAMFileHeader::PLATFORM_MODEL_TAG = "PM";
-const std::string SAMFileHeader::PLATFORM_UNIT_TAG = "PU";
-const std::string SAMFileHeader::READ_GROUP_SAMPLE_TAG = "SM";
-const std::string SAMFileHeader::BARCODE_TAG = "BC";
-const std::set<std::string> SAMFileHeader::STANDARD_TAGS{"ID", "CN", "DS", "DT", "FO", "KS", "LB", "PG", "PI", "PL", "PM", "PU", "SM", "BC"};
+const std::string SAMFileHeader::VERSION_TAG = "VN";
+const std::string SAMFileHeader::SORT_ORDER_TAG = "SO";
+const std::string SAMFileHeader::GROUP_ORDER_TAG = "GO";
+const std::string SAMFileHeader::CURRENT_VERSION = "1.6";
+
+const std::set<std::string> SAMFileHeader::ACCEPTABLE_VERSIONS{"1.0", "1.3", "1.4", "1.5", "1.6"};
+const std::set<std::string> SAMFileHeader::STANDARD_TAGS{"VN", "SO", "GO"};
+
+SAMFileHeader::SAMFileHeader() {
+}
+
+void SAMFileHeader::init() {
+    setAttribute((std::string &) "VN", (std::string &) "1.6");
+}
+
+void SAMFileHeader::setAttribute(std::string &key, std::string &value) {
+    std::string tempVal = value;
+    if(key == "SO") {
+        sortOrder = SAMFileHeader_SortOrder_null;
+        if(value == "SAMFileHeader_unsorted" ||value == "SAMFileHeader_queryname" ||value == "SAMFileHeader_coordinate" ||value == "SAMFileHeader_duplicate" ||value == "SAMFileHeader_SortOrder_null") {
+            tempVal = value;
+        } else {
+            tempVal = "SAMFileHeader_unknown";
+        }
+    } else if (key == "GO") {
+        groupOrder = SAMFileHeader_GroupOrder_null;
+    }
+    AbstractSAMHeaderRecord::setAttribute(key, tempVal);
+}
+
+int SAMFileHeader::getSequenceIndex(std::string &basicString) {
+    return mSequenceDictionary.getSequenceIndex(basicString);
+}

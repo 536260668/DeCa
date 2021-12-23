@@ -19,3 +19,14 @@ SAMSequenceRecord &SAMSequenceDictionary::getSequence(const std::string& name) {
         throw std::invalid_argument("not found in provided dictionary");
     return mSequenceMap.at(name);
 }
+
+int SAMSequenceDictionary::getSequenceIndex(std::string &sequenceName) {
+    try {
+        SAMSequenceRecord record = mSequenceMap.at(sequenceName);
+        return record.getSequenceIndex();
+    } catch(const std::out_of_range &e) {
+        return -1;
+    }
+
+
+}

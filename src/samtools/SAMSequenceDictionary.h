@@ -18,6 +18,7 @@ public:
     SAMSequenceDictionary() = default;
     void addSequence(SAMSequenceRecord sequenceRecord);
     SAMSequenceRecord & getSequence(const std::string& name);
+    int getSequenceIndex(std::string & sequenceName);
 };
 
 

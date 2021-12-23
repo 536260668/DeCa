@@ -30,6 +30,7 @@ public:
     std::string & getSequenceName() {return mSequenceName;}
     void setSequenceIndex(int value) {mSequenceIndex = value;}
     int getSequenceLength() const {return mSequenceLength;}
+    int getSequenceIndex() const {return mSequenceIndex;}
 };
 
 

@@ -24,6 +24,7 @@ public:
     static double logLikelihoodRatio(int refCount, int altCount, double errorProbability);
     static int lastIndexOf(const uint8_t* reference, int refLength, const uint8_t* query, int queryLength);
     static uint8_t* copyOfRange(uint8_t* original, int ,int from, int to, int & length);
+    static int Int_compare(int x, int y);
 
     template<class T>
     static bool isVectorEquals(std::vector<T> a1, std::vector<T> a2){

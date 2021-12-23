@@ -433,5 +433,53 @@ std::string SAMRecord::getAttributeAsString(std::string &attributeName) {
     }
 }
 
+bool SAMRecord::isReverseStrand() const {
+    return (mFlags & SAMFlag::READ_REVERSE_STRAND().flag) != 0;
+}
+
+bool SAMRecord::mateIsReverseStrand() {
+    Mutect2Utils::validateArg(isPaired(), "Cannot get mate information for an unpaired read");
+    requireReadPaired();
+    return getMateNegativeStrandFlagUnchecked();
+}
+
+bool SAMRecord::getMateNegativeStrandFlagUnchecked() {
+    return (mFlags & SAMFlag::MATE_REVERSE_STRAND().flag) != 0;
+}
+
+bool SAMRecord::isFirstOfPair() {
+    return isPaired() && getFirstOfPairFlag();
+}
+
+bool SAMRecord::getFirstOfPairFlag() {
+    requireReadPaired();
+    return (mFlags & SAMFlag::FIRST_OF_PAIR().flag) != 0;
+}
+
+bool SAMRecord::isSecondOfPair() {
+    return isPaired() && getSecondOfPairFlag();
+}
+
+bool SAMRecord::getSecondOfPairFlag() {
+    requireReadPaired();
+    return (mFlags & SAMFlag::SECOND_OF_PAIR().flag) != 0;
+}
+
+bool SAMRecord::isSecondaryAlignment() const {
+    return (mFlags & SAMFlag::SECONDARY_ALIGNMENT().flag) != 0;
+}
+
+bool SAMRecord::failsVendorQualityCheck() const {
+    return (mFlags & SAMFlag::READ_FAILS_VENDOR_QUALITY_CHECK().flag) != 0;
+}
+
+bool SAMRecord::isDuplicate() const {
+    return (mFlags & SAMFlag::DUPLICATE_READ().flag) != 0;
+}
+
+bool SAMRecord::isSupplementaryAlignment() const {
+    return (mFlags & SAMFlag::SUPPLEMENTARY_ALIGNMENT().flag) != 0;
+}
+
 
 

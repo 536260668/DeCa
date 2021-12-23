@@ -6,6 +6,7 @@
 #define MUTECT2CPP_MASTER_READUTILS_H
 
 #include "samtools/SAMRecord.h"
+#include "samtools/SAMFileHeader.h"
 
 enum ClippingTail {
     LEFT_TAIL,
@@ -31,6 +32,9 @@ public:
     static uint8_t * getBaseDeletionQualities(SAMRecord* read, int & length);
     static void setInsertionBaseQualities(SAMRecord* read, uint8_t* quals, int length);
     static void setDeletionBaseQualities(SAMRecord* read, uint8_t* quals, int length);
+    static int getAssignedReferenceIndex(SAMRecord* read, SAMFileHeader* header);
+    static int getSAMFlagsForRead(SAMRecord* read);
+    static int getMateReferenceIndex(SAMRecord* read, SAMFileHeader* header);
 
 private:
     static std::pair<int, bool> getReadCoordinateForReferenceCoordinate(int alignmentStart, Cigar* cigar, int refCoord, bool allowGoalNotReached);

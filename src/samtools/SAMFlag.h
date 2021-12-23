@@ -18,6 +18,14 @@ public:
     static SAMFlag & PROPER_PAIR();
     static SAMFlag & READ_UNMAPPED();
     static SAMFlag & MATE_UNMAPPED();
+    static SAMFlag & READ_REVERSE_STRAND();
+    static SAMFlag & MATE_REVERSE_STRAND();
+    static SAMFlag & FIRST_OF_PAIR();
+    static SAMFlag & SECOND_OF_PAIR();
+    static SAMFlag &SECONDARY_ALIGNMENT();
+    static SAMFlag & READ_FAILS_VENDOR_QUALITY_CHECK();
+    static SAMFlag & DUPLICATE_READ();
+    static SAMFlag &SUPPLEMENTARY_ALIGNMENT();
 };
 
 

@@ -90,6 +90,10 @@ uint8_t *Mutect2Utils::copyOfRange(uint8_t *original, int originalLength, int fr
     return copy;
 }
 
+int Mutect2Utils::Int_compare(int x, int y) {
+    return (x < y) ? -1 : ((x == y) ? 0 : 1);
+}
+
 
 
 
