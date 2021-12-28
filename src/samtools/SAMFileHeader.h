@@ -41,14 +41,19 @@ public:
     SAMFileHeader();
     void init();
     void setAttribute(std::string& key, std::string& value) override;
-
+    void setTextHeader(char* text);
     int getSequenceIndex(std::string &basicString);
+    void setSequenceDictionary(std::vector<SAMSequenceRecord> & toAdd);
+    void setReadGroups(std::vector<SAMReadGroupRecord> & readGroups);
+    void setProgramRecords(std::vector<SAMProgramRecord> & programRecords);
+    std::vector<SAMProgramRecord> & getProgramRecords() {return mProgramRecords;}
+    std::vector<SAMReadGroupRecord> & getReadGroupRecord() {return mReadGroups;}
 
 private:
     std::vector<SAMReadGroupRecord> mReadGroups;
     std::vector<SAMProgramRecord> mProgramRecords;
-    std::map<std::string, SAMReadGroupRecord> mReadGroupMap;
-    std::map<std::string, SAMProgramRecord> mProgramRecordMap;
+    std::map<std::string, SAMReadGroupRecord &> mReadGroupMap;
+    std::map<std::string, SAMProgramRecord &> mProgramRecordMap;
     SAMSequenceDictionary mSequenceDictionary;
     std::vector<std::string> mComments;
     std::string textHeader;

@@ -6,8 +6,11 @@
 
 AbstractSAMHeaderRecord::~AbstractSAMHeaderRecord() = default;
 
-std::string AbstractSAMHeaderRecord::getAttribute(std::string &key) {
-    return mAttributes.at(key);
+std::string AbstractSAMHeaderRecord::getAttribute(std::string key) {
+    if(mAttributes.find(key) != mAttributes.end())
+        return mAttributes.at(key);
+    else
+        return "";
 }
 
 void AbstractSAMHeaderRecord::setAttribute(std::string &key, std::string &value) {
@@ -20,6 +23,10 @@ void AbstractSAMHeaderRecord::setAttribute(std::string &key, std::string &value)
 
 std::map<std::string, std::string>& AbstractSAMHeaderRecord::getAttributes() {
     return mAttributes;
+}
+
+std::string & AbstractSAMHeaderRecord::getId() {
+    throw std::invalid_argument("Method not implemented");
 }
 
 

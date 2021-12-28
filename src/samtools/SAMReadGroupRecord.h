@@ -8,8 +8,9 @@
 #include <string>
 #include <set>
 #include "AbstractSAMHeaderRecord.h"
+#include "HeaderRecordFactory.h"
 
-class SAMReadGroupRecord : public AbstractSAMHeaderRecord{
+class SAMReadGroupRecord : public AbstractSAMHeaderRecord, public HeaderRecordFactory{
 private:
     std::string mReadGroupId;
 public:
@@ -28,8 +29,11 @@ public:
     static const std::string READ_GROUP_SAMPLE_TAG;
     static const std::string BARCODE_TAG;
     static const std::set<std::string> STANDARD_TAGS;
-    SAMReadGroupRecord(std::string & id);
+    explicit SAMReadGroupRecord(std::string & id);
     SAMReadGroupRecord(std::string & id, SAMReadGroupRecord & srcProgramRecord);
+    std::string &  getReadGroupId();
+    std::string & getId();
+    AbstractSAMHeaderRecord* createRecord(std::string &newId, AbstractSAMHeaderRecord *record) override;
 };
 
 

@@ -6,8 +6,9 @@
 #define MUTECT2CPP_MASTER_SAMPROGRAMRECORD_H
 
 #include "AbstractSAMHeaderRecord.h"
+#include "HeaderRecordFactory.h"
 
-class SAMProgramRecord : public AbstractSAMHeaderRecord{
+class SAMProgramRecord : public AbstractSAMHeaderRecord, public HeaderRecordFactory{
 private:
     std::string mProgramGroupId;
 
@@ -19,6 +20,9 @@ public:
     static const std::string PREVIOUS_PROGRAM_GROUP_ID_TAG;
     SAMProgramRecord(std::string & programGroupId);
     SAMProgramRecord(std::string & id, SAMProgramRecord & srcProgramRecord);
+    std::string & getProgramGroupId();
+    std::string & getId();
+    AbstractSAMHeaderRecord* createRecord(std::string &newId, AbstractSAMHeaderRecord *record) override;
 };
 
 

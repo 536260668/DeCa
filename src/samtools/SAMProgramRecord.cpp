@@ -18,3 +18,15 @@ SAMProgramRecord::SAMProgramRecord(std::string &id, SAMProgramRecord &srcProgram
         this->setAttribute(tmp.first, tmp.second);
     }
 }
+
+std::string &SAMProgramRecord::getProgramGroupId() {
+    return mProgramGroupId;
+}
+
+std::string &SAMProgramRecord::getId() {
+    return mProgramGroupId;
+}
+
+AbstractSAMHeaderRecord *SAMProgramRecord::createRecord(std::string &newId, AbstractSAMHeaderRecord *record) {
+    return new SAMProgramRecord(newId, *(SAMProgramRecord*)record);
+}

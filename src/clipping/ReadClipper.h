@@ -7,16 +7,9 @@
 
 #include "samtools/SAMRecord.h"
 #include "ClippingOp.h"
+#include "ClippingRepresentation.h"
 
-enum ClippingRepresentation{
-    WRITE_NS,
-    WRITE_Q0S,
-    WRITE_NS_Q0S,
-    SOFTCLIP_BASES,
-    HARDCLIP_BASES,
-    REVERT_SOFTCLIPPED_BASES,
-    NULL_ClippingRepresentation
-};
+class ClippingOp;
 
 class ReadClipper {
 public:

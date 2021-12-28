@@ -16,7 +16,9 @@ SAMFileHeader::SAMFileHeader() {
 }
 
 void SAMFileHeader::init() {
-    setAttribute((std::string &) "VN", (std::string &) "1.6");
+    std::string  a = "VN";
+    std::string  b = "1.6";
+    setAttribute(a, b);
 }
 
 void SAMFileHeader::setAttribute(std::string &key, std::string &value) {
@@ -36,4 +38,30 @@ void SAMFileHeader::setAttribute(std::string &key, std::string &value) {
 
 int SAMFileHeader::getSequenceIndex(std::string &basicString) {
     return mSequenceDictionary.getSequenceIndex(basicString);
+}
+
+void SAMFileHeader::setTextHeader(char *text) {
+    textHeader = std::string(text);
+}
+
+void SAMFileHeader::setSequenceDictionary(std::vector<SAMSequenceRecord> &toAdd) {
+    for(SAMSequenceRecord & samSequenceRecord : toAdd) {
+        mSequenceDictionary.addSequence(samSequenceRecord);
+    }
+}
+
+void SAMFileHeader::setReadGroups(std::vector<SAMReadGroupRecord> &readGroups) {
+    mReadGroups = readGroups;
+    mReadGroupMap.clear();
+    for(SAMReadGroupRecord& samReadGroupRecord : readGroups) {
+        mReadGroupMap.insert(std::pair<std::string, SAMReadGroupRecord &>(samReadGroupRecord.getReadGroupId(), samReadGroupRecord));
+    }
+}
+
+void SAMFileHeader::setProgramRecords(std::vector<SAMProgramRecord> &programRecords) {
+    mProgramRecords = programRecords;
+    mProgramRecordMap.clear();
+    for(SAMProgramRecord& samProgramRecord : programRecords) {
+        mProgramRecordMap.insert(std::pair<std::string, SAMProgramRecord &>(samProgramRecord.getProgramGroupId(), samProgramRecord));
+    }
 }

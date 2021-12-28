@@ -38,7 +38,7 @@ public:
 
 private:
     static std::pair<int, bool> getReadCoordinateForReferenceCoordinate(int alignmentStart, Cigar* cigar, int refCoord, bool allowGoalNotReached);
-    static const int CLIPPING_GOAL_NOT_REACHED = -1;
+    static const int CLIPPING_GOAL_NOT_REACHED;
 };
 
 

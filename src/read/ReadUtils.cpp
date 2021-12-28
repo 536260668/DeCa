@@ -7,6 +7,7 @@
 
 std::string ReadUtils::BQSR_BASE_DELETION_QUALITIES = "BD";
 std::string ReadUtils::BQSR_BASE_INSERTION_QUALITIES = "BI";
+const int ReadUtils::CLIPPING_GOAL_NOT_REACHED = -1;
 
 SAMRecord *ReadUtils::emptyRead(SAMRecord *read) {
     SAMRecord* emptyRead = new SAMRecord(*read);

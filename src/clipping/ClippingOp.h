@@ -7,6 +7,7 @@
 
 #include "samtools/SAMRecord.h"
 #include "ReadClipper.h"
+#include "ClippingRepresentation.h"
 
 
 class ClippingOp {

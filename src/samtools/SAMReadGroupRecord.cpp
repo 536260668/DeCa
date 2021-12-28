@@ -28,3 +28,15 @@ SAMReadGroupRecord::SAMReadGroupRecord(std::string &id, SAMReadGroupRecord &srcP
         this->setAttribute(tmp.first, tmp.second);
     }
 }
+
+std::string &SAMReadGroupRecord::getReadGroupId() {
+    return mReadGroupId;
+}
+
+std::string &SAMReadGroupRecord::getId() {
+    return mReadGroupId;
+}
+
+AbstractSAMHeaderRecord *SAMReadGroupRecord::createRecord(std::string &newId, AbstractSAMHeaderRecord *record) {
+    return new SAMReadGroupRecord(newId, *(SAMReadGroupRecord*)record);
+}
