@@ -20,8 +20,9 @@ public:
     static const std::string PREVIOUS_PROGRAM_GROUP_ID_TAG;
     SAMProgramRecord(std::string & programGroupId);
     SAMProgramRecord(std::string & id, SAMProgramRecord & srcProgramRecord);
+    ~SAMProgramRecord() override = default;
     std::string & getProgramGroupId();
-    std::string & getId();
+    std::string & getId() override;
     AbstractSAMHeaderRecord* createRecord(std::string &newId, AbstractSAMHeaderRecord *record) override;
 };
 

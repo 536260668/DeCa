@@ -31,8 +31,9 @@ public:
     static const std::set<std::string> STANDARD_TAGS;
     explicit SAMReadGroupRecord(std::string & id);
     SAMReadGroupRecord(std::string & id, SAMReadGroupRecord & srcProgramRecord);
+    ~SAMReadGroupRecord() override = default;
     std::string &  getReadGroupId();
-    std::string & getId();
+    std::string & getId() override;
     AbstractSAMHeaderRecord* createRecord(std::string &newId, AbstractSAMHeaderRecord *record) override;
 };
 

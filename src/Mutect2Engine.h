@@ -11,6 +11,8 @@
 #include "AlignmentContext.h"
 #include "M2ArgumentCollection.h"
 #include "ReferenceCache.h"
+#include "engine/ReferenceContext.h"
+#include "utils/PeUtils.h"
 
 class Mutect2Engine {
 private:
@@ -25,6 +27,12 @@ private:
     static double logLikelihoodRatio(int refCount, std::vector<char> altQuals);
 
     std::vector<char> altQuals(ReadPileup & pileup, char refBase, int pcrErrorQual);
+
+    static int getCurrentOrFollowingIndelLength(PeUtils & pe);
+
+    static char indelQual(int indelLength);
+
+    static bool isNextToUsefulSoftClip(bam1_t * pe, int pos);
 public:
     const static int READ_QUALITY_FILTER_THRESHOLD = 20;
     const static int MIN_READ_LENGTH = 30;
@@ -34,7 +42,7 @@ public:
 
     Mutect2Engine(M2ArgumentCollection & MTAC, char* ref);
 
-    ActivityProfileState isActive(AlignmentContext* context);
+    ActivityProfileState isActive(AlignmentContext* context, ReferenceContext & referenceContext);
 
 
 };

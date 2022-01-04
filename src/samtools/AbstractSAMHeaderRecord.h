@@ -17,6 +17,7 @@ public:
     std::string getAttribute(std::string key);
     virtual void setAttribute(std::string & key, std::string & value);
     std::map<std::string, std::string>& getAttributes();
+    std::map<std::string, std::string> getAttributesNochange() const;
     virtual std::string & getId();
 };
 

@@ -48,6 +48,7 @@ public:
     void setProgramRecords(std::vector<SAMProgramRecord> & programRecords);
     std::vector<SAMProgramRecord> & getProgramRecords() {return mProgramRecords;}
     std::vector<SAMReadGroupRecord> & getReadGroupRecord() {return mReadGroups;}
+    SAMSequenceDictionary& getSequenceDictionary() {return mSequenceDictionary;};
 
 private:
     std::vector<SAMReadGroupRecord> mReadGroups;

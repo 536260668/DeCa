@@ -8,6 +8,7 @@
 #include "SAMSequenceRecord.h"
 #include <map>
 #include <vector>
+#include <list>
 
 class SAMSequenceDictionary {
 private:
@@ -16,9 +17,11 @@ private:
 
 public:
     SAMSequenceDictionary() = default;
+    explicit SAMSequenceDictionary(std::list<SAMSequenceRecord> & toAdd);
     void addSequence(SAMSequenceRecord sequenceRecord);
     SAMSequenceRecord & getSequence(const std::string& name);
     int getSequenceIndex(std::string & sequenceName);
+    std::vector<SAMSequenceRecord> & getSequences() {return mSequences;}
 };
 
 

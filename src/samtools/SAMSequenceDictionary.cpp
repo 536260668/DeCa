@@ -30,3 +30,9 @@ int SAMSequenceDictionary::getSequenceIndex(std::string &sequenceName) {
 
 
 }
+
+SAMSequenceDictionary::SAMSequenceDictionary(std::list<SAMSequenceRecord> &toAdd) {
+    for(SAMSequenceRecord samSequenceRecord : toAdd) {
+        addSequence(samSequenceRecord);
+    }
+}

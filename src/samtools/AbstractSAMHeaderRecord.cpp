@@ -29,5 +29,9 @@ std::string & AbstractSAMHeaderRecord::getId() {
     throw std::invalid_argument("Method not implemented");
 }
 
+std::map<std::string, std::string> AbstractSAMHeaderRecord::getAttributesNochange() const {
+    return mAttributes;
+}
+
 
 

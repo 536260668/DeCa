@@ -13,7 +13,7 @@ class ReadPileup {
 private:
     int tid;
     hts_pos_t pos;
-    std::vector<bam1_t *> & pileupElements;
+    std::vector<bam1_t *>  pileupElements;
 
 public:
     ReadPileup(int tid, hts_pos_t pos, std::vector<bam1_t *> & reads);

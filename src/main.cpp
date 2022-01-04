@@ -10,6 +10,7 @@
 #include "getopt.h"
 #include "unistd.h"
 #include "htslib/sam.h"
+#include "htslib/faidx.h"
 #include "Mutect2Engine.h"
 #include "QualityUtils.h"
 #include "ReadFilter.h"
@@ -19,6 +20,8 @@
 #include "BandPassActivityProfile.h"
 #include "variantcontext/GenotypeLikelihoods.h"
 #include "samtools/SAMTools_decode.h"
+#include "samtools/SamFileHeaderMerger.h"
+#include "engine/ReferenceContext.h"
 
 typedef struct {     // auxiliary data structure
     samFile *fp;     // the file handle
@@ -156,7 +159,7 @@ int main(int argc, char *argv[])
 
     data = static_cast<aux_t **>(calloc(n, sizeof(aux_t *))); // data[i] for the i-th input
     reg_tid = 0; beg = 0; end = HTS_POS_MAX;  // set the default region
-    vector<sam_hdr_t *> headers;  // used to contain headers
+    vector<sam_hdr_t *> headers;// used to contain headers
 
     for (int i = 0; i < n; ++i) {
         data[i] = static_cast<aux_t *>(calloc(1, sizeof(aux_t)));
@@ -170,7 +173,8 @@ int main(int argc, char *argv[])
         data[i]->flags = flags;
         data[i]->min_mapQ = Mutect2Engine::READ_QUALITY_FILTER_THRESHOLD;
     }
-    SAMFileHeader* samFileHeader = SAMTools_decode::decode_samFileHeader(headers);
+    SAMFileHeader* header = SAMTools_decode::merge_samFileHeaders(headers);
+    faidx_t * refPoint = fai_load3_format(ref, nullptr, nullptr, FAI_CREATE, FAI_FASTA);
 
     sam_hdr_t *h = data[0]->hdr; // easy access to the header of the 1st BAM   //---why use header of the first bam
     int nref = sam_hdr_nref(h);
@@ -179,7 +183,6 @@ int main(int argc, char *argv[])
     ActivityProfile * activityProfile = new BandPassActivityProfile(MTAC.maxProbPropagationDistance, MTAC.activeProbThreshold, BandPassActivityProfile::MAX_FILTER_SIZE, BandPassActivityProfile::DEFAULT_SIGMA,
                                                                     true , h);
     queue<AssemblyRegion> pendingRegions;
-
     // TODO: add multi-thread mode here
     for(int k=0; k<nref; k++)
     {
@@ -201,7 +204,10 @@ int main(int argc, char *argv[])
         }
 
         n_plp = static_cast<int *>(calloc(n, sizeof(int))); // n_plp[i] is the number of covering reads from the i-th BAM
-        plp = static_cast<const bam_pileup1_t **>(calloc(n, sizeof(bam_pileup1_t *))); // plp[i] points to the array of covering reads (internal in mplp)
+        plp = static_cast<const bam_pileup1_t **>(calloc(n, sizeof(bam_pileup1_t *)));
+        int len = 0;
+        std::string contig = header->getSequenceDictionary().getSequences()[k].getSequenceName();
+        char* refBases = faidx_fetch_seq(refPoint, contig.c_str(), 0, header->getSequenceDictionary().getSequences()[k].getSequenceLength(), &len);// plp[i] points to the array of covering reads (internal in mplp)
         // if there is no covered position, ret = 0 and pos = -1
         while ((ret=bam_mplp64_auto(mplp, &tid, &pos, n_plp, plp)) > 0) { // come to the next covered position
 
@@ -236,8 +242,9 @@ int main(int argc, char *argv[])
                     pendingRegions.emplace(region);
                 }
             }
-
-            ActivityProfileState profile = m2Engine.isActive(&pileup);
+            SimpleInterval pileupInterval = SimpleInterval(contig, (int)pileup.getPosition(), (int)pileup.getPosition());
+            ReferenceContext pileupRefContext(refBases, pileupInterval);
+            ActivityProfileState profile = m2Engine.isActive(&pileup, pileupRefContext);
 
             activityProfile->add(profile);
 

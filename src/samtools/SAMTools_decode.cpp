@@ -4,6 +4,7 @@
 
 #include "SAMTools_decode.h"
 #include <iostream>
+#include "SamFileHeaderMerger.h"
 
 SAMFileHeader *SAMTools_decode::decode_samFileHeader(sam_hdr_t* header) {
     SAMFileHeader* samFileHeader = new SAMFileHeader();
@@ -57,6 +58,8 @@ void SAMTools_decode::setReadGroups(sam_hdr_t * header, SAMFileHeader *samFileHe
 
 void SAMTools_decode::setAttribute(sam_hdr_t *h, const char *type, int pos, const char *key, kstring_t *ks,
                                    AbstractSAMHeaderRecord *abstractSamHeaderRecord) {
+    ks_free(ks);
+    ks_initialize(ks);
     if(sam_hdr_find_tag_pos(h, type, pos, key, ks) == 0) {
         std::string toAddKey(key);
         std::string value(ks->s);
@@ -79,13 +82,35 @@ void SAMTools_decode::setProgramRecords(sam_hdr_t * header, SAMFileHeader *samFi
         std::string id(tmp.s);
         SAMProgramRecord samProgramRecord(id);
         ks_free(&tmp);
-        setAttribute(header, "RG", i, "PN", &tmp, &samProgramRecord);
-        setAttribute(header, "RG", i, "CL", &tmp, &samProgramRecord);
-        setAttribute(header, "RG", i, "PP", &tmp, &samProgramRecord);
-        setAttribute(header, "RG", i, "DS", &tmp, &samProgramRecord);
-        setAttribute(header, "RG", i, "VN", &tmp, &samProgramRecord);
+        setAttribute(header, "PG", i, "PN", &tmp, &samProgramRecord);
+        setAttribute(header, "PG", i, "CL", &tmp, &samProgramRecord);
+        setAttribute(header, "PG", i, "PP", &tmp, &samProgramRecord);
+        setAttribute(header, "PG", i, "DS", &tmp, &samProgramRecord);
+        setAttribute(header, "PG", i, "VN", &tmp, &samProgramRecord);
         toAdd.emplace_back(samProgramRecord);
     }
     samFileHeader->setProgramRecords(toAdd);
 }
+
+SAMFileHeader *SAMTools_decode::merge_samFileHeaders(std::vector<sam_hdr_t *> headers) {
+    std::vector<SAMFileHeader*> toDecode;
+    for(sam_hdr_t* header : headers) {
+        SAMFileHeader* samFileHeader = SAMTools_decode::decode_samFileHeader(header);
+        toDecode.emplace_back(samFileHeader);
+    }
+    SamFileHeaderMerger merger = SamFileHeaderMerger();
+    std::vector<SAMProgramRecord> pg = merger.mergeProgramGroups(toDecode);
+    std::vector<SAMReadGroupRecord> rg = merger.mergeReadGroups(toDecode);
+    SAMSequenceDictionary samSequenceDictionary = merger.mergeSequenceDictionaries(toDecode);
+    SAMFileHeader* ret = new SAMFileHeader();
+    ret->setProgramRecords(pg);
+    ret->setSequenceDictionary(samSequenceDictionary.getSequences());
+    ret->setReadGroups(rg);
+    for(SAMFileHeader* samFileHeader1 : toDecode) {
+        delete samFileHeader1;
+    }
+    return ret;
+}
+
+
 

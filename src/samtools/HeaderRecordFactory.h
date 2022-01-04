@@ -10,6 +10,7 @@
 class HeaderRecordFactory {
 public:
     virtual AbstractSAMHeaderRecord* createRecord(std::string & newId, AbstractSAMHeaderRecord* record);
+    virtual ~HeaderRecordFactory() = default;
 };
 
 

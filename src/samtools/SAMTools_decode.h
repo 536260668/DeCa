@@ -11,6 +11,7 @@
 class SAMTools_decode {
 public:
     static SAMFileHeader* decode_samFileHeader(sam_hdr_t* header);
+    static SAMFileHeader* merge_samFileHeaders(std::vector<sam_hdr_t *> headers);
 
 private:
     static void setSequenceDictory(sam_hdr_t * header, SAMFileHeader* samFileHeader);
