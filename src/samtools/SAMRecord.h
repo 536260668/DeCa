@@ -9,6 +9,8 @@
 #include "Locatable.h"
 #include "Cigar.h"
 #include "SAMBinaryTagAndValue.h"
+#include "htslib/sam.h"
+#include "SAMFileHeader.h"
 
 class SAMRecord{
 private:
@@ -33,9 +35,12 @@ private:
 
 public:
     SAMRecord(uint8_t* base, int baseLength, uint8_t* baseQualities, int baseQualitiesLength, std::string &name);
+    SAMRecord(bam1_t * read, SAMFileHeader* samFileHeader, bool load = true);
+    ~SAMRecord();
     static const std::string NO_ALIGNMENT_REFERENCE_NAME;
     static const int NO_ALIGNMENT_START = 0;
     static const int NO_MAPPING_QUALITY = 0;
+    static const int NO_ALIGNMENT_REFERENCE_INDEX = -1;
     std::string& getName();
     void setName(std::string& name);
     int getLength() const;

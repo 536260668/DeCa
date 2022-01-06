@@ -10,8 +10,11 @@
 
 class PeUtils {
 public:
+    static const char  DELETION_QUAL = 16;
     bool isBeforeSoftClip();
     bool isImmediatelyBefore(CigarOperator cigarOperator);
+    bool isImmediatelyAfter(CigarOperator op);
+    bool isAfterSoftClip();
     PeUtils(bam1_t* pe, int pos);
     bool isDeletion();
     bool isBeforeDeletionStart();
@@ -20,6 +23,8 @@ public:
     int getLengthOfImmediatelyFollowingIndel();
     CigarElement & getCurrentCigarElement();
     CigarElement getNearestOnGenomeCigarElement(int direction);
+    uint8_t getQual();
+    uint8_t getBaseQuality(int pos);
 
 private:
     int Cigar_offset;

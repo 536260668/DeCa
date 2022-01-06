@@ -7,10 +7,27 @@
 #define MUTECT2CPP_MASTER_READFILTER_H
 
 #include "htslib/sam.h"
+#include "samtools/SAMRecord.h"
 
 class ReadFilter {  // TODO: add the filter left
 public:
-    static bool ReadLengthTest(bam1_t * read);
+    bool ReadLengthTest();
+    bool NotSecondaryAlignmentTest() const;
+    bool GoodCigarTest();
+    bool NonZeroReferenceLengthAlignmentTest();
+    bool PassesVendorQualityCheck() const;
+    bool MappedTest();
+    bool MappingQualityAvailableTest();
+    bool NotDuplicateTest();
+    bool MappingQualityTest();
+    bool MappingQualityNotZeroTest();
+    bool WellformedTest();
+    bool test();
+    explicit ReadFilter(bam1_t* read, SAMFileHeader* header);
+
+private:
+    SAMRecord originalRead;
+    SAMFileHeader* header;
 };
 
 

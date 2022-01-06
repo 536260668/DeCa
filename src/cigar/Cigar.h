@@ -32,6 +32,7 @@ public:
     bool isLeftClipped();
     bool isRightClipped();
     bool isClipped();
+    std::vector<std::logic_error> isValid(std::string readName, long recordNumber);
 };
 
 

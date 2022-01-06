@@ -28,7 +28,8 @@ typedef struct {     // auxiliary data structure
     sam_hdr_t *hdr;  // the file header
     hts_itr_t *iter; // NULL if a region not specified
     int min_mapQ; // mapQ filter;
-    uint32_t flags;  // read filtering flags
+    uint32_t flags;// read filtering flags
+    SAMFileHeader * header;
 } aux_t;
 
 
@@ -71,10 +72,9 @@ static int read_bam(void *data, bam1_t *b) // read level filters better go here 
     while (1)
     {
         ret = aux->iter? sam_itr_next(aux->fp, aux->iter, b) : sam_read1(aux->fp, aux->hdr, b);
+        ReadFilter filter(b, aux->header);
         if ( ret<0 ) break;
-        if ( (int)b->core.qual < aux->min_mapQ || (int)b->core.qual == QualityUtils::MAPPING_QUALITY_UNAVALIABLE) continue;
-        if ( b->core.flag & aux->flags ) continue;
-        if ( !ReadFilter::ReadLengthTest(b) ) continue;
+        if ( !filter.test() ) continue;
         break;
     }
     return ret;
@@ -82,7 +82,7 @@ static int read_bam(void *data, bam1_t *b) // read level filters better go here 
 
 int main(int argc, char *argv[])
 {
-
+    CigarOperatorUtils::initial();
     int c, n=0, reg_tid, tid;
     hts_pos_t beg, end, pos = -1, last_pos = -1;
     char * reg;
@@ -174,12 +174,15 @@ int main(int argc, char *argv[])
         data[i]->min_mapQ = Mutect2Engine::READ_QUALITY_FILTER_THRESHOLD;
     }
     SAMFileHeader* header = SAMTools_decode::merge_samFileHeaders(headers);
+    for (int i = 0; i < n; ++i) {
+        data[i]->header = header;
+    }
     faidx_t * refPoint = fai_load3_format(ref, nullptr, nullptr, FAI_CREATE, FAI_FASTA);
 
     sam_hdr_t *h = data[0]->hdr; // easy access to the header of the 1st BAM   //---why use header of the first bam
     int nref = sam_hdr_nref(h);
 
-    Mutect2Engine m2Engine(MTAC, ref);
+    Mutect2Engine m2Engine(MTAC, ref, header);
     ActivityProfile * activityProfile = new BandPassActivityProfile(MTAC.maxProbPropagationDistance, MTAC.activeProbThreshold, BandPassActivityProfile::MAX_FILTER_SIZE, BandPassActivityProfile::DEFAULT_SIGMA,
                                                                     true , h);
     queue<AssemblyRegion> pendingRegions;

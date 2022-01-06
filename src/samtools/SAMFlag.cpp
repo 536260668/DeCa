@@ -9,61 +9,73 @@ SAMFlag::SAMFlag(int flag, std::string& description) : flag(flag), description(d
 }
 
 SAMFlag &SAMFlag::READ_PAIRED() {
-    static SAMFlag ret(1, (std::string &) "Template having multiple segments in sequencing");
+    std::string tmp("Template having multiple segments in sequencing");
+    static SAMFlag ret(1, tmp);
     return ret;
 }
 
 SAMFlag &SAMFlag::READ_UNMAPPED() {
-    static SAMFlag ret(4, (std::string &) "Segment unmapped");
+    std::string tmp("Segment unmapped");
+    static SAMFlag ret(4, tmp);
     return ret;
 }
 
 SAMFlag &SAMFlag::MATE_UNMAPPED() {
-    static SAMFlag ret(8, (std::string &) "Next segment in the template unmapped");
+    std::string tmp("Next segment in the template unmapped");
+    static SAMFlag ret(8, tmp);
     return ret;
 }
 
 SAMFlag &SAMFlag::PROPER_PAIR() {
-    static SAMFlag ret(2, (std::string &) "Each segment properly aligned according to the aligner");
+    std::string tmp("Each segment properly aligned according to the aligner");
+    static SAMFlag ret(2, tmp);
     return ret;
 }
 
 SAMFlag &SAMFlag::READ_REVERSE_STRAND() {
-    static SAMFlag ret(16, (std::string &) "SEQ being reverse complemented");
+    std::string tmp("SEQ being reverse complemented");
+    static SAMFlag ret(16, tmp);
     return ret;
 }
 
 SAMFlag &SAMFlag::MATE_REVERSE_STRAND() {
-    static SAMFlag ret(32, (std::string &) "SEQ of the next segment in the template being reverse complemented");
+    std::string tmp("SEQ of the next segment in the template being reverse complemented");
+    static SAMFlag ret(32, tmp);
     return ret;
 }
 
 SAMFlag &SAMFlag::FIRST_OF_PAIR() {
-    static SAMFlag ret(64, (std::string &) "The first segment in the template");
+    std::string tmp("The first segment in the template");
+    static SAMFlag ret(64, tmp);
     return ret;
 }
 
 SAMFlag &SAMFlag::SECOND_OF_PAIR() {
-    static SAMFlag ret(128, (std::string &) "The last segment in the template");
+    std::string tmp("The last segment in the template");
+    static SAMFlag ret(128, tmp);
     return ret;
 }
 
 SAMFlag &SAMFlag::SECONDARY_ALIGNMENT() {
-    static SAMFlag ret(256, (std::string &) "Secondary alignment");
+    std::string tmp("Secondary alignment");
+    static SAMFlag ret(256, tmp);
     return ret;
 }
 
 SAMFlag &SAMFlag::READ_FAILS_VENDOR_QUALITY_CHECK() {
-    static SAMFlag ret(512, (std::string &) "Not passing quality controls");
+    std::string tmp("Not passing quality controls");
+    static SAMFlag ret(512, tmp);
     return ret;
 }
 
 SAMFlag &SAMFlag::DUPLICATE_READ() {
-    static SAMFlag ret(1024, (std::string &) "PCR or optical duplicate");
+    std::string tmp("PCR or optical duplicate");
+    static SAMFlag ret(1024, tmp);
     return ret;
 }
 
 SAMFlag &SAMFlag::SUPPLEMENTARY_ALIGNMENT() {
-    static SAMFlag ret(2048, (std::string &) "Supplementary alignment");
+    std::string tmp("Supplementary alignment");
+    static SAMFlag ret(2048, tmp);
     return ret;
 }

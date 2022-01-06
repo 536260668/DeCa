@@ -13,11 +13,13 @@
 #include "ReferenceCache.h"
 #include "engine/ReferenceContext.h"
 #include "utils/PeUtils.h"
+#include "samtools/SAMFileHeader.h"
 
 class Mutect2Engine {
 private:
     int minCallableDepth;
     std::set<std::string> & normalSamples;
+    SAMFileHeader * header;
 
     /**
      * this implement the isActive() algorithm described in docs/mutect/mutect.pdf
@@ -32,15 +34,16 @@ private:
 
     static char indelQual(int indelLength);
 
-    static bool isNextToUsefulSoftClip(bam1_t * pe, int pos);
+    static bool isNextToUsefulSoftClip(PeUtils & pe, int pos);
 public:
     const static int READ_QUALITY_FILTER_THRESHOLD = 20;
     const static int MIN_READ_LENGTH = 30;
+    const static int MINIMUM_BASE_QUALITY = 6;
 
     int callableSites;  // in GATK4, this variable is a MutableInt class object
     ReferenceCache refCache;
 
-    Mutect2Engine(M2ArgumentCollection & MTAC, char* ref);
+    Mutect2Engine(M2ArgumentCollection & MTAC, char* ref, SAMFileHeader*);
 
     ActivityProfileState isActive(AlignmentContext* context, ReferenceContext & referenceContext);
 

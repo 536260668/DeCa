@@ -103,3 +103,53 @@ CigarUtils::leftAlignCigarSequentially(Cigar *cigar, uint8_t *refSeq, int refLen
     Mutect2Utils::validateArg(result->getReferenceLength() == cigar->getReferenceLength(), "leftAlignCigarSequentially failed to produce a valid CIGAR.");
     return result;
 }
+
+bool CigarUtils::isGood(Cigar *c) {
+    Mutect2Utils::validateArg(c, "cigar is null");
+
+    if(!c->isValid("", -1).empty()) {
+        return false;
+    }
+    std::vector<CigarElement> elems = c->getCigarElements();
+    if(hasConsecutiveIndels(elems)) {
+        return false;
+    }
+    if(startsWithDeletionIgnoringClips(elems)) {
+        return false;
+    }
+    std::vector<CigarElement> elemsRev;
+    for(int i = elems.size() - 1; i >= 0; i--) {
+        elemsRev.emplace_back(elems[i]);
+    }
+    return !startsWithDeletionIgnoringClips(elemsRev);
+}
+
+bool CigarUtils::hasConsecutiveIndels(std::vector<CigarElement> &elems) {
+    bool prevIndel = false;
+    for(CigarElement elem : elems) {
+        CigarOperator op = elem.getOperator();
+        bool isIndel = (op == I || op == D);
+        if(prevIndel && isIndel) {
+            return true;
+        }
+        prevIndel = isIndel;
+    }
+    return false;
+}
+
+bool CigarUtils::startsWithDeletionIgnoringClips(std::vector<CigarElement> &elems) {
+    bool isClip = true;
+    CigarOperator op;
+    int i = 0;
+    while(i < elems.size() && isClip) {
+        CigarElement elem = elems[i];
+        op = elem.getOperator();
+        isClip = (op == H || op == S);
+        i++;
+    }
+    return op == D;
+}
+
+bool CigarUtils::containsNOperator(std::vector<CigarElement> cigarElements) {
+    return std::any_of(cigarElements.begin(), cigarElements.end(), [](CigarElement & cigarElement)->bool { return cigarElement.getOperator() == N;});
+}

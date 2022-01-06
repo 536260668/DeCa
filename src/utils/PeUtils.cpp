@@ -3,6 +3,7 @@
 //
 
 #include "PeUtils.h"
+#include "Mutect2Utils.h"
 
 PeUtils::PeUtils(bam1_t *pe, int pos) : pos(pos), pe(pe){
     uint32_t * res = bam_get_cigar(pe);
@@ -16,7 +17,7 @@ PeUtils::PeUtils(bam1_t *pe, int pos) : pos(pos), pe(pe){
         if(CigarOperatorUtils::getConsumesReferenceBases(tmp_cigarOperator)) {
             start += length;
         }
-        if(start >= pos){
+        if(start > pos){
             currentCigarElement = CigarElement(length, tmp_cigarOperator);
             Cigar_offset = i;
             currentStart = (int)start - length;
@@ -33,7 +34,7 @@ bool PeUtils::isBeforeSoftClip() {
 
 bool PeUtils::isImmediatelyBefore(CigarOperator cigarOperator) {
     if(pos == currentStart + currentCigarElement.getLength() - 1) {
-        if(Cigar_offset < nCigarElements.size() - 1 && cigarOperator == nCigarElements[Cigar_offset+1])
+        if(Cigar_offset < nCigarElements.size() - 1 && cigarOperator == nCigarElements[Cigar_offset+1].getOperator())
             return true;
     }
     return false;
@@ -87,4 +88,26 @@ bool PeUtils::isBeforeDeletionStart() {
 
 bool PeUtils::isBeforeInsertion() {
     return isImmediatelyBefore(I);
+}
+
+uint8_t PeUtils::getQual() {
+    if(isDeletion()) {
+        return DELETION_QUAL;
+    }
+    uint8_t * qual = bam_get_qual(pe);
+    return qual[pos - pe->core.pos];
+}
+
+uint8_t PeUtils::getBaseQuality(int pos) {
+    Mutect2Utils::validateArg(pos < pe->core.pos + pe->l_data, "pos is not in read");
+    uint8_t * qual = bam_get_qual(pe);
+    return qual[pos - pe->core.pos];
+}
+
+bool PeUtils::isImmediatelyAfter(CigarOperator op) {
+    return currentStart == pos && Cigar_offset - 1 >= 0 && nCigarElements[Cigar_offset - 1].getOperator() == op;
+}
+
+bool PeUtils::isAfterSoftClip() {
+    return isImmediatelyAfter(S);
 }

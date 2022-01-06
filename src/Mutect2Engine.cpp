@@ -5,10 +5,11 @@
 #include "Mutect2Engine.h"
 #include "cigar/Cigar.h"
 #include "utils/PeUtils.h"
+#include "samtools/SAMRecord.h"
 
 
-Mutect2Engine::Mutect2Engine(M2ArgumentCollection & MTAC, char * ref):minCallableDepth(MTAC.callableDepth),
-                                                            normalSamples(MTAC.normalSamples) ,callableSites(0), refCache(ref)
+Mutect2Engine::Mutect2Engine(M2ArgumentCollection & MTAC, char * ref, SAMFileHeader* samFileHeader):minCallableDepth(MTAC.callableDepth),
+                                                            normalSamples(MTAC.normalSamples) ,callableSites(0), refCache(ref), header(samFileHeader)
 {
 
 }
@@ -61,17 +62,24 @@ std::vector<char> Mutect2Engine::altQuals(ReadPileup &pileup, char refBase, int 
     std::vector<char> result;
     hts_pos_t pos = pileup.getPosition();
 
-    std::vector<bam1_t*> & pileupElements = pileup.getPileupElements();
+    std::vector<bam1_t*>  pileupElements = pileup.getPileupElements();
+
     for(bam1_t* read : pileupElements)
     {
         PeUtils pe(read, pos);
-        int indelLength = getCurrentOrFollowingIndelLength(read, pos);
+        int indelLength = getCurrentOrFollowingIndelLength(pe);
         if(indelLength > 0) {
             result.emplace_back(indelQual(indelLength));
-        } else if (isNextToUsefulSoftClip(read, pos)) {
-
+        } else if (isNextToUsefulSoftClip(pe, pos)) {
+            result.emplace_back(indelQual(1));
+        } else {
+            SAMRecord samRecord(read, header);
+            int mateStart = (!samRecord.isProperlyPaired() || samRecord.mateIsUnmapped()) ? INT32_MAX : samRecord.getMateStart();
+            bool overlapsMate = mateStart <= pos && pos < mateStart + samRecord.getLength();
+            result.emplace_back(overlapsMate ? std::min(static_cast<int>(pe.getQual()), pcrErrorQual/2) : pe.getQual());
         }
     }
+    return result;
 }
 
 
@@ -79,10 +87,10 @@ char Mutect2Engine::indelQual(int indelLength) {
     return (char) std::min(30 + (indelLength - 1) * 10, 127);
 }
 
-bool Mutect2Engine::isNextToUsefulSoftClip(bam1_t *pe, int pos) {
-    hts_pos_t offset = pe->core.pos - pos;
-    uint8_t * qual = bam_get_qual(pe);
-
+bool Mutect2Engine::isNextToUsefulSoftClip(PeUtils & pe, int pos) {
+    return pe.getQual() > MINIMUM_BASE_QUALITY &&
+            ((pe.isBeforeSoftClip() && pe.getBaseQuality(pos + 1) > MINIMUM_BASE_QUALITY)
+            || (pe.isAfterSoftClip() && pe.getBaseQuality(pos - 1) > MINIMUM_BASE_QUALITY));
 }
 
 int Mutect2Engine::getCurrentOrFollowingIndelLength(PeUtils & pe) {

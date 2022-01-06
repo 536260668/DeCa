@@ -14,10 +14,14 @@ public:
     static Cigar* calculateCigar(uint8_t* refSeq, int refLength, uint8_t* altSeq, int altLength);
     static const SWParameters NEW_SW_PARAMETERS;
     static Cigar* leftAlignCigarSequentially(Cigar* cigar, uint8_t* refSeq, int refLength, uint8_t* readSeq, int readLength, int refIndex, int readIndex);
+    static bool isGood(Cigar* c);
+    static bool containsNOperator(std::vector<CigarElement> cigarElements);
 
 private:
     static const int SW_PAD = 10;
     static bool isSWFailure(SmithWatermanAlignment* alignment);
+    static bool hasConsecutiveIndels(std::vector<CigarElement> & elems);
+    static bool startsWithDeletionIgnoringClips(std::vector<CigarElement> & elems);
 };
 
 

@@ -287,3 +287,20 @@ int ReadUtils::getMateReferenceIndex(SAMRecord *read, SAMFileHeader *header) {
     return header->getSequenceIndex(read->getMateContig());
 }
 
+bool ReadUtils::alignmentAgreesWithHeader(SAMFileHeader *header, SAMRecord *read) {
+    int referenceIndex = getReferenceIndex(read, header);
+
+    if(! read->isUnmapped() && referenceIndex == SAMRecord::NO_ALIGNMENT_REFERENCE_INDEX) {
+        return false;
+    }
+    SAMSequenceRecord contigHeader = header->getSequenceDictionary().getSequences()[referenceIndex];
+    return read->isUnmapped() || read->getStart() <= contigHeader.getSequenceLength();
+}
+
+int ReadUtils::getReferenceIndex(SAMRecord *read, SAMFileHeader *header) {
+    if(read->isUnmapped()) {
+        return SAMRecord::NO_ALIGNMENT_REFERENCE_INDEX;
+    }
+    return header->getSequenceIndex(read->getContig());
+}
+

@@ -3,6 +3,7 @@
 //
 
 #include "Cigar.h"
+#include "string"
 
 Cigar::Cigar(std::vector<CigarElement>& cigarElements) {
     for(CigarElement e : cigarElements)
@@ -109,4 +110,80 @@ bool Cigar::isRightClipped() {
 
 bool Cigar::isClipped() {
     return isLeftClipped() || isRightClipped();
+}
+
+std::vector<std::logic_error> Cigar::isValid(std::string readName, long recordNumber) {
+    if(isEmpty()) {
+        return {};
+    }
+    std::vector<std::logic_error> ret;
+    bool seenRealOperator = false;
+    for(int i = 0; i < cigarElements.size(); ++i) {
+        CigarElement element = cigarElements[i];
+        if(element.getLength() == 0) {
+            ret.emplace_back(std::logic_error("CIGAR element with zero length"));
+        }
+        CigarOperator op = element.getOperator();
+
+        if(isClippingOperator(op)) {
+            if(op == H) {
+                if(i != 0 && i != cigarElements.size() - 1) {
+                    ret.emplace_back(std::logic_error("Hard clipping operator not at start or end of CIGAR"));
+                }
+            }
+            else {
+                if(op != S)
+                    throw std::invalid_argument("Should never happen");
+                if(i == 0 || i == cigarElements.size() - 1) {
+
+                }
+                else if (i == 1) {
+                    if (cigarElements.size() == 3 && cigarElements[2].getOperator() == H) {
+
+                    } else if (cigarElements[0].getOperator() != H) {
+                        ret.emplace_back(std::logic_error(
+                                "Soft clipping CIGAR operator can only be inside of hard clipping operator"));
+                    }
+                }
+                else if (i == cigarElements.size() - 2) {
+                    if(cigarElements[cigarElements.size() - 1].getOperator() != H) {
+                        ret.emplace_back(std::logic_error("Soft clipping CIGAR operator can only be inside of hard clipping operator"));
+                    }
+                }
+                else {
+                    ret.emplace_back(std::logic_error("Soft clipping CIGAR operator can at start or end of read, or be inside of hard clipping operator"));
+                }
+            }
+        }
+        else if (isRealOperator(op)) {
+            seenRealOperator = true;
+            if(isInDelOperator(op)) {
+                for(int j = i+1; j < cigarElements.size(); ++j) {
+                    CigarOperator nextOperator = cigarElements[j].getOperator();
+                    if ((isRealOperator(nextOperator) && !isInDelOperator(nextOperator)) || isPaddingOperator(nextOperator)) {
+                        break;
+                    }
+                    if (isInDelOperator(nextOperator) && op == nextOperator) {
+                        ret.emplace_back(std::logic_error("No M or N operator between"));
+                    }
+                }
+            }
+        }
+        else if (isPaddingOperator(op)) {
+            if(i == 0) {
+
+            }
+            else if (i == cigarElements.size() - 1) {
+                ret.emplace_back(std::logic_error("Padding operator not valid at end of CIGAR"));
+            }
+            else if (!isRealOperator(cigarElements[i-1].getOperator()) ||
+                    !isRealOperator(cigarElements[i+1].getOperator())) {
+                ret.emplace_back(std::logic_error("Padding operator not between real operators in CIGAR"));
+            }
+        }
+    }
+    if(!seenRealOperator) {
+        ret.emplace_back(std::logic_error("No real operator (M|I|D|N) in CIGA"));
+    }
+    return ret;
 }

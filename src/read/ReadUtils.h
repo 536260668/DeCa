@@ -35,6 +35,8 @@ public:
     static int getAssignedReferenceIndex(SAMRecord* read, SAMFileHeader* header);
     static int getSAMFlagsForRead(SAMRecord* read);
     static int getMateReferenceIndex(SAMRecord* read, SAMFileHeader* header);
+    static bool alignmentAgreesWithHeader(SAMFileHeader* header, SAMRecord* read);
+    static int getReferenceIndex(SAMRecord* read, SAMFileHeader* header);
 
 private:
     static std::pair<int, bool> getReadCoordinateForReferenceCoordinate(int alignmentStart, Cigar* cigar, int refCoord, bool allowGoalNotReached);

@@ -481,5 +481,70 @@ bool SAMRecord::isSupplementaryAlignment() const {
     return (mFlags & SAMFlag::SUPPLEMENTARY_ALIGNMENT().flag) != 0;
 }
 
+SAMRecord::SAMRecord(bam1_t *read, SAMFileHeader* samFileHeader, bool load) {
+    uint32_t * res = bam_get_cigar(read);
+    uint32_t n = read->core.n_cigar;
+    std::vector<CigarElement> nCigarElements;
+    for(int i = 0; i < n; i++) {
+        int length = (int) (res[i] >> 4);
+        CigarOperator tmp_cigarOperator = CigarOperatorUtils::binaryToEnum((int) (res[i] & 0xf));
+        nCigarElements.emplace_back(CigarElement(length, tmp_cigarOperator));
+    }
+    mCigar = new Cigar(nCigarElements);
+    mFlags = read->core.flag;
+    mMappingQuality = read->core.qual;
+    mAlignmentStart = read->core.pos;
+    mAlignmentEnd = mAlignmentStart + static_cast<int>(bam_cigar2rlen(n, res)) - 1;
+    mReferenceName = std::string(samFileHeader->getSequenceDictionary().getSequences()[read->core.tid].getSequenceName());
+    mReadName = std::string(bam_get_qname(read));
+    baseLength = read->core.l_qseq;
+    baseQualitiesLength = static_cast<int>(bam_cigar2qlen(n, res));
+    if(load) {
+        uint8_t * bases = bam_get_seq(read);
+        mReadBases = new uint8_t[baseLength+1]{0};
+        mBaseQualities = new uint8_t[baseLength+1]{0};
+        for(int i = 0; i < baseLength; i++) {
+            uint8_t tmp = bam_seqi(bases, i);
+            switch(tmp) {
+                case 1 : {
+                    mReadBases[i] = 'A' ;
+                    break;
+                }
+                case 2 : {
+                    mReadBases[i] = 'C';
+                    break;
+                }
+                case 4 : {
+                    mReadBases[i] = 'G';
+                    break;
+                }
+                case 8 : {
+                    mReadBases[i] = 'T';
+                    break;
+                }
+                default : {
+                    mReadBases[i] = 'N';
+                    break;
+                }
+            }
+        }
+        uint8_t * qual = bam_get_qual(read);
+        memcpy(mBaseQualities, qual, baseQualitiesLength);
+    } else {
+        mReadBases = nullptr;
+        mBaseQualities = nullptr;
+    }
+    mMateAlignmentStart = static_cast<int>(read->core.mpos);
+    mInferredInsertSize = static_cast<int>(read->core.isize);
+    mAttributes = nullptr;
+}
+
+SAMRecord::~SAMRecord() {
+    delete mCigar;
+    delete mAttributes;
+    delete[] mReadBases;
+    delete[] mBaseQualities;
+}
+
 
 
