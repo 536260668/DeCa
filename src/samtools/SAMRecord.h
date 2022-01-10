@@ -36,6 +36,7 @@ private:
 public:
     SAMRecord(uint8_t* base, int baseLength, uint8_t* baseQualities, int baseQualitiesLength, std::string &name);
     SAMRecord(bam1_t * read, SAMFileHeader* samFileHeader, bool load = true);
+    SAMRecord(const SAMRecord & other);
     ~SAMRecord();
     static const std::string NO_ALIGNMENT_REFERENCE_NAME;
     static const int NO_ALIGNMENT_START = 0;
@@ -110,6 +111,7 @@ public:
     bool failsVendorQualityCheck() const;
     bool isDuplicate() const;
     bool isSupplementaryAlignment() const;
+    int getAdaptorBoundary();
 
 private:
     void setAttribute(short tag, void* value, Void_Type type, int length, bool isUnsignedArray);

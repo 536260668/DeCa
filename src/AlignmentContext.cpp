@@ -6,8 +6,8 @@
 #include "AlignmentContext.h"
 #include <iostream>
 
-AlignmentContext::AlignmentContext(std::vector<sam_hdr_t *> & headers, int tid, hts_pos_t pos, int n, int *n_plp, const bam_pileup1_t **plp) : headers(headers),
-                        tid(tid), pos(pos), n(n), n_plp(n_plp), plp(plp)
+AlignmentContext::AlignmentContext(std::vector<sam_hdr_t *> & headers, int tid, hts_pos_t pos, int n, int *n_plp, bam_pileup1_t **plp, bool flag) : headers(headers),
+                                                                                                                                                    tid(tid), pos(pos), n(n), n_plp(n_plp), plp(plp), flag(flag)
 {
 
 }
@@ -59,9 +59,55 @@ ReadPileup AlignmentContext::makeTumorPileup(std::set<std::string> & normalSampl
         {
             for(int j=0; j<n_plp[i]; j++)
             {
-                reads.emplace_back(plp[i]->b);
+                reads.emplace_back(plp[i][j].b);
             }
         }
     }
     return ReadPileup(tid, pos, reads);
+}
+
+bool AlignmentContext::isEmpty() {
+    int count = 0;
+    for(int i = 0; i < n; i++) {
+        count += n_plp[i];
+    }
+    return count == 0;
+}
+
+AlignmentContext::~AlignmentContext() {
+    if(flag) {
+        for(int i = 0; i < n; i++) {
+            if(n_plp[i] > 0)
+                delete[] plp[i];
+        }
+        delete[] plp;
+        delete[] n_plp;
+    }
+}
+
+ReadPileup AlignmentContext::makeNormalPileup(std::set<std::string> &normalSamples) {
+    std::vector<bam1_t *> reads;
+    bool IsNormal = true;
+    kstring_t pu_val = KS_INITIALIZE;
+    for(int i=0; i<n; i++)
+    {
+        IsNormal = true;
+        int res = sam_hdr_find_tag_id(headers[i], "RG", NULL, NULL, "SM", &pu_val);
+        assert(!res);
+        for(const std::string & sample : normalSamples)
+        {
+            if(strcmp(sample.c_str(), pu_val.s))
+            {
+                IsNormal = false;
+            }
+        }
+        if(IsNormal)
+        {
+            for(int j=0; j<n_plp[i]; j++)
+            {
+                reads.emplace_back(plp[i]->b);
+            }
+        }
+    }
+    return {tid, pos, reads};
 }

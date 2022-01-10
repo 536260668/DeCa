@@ -25,7 +25,7 @@ public:
     static int lastIndexOf(const uint8_t* reference, int refLength, const uint8_t* query, int queryLength);
     static uint8_t* copyOfRange(uint8_t* original, int ,int from, int to, int & length);
     static int Int_compare(int x, int y);
-
+    static uint8_t decodeBase(uint8_t i);
     template<class T>
     static bool isVectorEquals(std::vector<T> a1, std::vector<T> a2){
         if(a1.size() != a2.size())

@@ -22,6 +22,7 @@
 #include "samtools/SAMTools_decode.h"
 #include "samtools/SamFileHeaderMerger.h"
 #include "engine/ReferenceContext.h"
+#include "utils/LocusIteratorByState.h"
 
 typedef struct {     // auxiliary data structure
     samFile *fp;     // the file handle
@@ -72,9 +73,19 @@ static int read_bam(void *data, bam1_t *b) // read level filters better go here 
     while (1)
     {
         ret = aux->iter? sam_itr_next(aux->fp, aux->iter, b) : sam_read1(aux->fp, aux->hdr, b);
+        std::cout << " org : ";
+        for(int j = 0; j < b->core.l_qseq; j++) {
+            std::cout << static_cast<char>(bam_get_qual(b)[j] + '!');
+        }
+        std::cout << std::endl;
         ReadFilter filter(b, aux->header);
         if ( ret<0 ) break;
         if ( !filter.test() ) continue;
+        std::cout <<" flt : ";
+        for(int j = 0; j < b->core.l_qseq; j++) {
+            std::cout << static_cast<char>(bam_get_qual(b)[j] + '!');
+        }
+        std::cout << std::endl;
         break;
     }
     return ret;
@@ -233,10 +244,23 @@ int main(int argc, char *argv[])
                 //fprintf(stdout, "\t%d", n_plp[i] - m); // this the depth to output
                 read_num += n_plp[i];
             }*/
+            if(pos == 13272) {
 
+                for(int i = 0; i < n_plp[1] ; i ++) {
+                    std::cout << plp[1][i].b->data << " : ";
+                    for(int j = 0; j < plp[1][i].b->core.l_qseq; j++) {
+                        std::cout << static_cast<char>(bam_get_qual(plp[1][i].b)[j] + '!');
+                    }
+                    std::cout << std::endl;
+                }
+            }
+            LocusIteratorByState iter(n, n_plp, const_cast<bam_pileup1_t **>(plp), header, headers, pos, tid);
+            AlignmentContext pileup = iter.loadAlignmentContext();
 
+            if(pileup.isEmpty())
+                continue;
 
-            AlignmentContext pileup(headers, tid, pos, n, n_plp, plp);
+            //AlignmentContext pileup(headers, tid, pos, n, n_plp, const_cast<bam_pileup1_t **>(plp));
             if(!activityProfile->isEmpty()){
                 bool forceConversion = pileup.getPosition() != activityProfile->getEnd() + 1;
                 vector<AssemblyRegion> * ReadyAssemblyRegions = activityProfile->popReadyAssemblyRegions(MTAC.assemblyRegionPadding, MTAC.minAssemblyRegionSize, MTAC.maxAssemblyRegionSize, forceConversion);

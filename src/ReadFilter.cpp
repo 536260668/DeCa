@@ -57,7 +57,7 @@ bool ReadFilter::MappingQualityTest() {
 }
 
 bool ReadFilter::MappingQualityNotZeroTest() {
-    return originalRead.getMappingQuality() != 20;
+    return originalRead.getMappingQuality() != 0;
 }
 
 bool ReadFilter::WellformedTest() {
@@ -72,17 +72,19 @@ bool ReadFilter::WellformedTest() {
 }
 
 bool ReadFilter::test() {
-    bool ret1 = ReadLengthTest();
-    bool ret2 = NonZeroReferenceLengthAlignmentTest();
-    bool ret3 = NotDuplicateTest();
-    bool ret4 = NotSecondaryAlignmentTest();
-    bool ret5 = GoodCigarTest();
-    bool ret6 = PassesVendorQualityCheck();
-    bool ret7 = MappedTest();
-    bool ret8 = MappingQualityAvailableTest();
-    bool ret9 = MappingQualityNotZeroTest();
-    bool ret10 = MappingQualityTest();
-    bool ret11 = WellformedTest();
+//    if(originalRead.getStart() == 10056)
+//        std::cout << "hello";
+//    bool ret1 = ReadLengthTest();
+//    bool ret2 = NonZeroReferenceLengthAlignmentTest();
+//    bool ret3 = NotDuplicateTest();
+//    bool ret4 = NotSecondaryAlignmentTest();
+//    bool ret5 = GoodCigarTest();
+//    bool ret6 = PassesVendorQualityCheck();
+//    bool ret7 = MappedTest();
+//    bool ret8 = MappingQualityAvailableTest();
+//    bool ret9 = MappingQualityNotZeroTest();
+//    bool ret10 = MappingQualityTest();
+//    bool ret11 = WellformedTest();
     return ReadLengthTest()&& NonZeroReferenceLengthAlignmentTest() && NotDuplicateTest() && NotSecondaryAlignmentTest() &&
     GoodCigarTest() && PassesVendorQualityCheck() && MappedTest() && MappingQualityAvailableTest() && MappingQualityNotZeroTest() && MappingQualityTest() && WellformedTest();
 

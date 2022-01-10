@@ -94,6 +94,26 @@ int Mutect2Utils::Int_compare(int x, int y) {
     return (x < y) ? -1 : ((x == y) ? 0 : 1);
 }
 
+uint8_t Mutect2Utils::decodeBase(uint8_t i) {
+    switch (i) {
+        case 1: {
+            return 'A';
+        }
+        case 2: {
+            return 'C';
+        }
+        case 4: {
+            return 'G';
+        }
+        case 8: {
+            return 'T';
+        }
+        default: {
+            return 'N';
+        }
+    }
+}
+
 
 
 

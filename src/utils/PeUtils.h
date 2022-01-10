@@ -24,12 +24,14 @@ public:
     CigarElement & getCurrentCigarElement();
     CigarElement getNearestOnGenomeCigarElement(int direction);
     uint8_t getQual();
+    uint8_t getBase();
     uint8_t getBaseQuality(int pos);
 
 private:
     int Cigar_offset;
     int pos;
     int currentStart;
+    int offset;
     std::vector<CigarElement> nCigarElements;
     CigarElement currentCigarElement;
     bam1_t *pe;

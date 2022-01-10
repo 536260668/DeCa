@@ -6,18 +6,18 @@
 #include "cigar/Cigar.h"
 #include "utils/PeUtils.h"
 #include "samtools/SAMRecord.h"
+#include <cmath>
+#include "MathUtils.h"
+#include "QualityUtils.h"
+#include "NaturalLogUtils.h"
 
-
-Mutect2Engine::Mutect2Engine(M2ArgumentCollection & MTAC, char * ref, SAMFileHeader* samFileHeader):minCallableDepth(MTAC.callableDepth),
+Mutect2Engine::Mutect2Engine(M2ArgumentCollection & MTAC, char * ref, SAMFileHeader* samFileHeader):MATC(MTAC), minCallableDepth(MTAC.callableDepth),
                                                             normalSamples(MTAC.normalSamples) ,callableSites(0), refCache(ref), header(samFileHeader)
 {
 
 }
 
-double Mutect2Engine::logLikelihoodRatio(int refCount, std::vector<char> altQuals)
-{
 
-}
 
 ActivityProfileState Mutect2Engine::isActive(AlignmentContext* context, ReferenceContext& ref)
 {
@@ -25,6 +25,9 @@ ActivityProfileState Mutect2Engine::isActive(AlignmentContext* context, Referenc
         return ActivityProfileState(context->getRefName(), context->getPosition(), 0.0);
 
     hts_pos_t pos = context->getPosition();
+
+//    if(pos == 13272)
+//        std::cout << "hello" << std::endl;
 
     const char * refName = context->getRefName();
 
@@ -52,7 +55,23 @@ ActivityProfileState Mutect2Engine::isActive(AlignmentContext* context, Referenc
     ReadPileup tumorPileup = context->makeTumorPileup(normalSamples);
     // TODO: calculate the activeProb
 
-    altQuals(tumorPileup, refBase, 40);
+    std::vector<char> tumorAltQuals = altQuals(tumorPileup, refBase, 40);
+    double tumorLogOdds = logLikelihoodRatio(tumorPileup.size() - tumorAltQuals.size(), tumorAltQuals);
+    if(tumorLogOdds < M2ArgumentCollection::getInitialLogOdds()) {
+        return {refName, pos, 0.0};
+    } else if (hasNormal() && !MATC.genotypeGermlineSites) {
+        ReadPileup normalPileup = context->makeNormalPileup(normalSamples);
+        std::vector<char> normalAltQuals = altQuals(tumorPileup, refBase, 40);
+        int normalAltCount = normalAltQuals.size();
+        double normalQualSum = 0.0;
+        for (char i : normalAltQuals) {
+            normalQualSum += i;
+        }
+        if(normalAltCount > normalPileup.size() * 0.3 && normalQualSum > 100) {
+            return {refName, pos, 0.0};
+        }
+    }
+
     return ActivityProfileState(refName, pos, 0.0);
 }
 
@@ -66,13 +85,23 @@ std::vector<char> Mutect2Engine::altQuals(ReadPileup &pileup, char refBase, int 
 
     for(bam1_t* read : pileupElements)
     {
+//        if(pos == 13272) {
+//            for (int i = 0; i < 100; i++)
+//                std::cout << i << " : " << (int)bam_get_qual(read)[i] << std::endl;
+//            std::cout << bam_get_qual(read) << std::endl;
+//        }
         PeUtils pe(read, pos);
+//        uint8_t base = pe.getBase();
+//        uint8_t qual = pe.getQual();
+//        SAMRecord tmp(read, header);
         int indelLength = getCurrentOrFollowingIndelLength(pe);
+
         if(indelLength > 0) {
             result.emplace_back(indelQual(indelLength));
         } else if (isNextToUsefulSoftClip(pe, pos)) {
             result.emplace_back(indelQual(1));
-        } else {
+        } else if (pe.getBase() != refBase && pe.getQual() > 6){
+
             SAMRecord samRecord(read, header);
             int mateStart = (!samRecord.isProperlyPaired() || samRecord.mateIsUnmapped()) ? INT32_MAX : samRecord.getMateStart();
             bool overlapsMate = mateStart <= pos && pos < mateStart + samRecord.getLength();
@@ -95,4 +124,30 @@ bool Mutect2Engine::isNextToUsefulSoftClip(PeUtils & pe, int pos) {
 
 int Mutect2Engine::getCurrentOrFollowingIndelLength(PeUtils & pe) {
     return pe.isDeletion() ? pe.getCurrentCigarElement().getLength() : pe.getLengthOfImmediatelyFollowingIndel();
+}
+
+double Mutect2Engine::logLikelihoodRatio(int refCount, std::vector<char> &altQuals) {
+    return logLikelihoodRatio(refCount, altQuals, 1);
+}
+
+double Mutect2Engine::logLikelihoodRatio(int nRef, std::vector<char> &altQuals, int repeatFactor) {
+    int nAlt = repeatFactor * altQuals.size();
+    int n = nRef + nAlt;
+
+    double fTildeRatio = std::exp(MathUtils::digamma(nRef + 1) - MathUtils::digamma(nAlt + 1));
+    double betaEntropy = MathUtils::log10ToLog(-MathUtils::log10Factorial(n+1) + MathUtils::log10Factorial(nAlt) + MathUtils::log10Factorial(nRef));
+
+    double readSum = 0;
+    for(char qual : altQuals) {
+        double epsilon = QualityUtils::qualToErrorProb(static_cast<uint8_t>(qual));
+        double zBarAlt = (1 - epsilon) / (1 - epsilon + epsilon * fTildeRatio);
+        double logEpsilon = NaturalLogUtils::qualToLogErrorProb(static_cast<uint8_t>(qual));
+        double logOneMinusEpsilon = NaturalLogUtils::qualToLogProb(static_cast<uint8_t>(qual));
+        readSum += zBarAlt * (logOneMinusEpsilon - logEpsilon) + MathUtils::fastBernoulliEntropy(zBarAlt);
+    }
+    return betaEntropy + readSum * repeatFactor;
+}
+
+bool Mutect2Engine::hasNormal() {
+    return !normalSamples.empty();
 }

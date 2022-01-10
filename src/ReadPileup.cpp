@@ -16,3 +16,7 @@ std::vector<bam1_t* > & ReadPileup::getPileupElements()
 {
     return pileupElements;
 }
+
+int ReadPileup::size() {
+    return pileupElements.size();
+}

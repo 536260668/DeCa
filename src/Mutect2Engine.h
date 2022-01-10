@@ -20,13 +20,9 @@ private:
     int minCallableDepth;
     std::set<std::string> & normalSamples;
     SAMFileHeader * header;
+    M2ArgumentCollection & MATC;
 
-    /**
-     * this implement the isActive() algorithm described in docs/mutect/mutect.pdf
-     * the multiplicative factor is for the special case where we pass a singleton list
-     * of alt quals and want to duplicate that alt qual over multiple reads
-     */
-    static double logLikelihoodRatio(int refCount, std::vector<char> altQuals);
+
 
     std::vector<char> altQuals(ReadPileup & pileup, char refBase, int pcrErrorQual);
 
@@ -35,6 +31,17 @@ private:
     static char indelQual(int indelLength);
 
     static bool isNextToUsefulSoftClip(PeUtils & pe, int pos);
+
+    /**
+     * this implement the isActive() algorithm described in docs/mutect/mutect.pdf
+     * the multiplicative factor is for the special case where we pass a singleton list
+     * of alt quals and want to duplicate that alt qual over multiple reads
+     */
+    static double logLikelihoodRatio(int refCount, std::vector<char> & altQuals);
+
+    static double logLikelihoodRatio(int nRef, std::vector<char> & altQuals, int repeatFactor);
+
+    bool hasNormal();
 public:
     const static int READ_QUALITY_FILTER_THRESHOLD = 20;
     const static int MIN_READ_LENGTH = 30;

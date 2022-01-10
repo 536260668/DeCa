@@ -19,10 +19,13 @@ private:
     hts_pos_t pos;
     int n;
     int * n_plp;
-    const bam_pileup1_t ** plp;
+    bam_pileup1_t ** plp;
+    bool flag;
 
 public:
-    AlignmentContext(std::vector<sam_hdr_t *> & headers, int tid, hts_pos_t pos, int n, int * n_plp, const bam_pileup1_t ** plp);
+    AlignmentContext(std::vector<sam_hdr_t *> & headers, int tid, hts_pos_t pos, int n, int * n_plp, bam_pileup1_t ** plp, bool flag = false);
+
+    ~AlignmentContext();
 
     hts_pos_t getPosition() const;
 
@@ -34,6 +37,10 @@ public:
 
     // added by lhh, used to get the tumor pileup from the reads
     ReadPileup makeTumorPileup(std::set<std::string> & normalSamples);
+
+    ReadPileup makeNormalPileup(std::set<std::string> & normalSamples);
+
+    bool isEmpty();
 };
 
 

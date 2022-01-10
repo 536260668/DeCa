@@ -4,6 +4,7 @@
 
 #include "ReadUtils.h"
 #include "samtools/SAMUtils.h"
+#include <cmath>
 
 std::string ReadUtils::BQSR_BASE_DELETION_QUALITIES = "BD";
 std::string ReadUtils::BQSR_BASE_INSERTION_QUALITIES = "BI";
@@ -302,5 +303,43 @@ int ReadUtils::getReferenceIndex(SAMRecord *read, SAMFileHeader *header) {
         return SAMRecord::NO_ALIGNMENT_REFERENCE_INDEX;
     }
     return header->getSequenceIndex(read->getContig());
+}
+
+bool ReadUtils::hasWellDefinedFragmentSize(SAMRecord *read) {
+    if(read->getFragmentLength() == 0) {
+        return false;
+    }
+    if( ! read->isPaired()) {
+        return false;
+    }
+    if(read->isUnmapped() || read->mateIsUnmapped()) {
+        return false;
+    }
+    if(read->isReverseStrand() == read->mateIsReverseStrand()) {
+        return false;
+    }
+    if(read->isReverseStrand()) {
+        return read->getEnd() > read->getMateStart();
+    } else {
+        return read->getStart() <= read->getMappingQuality() + read->getFragmentLength();
+    }
+}
+
+int ReadUtils::getAdaptorBoundary(SAMRecord *read) {
+    if(!hasWellDefinedFragmentSize(read)) {
+        return INT32_MIN;
+    } else if (read->isReverseStrand()) {
+        return read->getMateStart() - 1;
+    } else {
+        int insertSize = std::abs(read->getFragmentLength());
+        return read->getStart() + insertSize;
+    }
+}
+
+bool ReadUtils::isBaseInsideAdaptor(SAMRecord *read, long basePos) {
+    int adaptorBoundary = read->getAdaptorBoundary();
+    if(adaptorBoundary == INT32_MIN || read->getFragmentLength() > 100)
+        return false;
+    return read->isReverseStrand() ? basePos <= adaptorBoundary : basePos >= adaptorBoundary;
 }
 

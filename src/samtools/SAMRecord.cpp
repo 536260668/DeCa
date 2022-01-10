@@ -8,6 +8,7 @@
 #include "SAMUtils.h"
 #include "ReadUtils.h"
 #include <sstream>
+#include <iostream>
 
 const std::string SAMRecord::NO_ALIGNMENT_REFERENCE_NAME = "*";
 
@@ -496,6 +497,7 @@ SAMRecord::SAMRecord(bam1_t *read, SAMFileHeader* samFileHeader, bool load) {
     mAlignmentStart = read->core.pos;
     mAlignmentEnd = mAlignmentStart + static_cast<int>(bam_cigar2rlen(n, res)) - 1;
     mReferenceName = std::string(samFileHeader->getSequenceDictionary().getSequences()[read->core.tid].getSequenceName());
+    mMateReferenceName = std::string(samFileHeader->getSequenceDictionary().getSequences()[read->core.mtid].getSequenceName());
     mReadName = std::string(bam_get_qname(read));
     baseLength = read->core.l_qseq;
     baseQualitiesLength = static_cast<int>(bam_cigar2qlen(n, res));
@@ -544,6 +546,32 @@ SAMRecord::~SAMRecord() {
     delete mAttributes;
     delete[] mReadBases;
     delete[] mBaseQualities;
+    //std::cout << "finished" << std::endl;
+}
+
+int SAMRecord::getAdaptorBoundary() {
+    return ReadUtils::getAdaptorBoundary(this);
+}
+
+SAMRecord::SAMRecord(const SAMRecord &other) : mFlags(other.mFlags), baseLength(other.baseLength), baseQualitiesLength(other.baseQualitiesLength),
+mAlignmentStart(other.mAlignmentStart), mAlignmentEnd(other.mAlignmentEnd), mMateAlignmentStart(other.mMateAlignmentStart), mMappingQuality(other.mMappingQuality), mInferredInsertSize(other.mInferredInsertSize),
+mReferenceName(other.mReferenceName), mMateReferenceName(other.mMateReferenceName), mReadName(other.mReadName){
+    mAttributes = nullptr;
+    if(other.mReadBases != nullptr){
+        mReadBases = new uint8_t[baseLength+1]{0};
+        memcpy(mReadBases, other.mReadBases, baseLength);
+    }
+    else{
+        mReadBases = nullptr;
+    }
+    if(other.mBaseQualities != nullptr) {
+        mBaseQualities = new uint8_t[baseQualitiesLength+1]{0};
+        memcpy(mBaseQualities, other.mBaseQualities, baseQualitiesLength);
+    }
+    else{
+        mBaseQualities = nullptr;
+    }
+    mCigar = new Cigar(other.mCigar->getCigarElements());
 }
 
 

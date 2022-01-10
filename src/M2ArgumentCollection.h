@@ -14,7 +14,11 @@ typedef struct M2ArgumentCollection{
     int minAssemblyRegionSize;
     int maxAssemblyRegionSize;
     std::set<std::string> normalSamples;
+    bool genotypeGermlineSites = false;
 
+    static double getInitialLogOdds() {
+        return 4.6052;
+    }
 }M2ArgumentCollection;
 
 #endif //MUTECT2CPP_MASTER_M2ARGUMENTCOLLECTION_H

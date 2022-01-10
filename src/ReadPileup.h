@@ -21,6 +21,8 @@ public:
     hts_pos_t getPosition();
 
     std::vector<bam1_t* > & getPileupElements();
+
+    int size();
 };
 
 
