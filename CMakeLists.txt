@@ -38,7 +38,7 @@ add_subdirectory(./src/samtools)
 add_subdirectory(./src/param)
 add_subdirectory(./src/clipping)
 
-add_executable(Mutect2Cpp_master ${DIR_SRCS} src/engine/ReferenceContext.cpp src/engine/ReferenceContext.h)
+add_executable(Mutect2Cpp_master ${DIR_SRCS} src/engine/ReferenceContext.cpp src/engine/ReferenceContext.h src/engine/AlignmentContext.cpp src/engine/AlignmentContext.h)
 
 
 # counterpart of gcc -L

@@ -12,8 +12,8 @@
 
 class MathUtils {
 private:
-    static DigammaCache DIGAMMA_CACHE;
-    static Log10FactorialCache LOG_10_FACTORIAL_CACHE;
+    static DigammaCache & DIGAMMA_CACHE();
+    static Log10FactorialCache & LOG_10_FACTORIAL_CACHE();
 public:
     static double digamma(int n);
 

@@ -19,25 +19,24 @@ Mutect2Engine::Mutect2Engine(M2ArgumentCollection & MTAC, char * ref, SAMFileHea
 
 
 
-ActivityProfileState Mutect2Engine::isActive(AlignmentContext* context, ReferenceContext& ref)
+ActivityProfileState Mutect2Engine::isActive(AlignmentContext& context, ReferenceContext& ref)
 {
-    if(context == nullptr || context->getReadNum() == 0)
-        return ActivityProfileState(context->getRefName(), context->getPosition(), 0.0);
+    if(context.getReadNum() == 0)
+        return ActivityProfileState(context.getRefName().c_str(), context.getPosition(), 0.0);
 
-    hts_pos_t pos = context->getPosition();
+    hts_pos_t pos = context.getPosition();
 
 //    if(pos == 13272)
 //        std::cout << "hello" << std::endl;
 
-    const char * refName = context->getRefName();
+    const char * refName = context.getRefName().c_str();
 
-    if(context->getReadNum() > minCallableDepth)
+    if(context.getReadNum() > minCallableDepth)
         callableSites++;
 
 
 
     // TODO: add ApplyBQSR for reads
-
 
     if (strcmp(refName, refCache.getContig()) != 0 )
     {
@@ -52,15 +51,19 @@ ActivityProfileState Mutect2Engine::isActive(AlignmentContext* context, Referenc
     //std::cout << "refBase: " << refBase << std::endl;
     // TODO: divide the pileup to tumor pileup and normal pileup
 
-    ReadPileup tumorPileup = context->makeTumorPileup(normalSamples);
+    ReadPileup tumorPileup = context.makeTumorPileup();
     // TODO: calculate the activeProb
 
     std::vector<char> tumorAltQuals = altQuals(tumorPileup, refBase, 40);
+    if(pos == 13272) {
+        std::cout << "hello";
+    }
     double tumorLogOdds = logLikelihoodRatio(tumorPileup.size() - tumorAltQuals.size(), tumorAltQuals);
+
     if(tumorLogOdds < M2ArgumentCollection::getInitialLogOdds()) {
         return {refName, pos, 0.0};
     } else if (hasNormal() && !MATC.genotypeGermlineSites) {
-        ReadPileup normalPileup = context->makeNormalPileup(normalSamples);
+        ReadPileup normalPileup = context.makeNormalPileup();
         std::vector<char> normalAltQuals = altQuals(tumorPileup, refBase, 40);
         int normalAltCount = normalAltQuals.size();
         double normalQualSum = 0.0;
@@ -81,16 +84,16 @@ std::vector<char> Mutect2Engine::altQuals(ReadPileup &pileup, char refBase, int 
     std::vector<char> result;
     hts_pos_t pos = pileup.getPosition();
 
-    std::vector<bam1_t*>  pileupElements = pileup.getPileupElements();
+    std::vector<SAMRecord>  pileupElements = pileup.getPileupElements();
 
-    for(bam1_t* read : pileupElements)
+    for(SAMRecord read : pileupElements)
     {
 //        if(pos == 13272) {
 //            for (int i = 0; i < 100; i++)
 //                std::cout << i << " : " << (int)bam_get_qual(read)[i] << std::endl;
 //            std::cout << bam_get_qual(read) << std::endl;
 //        }
-        PeUtils pe(read, pos);
+        PeUtils pe(&read, pos);
 //        uint8_t base = pe.getBase();
 //        uint8_t qual = pe.getQual();
 //        SAMRecord tmp(read, header);
@@ -102,9 +105,8 @@ std::vector<char> Mutect2Engine::altQuals(ReadPileup &pileup, char refBase, int 
             result.emplace_back(indelQual(1));
         } else if (pe.getBase() != refBase && pe.getQual() > 6){
 
-            SAMRecord samRecord(read, header);
-            int mateStart = (!samRecord.isProperlyPaired() || samRecord.mateIsUnmapped()) ? INT32_MAX : samRecord.getMateStart();
-            bool overlapsMate = mateStart <= pos && pos < mateStart + samRecord.getLength();
+            int mateStart = (!read.isProperlyPaired() || read.mateIsUnmapped()) ? INT32_MAX : read.getMateStart();
+            bool overlapsMate = mateStart <= pos && pos < mateStart + read.getLength();
             result.emplace_back(overlapsMate ? std::min(static_cast<int>(pe.getQual()), pcrErrorQual/2) : pe.getQual());
         }
     }
@@ -136,7 +138,6 @@ double Mutect2Engine::logLikelihoodRatio(int nRef, std::vector<char> &altQuals, 
 
     double fTildeRatio = std::exp(MathUtils::digamma(nRef + 1) - MathUtils::digamma(nAlt + 1));
     double betaEntropy = MathUtils::log10ToLog(-MathUtils::log10Factorial(n+1) + MathUtils::log10Factorial(nAlt) + MathUtils::log10Factorial(nRef));
-
     double readSum = 0;
     for(char qual : altQuals) {
         double epsilon = QualityUtils::qualToErrorProb(static_cast<uint8_t>(qual));

@@ -16,7 +16,7 @@ protected:
     virtual double compute(int n) = 0;
 
 public:
-    IntToDoubleFunctionCache() : length(0){}
+    IntToDoubleFunctionCache() : length(0), cache(nullptr){}
 
     double get(int i);
 

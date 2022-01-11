@@ -76,7 +76,7 @@ public:
     uint8_t * getBaseQualities();
     uint8_t * getBaseQualitiesNoCopy();
     int getBaseQualitiesLength();
-    uint8_t getBaseQuality(const int i) {return getBaseQualities()[i];}
+    uint8_t getBaseQuality(const int i) {return getBaseQualitiesNoCopy()[i];}
     void setBaseQualities(uint8_t* baseQualities, int length);
     Cigar* getCigar();
     std::vector<CigarElement>& getCigarElements();

@@ -14,7 +14,6 @@
 #include "Mutect2Engine.h"
 #include "QualityUtils.h"
 #include "ReadFilter.h"
-#include "AlignmentContext.h"
 #include "M2ArgumentCollection.h"
 #include "ActivityProfile.h"
 #include "BandPassActivityProfile.h"
@@ -22,16 +21,8 @@
 #include "samtools/SAMTools_decode.h"
 #include "samtools/SamFileHeaderMerger.h"
 #include "engine/ReferenceContext.h"
-#include "utils/LocusIteratorByState.h"
-
-typedef struct {     // auxiliary data structure
-    samFile *fp;     // the file handle
-    sam_hdr_t *hdr;  // the file header
-    hts_itr_t *iter; // NULL if a region not specified
-    int min_mapQ; // mapQ filter;
-    uint32_t flags;// read filtering flags
-    SAMFileHeader * header;
-} aux_t;
+#include "read/ReadCache.h"
+#include "MathUtils.h"
 
 
 
@@ -73,19 +64,19 @@ static int read_bam(void *data, bam1_t *b) // read level filters better go here 
     while (1)
     {
         ret = aux->iter? sam_itr_next(aux->fp, aux->iter, b) : sam_read1(aux->fp, aux->hdr, b);
-        std::cout << " org : ";
-        for(int j = 0; j < b->core.l_qseq; j++) {
-            std::cout << static_cast<char>(bam_get_qual(b)[j] + '!');
-        }
-        std::cout << std::endl;
-        ReadFilter filter(b, aux->header);
+//        std::cout << " org : ";
+//        for(int j = 0; j < b->core.l_qseq; j++) {
+//            std::cout << static_cast<char>(bam_get_qual(b)[j] + '!');
+//        }
+//        std::cout << std::endl;
+//        ReadFilter filter(b, aux->header);
         if ( ret<0 ) break;
-        if ( !filter.test() ) continue;
-        std::cout <<" flt : ";
-        for(int j = 0; j < b->core.l_qseq; j++) {
-            std::cout << static_cast<char>(bam_get_qual(b)[j] + '!');
-        }
-        std::cout << std::endl;
+//        if ( !filter.test() ) continue;
+//        std::cout <<" flt : ";
+//        for(int j = 0; j < b->core.l_qseq; j++) {
+//            std::cout << static_cast<char>(bam_get_qual(b)[j] + '!');
+//        }
+//        std::cout << std::endl;
         break;
     }
     return ret;
@@ -194,69 +185,20 @@ int main(int argc, char *argv[])
     int nref = sam_hdr_nref(h);
 
     Mutect2Engine m2Engine(MTAC, ref, header);
+    queue<AssemblyRegion> pendingRegions;
     ActivityProfile * activityProfile = new BandPassActivityProfile(MTAC.maxProbPropagationDistance, MTAC.activeProbThreshold, BandPassActivityProfile::MAX_FILTER_SIZE, BandPassActivityProfile::DEFAULT_SIGMA,
                                                                     true , h);
-    queue<AssemblyRegion> pendingRegions;
     // TODO: add multi-thread mode here
     for(int k=0; k<nref; k++)
     {
-
-        // set the iterator
-        for (int i = 0; i < n; ++i) {
-            hts_idx_t *idx = nullptr;
-            idx = sam_index_load(data[i]->fp, input_bam[i]);
-            //data[i]->iter = sam_itr_queryi(idx, k, 0, sam_hdr_tid2len(h, k)); // set the iterator
-            data[i]->iter = sam_itr_queryi(idx, k, 0, 300000);  //---only for test
-            hts_idx_destroy(idx); // the index is not needed any more; free the memory
-        }
-
-        // the core multi-pileup loop
-        mplp = bam_mplp_init(n, read_bam, (void**)data);
-
-        if ( bam_mplp_init_overlaps(mplp) < 0) {
-            throw "failed to init overlap detection";
-        }
-
-        n_plp = static_cast<int *>(calloc(n, sizeof(int))); // n_plp[i] is the number of covering reads from the i-th BAM
-        plp = static_cast<const bam_pileup1_t **>(calloc(n, sizeof(bam_pileup1_t *)));
+        std::string region = header->getSequenceDictionary().getSequences()[k].getSequenceName() + ":0-99999";
+        ReadCache cache(data, input_bam, k, region);
+        int currentPose = 0;
         int len = 0;
         std::string contig = header->getSequenceDictionary().getSequences()[k].getSequenceName();
-        char* refBases = faidx_fetch_seq(refPoint, contig.c_str(), 0, header->getSequenceDictionary().getSequences()[k].getSequenceLength(), &len);// plp[i] points to the array of covering reads (internal in mplp)
-        // if there is no covered position, ret = 0 and pos = -1
-        while ((ret=bam_mplp64_auto(mplp, &tid, &pos, n_plp, plp)) > 0) { // come to the next covered position
-
-            if (pos < beg || pos >= end) continue; // out of range; skip
-            if (tid >= sam_hdr_nref(h)) continue;     // diff number of @SQ lines per file?
-
-
-/*            //fputs(sam_hdr_tid2name(h, tid), stdout);
-            //fprintf(stdout, "\t%" PRIhts_pos, pos+1); // a customized printf() would be faster
-            for (int i = 0; i < n; ++i) { // base level filters have to go here
-                int j, m = 0;
-                for (j = 0; j < n_plp[i]; ++j) {
-                    const bam_pileup1_t *p = plp[i] + j; // DON'T modify plp[][] unless you really know
-                    if ((p->is_del) || p->is_refskip) ++m; // having dels or refskips at tid:pos
-                    else if (p->qpos < p->b->core.l_qseq &&
-                    bam_get_qual(p->b)[p->qpos] < baseQ) ++m; // low base quality
-
-                    //printf("%s\n", bam_aux2Z(bam_aux_get(plp[i]->b, "RG")));
-                }
-                //fprintf(stdout, "\t%d", n_plp[i] - m); // this the depth to output
-                read_num += n_plp[i];
-            }*/
-            if(pos == 13272) {
-
-                for(int i = 0; i < n_plp[1] ; i ++) {
-                    std::cout << plp[1][i].b->data << " : ";
-                    for(int j = 0; j < plp[1][i].b->core.l_qseq; j++) {
-                        std::cout << static_cast<char>(bam_get_qual(plp[1][i].b)[j] + '!');
-                    }
-                    std::cout << std::endl;
-                }
-            }
-            LocusIteratorByState iter(n, n_plp, const_cast<bam_pileup1_t **>(plp), header, headers, pos, tid);
-            AlignmentContext pileup = iter.loadAlignmentContext();
-
+        char* refBases = faidx_fetch_seq(refPoint, contig.c_str(), 0, header->getSequenceDictionary().getSequences()[k].getSequenceLength(), &len);
+        while(cache.hasNextPos()) {
+            AlignmentContext pileup = cache.getAlignmentContext();
             if(pileup.isEmpty())
                 continue;
 
@@ -271,14 +213,16 @@ int main(int argc, char *argv[])
             }
             SimpleInterval pileupInterval = SimpleInterval(contig, (int)pileup.getPosition(), (int)pileup.getPosition());
             ReferenceContext pileupRefContext(refBases, pileupInterval);
-            ActivityProfileState profile = m2Engine.isActive(&pileup, pileupRefContext);
+            ActivityProfileState profile = m2Engine.isActive(pileup, pileupRefContext);
 
             activityProfile->add(profile);
 
 
+        }
+
 
             // gather AlignmentContext to AssemblyRegion
-        }
+
 
 
     }
@@ -287,17 +231,6 @@ int main(int argc, char *argv[])
 
 
     // free the space
-    delete activityProfile;
-    for (char * file_name: input_bam) {
-        free(file_name);
-    }
-    for (int i = 0; i < n && data[i]; ++i) {
-        sam_hdr_destroy(data[i]->hdr);
-        if (data[i]->fp) sam_close(data[i]->fp);
-        hts_itr_destroy(data[i]->iter);
-        free(data[i]);
-    }
-    free(data);
 
 
     return 0;

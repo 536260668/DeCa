@@ -7,6 +7,7 @@
 
 #include "htslib/sam.h"
 #include "cigar/Cigar.h"
+#include "samtools/SAMRecord.h"
 
 class PeUtils {
 public:
@@ -15,7 +16,7 @@ public:
     bool isImmediatelyBefore(CigarOperator cigarOperator);
     bool isImmediatelyAfter(CigarOperator op);
     bool isAfterSoftClip();
-    PeUtils(bam1_t* pe, int pos);
+    PeUtils(SAMRecord* pe, int pos);
     bool isDeletion();
     bool isBeforeDeletionStart();
     bool isBeforeInsertion();
@@ -34,7 +35,7 @@ private:
     int offset;
     std::vector<CigarElement> nCigarElements;
     CigarElement currentCigarElement;
-    bam1_t *pe;
+    SAMRecord *pe;
     CigarElement getNextIndelCigarElement();
 };
 

@@ -6,6 +6,7 @@
 #include "Mutect2Utils.h"
 #include <cmath>
 #include <cstring>
+#include <iostream>
 
 double IntToDoubleFunctionCache::get(int i) {
     Mutect2Utils::validateArg(i >= 0, "Cache doesn't apply to negative number");
@@ -27,14 +28,13 @@ void IntToDoubleFunctionCache::expandCache(int newCapacity) {
     }
     double * newCache = new double [newCapacity+1];
     if(length != 0) {
-        memcpy(newCache,  cache, length);
+        memcpy(newCache,  cache, length * sizeof(double));
     }
-
     for(int i = length; i < newCapacity + 1; i++) {
         newCache[i] = compute(i);
     }
 
-    delete cache;
+    delete[] cache;
     cache = newCache;
     length = newCapacity + 1;
 

@@ -11,23 +11,20 @@
 
 class ReadFilter {  // TODO: add the filter left
 public:
-    bool ReadLengthTest();
-    bool NotSecondaryAlignmentTest() const;
-    bool GoodCigarTest();
-    bool NonZeroReferenceLengthAlignmentTest();
-    bool PassesVendorQualityCheck() const;
-    bool MappedTest();
-    bool MappingQualityAvailableTest();
-    bool NotDuplicateTest();
-    bool MappingQualityTest();
-    bool MappingQualityNotZeroTest();
-    bool WellformedTest();
-    bool test();
-    explicit ReadFilter(bam1_t* read, SAMFileHeader* header);
+    static bool ReadLengthTest(SAMRecord & originalRead);
+    static bool NotSecondaryAlignmentTest(SAMRecord & originalRead) ;
+    static bool GoodCigarTest(SAMRecord & originalRead);
+    static bool NonZeroReferenceLengthAlignmentTest(SAMRecord & originalRead);
+    static bool PassesVendorQualityCheck(SAMRecord & originalRead);
+    static bool MappedTest(SAMRecord & originalRead );
+    static bool MappingQualityAvailableTest(SAMRecord & originalRead);
+    static bool NotDuplicateTest(SAMRecord & originalRead);
+    static bool MappingQualityTest(SAMRecord & originalRead);
+    static bool MappingQualityNotZeroTest(SAMRecord & originalRead);
+    static bool WellformedTest(SAMRecord & originalRead, SAMFileHeader* header);
+    static bool test(SAMRecord & originalRead, SAMFileHeader* header);
 
 private:
-    SAMRecord originalRead;
-    SAMFileHeader* header;
 };
 
 

@@ -8,12 +8,13 @@
 
 #include <vector>
 #include "ActivityProfileState.h"
-#include "AlignmentContext.h"
 #include "M2ArgumentCollection.h"
 #include "ReferenceCache.h"
 #include "engine/ReferenceContext.h"
 #include "utils/PeUtils.h"
 #include "samtools/SAMFileHeader.h"
+#include "engine/AlignmentContext.h"
+#include "utils/ReadPileup.h"
 
 class Mutect2Engine {
 private:
@@ -52,7 +53,7 @@ public:
 
     Mutect2Engine(M2ArgumentCollection & MTAC, char* ref, SAMFileHeader*);
 
-    ActivityProfileState isActive(AlignmentContext* context, ReferenceContext & referenceContext);
+    ActivityProfileState isActive(AlignmentContext& context, ReferenceContext & referenceContext);
 
 
 };

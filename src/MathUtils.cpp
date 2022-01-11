@@ -7,11 +7,10 @@
 #include <cmath>
 using namespace std;
 
-DigammaCache MathUtils::DIGAMMA_CACHE = DigammaCache();
-Log10FactorialCache MathUtils::LOG_10_FACTORIAL_CACHE = Log10FactorialCache();
+
 
 double MathUtils::digamma(int n) {
-    return DIGAMMA_CACHE.get(n);
+    return DIGAMMA_CACHE().get(n);
 }
 
 double MathUtils::log10ToLog(double log10) {
@@ -19,7 +18,7 @@ double MathUtils::log10ToLog(double log10) {
 }
 
 double MathUtils::log10Factorial(int n) {
-    return LOG_10_FACTORIAL_CACHE.get(n);
+    return LOG_10_FACTORIAL_CACHE().get(n);
 }
 
 double MathUtils::fastBernoulliEntropy(const double p) {
@@ -50,4 +49,14 @@ std::vector<double> * MathUtils::normalizeSumToZero( std::vector<double> * array
         element = element/sum;
     }
     return array;
+}
+
+DigammaCache &MathUtils::DIGAMMA_CACHE() {
+    static DigammaCache digamma;
+    return digamma;
+}
+
+Log10FactorialCache &MathUtils::LOG_10_FACTORIAL_CACHE() {
+    static Log10FactorialCache log10Factorial;
+    return log10Factorial;
 }

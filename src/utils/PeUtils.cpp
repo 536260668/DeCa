@@ -5,16 +5,13 @@
 #include "PeUtils.h"
 #include "Mutect2Utils.h"
 
-PeUtils::PeUtils(bam1_t *pe, int pos) : pos(pos), pe(pe){
-    uint32_t * res = bam_get_cigar(pe);
-    hts_pos_t start = pe->core.pos;
-    uint32_t n = pe->core.n_cigar;
+PeUtils::PeUtils(SAMRecord *pe, int pos) : pos(pos), pe(pe), nCigarElements(pe->getCigarElements()){
     bool flag = false;
     offset = 0;
-    for(int i = 0; i < n; i++) {
-        int length = (int)(res[i] >> 4);
-        CigarOperator tmp_cigarOperator = CigarOperatorUtils::binaryToEnum((int)(res[i] & 0xf));
-        nCigarElements.emplace_back(CigarElement(length, tmp_cigarOperator));
+    int start = pe->getStart();
+    for(int i = 0; i < nCigarElements.size(); i++) {
+        int length = nCigarElements[i].getLength();
+        CigarOperator tmp_cigarOperator = nCigarElements[i].getOperator();
         if(!flag) {
             if(CigarOperatorUtils::getConsumesReferenceBases(tmp_cigarOperator)) {
                 start += length;
@@ -23,7 +20,7 @@ PeUtils::PeUtils(bam1_t *pe, int pos) : pos(pos), pe(pe){
                 offset += length;
             }
             if(start > pos){
-                currentCigarElement = CigarElement(length, tmp_cigarOperator);
+                currentCigarElement = nCigarElements[i];
                 Cigar_offset = i;
                 currentStart = (int)start - length;
                 offset -=length;
@@ -105,15 +102,13 @@ uint8_t PeUtils::getQual() {
     if(isDeletion()) {
         return DELETION_QUAL;
     }
-    uint8_t * qual = bam_get_qual(pe);
-    return qual[offset];
+    return pe->getBaseQuality(offset);
 }
 
 uint8_t PeUtils::getBaseQuality(int pos) {
     if(isDeletion())
         return 'N';
-    uint8_t * qual = bam_get_qual(pe);
-    return qual[pos - pe->core.pos];
+    return pe->getBaseQuality(pos - pe->getStart());
 }
 
 bool PeUtils::isImmediatelyAfter(CigarOperator op) {
@@ -125,7 +120,6 @@ bool PeUtils::isAfterSoftClip() {
 }
 
 uint8_t PeUtils::getBase() {
-    Mutect2Utils::validateArg(pos < pe->core.pos + pe->l_data, "pos is not in read");
-    uint8_t * base = bam_get_seq(pe);
-    return Mutect2Utils::decodeBase(bam_seqi(base, offset));
+    Mutect2Utils::validateArg(pos <= pe->getEnd(), "pos is not in read");
+    return pe->getBase(offset);
 }
