@@ -197,11 +197,24 @@ int main(int argc, char *argv[])
         int len = 0;
         std::string contig = header->getSequenceDictionary().getSequences()[k].getSequenceName();
         char* refBases = faidx_fetch_seq(refPoint, contig.c_str(), 0, header->getSequenceDictionary().getSequences()[k].getSequenceLength(), &len);
+        bool flag = false;
         while(cache.hasNextPos()) {
             AlignmentContext pileup = cache.getAlignmentContext();
-            if(pileup.isEmpty())
-                continue;
+            if(!flag) {
+                int startPos = (pileup.getPosition() / 300) * 300;
+                for(int i = startPos; i < pileup.getPosition(); i++){
+                    ActivityProfileState state(pileup.getRefName().c_str(), i, 0.0);
+                    activityProfile->add(state);
+                }
+                flag = true;
+            }
 
+                //continue;
+
+
+
+            if(pileup.getPosition() == 12917)
+                std::cout << "hello" << std::endl;
             //AlignmentContext pileup(headers, tid, pos, n, n_plp, const_cast<bam_pileup1_t **>(plp));
             if(!activityProfile->isEmpty()){
                 bool forceConversion = pileup.getPosition() != activityProfile->getEnd() + 1;
@@ -211,13 +224,22 @@ int main(int argc, char *argv[])
                     pendingRegions.emplace(region);
                 }
             }
+
+            if(pileup.isEmpty()) {
+                ActivityProfileState state(pileup.getRefName().c_str(), pileup.getPosition(), 0.0);
+                activityProfile->add(state);
+                continue;
+            }
             SimpleInterval pileupInterval = SimpleInterval(contig, (int)pileup.getPosition(), (int)pileup.getPosition());
             ReferenceContext pileupRefContext(refBases, pileupInterval);
             ActivityProfileState profile = m2Engine.isActive(pileup, pileupRefContext);
 
             activityProfile->add(profile);
 
-
+            if(!pendingRegions.empty() && IntervalUtils::isAfter(pileup.getLocation(), pendingRegions.front().getExtendedSpan(), header->getSequenceDictionary())) {
+                AssemblyRegion nextRegion = pendingRegions.front();
+                pendingRegions.pop();
+            }
         }
 
 

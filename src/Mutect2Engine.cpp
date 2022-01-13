@@ -74,8 +74,7 @@ ActivityProfileState Mutect2Engine::isActive(AlignmentContext& context, Referenc
             return {refName, pos, 0.0};
         }
     }
-
-    return ActivityProfileState(refName, pos, 0.0);
+    return {refName, pos, 1.0};
 }
 
 // TODO: finish this method 2021.11.1

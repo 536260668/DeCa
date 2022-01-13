@@ -25,6 +25,7 @@ public:
     ReadPileup makeTumorPileup();
     ReadPileup makeNormalPileup();
     bool isEmpty() const;
+    SimpleInterval& getLocation();
 };
 
 

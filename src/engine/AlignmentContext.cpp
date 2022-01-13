@@ -31,3 +31,7 @@ ReadPileup AlignmentContext::makeNormalPileup() {
 bool AlignmentContext::isEmpty() const {
     return tumor.size() + normal.size() == 0;
 }
+
+SimpleInterval &AlignmentContext::getLocation() {
+    return loc;
+}

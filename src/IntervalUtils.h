@@ -6,8 +6,10 @@
 #define MUTECT2CPP_MASTER_INTERVALUTILS_H
 
 #include "SimpleInterval.h"
+#include "samtools/SAMFileHeader.h"
 
 class SimpleInterval;
+class Locatable;
 
 class IntervalUtils {
 public:
@@ -26,6 +28,26 @@ public:
      */
     static SimpleInterval* trimIntervalToContig(std::string contig, int start, int stop, int contigLength);
 
+    /**
+    * Tests whether the first Locatable starts after the end of the second Locatable
+    *
+    * @param first first Locatable
+    * @param second second Locatable
+    * @param dictionary sequence dictionary used to determine contig ordering
+    * @return true if first starts after the end of second, otherwise false
+    */
+    static bool isAfter(Locatable & first, Locatable & second, SAMSequenceDictionary& dictionary);
+
+    /**
+     * Determines the relative contig ordering of first and second using the provided sequence dictionary
+     *
+     * @param first first Locatable
+     * @param second second Locatable
+     * @param dictionary sequence dictionary used to determine contig ordering
+     * @return 0 if the two contigs are the same, a negative value if first's contig comes before second's contig,
+     *         or a positive value if first's contig comes after second's contig
+     */
+    static int compareContigs(Locatable & first, Locatable & second, SAMSequenceDictionary& dictionary);
 };
 
 #endif //MUTECT2CPP_MASTER_INTERVALUTILS_H
