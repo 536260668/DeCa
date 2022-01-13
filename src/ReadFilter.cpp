@@ -9,17 +9,17 @@
 #include "read/ReadUtils.h"
 
 
-bool ReadFilter::NotSecondaryAlignmentTest(SAMRecord & originalRead) {
-    return ! originalRead.isSecondaryAlignment();
+bool ReadFilter::NotSecondaryAlignmentTest(std::shared_ptr<SAMRecord> & originalRead) {
+    return ! originalRead->isSecondaryAlignment();
 }
 
-bool ReadFilter::GoodCigarTest(SAMRecord & originalRead) {
-    return CigarUtils::isGood(originalRead.getCigar());
+bool ReadFilter::GoodCigarTest(std::shared_ptr<SAMRecord> & originalRead) {
+    return CigarUtils::isGood(originalRead->getCigar());
 }
 
 
-bool ReadFilter::NonZeroReferenceLengthAlignmentTest(SAMRecord & originalRead) {
-    for(CigarElement element : originalRead.getCigarElements()) {
+bool ReadFilter::NonZeroReferenceLengthAlignmentTest(std::shared_ptr<SAMRecord> & originalRead) {
+    for(CigarElement element : originalRead->getCigarElements()) {
         if(CigarOperatorUtils::getConsumesReferenceBases(element.getOperator()) && element.getLength() > 0) {
             return true;
         }
@@ -27,42 +27,42 @@ bool ReadFilter::NonZeroReferenceLengthAlignmentTest(SAMRecord & originalRead) {
     return false;
 }
 
-bool ReadFilter::PassesVendorQualityCheck(SAMRecord & originalRead) {
-    return ! originalRead.failsVendorQualityCheck();
+bool ReadFilter::PassesVendorQualityCheck(std::shared_ptr<SAMRecord> & originalRead) {
+    return ! originalRead->failsVendorQualityCheck();
 }
 
-bool ReadFilter::MappedTest(SAMRecord & originalRead) {
-    return ! originalRead.isUnmapped();
+bool ReadFilter::MappedTest(std::shared_ptr<SAMRecord> & originalRead) {
+    return ! originalRead->isUnmapped();
 }
 
-bool ReadFilter::MappingQualityAvailableTest(SAMRecord & originalRead) {
-    return originalRead.getMappingQuality() != QualityUtils::MAPPING_QUALITY_UNAVALIABLE;
+bool ReadFilter::MappingQualityAvailableTest(std::shared_ptr<SAMRecord> & originalRead) {
+    return originalRead->getMappingQuality() != QualityUtils::MAPPING_QUALITY_UNAVALIABLE;
 }
 
-bool ReadFilter::NotDuplicateTest(SAMRecord & originalRead) {
-    return ! originalRead.isDuplicate();
+bool ReadFilter::NotDuplicateTest(std::shared_ptr<SAMRecord> & originalRead) {
+    return ! originalRead->isDuplicate();
 }
 
-bool ReadFilter::MappingQualityTest(SAMRecord & originalRead) {
-    return originalRead.getMappingQuality() >= 20;
+bool ReadFilter::MappingQualityTest(std::shared_ptr<SAMRecord> & originalRead) {
+    return originalRead->getMappingQuality() >= 20;
 }
 
-bool ReadFilter::MappingQualityNotZeroTest(SAMRecord & originalRead) {
-    return originalRead.getMappingQuality() != 0;
+bool ReadFilter::MappingQualityNotZeroTest(std::shared_ptr<SAMRecord> & originalRead) {
+    return originalRead->getMappingQuality() != 0;
 }
 
-bool ReadFilter::WellformedTest(SAMRecord & originalRead, SAMFileHeader* header) {
-    return (originalRead.isUnmapped() || originalRead.getStart() > 0) &&
-            (originalRead.isUnmapped() || (originalRead.getEnd() - originalRead.getStart() + 1) >= 0) &&
-            ReadUtils::alignmentAgreesWithHeader(header, &originalRead) &&
+bool ReadFilter::WellformedTest(std::shared_ptr<SAMRecord> & originalRead, SAMFileHeader* header) {
+    return (originalRead->isUnmapped() || originalRead->getStart() > 0) &&
+            (originalRead->isUnmapped() || (originalRead->getEnd() - originalRead->getStart() + 1) >= 0) &&
+            ReadUtils::alignmentAgreesWithHeader(header, originalRead) &&
             // ! originalRead.getReadGroup().empty() &&
-            originalRead.getLength() == originalRead.getBaseQualitiesLength() &&
-            (originalRead.isUnmapped() || originalRead.getLength() == Cigar::getReadLength(originalRead.getCigarElements())) &&
-            (originalRead.getLength() > 0) &&
-            (! CigarUtils::containsNOperator(originalRead.getCigarElements()));
+            originalRead->getLength() == originalRead->getBaseQualitiesLength() &&
+            (originalRead->isUnmapped() || originalRead->getLength() == Cigar::getReadLength(originalRead->getCigarElements())) &&
+            (originalRead->getLength() > 0) &&
+            (! CigarUtils::containsNOperator(originalRead->getCigarElements()));
 }
 
-bool ReadFilter::test(SAMRecord & originalRead, SAMFileHeader* header) {
+bool ReadFilter::test(std::shared_ptr<SAMRecord> & originalRead, SAMFileHeader* header) {
 //    if(originalRead.getStart() == 10056)
 //        std::cout << "hello";
 //    bool ret1 = ReadLengthTest();
@@ -82,6 +82,6 @@ bool ReadFilter::test(SAMRecord & originalRead, SAMFileHeader* header) {
 //    return true;
 }
 
-bool ReadFilter::ReadLengthTest(SAMRecord &originalRead) {
-    return originalRead.getLength() > 30 && originalRead.getLength() < 2147483647;
+bool ReadFilter::ReadLengthTest(std::shared_ptr<SAMRecord> & originalRead) {
+    return originalRead->getLength() > 30 && originalRead->getLength() < 2147483647;
 }

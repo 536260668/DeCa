@@ -188,6 +188,7 @@ int main(int argc, char *argv[])
     queue<AssemblyRegion> pendingRegions;
     ActivityProfile * activityProfile = new BandPassActivityProfile(MTAC.maxProbPropagationDistance, MTAC.activeProbThreshold, BandPassActivityProfile::MAX_FILTER_SIZE, BandPassActivityProfile::DEFAULT_SIGMA,
                                                                     true , h);
+    int count = 0;
     // TODO: add multi-thread mode here
     for(int k=0; k<nref; k++)
     {
@@ -197,25 +198,8 @@ int main(int argc, char *argv[])
         int len = 0;
         std::string contig = header->getSequenceDictionary().getSequences()[k].getSequenceName();
         char* refBases = faidx_fetch_seq(refPoint, contig.c_str(), 0, header->getSequenceDictionary().getSequences()[k].getSequenceLength(), &len);
-        bool flag = false;
         while(cache.hasNextPos()) {
             AlignmentContext pileup = cache.getAlignmentContext();
-            if(!flag) {
-                int startPos = (pileup.getPosition() / 300) * 300;
-                for(int i = startPos; i < pileup.getPosition(); i++){
-                    ActivityProfileState state(pileup.getRefName().c_str(), i, 0.0);
-                    activityProfile->add(state);
-                }
-                flag = true;
-            }
-
-                //continue;
-
-
-
-            if(pileup.getPosition() == 12917)
-                std::cout << "hello" << std::endl;
-            //AlignmentContext pileup(headers, tid, pos, n, n_plp, const_cast<bam_pileup1_t **>(plp));
             if(!activityProfile->isEmpty()){
                 bool forceConversion = pileup.getPosition() != activityProfile->getEnd() + 1;
                 vector<AssemblyRegion> * ReadyAssemblyRegions = activityProfile->popReadyAssemblyRegions(MTAC.assemblyRegionPadding, MTAC.minAssemblyRegionSize, MTAC.maxAssemblyRegionSize, forceConversion);
@@ -237,8 +221,14 @@ int main(int argc, char *argv[])
             activityProfile->add(profile);
 
             if(!pendingRegions.empty() && IntervalUtils::isAfter(pileup.getLocation(), pendingRegions.front().getExtendedSpan(), header->getSequenceDictionary())) {
+                count++;
+                if(count > 1000) {
+                    break;
+                }
                 AssemblyRegion nextRegion = pendingRegions.front();
                 pendingRegions.pop();
+                Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
+                std::cout << nextRegion.getStart() << '~' << nextRegion.getEnd() << ':' << nextRegion.getReads().size() << std::endl;
             }
         }
 
@@ -246,7 +236,7 @@ int main(int argc, char *argv[])
             // gather AlignmentContext to AssemblyRegion
 
 
-
+        break;
     }
 
     //std::cout << "read_num : " << read_num << std::endl;

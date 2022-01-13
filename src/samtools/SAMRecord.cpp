@@ -338,11 +338,13 @@ void SAMRecord::setAttribute(std::string &tag, void *value, Void_Type type, int 
 }
 
 int SAMRecord::getSoftStart() {
-    return ReadUtils::getSoftStart(this);
+    std::shared_ptr<SAMRecord> ptr(new SAMRecord(*this));
+    return ReadUtils::getSoftStart(ptr);
 }
 
 int SAMRecord::getSoftEnd() {
-    return ReadUtils::getSoftStart(this);
+    std::shared_ptr<SAMRecord> ptr(new SAMRecord(*this));
+    return ReadUtils::getSoftStart(ptr);
 }
 
 std::string &SAMRecord::getContig() {
@@ -550,7 +552,8 @@ SAMRecord::~SAMRecord() {
 }
 
 int SAMRecord::getAdaptorBoundary() {
-    return ReadUtils::getAdaptorBoundary(this);
+    std::shared_ptr<SAMRecord> ptr(new SAMRecord(*this));
+    return ReadUtils::getAdaptorBoundary(ptr);
 }
 
 SAMRecord::SAMRecord(const SAMRecord &other) : mFlags(other.mFlags), baseLength(other.baseLength), baseQualitiesLength(other.baseQualitiesLength),
@@ -572,6 +575,10 @@ mReferenceName(other.mReferenceName), mMateReferenceName(other.mMateReferenceNam
         mBaseQualities = nullptr;
     }
     mCigar = new Cigar(other.mCigar->getCigarElements());
+}
+
+SimpleInterval SAMRecord::getLoc() {
+    return {mReferenceName, mAlignmentStart, mAlignmentEnd};
 }
 
 

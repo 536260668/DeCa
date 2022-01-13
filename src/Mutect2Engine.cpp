@@ -21,11 +21,7 @@ Mutect2Engine::Mutect2Engine(M2ArgumentCollection & MTAC, char * ref, SAMFileHea
 
 ActivityProfileState Mutect2Engine::isActive(AlignmentContext& context, ReferenceContext& ref)
 {
-    if(context.getReadNum() == 0)
-        return ActivityProfileState(context.getRefName().c_str(), context.getPosition(), 0.0);
-
     hts_pos_t pos = context.getPosition();
-
 //    if(pos == 13272)
 //        std::cout << "hello" << std::endl;
 
@@ -34,10 +30,7 @@ ActivityProfileState Mutect2Engine::isActive(AlignmentContext& context, Referenc
     if(context.getReadNum() > minCallableDepth)
         callableSites++;
 
-
-
     // TODO: add ApplyBQSR for reads
-
     if (strcmp(refName, refCache.getContig()) != 0 )
     {
         refCache.clear();
@@ -55,9 +48,9 @@ ActivityProfileState Mutect2Engine::isActive(AlignmentContext& context, Referenc
     // TODO: calculate the activeProb
 
     std::vector<char> tumorAltQuals = altQuals(tumorPileup, refBase, 40);
-    if(pos == 13272) {
-        std::cout << "hello";
-    }
+//    if(pos == 13272) {
+//        std::cout << "hello";
+//    }
     double tumorLogOdds = logLikelihoodRatio(tumorPileup.size() - tumorAltQuals.size(), tumorAltQuals);
 
     if(tumorLogOdds < M2ArgumentCollection::getInitialLogOdds()) {
@@ -83,16 +76,16 @@ std::vector<char> Mutect2Engine::altQuals(ReadPileup &pileup, char refBase, int 
     std::vector<char> result;
     hts_pos_t pos = pileup.getPosition();
 
-    std::vector<SAMRecord>  pileupElements = pileup.getPileupElements();
+    std::vector<std::shared_ptr<SAMRecord>>  pileupElements = pileup.getPileupElements();
 
-    for(SAMRecord read : pileupElements)
+    for(const std::shared_ptr<SAMRecord>& read : pileupElements)
     {
 //        if(pos == 13272) {
 //            for (int i = 0; i < 100; i++)
 //                std::cout << i << " : " << (int)bam_get_qual(read)[i] << std::endl;
 //            std::cout << bam_get_qual(read) << std::endl;
 //        }
-        PeUtils pe(&read, pos);
+        PeUtils pe(read.get(), pos);
 //        uint8_t base = pe.getBase();
 //        uint8_t qual = pe.getQual();
 //        SAMRecord tmp(read, header);
@@ -104,8 +97,8 @@ std::vector<char> Mutect2Engine::altQuals(ReadPileup &pileup, char refBase, int 
             result.emplace_back(indelQual(1));
         } else if (pe.getBase() != refBase && pe.getQual() > 6){
 
-            int mateStart = (!read.isProperlyPaired() || read.mateIsUnmapped()) ? INT32_MAX : read.getMateStart();
-            bool overlapsMate = mateStart <= pos && pos < mateStart + read.getLength();
+            int mateStart = (!read->isProperlyPaired() || read->mateIsUnmapped()) ? INT32_MAX : read->getMateStart();
+            bool overlapsMate = mateStart <= pos && pos < mateStart + read->getLength();
             result.emplace_back(overlapsMate ? std::min(static_cast<int>(pe.getQual()), pcrErrorQual/2) : pe.getQual());
         }
     }
@@ -150,4 +143,9 @@ double Mutect2Engine::logLikelihoodRatio(int nRef, std::vector<char> &altQuals, 
 
 bool Mutect2Engine::hasNormal() {
     return !normalSamples.empty();
+}
+
+void Mutect2Engine::fillNextAssemblyRegionWithReads(AssemblyRegion &region, ReadCache &readCache) {
+    std::vector<std::shared_ptr<SAMRecord>> toAdd = readCache.getReadsForRegion(region);
+    region.setRead(toAdd);
 }

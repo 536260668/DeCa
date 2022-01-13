@@ -11,18 +11,18 @@
 
 class ReadFilter {  // TODO: add the filter left
 public:
-    static bool ReadLengthTest(SAMRecord & originalRead);
-    static bool NotSecondaryAlignmentTest(SAMRecord & originalRead) ;
-    static bool GoodCigarTest(SAMRecord & originalRead);
-    static bool NonZeroReferenceLengthAlignmentTest(SAMRecord & originalRead);
-    static bool PassesVendorQualityCheck(SAMRecord & originalRead);
-    static bool MappedTest(SAMRecord & originalRead );
-    static bool MappingQualityAvailableTest(SAMRecord & originalRead);
-    static bool NotDuplicateTest(SAMRecord & originalRead);
-    static bool MappingQualityTest(SAMRecord & originalRead);
-    static bool MappingQualityNotZeroTest(SAMRecord & originalRead);
-    static bool WellformedTest(SAMRecord & originalRead, SAMFileHeader* header);
-    static bool test(SAMRecord & originalRead, SAMFileHeader* header);
+    static bool ReadLengthTest(std::shared_ptr<SAMRecord> & originalRead);
+    static bool NotSecondaryAlignmentTest(std::shared_ptr<SAMRecord> & originalRead) ;
+    static bool GoodCigarTest(std::shared_ptr<SAMRecord> & originalRead);
+    static bool NonZeroReferenceLengthAlignmentTest(std::shared_ptr<SAMRecord> & originalRead);
+    static bool PassesVendorQualityCheck(std::shared_ptr<SAMRecord> &originalRead);
+    static bool MappedTest(std::shared_ptr<SAMRecord> & originalRead );
+    static bool MappingQualityAvailableTest(std::shared_ptr<SAMRecord> &originalRead);
+    static bool NotDuplicateTest(std::shared_ptr<SAMRecord> & originalRead);
+    static bool MappingQualityTest(std::shared_ptr<SAMRecord> & originalRead);
+    static bool MappingQualityNotZeroTest(std::shared_ptr<SAMRecord> & originalRead);
+    static bool WellformedTest(std::shared_ptr<SAMRecord> & originalRead, SAMFileHeader* header);
+    static bool test(std::shared_ptr<SAMRecord> & originalRead, SAMFileHeader* header);
 
 private:
 };

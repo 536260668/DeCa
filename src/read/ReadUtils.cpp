@@ -10,8 +10,8 @@ std::string ReadUtils::BQSR_BASE_DELETION_QUALITIES = "BD";
 std::string ReadUtils::BQSR_BASE_INSERTION_QUALITIES = "BI";
 const int ReadUtils::CLIPPING_GOAL_NOT_REACHED = -1;
 
-SAMRecord *ReadUtils::emptyRead(SAMRecord *read) {
-    SAMRecord* emptyRead = new SAMRecord(*read);
+std::shared_ptr<SAMRecord> ReadUtils::emptyRead(std::shared_ptr<SAMRecord> & read) {
+    std::shared_ptr<SAMRecord> emptyRead(new SAMRecord(*read));
     emptyRead->setIsUnmapped();
     emptyRead->setMappingQuality(0);
     emptyRead->setCigar(new Cigar());
@@ -149,14 +149,14 @@ CigarElement* ReadUtils::readStartsWithInsertion(Cigar *cigarForRead) {
     return readStartsWithInsertion(cigarForRead, true);
 }
 
-int ReadUtils::getReadCoordinateForReferenceCoordinate(SAMRecord *read, int refCoord, ClippingTail tail) {
+int ReadUtils::getReadCoordinateForReferenceCoordinate(std::shared_ptr<SAMRecord> & read, int refCoord, ClippingTail tail) {
     int leftmostSafeVariantPosition = std::max(read->getSoftStart(), refCoord);
     return getReadCoordinateForReferenceCoordinate(read->getSoftStart(), read->getCigar(), leftmostSafeVariantPosition, tail,
                                                    false);
 }
 
-int ReadUtils::getSoftStart(SAMRecord *read) {
-    Mutect2Utils::validateArg(read, "read");
+int ReadUtils::getSoftStart(std::shared_ptr<SAMRecord> & read) {
+    Mutect2Utils::validateArg(read != nullptr, "read");
 
     int softStart = read->getStart();
     for(CigarElement cig : read->getCigarElements()) {
@@ -170,8 +170,8 @@ int ReadUtils::getSoftStart(SAMRecord *read) {
     return softStart;
 }
 
-int ReadUtils::getSoftEnd(SAMRecord *read) {
-    Mutect2Utils::validateArg(read, "read");
+int ReadUtils::getSoftEnd(std::shared_ptr<SAMRecord> & read) {
+    Mutect2Utils::validateArg(read != nullptr, "read");
 
     bool foundAlignedBase = false;
     int softEnd = read->getEnd();
@@ -193,23 +193,23 @@ int ReadUtils::getSoftEnd(SAMRecord *read) {
     return softEnd;
 }
 
-bool ReadUtils::hasBaseIndelQualities(SAMRecord *read) {
+bool ReadUtils::hasBaseIndelQualities(std::shared_ptr<SAMRecord> & read) {
     return read->getAttribute(SAMUtils::makeBinaryTag(BQSR_BASE_INSERTION_QUALITIES)) || read->getAttribute(SAMUtils::makeBinaryTag(BQSR_BASE_DELETION_QUALITIES));
 }
 
-uint8_t *ReadUtils::getExistingBaseInsertionQualities(SAMRecord *read, int &length) {
+uint8_t *ReadUtils::getExistingBaseInsertionQualities(std::shared_ptr<SAMRecord> & read, int &length) {
     std::string str = read->getAttributeAsString(BQSR_BASE_INSERTION_QUALITIES);
     length = str.length();
     return SAMUtils::fastqToPhred(str);
 }
 
-uint8_t *ReadUtils::getExistingBaseDeletionQualities(SAMRecord *read, int &length) {
+uint8_t *ReadUtils::getExistingBaseDeletionQualities(std::shared_ptr<SAMRecord> & read, int &length) {
     std::string str = read->getAttributeAsString(BQSR_BASE_DELETION_QUALITIES);
     length = str.length();
     return SAMUtils::fastqToPhred(str);
 }
 
-uint8_t *ReadUtils::getBaseInsertionQualities(SAMRecord *read, int &length) {
+uint8_t *ReadUtils::getBaseInsertionQualities(std::shared_ptr<SAMRecord> & read, int &length) {
     uint8_t * quals = getExistingBaseInsertionQualities(read, length);
     if(quals == nullptr) {
         length = read->getBaseQualitiesLength();
@@ -218,7 +218,7 @@ uint8_t *ReadUtils::getBaseInsertionQualities(SAMRecord *read, int &length) {
     return quals;
 }
 
-uint8_t *ReadUtils::getBaseDeletionQualities(SAMRecord *read, int &length) {
+uint8_t *ReadUtils::getBaseDeletionQualities(std::shared_ptr<SAMRecord> & read, int &length) {
     uint8_t * quals = getExistingBaseDeletionQualities(read, length);
     if(quals == nullptr) {
         length = read->getBaseQualitiesLength();
@@ -227,19 +227,19 @@ uint8_t *ReadUtils::getBaseDeletionQualities(SAMRecord *read, int &length) {
     return quals;
 }
 
-void ReadUtils::setInsertionBaseQualities(SAMRecord *read, uint8_t *quals, int length) {
+void ReadUtils::setInsertionBaseQualities(std::shared_ptr<SAMRecord> & read, uint8_t *quals, int length) {
     read->setAttribute(BQSR_BASE_INSERTION_QUALITIES, quals == nullptr ? "" : SAMUtils::phredToFastq(quals, length));
 }
 
-void ReadUtils::setDeletionBaseQualities(SAMRecord *read, uint8_t *quals, int length) {
+void ReadUtils::setDeletionBaseQualities(std::shared_ptr<SAMRecord> & read, uint8_t *quals, int length) {
     read->setAttribute(BQSR_BASE_DELETION_QUALITIES, quals  == nullptr ? "" : SAMUtils::phredToFastq(quals, length));
 }
 
-int ReadUtils::getAssignedReferenceIndex(SAMRecord *read, SAMFileHeader *header) {
+int ReadUtils::getAssignedReferenceIndex(std::shared_ptr<SAMRecord> & read, SAMFileHeader *header) {
     return header->getSequenceIndex(read->getAssignedContig());
 }
 
-int ReadUtils::getSAMFlagsForRead(SAMRecord *read) {
+int ReadUtils::getSAMFlagsForRead(std::shared_ptr<SAMRecord> & read) {
     int samFlags = 0;
 
     if(read->isPaired()) {
@@ -281,14 +281,14 @@ int ReadUtils::getSAMFlagsForRead(SAMRecord *read) {
     return samFlags;
 }
 
-int ReadUtils::getMateReferenceIndex(SAMRecord *read, SAMFileHeader *header) {
+int ReadUtils::getMateReferenceIndex(std::shared_ptr<SAMRecord> & read, SAMFileHeader *header) {
     if(read->mateIsUnmapped()) {
         return -1;
     }
     return header->getSequenceIndex(read->getMateContig());
 }
 
-bool ReadUtils::alignmentAgreesWithHeader(SAMFileHeader *header, SAMRecord *read) {
+bool ReadUtils::alignmentAgreesWithHeader(SAMFileHeader *header, std::shared_ptr<SAMRecord> & read) {
     int referenceIndex = getReferenceIndex(read, header);
 
     if(! read->isUnmapped() && referenceIndex == SAMRecord::NO_ALIGNMENT_REFERENCE_INDEX) {
@@ -298,14 +298,14 @@ bool ReadUtils::alignmentAgreesWithHeader(SAMFileHeader *header, SAMRecord *read
     return read->isUnmapped() || read->getStart() <= contigHeader.getSequenceLength();
 }
 
-int ReadUtils::getReferenceIndex(SAMRecord *read, SAMFileHeader *header) {
+int ReadUtils::getReferenceIndex(std::shared_ptr<SAMRecord> & read, SAMFileHeader *header) {
     if(read->isUnmapped()) {
         return SAMRecord::NO_ALIGNMENT_REFERENCE_INDEX;
     }
     return header->getSequenceIndex(read->getContig());
 }
 
-bool ReadUtils::hasWellDefinedFragmentSize(SAMRecord *read) {
+bool ReadUtils::hasWellDefinedFragmentSize(std::shared_ptr<SAMRecord> & read) {
     if(read->getFragmentLength() == 0) {
         return false;
     }
@@ -325,7 +325,7 @@ bool ReadUtils::hasWellDefinedFragmentSize(SAMRecord *read) {
     }
 }
 
-int ReadUtils::getAdaptorBoundary(SAMRecord *read) {
+int ReadUtils::getAdaptorBoundary(std::shared_ptr<SAMRecord> & read) {
     if(!hasWellDefinedFragmentSize(read)) {
         return INT32_MIN;
     } else if (read->isReverseStrand()) {
@@ -336,7 +336,7 @@ int ReadUtils::getAdaptorBoundary(SAMRecord *read) {
     }
 }
 
-bool ReadUtils::isBaseInsideAdaptor(SAMRecord *read, long basePos) {
+bool ReadUtils::isBaseInsideAdaptor(std::shared_ptr<SAMRecord> & read, long basePos) {
     int adaptorBoundary = read->getAdaptorBoundary();
     if(adaptorBoundary == INT32_MIN || read->getFragmentLength() > 100)
         return false;

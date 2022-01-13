@@ -74,12 +74,12 @@ sam_hdr_t * AssemblyRegion::getHeader()
     return hdr;
 }
 
-std::vector<SAMRecord> * AssemblyRegion::getReads(){
+std::vector<std::shared_ptr<SAMRecord>> & AssemblyRegion::getReads(){
     return reads;
 }
 
-void AssemblyRegion::setRead(std::vector<SAMRecord> &reads) {
-    this->reads = &reads;
+void AssemblyRegion::setRead(std::vector<std::shared_ptr<SAMRecord>> &reads) {
+    this->reads = reads;
 }
 
 AssemblyRegion *AssemblyRegion::trim(SimpleInterval *span, SimpleInterval *extendedSpan) {
@@ -93,18 +93,17 @@ AssemblyRegion *AssemblyRegion::trim(SimpleInterval *span, SimpleInterval *exten
     int requiredExtension = std::min(std::max(requiredOnLeft, requiredOnRight), getExtension());
 
     AssemblyRegion* result = new AssemblyRegion(subActive, std::vector<ActivityProfileState>(), isActive, requiredExtension, hdr);
-    std::vector<SAMRecord> * myReads = getReads();
+    std::vector<std::shared_ptr<SAMRecord>>  myReads = getReads();
     SimpleInterval resultExtendedLoc = result->getExtendedSpan();
     int resultExtendedLocStart = resultExtendedLoc.getStart();
     int resultExtendedLocStop = resultExtendedLoc.getEnd();
 
-    std::vector<SAMRecord> trimmedReads;
-    for(SAMRecord& read : *myReads) {
-        SAMRecord* clippedRead = ReadClipper::hardClipToRegion(&read, resultExtendedLocStart, resultExtendedLocStop);
+    std::vector<std::shared_ptr<SAMRecord>> trimmedReads;
+    for(std::shared_ptr<SAMRecord> read : myReads) {
+        std::shared_ptr<SAMRecord> clippedRead = ReadClipper::hardClipToRegion(read, resultExtendedLocStart, resultExtendedLocStop);
         if(result->readOverlapsRegion(clippedRead) && !clippedRead->isEmpty()) {
-            trimmedReads.emplace_back(*clippedRead);
+            trimmedReads.emplace_back(clippedRead);
         }
-        delete clippedRead;
     }
     //TODO:sort
     result->clearReads();
@@ -112,7 +111,7 @@ AssemblyRegion *AssemblyRegion::trim(SimpleInterval *span, SimpleInterval *exten
     return result;
 }
 
-bool AssemblyRegion::readOverlapsRegion(SAMRecord *read) {
+bool AssemblyRegion::readOverlapsRegion(std::shared_ptr<SAMRecord> & read) {
     if(read->isEmpty() || read->getStart() > read->getEnd()) {
         return false;
     }
@@ -122,11 +121,11 @@ bool AssemblyRegion::readOverlapsRegion(SAMRecord *read) {
 
 void AssemblyRegion::clearReads() {
     spanIncludingReads = extendedLoc;
-    reads->clear();
+    reads.clear();
 }
 
-void AssemblyRegion::addAll(std::vector<SAMRecord> &readsToAdd) {
-    for(SAMRecord & samRecord : readsToAdd) {
-        reads->emplace_back(samRecord);
+void AssemblyRegion::addAll(std::vector<std::shared_ptr<SAMRecord>> &readsToAdd) {
+    for(std::shared_ptr<SAMRecord> & samRecord : readsToAdd) {
+        reads.emplace_back(samRecord);
     }
 }

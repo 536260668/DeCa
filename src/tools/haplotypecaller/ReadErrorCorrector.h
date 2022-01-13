@@ -49,10 +49,10 @@ public:
 
     ReadErrorCorrector(int kmerLength, uint8_t minTailQuality, int minObservationsForKmerToBeSolid, uint8_t* fullReferenceWithPadding, int refLength);
 
-    void addReadsToKmers(std::vector<SAMRecord> reads);
+    void addReadsToKmers(std::vector<std::shared_ptr<SAMRecord>> reads);
 
 protected:
-    void addReadKmers(SAMRecord* read);
+    void addReadKmers(std::shared_ptr<SAMRecord> read);
 };
 
 #endif //MUTECT2CPP_MASTER_READERRORCORRECTOR_H

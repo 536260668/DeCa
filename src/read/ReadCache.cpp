@@ -6,6 +6,7 @@
 #include "iostream"
 #include "ReadUtils.h"
 
+
 ReadCache::ReadCache(aux_t **data, std::vector<char*> & bam_name) : data(data), tid(0), bam_name(bam_name){
     bam1_t * b;
     b = bam_init1();
@@ -18,12 +19,12 @@ ReadCache::ReadCache(aux_t **data, std::vector<char*> & bam_name) : data(data), 
             throw std::invalid_argument("random alignment retrieval only works for indexed BAM or CRAM files.");
         hts_itr_t* iter = sam_itr_querys(idx, data[i]->hdr, region.c_str());
         while((result = sam_itr_next(data[i]->fp, iter, b)) >= 0) {
-            SAMRecord read(b, data[i]->header);
+            std::shared_ptr<SAMRecord> read(new SAMRecord(b, data[i]->header));
             if(ReadFilter::test(read, data[i]->header)) {
                 if(i == 0)
-                    normalReads.emplace_back(read);
+                    normalReads.emplace(read);
                 else
-                    tumorReads.emplace_back(read);
+                    tumorReads.emplace(read);
                 count++;
             }
             if(count > 500)
@@ -32,6 +33,7 @@ ReadCache::ReadCache(aux_t **data, std::vector<char*> & bam_name) : data(data), 
         hts_itr_destroy(iter);
     }
     bam_destroy1(b);
+    hts_idx_destroy(idx);
     start = end = currentPose = 0;
 }
 
@@ -45,17 +47,18 @@ ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, const
             throw std::invalid_argument("random alignment retrieval only works for indexed BAM or CRAM files.");
         hts_itr_t* iter = sam_itr_querys(idx, data[i]->hdr, region.c_str());
         while((result = sam_itr_next(data[i]->fp, iter, b)) >= 0) {
-            SAMRecord read(b, data[i]->header);
+            std::shared_ptr<SAMRecord> read(new SAMRecord(b, data[i]->header));
             if(ReadFilter::test(read, data[i]->header)) {
                 if(i == 0)
-                    normalReads.emplace_back(read);
+                    normalReads.emplace(read);
                 else
-                    tumorReads.emplace_back(read);
+                    tumorReads.emplace(read);
             }
         }
         hts_itr_destroy(iter);
     }
     bam_destroy1(b);
+    hts_idx_destroy(idx);
     int i = region.find(':') + 1;
     start = end = 0;
     while(region[i] >= '0' && region[i] <= '9') {
@@ -71,7 +74,7 @@ ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, const
 }
 
 ReadCache::~ReadCache() {
-    hts_idx_destroy(idx);
+
 }
 
 int ReadCache::getNextPos() {
@@ -79,16 +82,8 @@ int ReadCache::getNextPos() {
     if(nextPose > data[0]->header->getSequenceDictionary().getSequences()[tid].getSequenceLength()) {
         throw std::invalid_argument("please check first");
     }
-    while(nextPose > end || (tumorReads.empty() && normalReads.empty())) {
+    while(nextPose > end) {
         advanceLoad();
-    }
-    if((tumorReads.empty() || tumorReads.front().getStart() > nextPose) && (normalReads.empty() || normalReads.front().getStart() > nextPose)){
-        if(tumorReads.empty()){
-            nextPose = normalReads.front().getStart();
-        } else if (normalReads.empty()) {
-            nextPose = tumorReads.front().getStart();
-        } else
-            nextPose = std::min(tumorReads.front().getStart(), normalReads.front().getStart());
     }
     currentPose = nextPose;
     return nextPose;
@@ -100,24 +95,26 @@ bool ReadCache::hasNextPos() {
 }
 
 void ReadCache::advanceLoad() {
-    tumorReads.clear();
-    normalReads.clear();
+    if(!normalReads.empty() && !tumorReads.empty())
+        throw std::logic_error("error");
     start = end + 1;
     end = start + 100000 -1;
+
     std::string region = data[0]->header->getSequenceDictionary().getSequences()[tid].getSequenceName() + ':' +
             std::to_string(start) + '-' + std::to_string(end);
     bam1_t * b;
     b = bam_init1();
     for(int i = 0; i < bam_name.size(); i++){
         int result;
+        idx = sam_index_load(data[i]->fp, bam_name[i]);
         hts_itr_t* iter = sam_itr_querys(idx, data[i]->hdr, region.c_str());
         while((result = sam_itr_next(data[i]->fp, iter, b)) >= 0) {
-            SAMRecord read(b, data[i]->header);
+            std::shared_ptr<SAMRecord> read(new SAMRecord(b, data[i]->header));
             if(ReadFilter::test(read, data[i]->header)) {
                 if(i == 0)
-                    normalReads.emplace_back(read);
+                    normalReads.emplace(read);
                 else
-                    tumorReads.emplace_back(read);
+                    tumorReads.emplace(read);
             }
         }
         hts_itr_destroy(iter);
@@ -127,26 +124,74 @@ void ReadCache::advanceLoad() {
 
 AlignmentContext ReadCache::getAlignmentContext() {
     getNextPos();
-    std::vector<SAMRecord> tumor;
-    std::vector<SAMRecord> normal;
-    while(tumorReads.front().getEnd() < currentPose)
-        tumorReads.pop_front();
-    while(normalReads.front().getEnd() < currentPose)
-        normalReads.pop_front();
-    std::deque<SAMRecord>::iterator iter = tumorReads.begin();
-    while(iter != tumorReads.end() && iter->getStart() < currentPose) {
-        if(iter->getEnd() >= currentPose && !ReadUtils::isBaseInsideAdaptor(&(*iter), currentPose)) {
-            tumor.emplace_back(*iter);
-        }
-        iter++;
+    std::vector<std::shared_ptr<SAMRecord>> tumor;
+    std::vector<std::shared_ptr<SAMRecord>> normal;
+    while(!tumorReads.empty() && tumorReads.front()->getStart() <= currentPose){
+        tumorReadsForAlignment.emplace_back(tumorReads.front());
+        tumorReadsForRegion.emplace_back(tumorReads.front());
+        tumorReads.pop();
     }
-    iter = normalReads.begin();
-    while(iter != normalReads.end() && iter->getStart() < currentPose) {
-        if(iter->getEnd() > currentPose && !ReadUtils::isBaseInsideAdaptor(&(*iter), currentPose)) {
-            normal.emplace_back(*iter);
+    while(!normalReads.empty() && normalReads.front()->getStart() <= currentPose){
+        normalReadsForAlignment.emplace_back(normalReads.front());
+        normalReadsForRegion.emplace_back(normalReads.front());
+        normalReads.pop();
+    }
+    std::list<std::shared_ptr<SAMRecord>>::iterator iter = tumorReadsForAlignment.begin();
+    while(iter != tumorReadsForAlignment.end()) {
+        if((*iter)->getEnd() < currentPose) {
+            tumorReadsForAlignment.erase(iter++);
+        } else {
+            iter++;
         }
-        iter++;
+    }
+    iter = normalReadsForAlignment.begin();
+    while(iter != normalReadsForAlignment.end()) {
+        if((*iter)->getEnd() < currentPose) {
+            normalReadsForAlignment.erase(iter++);
+        } else {
+            iter++;
+        }
     }
     SimpleInterval loc(data[0]->header->getSequenceDictionary().getSequences()[tid].getSequenceName(), currentPose, currentPose);
+    for(std::shared_ptr<SAMRecord>& read : tumorReadsForAlignment) {
+        if(!ReadUtils::isBaseInsideAdaptor(read, currentPose))
+            tumor.emplace_back(read);
+    }
+    for(std::shared_ptr<SAMRecord>& read : normalReadsForAlignment) {
+        if(!ReadUtils::isBaseInsideAdaptor(read, currentPose))
+            normal.emplace_back(read);
+    }
     return {tumor, normal, loc, tid, data[0]->header};
+}
+
+std::vector<std::shared_ptr<SAMRecord>> ReadCache::getReadsForRegion(AssemblyRegion & region) {
+    std::vector<std::shared_ptr<SAMRecord>> ret;
+    SimpleInterval loc = region.getExtendedSpan();
+    int locStart = loc.getStart();
+    int locEnd = loc.getEnd();
+    std::list<std::shared_ptr<SAMRecord>>::iterator iter = tumorReadsForRegion.begin();
+    while(iter != tumorReadsForRegion.end()) {
+        SimpleInterval readLoc = (*iter)->getLoc();
+        if(loc.overlaps(&readLoc)) {
+            ret.emplace_back((*iter));
+        }
+        if((*iter)->getEnd() <= region.getEnd()) {
+            tumorReadsForRegion.erase(iter++);
+        } else {
+            iter++;
+        }
+    }
+    iter = normalReadsForRegion.begin();
+    while(iter != normalReadsForRegion.end()) {
+        SimpleInterval readLoc = (*iter)->getLoc();
+        if(loc.overlaps(&readLoc)) {
+            ret.emplace_back((*iter));
+        }
+        if((*iter)->getEnd() <= region.getEnd()) {
+            normalReadsForRegion.erase(iter++);
+        } else {
+            iter++;
+        }
+    }
+    return ret;
 }

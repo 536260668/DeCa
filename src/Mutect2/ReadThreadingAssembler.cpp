@@ -109,13 +109,13 @@ AssemblyResultSet *ReadThreadingAssembler::runLocalAssembly(AssemblyRegion *asse
     Mutect2Utils::validateArg(refLoc, "refLoc");
     Mutect2Utils::validateArg(refLength == refLoc->size(), "Reference bases and reference loc must be the same size.");
 
-    std::vector<SAMRecord> correctedReads;
+    std::vector<std::shared_ptr<SAMRecord>> correctedReads;
     if(readErrorCorrector != nullptr) {
         //TODO::readErrorCorrector
-        readErrorCorrector->addReadsToKmers(*assemblyRegion->getReads());
-        correctedReads = *assemblyRegion->getReads();
+        readErrorCorrector->addReadsToKmers(assemblyRegion->getReads());
+        correctedReads = assemblyRegion->getReads();
     } else {
-        correctedReads = *assemblyRegion->getReads();
+        correctedReads = assemblyRegion->getReads();
     }
     std::vector<SeqGraph*> nonRefGraphs;
     AssemblyResultSet * resultSet = new AssemblyResultSet();
@@ -137,7 +137,7 @@ AssemblyResultSet *ReadThreadingAssembler::runLocalAssembly(AssemblyRegion *asse
     return resultSet;
 }
 
-std::vector<AssemblyResult *> ReadThreadingAssembler::assemble(std::vector<SAMRecord> &reads, Haplotype *refHaplotype) {
+std::vector<AssemblyResult *> ReadThreadingAssembler::assemble(std::vector<std::shared_ptr<SAMRecord>> &reads, Haplotype *refHaplotype) {
     std::vector<AssemblyResult *> results;
     for(int kmerSize : kmerSizes) {
         addResult(results, createGraph(reads, refHaplotype, kmerSize, dontIncreaseKmerSizesForCycles, allowNonUniqueKmersInRef));
@@ -157,7 +157,7 @@ std::vector<AssemblyResult *> ReadThreadingAssembler::assemble(std::vector<SAMRe
 }
 
 AssemblyResult *
-ReadThreadingAssembler::createGraph(std::vector<SAMRecord> reads, Haplotype *refHaplotype, int kmerSize,
+ReadThreadingAssembler::createGraph(std::vector<std::shared_ptr<SAMRecord>> reads, Haplotype *refHaplotype, int kmerSize,
                                     bool allowLowComplexityGraphs, bool allowNonUniqueKmersInRef) {
     if(refHaplotype->getLength() < kmerSize) {
         return new AssemblyResult(FAILED, nullptr, nullptr);
@@ -170,7 +170,7 @@ ReadThreadingAssembler::createGraph(std::vector<SAMRecord> reads, Haplotype *ref
     rtgraph->setThreadingStartOnlyAtExistingVertex(!recoverAllDanglingBranches);
     rtgraph->addSequence("ref", refHaplotype->getBases(), refHaplotype->getLength(), true);
 
-    for(SAMRecord read : reads) {
+    for(std::shared_ptr<SAMRecord> read : reads) {
         rtgraph->addRead(read);
     }
     //TODO:DELETE

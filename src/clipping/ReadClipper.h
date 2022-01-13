@@ -13,22 +13,22 @@ class ClippingOp;
 
 class ReadClipper {
 public:
-    SAMRecord* read;
+    std::shared_ptr<SAMRecord> read;
     bool wasClipped;
     std::vector<ClippingOp> ops;
-    ReadClipper(SAMRecord* read);
+    explicit ReadClipper(std::shared_ptr<SAMRecord> & read);
     void addOp(const ClippingOp & op);
-    static SAMRecord* hardClipToRegion(SAMRecord * read, int refStart, int refStop);
-    static SAMRecord* hardClipBothEndsByReferenceCoordinates(SAMRecord* read, int left, int right);
-    static SAMRecord* hardClipByReferenceCoordinatesLeftTail(SAMRecord* read, int refStop);
-    static SAMRecord* hardClipByReferenceCoordinatesRightTail(SAMRecord* read, int refStop);
+    static std::shared_ptr<SAMRecord>hardClipToRegion(std::shared_ptr<SAMRecord> read, int refStart, int refStop);
+    static std::shared_ptr<SAMRecord> hardClipBothEndsByReferenceCoordinates(std::shared_ptr<SAMRecord> read, int left, int right);
+    static std::shared_ptr<SAMRecord> hardClipByReferenceCoordinatesLeftTail(std::shared_ptr<SAMRecord> read, int refStop);
+    static std::shared_ptr<SAMRecord> hardClipByReferenceCoordinatesRightTail(std::shared_ptr<SAMRecord> read, int refStop);
 
 private:
-    static SAMRecord* hardClipToRegion(SAMRecord * read, int refStart, int refStop, int alignmentStart, int alignmentStop);
-    SAMRecord* hardClipBothEndsByReferenceCoordinates(int left, int right);
-    SAMRecord* clipByReferenceCoordinates(int refStart, int refStop, ClippingRepresentation clippingOp, bool runAsserts);
-    SAMRecord* clipRead(ClippingRepresentation algorithm, bool runAsserts);
-    SAMRecord* hardClipByReferenceCoordinatesLeftTail(int refStop);
+    static std::shared_ptr<SAMRecord> hardClipToRegion(std::shared_ptr<SAMRecord> read, int refStart, int refStop, int alignmentStart, int alignmentStop);
+    std::shared_ptr<SAMRecord> hardClipBothEndsByReferenceCoordinates(int left, int right);
+    std::shared_ptr<SAMRecord> clipByReferenceCoordinates(int refStart, int refStop, ClippingRepresentation clippingOp, bool runAsserts);
+    std::shared_ptr<SAMRecord> clipRead(ClippingRepresentation algorithm, bool runAsserts);
+    std::shared_ptr<SAMRecord> hardClipByReferenceCoordinatesLeftTail(int refStop);
 };
 
 

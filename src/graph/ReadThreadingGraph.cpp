@@ -11,18 +11,18 @@
 #include "read/AlignmentUtils.h"
 #include "SeqVertex.h"
 
-void ReadThreadingGraph::addRead(SAMRecord read) {
-    uint8_t* sequence = read.getBases();
-    uint8_t* qualities = read.getBaseQualities();
+void ReadThreadingGraph::addRead(std::shared_ptr<SAMRecord> & read) {
+    uint8_t* sequence = read->getBases();
+    uint8_t* qualities = read->getBaseQualities();
 
     int lastGood = -1;
-    for(int end = 0; end <= read.getLength(); end++) {
-        if (end == read.getLength() || !baseIsUsableForAssembly(sequence[end], qualities[end])) {
+    for(int end = 0; end <= read->getLength(); end++) {
+        if (end == read->getLength() || !baseIsUsableForAssembly(sequence[end], qualities[end])) {
             int start = lastGood;
             int len = end - start;
 
             if(start != -1 && len >= kmerSize) {
-                std::string name = read.getName();
+                std::string name = read->getName();
                 name += '_' + std::to_string(start) + '_' + std::to_string(end);
                 std::string sampleName = "SAMFileHeader{VN=1.6, GO=none, SO=coordinate}";
                 addSequence(name, sampleName, sequence, start, end, 1, false);

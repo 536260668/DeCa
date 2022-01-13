@@ -9,7 +9,7 @@
 ClippingOp::ClippingOp(int start, int stop) : start(start), stop(stop){
 }
 
-SAMRecord *ClippingOp::applyHardClipBases(SAMRecord *read, int start, int stop) {
+std::shared_ptr<SAMRecord> ClippingOp::applyHardClipBases(std::shared_ptr<SAMRecord> read, int start, int stop) {
     Cigar* cigar = read->getCigar();
     Cigar* tmp = nullptr;
     CigarShift* cigarShift;
@@ -30,7 +30,7 @@ SAMRecord *ClippingOp::applyHardClipBases(SAMRecord *read, int start, int stop) 
     int copyStart = (start == 0) ? stop + 1 + cigarShift->shiftFromStart : cigarShift->shiftFromStart;
     memcpy(newBases, read->getBasesNoCopy()+copyStart, newLength);
     memcpy(newQuals, read->getBaseQualitiesNoCopy()+copyStart, newLength);
-    SAMRecord* hardClippedRead = new SAMRecord(*read);
+    std::shared_ptr<SAMRecord> hardClippedRead{new SAMRecord(*read)};
     hardClippedRead->setBaseQualities(newQuals, newLength);
     hardClippedRead->setBases(newBases, newLength);
     hardClippedRead->setCigar(cigarShift->cigar);
@@ -240,7 +240,7 @@ int ClippingOp::calcHardSoftOffset(Cigar *cigar) {
     return size;
 }
 
-SAMRecord *ClippingOp::apply(ClippingRepresentation algorithm, SAMRecord *originalRead, bool runAsserts) {
+std::shared_ptr<SAMRecord> ClippingOp::apply(ClippingRepresentation algorithm, std::shared_ptr<SAMRecord> originalRead, bool runAsserts) {
     switch(algorithm){
         case HARDCLIP_BASES: {
             return applyHardClipBases(originalRead, start, stop);

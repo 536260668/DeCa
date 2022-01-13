@@ -36,7 +36,7 @@ private:
                                           const std::map<SeqGraph*, AssemblyResult*>& assemblyResultByGraph, AssemblyResultSet* assemblyResultSet) const;
     std::vector<Haplotype*> findBestPaths(const std::vector<SeqGraph *>& graphs, Haplotype *refHaplotype, SimpleInterval *refLoc,
                   SimpleInterval *activeRegionWindow, const std::map<SeqGraph *, AssemblyResult *>& assemblyResultByGraph, AssemblyResultSet* assemblyResultSet) const;
-    AssemblyResult* createGraph(std::vector<SAMRecord> reads, Haplotype* refHaplotype, int kmerSize, bool allowLowComplexityGraphs, bool allowNonUniqueKmersInRef);
+    AssemblyResult* createGraph(std::vector<std::shared_ptr<SAMRecord>> reads, Haplotype* refHaplotype, int kmerSize, bool allowLowComplexityGraphs, bool allowNonUniqueKmersInRef);
     static void addResult(std::vector<AssemblyResult*> & results, AssemblyResult* maybeNullResult);
     static int arrayMaxInt(std::vector<int> array);
 
@@ -45,7 +45,7 @@ public:
     ReadThreadingAssembler(int maxAllowedPathsForReadThreadingAssembler, std::vector<int> kmerSizes, bool dontIncreaseKmerSizesForCycles, bool allowNonUniqueKmersInRef, int numPruningSamples,
                            int pruneFactor, bool useAdaptivePruning, double initialErrorRateForPruning, double pruningLogOddsThreshold, int maxUnprunedVariants);
     AssemblyResultSet* runLocalAssembly(AssemblyRegion * assemblyRegion, Haplotype* refHaplotype, uint8_t* fullReferenceWithPadding, int refLength, SimpleInterval* refLoc, ReadErrorCorrector* readErrorCorrector);
-    std::vector<AssemblyResult*> assemble(std::vector<SAMRecord> & reads, Haplotype* refHaplotype);
+    std::vector<AssemblyResult*> assemble(std::vector<std::shared_ptr<SAMRecord>> & reads, Haplotype* refHaplotype);
     void setMinDanglingBranchLength(int minDanglingBranchLength);
     void setRecoverDanglingBranches(bool recoverAllDanglingBranches);
     void setRecoverAllDanglingBranches(bool recoverAllDanglingBranches);

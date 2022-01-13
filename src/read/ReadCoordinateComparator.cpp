@@ -10,7 +10,7 @@ ReadCoordinateComparator::ReadCoordinateComparator(SAMFileHeader *header) : head
     Mutect2Utils::validateArg(header, "null is not allowed here");
 }
 
-int ReadCoordinateComparator::compare(SAMRecord *first, SAMRecord *second) {
+int ReadCoordinateComparator::compare(std::shared_ptr<SAMRecord> first, std::shared_ptr<SAMRecord> second) {
     int result = compareCoordinates(first, second, header);
     if ( result != 0 ) {
         return result;
@@ -37,7 +37,7 @@ int ReadCoordinateComparator::compare(SAMRecord *first, SAMRecord *second) {
     return result;
 }
 
-int ReadCoordinateComparator::compareCoordinates(SAMRecord *first, SAMRecord *second, SAMFileHeader *header) {
+int ReadCoordinateComparator::compareCoordinates(std::shared_ptr<SAMRecord> first, std::shared_ptr<SAMRecord> second, SAMFileHeader *header) {
     int firstRefIndex = ReadUtils::getAssignedReferenceIndex(first, header);
     int secondRefIndex = ReadUtils::getAssignedReferenceIndex(second, header);
     if ( firstRefIndex == -1 ) {

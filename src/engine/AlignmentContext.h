@@ -11,14 +11,15 @@
 
 class AlignmentContext {
 private:
-    std::vector<SAMRecord> tumor;
-    std::vector<SAMRecord> normal;
+    std::vector<std::shared_ptr<SAMRecord>> tumor;
+    std::vector<std::shared_ptr<SAMRecord>> normal;
     SimpleInterval loc;
     int tid;
     SAMFileHeader * header;
 
 public:
-    AlignmentContext(std::vector<SAMRecord> &tumor, std::vector<SAMRecord> &normal, SimpleInterval &loc, int tid, SAMFileHeader* header);
+    AlignmentContext(std::vector<std::shared_ptr<SAMRecord>> &tumor, std::vector<std::shared_ptr<SAMRecord>> &normal, SimpleInterval &loc, int tid, SAMFileHeader* header);
+    AlignmentContext() {}
     int getReadNum() const;
     std::string getRefName();
     int getPosition() const;

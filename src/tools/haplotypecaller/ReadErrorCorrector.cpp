@@ -45,8 +45,8 @@ minObservationsForKmerToBeSolid(minObservationsForKmerToBeSolid), trimLowQuality
     maxHomopolymerLengthInRegion = computeMaxHLen(fullReferenceWithPadding, refLength);
 }
 
-void ReadErrorCorrector::addReadKmers(SAMRecord *read) {
-    Mutect2Utils::validateArg(read, "null is not allowed there");
+void ReadErrorCorrector::addReadKmers(std::shared_ptr<SAMRecord> read) {
+    Mutect2Utils::validateArg(read != nullptr, "null is not allowed there");
     if (DONT_CORRECT_IN_LONG_HOMOPOLYMERS && maxHomopolymerLengthInRegion > MAX_HOMOPOLYMER_THRESHOLD) {
         return;
     }
@@ -57,9 +57,9 @@ void ReadErrorCorrector::addReadKmers(SAMRecord *read) {
     }
 }
 
-void ReadErrorCorrector::addReadsToKmers(std::vector<SAMRecord > reads) {
-    for(SAMRecord read : reads) {
-        addReadKmers(&read);
+void ReadErrorCorrector::addReadsToKmers(std::vector<std::shared_ptr<SAMRecord>> reads) {
+    for(std::shared_ptr<SAMRecord> read : reads) {
+        addReadKmers(read);
     }
 }
 

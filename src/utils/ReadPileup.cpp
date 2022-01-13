@@ -4,10 +4,10 @@
 
 #include "ReadPileup.h"
 
-ReadPileup::ReadPileup(int tid, int pos, std::vector<SAMRecord> &reads) : tid(tid), pos(pos), reads(reads){
+ReadPileup::ReadPileup(int tid, int pos, std::vector<std::shared_ptr<SAMRecord>> &reads) : tid(tid), pos(pos), reads(reads){
 }
 
-std::vector<SAMRecord> ReadPileup::getPileupElements() {
+std::vector<std::shared_ptr<SAMRecord>> ReadPileup::getPileupElements() {
     return reads;
 }
 

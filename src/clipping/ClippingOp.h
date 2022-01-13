@@ -15,10 +15,10 @@ public:
     int start;
     int stop;
     ClippingOp(int start, int stop);
-    SAMRecord* apply(ClippingRepresentation algorithm, SAMRecord* originalRead, bool runAsserts);
+    std::shared_ptr<SAMRecord> apply(ClippingRepresentation algorithm, std::shared_ptr<SAMRecord> originalRead, bool runAsserts);
 
 private:
-    SAMRecord* applyHardClipBases(SAMRecord* read, int start, int stop);
+    std::shared_ptr<SAMRecord> applyHardClipBases(std::shared_ptr<SAMRecord> read, int start, int stop);
     class CigarShift {
     public:
         CigarShift(Cigar* cigar, int shiftFromStart, int shiftFromEnd);

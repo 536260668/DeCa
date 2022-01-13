@@ -11,6 +11,7 @@
 #include "SAMBinaryTagAndValue.h"
 #include "htslib/sam.h"
 #include "SAMFileHeader.h"
+#include "SimpleInterval.h"
 
 class SAMRecord{
 private:
@@ -112,6 +113,7 @@ public:
     bool isDuplicate() const;
     bool isSupplementaryAlignment() const;
     int getAdaptorBoundary();
+    SimpleInterval getLoc();
 
 private:
     void setAttribute(short tag, void* value, Void_Type type, int length, bool isUnsignedArray);

@@ -4,7 +4,7 @@
 
 #include "AlignmentContext.h"
 
-AlignmentContext::AlignmentContext(std::vector<SAMRecord> &tumor, std::vector<SAMRecord> &normal, SimpleInterval &loc, int tid, SAMFileHeader* header) : tumor(std::move(tumor)), normal(std::move(normal)), loc(loc),
+AlignmentContext::AlignmentContext(std::vector<std::shared_ptr<SAMRecord>> &tumor, std::vector<std::shared_ptr<SAMRecord>> &normal, SimpleInterval &loc, int tid, SAMFileHeader* header) : tumor(std::move(tumor)), normal(std::move(normal)), loc(loc),
 tid(tid), header(header){
 }
 

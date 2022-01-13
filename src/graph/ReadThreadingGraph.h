@@ -209,7 +209,7 @@ public:
      *
      * @param read a non-null read
      */
-     void addRead(SAMRecord read);
+     void addRead(std::shared_ptr<SAMRecord> & read);
 
      bool removeVertex(MultiDeBruijnVertex* V) override;
 

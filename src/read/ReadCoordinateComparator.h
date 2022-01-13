@@ -15,8 +15,8 @@ private:
 
 public:
     explicit ReadCoordinateComparator(SAMFileHeader* header);
-    int compare(SAMRecord* first, SAMRecord* second);
-    static int compareCoordinates(SAMRecord* first, SAMRecord* second, SAMFileHeader* header);
+    int compare(std::shared_ptr<SAMRecord> first, std::shared_ptr<SAMRecord> second);
+    static int compareCoordinates(std::shared_ptr<SAMRecord> first, std::shared_ptr<SAMRecord> second, SAMFileHeader* header);
 };
 
 

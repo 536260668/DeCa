@@ -57,7 +57,7 @@ void SimpleInterval::clearContig()
 }
 
 void SimpleInterval::validatePositions(const std::string& contig, const int start, const int end) {
-    if(contig.empty() || start <= 0 || start > end){
+    if(contig.empty() || start < 0 || start > end){
         throw std::invalid_argument("Argument input error.");
     }
 }

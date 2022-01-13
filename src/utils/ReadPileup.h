@@ -11,11 +11,11 @@ class ReadPileup {
 private:
     int tid;
     int pos;
-    std::vector<SAMRecord> reads;
+    std::vector<std::shared_ptr<SAMRecord>> reads;
 
 public:
-    ReadPileup(int tid, int pos, std::vector<SAMRecord>& reads);
-    std::vector<SAMRecord> getPileupElements();
+    ReadPileup(int tid, int pos, std::vector<std::shared_ptr<SAMRecord>>& reads);
+    std::vector<std::shared_ptr<SAMRecord>> getPileupElements();
     int size() const {return reads.size();}
     int getPosition();
 };

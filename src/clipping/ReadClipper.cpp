@@ -5,14 +5,14 @@
 #include "ReadClipper.h"
 #include "read/ReadUtils.h"
 
-SAMRecord *ReadClipper::hardClipToRegion(SAMRecord *read, int refStart, int refStop) {
+std::shared_ptr<SAMRecord> ReadClipper::hardClipToRegion(std::shared_ptr<SAMRecord> read, int refStart, int refStop) {
     int start = read->getStart();
     int stop = read->getEnd();
     return hardClipToRegion(read, refStart, refStop, start, stop);
 }
 
-SAMRecord *
-ReadClipper::hardClipToRegion(SAMRecord *read, int refStart, int refStop, int alignmentStart, int alignmentStop) {
+std::shared_ptr<SAMRecord>
+ReadClipper::hardClipToRegion(std::shared_ptr<SAMRecord> read, int refStart, int refStop, int alignmentStart, int alignmentStop) {
     if(alignmentStart <= refStop && alignmentStop >= refStart) {
         if(alignmentStart < refStart && alignmentStop > refStop) {
            return hardClipBothEndsByReferenceCoordinates(read, refStart - 1, refStop + 1);
@@ -27,14 +27,14 @@ ReadClipper::hardClipToRegion(SAMRecord *read, int refStart, int refStop, int al
     }
 }
 
-ReadClipper::ReadClipper(SAMRecord *read) : read(read), wasClipped(false){
+ReadClipper::ReadClipper(std::shared_ptr<SAMRecord> & read) : read(read), wasClipped(false){
 }
 
-SAMRecord *ReadClipper::hardClipBothEndsByReferenceCoordinates(const int left, const int right) {
+std::shared_ptr<SAMRecord> ReadClipper::hardClipBothEndsByReferenceCoordinates(const int left, const int right) {
     if(read->getLength() == 0 || left == right) {
         return ReadUtils::emptyRead(read);
     }
-    SAMRecord* leftTailRead = clipByReferenceCoordinates(right, -1, HARDCLIP_BASES, true);
+    std::shared_ptr<SAMRecord> leftTailRead = clipByReferenceCoordinates(right, -1, HARDCLIP_BASES, true);
     if(left > leftTailRead->getEnd()) {
         return ReadUtils::emptyRead(read);
     }
@@ -42,7 +42,7 @@ SAMRecord *ReadClipper::hardClipBothEndsByReferenceCoordinates(const int left, c
     return clipper.hardClipByReferenceCoordinatesLeftTail(left);
 }
 
-SAMRecord *
+std::shared_ptr<SAMRecord>
 ReadClipper::clipByReferenceCoordinates(int refStart, int refStop, ClippingRepresentation clippingOp, bool runAsserts) {
     if(read->getLength() == 0) {
         return read;
@@ -79,7 +79,7 @@ ReadClipper::clipByReferenceCoordinates(int refStart, int refStop, ClippingRepre
         throw std::invalid_argument("Trying to clip the middle of the read");
     }
     addOp(ClippingOp(start, stop));
-    SAMRecord* clippedRead = clipRead(clippingOp, runAsserts);
+    std::shared_ptr<SAMRecord> clippedRead = clipRead(clippingOp, runAsserts);
     ops.clear();
     return clippedRead;
 }
@@ -88,12 +88,12 @@ void ReadClipper::addOp(const ClippingOp &op) {
     ops.emplace_back(op);
 }
 
-SAMRecord *ReadClipper::clipRead(ClippingRepresentation algorithm, bool runAsserts) {
+std::shared_ptr<SAMRecord> ReadClipper::clipRead(ClippingRepresentation algorithm, bool runAsserts) {
     Mutect2Utils::validateArg(algorithm != NULL_ClippingRepresentation, "null is not allowed there.");
     if(ops.empty()) {
         return read;
     }
-    SAMRecord* clippedRead = read;
+    std::shared_ptr<SAMRecord> clippedRead = read;
     for(ClippingOp op : ops) {
         int readLength = clippedRead->getLength();
         if(op.start < readLength) {
@@ -112,18 +112,18 @@ SAMRecord *ReadClipper::clipRead(ClippingRepresentation algorithm, bool runAsser
     return clippedRead;
 }
 
-SAMRecord *ReadClipper::hardClipByReferenceCoordinatesLeftTail(int refStop) {
+std::shared_ptr<SAMRecord> ReadClipper::hardClipByReferenceCoordinatesLeftTail(int refStop) {
     return clipByReferenceCoordinates(-1, refStop, HARDCLIP_BASES, true);
 }
 
-SAMRecord *ReadClipper::hardClipBothEndsByReferenceCoordinates(SAMRecord *read, int left, int right) {
+std::shared_ptr<SAMRecord> ReadClipper::hardClipBothEndsByReferenceCoordinates(std::shared_ptr<SAMRecord> read, int left, int right) {
     return ReadClipper(read).hardClipBothEndsByReferenceCoordinates(left, right);
 }
 
-SAMRecord *ReadClipper::hardClipByReferenceCoordinatesLeftTail(SAMRecord *read, int refStop) {
+std::shared_ptr<SAMRecord> ReadClipper::hardClipByReferenceCoordinatesLeftTail(std::shared_ptr<SAMRecord> read, int refStop) {
     return ReadClipper(read).clipByReferenceCoordinates(-1, refStop, HARDCLIP_BASES, true);
 }
 
-SAMRecord *ReadClipper::hardClipByReferenceCoordinatesRightTail(SAMRecord *read, int refStart) {
+std::shared_ptr<SAMRecord> ReadClipper::hardClipByReferenceCoordinatesRightTail(std::shared_ptr<SAMRecord> read, int refStart) {
     return ReadClipper(read).clipByReferenceCoordinates(refStart, -1, HARDCLIP_BASES, true);
 }

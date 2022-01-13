@@ -8,6 +8,8 @@
 #include <vector>
 #include "cache/DigammaCache.h"
 #include "cache/Log10FactorialCache.h"
+#include "AssemblyRegion.h"
+#include "ReadCache.h"
 
 
 class MathUtils {
@@ -33,6 +35,8 @@ public:
     static double normalDistribution(double mean, double sd, double x);
 
     static std::vector<double> * normalizeSumToZero(std::vector<double> * array);
+
+
 };
 
 

@@ -20,7 +20,7 @@ private:
      * The reads included in this assembly region.  May be empty upon creation, and expand / contract
      * as reads are added or removed from this region.
      */
-    std::vector<SAMRecord>* reads;
+    std::vector<std::shared_ptr<SAMRecord>> reads;
 
     /**
      * An ordered list (by genomic coordinate) of the ActivityProfileStates that went
@@ -132,7 +132,7 @@ public:
     * The reads are sorted by their coordinate position.
     * @return an unmodifiable and inmutable copy of the reads in the assembly region.
    */
-    std::vector<SAMRecord> * getReads();
+    std::vector<std::shared_ptr<SAMRecord>> & getReads();
 
     /**
      * Returns the header for the reads in this region.
@@ -208,9 +208,9 @@ public:
 
     bool isFinalized() const {return hasBeenFinalized;}
 
-    void setRead(std::vector<SAMRecord> & reads);
+    void setRead(std::vector<std::shared_ptr<SAMRecord>> & reads);
 
-    bool readOverlapsRegion(SAMRecord* read);
+    bool readOverlapsRegion(std::shared_ptr<SAMRecord> & read);
 
     /**
      * Clear all of the reads currently in this region
@@ -221,7 +221,7 @@ public:
      * Add all readsToAdd to this region
      * @param readsToAdd a collection of readsToAdd to add to this active region
      */
-    void addAll(std::vector<SAMRecord>& readsToAdd);
+    void addAll(std::vector<std::shared_ptr<SAMRecord>> & readsToAdd);
 };
 
 
