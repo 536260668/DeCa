@@ -31,7 +31,7 @@ void SAMRecord::setPosition(std::string& contig, int start) {
     mReferenceName = contig;
     mAlignmentStart = start;
     mAlignmentEnd = 0;
-    setFlag(false, SAMFlag::READ_UNMAPPED().flag);
+    setFlag(false, 4);
 }
 
 void SAMRecord::setFlag(bool flag, int bit) {
@@ -57,7 +57,7 @@ int SAMRecord::getAssignedStart() {
 }
 
 bool SAMRecord::getReadUnmappedFlag() {
-    return (mFlags & SAMFlag::READ_UNMAPPED().flag) != 0;
+    return (mFlags & 4) != 0;
 }
 
 bool SAMRecord::isUnmapped() {
@@ -86,7 +86,7 @@ std::string& SAMRecord::getMateContig() {
 }
 
 bool SAMRecord::isPaired() {
-    return (mFlags & SAMFlag::READ_PAIRED().flag) != 0;
+    return (mFlags & 1) != 0;
 }
 
 int SAMRecord::getMateStart() {
@@ -104,13 +104,13 @@ bool SAMRecord::mateIsUnmapped() {
 }
 
 void SAMRecord::requireReadPaired() {
-    if((mFlags & SAMFlag::READ_PAIRED().flag) == 0) {
+    if((mFlags & 1) == 0) {
         throw std::invalid_argument("Inappropriate call if not paired read");
     }
 }
 
 bool SAMRecord::getMateUnmappedFlagUnchecked() {
-    return (mFlags & SAMFlag::MATE_UNMAPPED().flag) != 0;
+    return (mFlags & 8) != 0;
 }
 
 bool SAMRecord::getMateUnmappedFlag() {
@@ -127,15 +127,15 @@ void SAMRecord::setMatePosition(std::string &contig, int start) {
     //TODO::实现setMateReferenceName
     mMateReferenceName = contig;
     mMateAlignmentStart = start;
-    setFlag(false, SAMFlag::MATE_UNMAPPED().flag);
+    setFlag(false, 8);
 }
 
 void SAMRecord::setReadPairedFlag(bool flag) {
-    setFlag(flag, SAMFlag::READ_PAIRED().flag);
+    setFlag(flag, 1);
 }
 
 void SAMRecord::setProperPairFlag(bool flag) {
-    setFlag(flag, SAMFlag::PROPER_PAIR().flag);
+    setFlag(flag, 2);
 }
 
 void SAMRecord::setIsPaired(bool isPaired) {
@@ -241,7 +241,7 @@ bool SAMRecord::getProperPairFlag() {
 }
 
 bool SAMRecord::getProperPairFlagUnchecked() const {
-    return (mFlags & SAMFlag::PROPER_PAIR().flag) != 0;
+    return (mFlags & 2) != 0;
 }
 
 bool SAMRecord::isProperlyPaired() {
@@ -279,7 +279,7 @@ void SAMRecord::setIsUnmapped() {
 }
 
 void SAMRecord::setReadUnmappedFlag(bool flag) {
-    setFlag(flag, SAMFlag::READ_UNMAPPED().flag);
+    setFlag(flag, 4);
 }
 
 void SAMRecord::clearAttributes() {
@@ -437,7 +437,7 @@ std::string SAMRecord::getAttributeAsString(std::string &attributeName) {
 }
 
 bool SAMRecord::isReverseStrand() const {
-    return (mFlags & SAMFlag::READ_REVERSE_STRAND().flag) != 0;
+    return (mFlags & 16) != 0;
 }
 
 bool SAMRecord::mateIsReverseStrand() {
@@ -447,7 +447,7 @@ bool SAMRecord::mateIsReverseStrand() {
 }
 
 bool SAMRecord::getMateNegativeStrandFlagUnchecked() {
-    return (mFlags & SAMFlag::MATE_REVERSE_STRAND().flag) != 0;
+    return (mFlags & 32) != 0;
 }
 
 bool SAMRecord::isFirstOfPair() {
@@ -456,7 +456,7 @@ bool SAMRecord::isFirstOfPair() {
 
 bool SAMRecord::getFirstOfPairFlag() {
     requireReadPaired();
-    return (mFlags & SAMFlag::FIRST_OF_PAIR().flag) != 0;
+    return (mFlags & 64) != 0;
 }
 
 bool SAMRecord::isSecondOfPair() {
@@ -465,23 +465,23 @@ bool SAMRecord::isSecondOfPair() {
 
 bool SAMRecord::getSecondOfPairFlag() {
     requireReadPaired();
-    return (mFlags & SAMFlag::SECOND_OF_PAIR().flag) != 0;
+    return (mFlags & 128) != 0;
 }
 
 bool SAMRecord::isSecondaryAlignment() const {
-    return (mFlags & SAMFlag::SECONDARY_ALIGNMENT().flag) != 0;
+    return (mFlags & 256) != 0;
 }
 
 bool SAMRecord::failsVendorQualityCheck() const {
-    return (mFlags & SAMFlag::READ_FAILS_VENDOR_QUALITY_CHECK().flag) != 0;
+    return (mFlags & 512) != 0;
 }
 
 bool SAMRecord::isDuplicate() const {
-    return (mFlags & SAMFlag::DUPLICATE_READ().flag) != 0;
+    return (mFlags & 1024) != 0;
 }
 
 bool SAMRecord::isSupplementaryAlignment() const {
-    return (mFlags & SAMFlag::SUPPLEMENTARY_ALIGNMENT().flag) != 0;
+    return (mFlags & 2048) != 0;
 }
 
 SAMRecord::SAMRecord(bam1_t *read, SAMFileHeader* samFileHeader, bool load) {
@@ -552,8 +552,12 @@ SAMRecord::~SAMRecord() {
 }
 
 int SAMRecord::getAdaptorBoundary() {
+    if(isCalAdaptorBoundary)
+        return adaptorBoundary;
     std::shared_ptr<SAMRecord> ptr(new SAMRecord(*this));
-    return ReadUtils::getAdaptorBoundary(ptr);
+    adaptorBoundary = ReadUtils::getAdaptorBoundary(ptr);
+    isCalAdaptorBoundary = true;
+    return adaptorBoundary;
 }
 
 SAMRecord::SAMRecord(const SAMRecord &other) : mFlags(other.mFlags), baseLength(other.baseLength), baseQualitiesLength(other.baseQualitiesLength),
@@ -579,6 +583,10 @@ mReferenceName(other.mReferenceName), mMateReferenceName(other.mMateReferenceNam
 
 SimpleInterval SAMRecord::getLoc() {
     return {mReferenceName, mAlignmentStart, mAlignmentEnd};
+}
+
+int SAMRecord::getEndAfterFliter() {
+    return mAlignmentEnd;
 }
 
 

@@ -23,7 +23,7 @@ public:
     bool isOnGenomeCigar(CigarOperator cigarOperator);
     int getLengthOfImmediatelyFollowingIndel();
     CigarElement & getCurrentCigarElement();
-    CigarElement getNearestOnGenomeCigarElement(int direction);
+    CigarElement *getNearestOnGenomeCigarElement(int direction);
     uint8_t getQual();
     uint8_t getBase();
     uint8_t getBaseQuality(int pos);
@@ -33,10 +33,10 @@ private:
     int pos;
     int currentStart;
     int offset;
-    std::vector<CigarElement> nCigarElements;
+    std::vector<CigarElement> * nCigarElements;
     CigarElement currentCigarElement;
     SAMRecord *pe;
-    CigarElement getNextIndelCigarElement();
+    CigarElement *getNextIndelCigarElement();
 };
 
 

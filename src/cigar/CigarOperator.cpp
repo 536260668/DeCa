@@ -19,11 +19,33 @@ void CigarOperatorUtils::initial() {
 }
 
 bool CigarOperatorUtils::getConsumesReadBases(CigarOperator cigarOperator) {
-    return cigarMap.find(cigarOperator)->second.consumesReadBases;
+    //return cigarMap.find(cigarOperator)->second.consumesReadBases;
+    switch(cigarOperator) {
+        case M: return true;
+        case I: return true;
+        case D: return false;
+        case N: return false;
+        case S: return true;
+        case H: return false;
+        case P: return false;
+        case EQ: return true;
+        case X: return true;
+    }
 }
 
 bool CigarOperatorUtils::getConsumesReferenceBases(CigarOperator cigarOperator) {
-    return cigarMap.find(cigarOperator)->second.consumesReferenceBases;
+    //return cigarMap.find(cigarOperator)->second.consumesReferenceBases;
+    switch(cigarOperator) {
+        case M: return true;
+        case I: return false;
+        case D: return true;
+        case N: return true;
+        case S: return false;
+        case H: return false;
+        case P: return false;
+        case EQ: return true;
+        case X: return true;
+    }
 }
 
 CigarOperator CigarOperatorUtils::characterToEnum(int b) {

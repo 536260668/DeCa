@@ -12,7 +12,7 @@
 #include "NaturalLogUtils.h"
 
 Mutect2Engine::Mutect2Engine(M2ArgumentCollection & MTAC, char * ref, SAMFileHeader* samFileHeader):MATC(MTAC), minCallableDepth(MTAC.callableDepth),
-                                                            normalSamples(MTAC.normalSamples) ,callableSites(0), refCache(ref), header(samFileHeader)
+                                                            normalSamples(MTAC.normalSamples) ,callableSites(0), refCache(ref, header), header(samFileHeader)
 {
 
 }
@@ -30,16 +30,6 @@ ActivityProfileState Mutect2Engine::isActive(AlignmentContext& context, Referenc
     if(context.getReadNum() > minCallableDepth)
         callableSites++;
 
-    // TODO: add ApplyBQSR for reads
-    if (strcmp(refName, refCache.getContig()) != 0 )
-    {
-        refCache.clear();
-        /*if(DEBUG_OPEN)
-        {
-            cout << refName << " " << refCache.getContig() << endl;
-        }*/
-        refCache.fill(refName, pos);
-    }
     char refBase = refCache.getBase(pos);
     //std::cout << "refBase: " << refBase << std::endl;
     // TODO: divide the pileup to tumor pileup and normal pileup

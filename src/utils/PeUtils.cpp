@@ -5,13 +5,13 @@
 #include "PeUtils.h"
 #include "Mutect2Utils.h"
 
-PeUtils::PeUtils(SAMRecord *pe, int pos) : pos(pos), pe(pe), nCigarElements(pe->getCigarElements()){
+PeUtils::PeUtils(SAMRecord *pe, int pos) : pos(pos), pe(pe), nCigarElements(&pe->getCigarElements()){
     bool flag = false;
     offset = 0;
     int start = pe->getStart();
-    for(int i = 0; i < nCigarElements.size(); i++) {
-        int length = nCigarElements[i].getLength();
-        CigarOperator tmp_cigarOperator = nCigarElements[i].getOperator();
+    for(int i = 0; i < nCigarElements->size(); i++) {
+        int length = (*nCigarElements)[i].getLength();
+        CigarOperator tmp_cigarOperator = (*nCigarElements)[i].getOperator();
         if(!flag) {
             if(CigarOperatorUtils::getConsumesReferenceBases(tmp_cigarOperator)) {
                 start += length;
@@ -20,7 +20,7 @@ PeUtils::PeUtils(SAMRecord *pe, int pos) : pos(pos), pe(pe), nCigarElements(pe->
                 offset += length;
             }
             if(start > pos){
-                currentCigarElement = nCigarElements[i];
+                currentCigarElement = (*nCigarElements)[i];
                 Cigar_offset = i;
                 currentStart = (int)start - length;
                 offset -=length;
@@ -42,7 +42,7 @@ bool PeUtils::isBeforeSoftClip() {
 
 bool PeUtils::isImmediatelyBefore(CigarOperator cigarOperator) {
     if(pos == currentStart + currentCigarElement.getLength() - 1) {
-        if(Cigar_offset < nCigarElements.size() - 1 && cigarOperator == nCigarElements[Cigar_offset+1].getOperator())
+        if(Cigar_offset < (*nCigarElements).size() - 1 && cigarOperator == (*nCigarElements)[Cigar_offset+1].getOperator())
             return true;
     }
     return false;
@@ -56,13 +56,13 @@ CigarElement &PeUtils::getCurrentCigarElement() {
     return currentCigarElement;
 }
 
-CigarElement PeUtils::getNearestOnGenomeCigarElement(int direction) {
-    for(int i = Cigar_offset + direction; i >= 0 && i < nCigarElements.size(); i += direction) {
-        CigarElement elt = nCigarElements[i];
-        if(isOnGenomeCigar(elt.getOperator()))
+CigarElement* PeUtils::getNearestOnGenomeCigarElement(int direction) {
+    for(int i = Cigar_offset + direction; i >= 0 && i < (*nCigarElements).size(); i += direction) {
+        CigarElement* elt = &(*nCigarElements)[i];
+        if(isOnGenomeCigar(elt->getOperator()))
             return elt;
     }
-    return {0, M};
+    return nullptr;
 }
 
 bool PeUtils::isOnGenomeCigar(CigarOperator cigarOperator) {
@@ -73,22 +73,22 @@ bool PeUtils::isOnGenomeCigar(CigarOperator cigarOperator) {
 }
 
 int PeUtils::getLengthOfImmediatelyFollowingIndel() {
-    CigarElement element = getNextIndelCigarElement();
-    return element.getLength();
+    CigarElement* element = getNextIndelCigarElement();
+    return element != nullptr ? element->getLength() : 0;
 }
 
-CigarElement PeUtils::getNextIndelCigarElement() {
+CigarElement* PeUtils::getNextIndelCigarElement() {
     if(isBeforeSoftClip()) {
         return getNearestOnGenomeCigarElement(1);
     } else if(isBeforeInsertion()) {
-        return nCigarElements[Cigar_offset + 1];
+        return &(*nCigarElements)[Cigar_offset + 1];
     } else
-        return {0, M};
+        return nullptr;
 }
 
 bool PeUtils::isBeforeDeletionStart() {
     if(currentCigarElement.getOperator() != D && currentStart + currentCigarElement.getLength() - 1 == pos
-    && Cigar_offset < nCigarElements.size()-1 && nCigarElements[Cigar_offset+1].getOperator() == D)
+    && Cigar_offset < (*nCigarElements).size()-1 && (*nCigarElements)[Cigar_offset+1].getOperator() == D)
         return true;
     else
         return false;
@@ -112,7 +112,7 @@ uint8_t PeUtils::getBaseQuality(int pos) {
 }
 
 bool PeUtils::isImmediatelyAfter(CigarOperator op) {
-    return currentStart == pos && Cigar_offset - 1 >= 0 && nCigarElements[Cigar_offset - 1].getOperator() == op;
+    return currentStart == pos && Cigar_offset - 1 >= 0 && (*nCigarElements)[Cigar_offset - 1].getOperator() == op;
 }
 
 bool PeUtils::isAfterSoftClip() {

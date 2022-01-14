@@ -24,6 +24,8 @@ private:
     int mAlignmentStart;
     int mAlignmentEnd;
     int mMappingQuality;
+    int adaptorBoundary = -1;
+    bool isCalAdaptorBoundary = false;
     Cigar* mCigar;
     int mFlags;
     std::string mMateReferenceName;
@@ -113,6 +115,7 @@ public:
     bool isDuplicate() const;
     bool isSupplementaryAlignment() const;
     int getAdaptorBoundary();
+    int getEndAfterFliter();
     SimpleInterval getLoc();
 
 private:

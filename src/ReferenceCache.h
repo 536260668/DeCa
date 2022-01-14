@@ -6,33 +6,32 @@
 #define REFERENCE_CACHE_H
 
 #include "htslib/faidx.h"
+#include "samtools/SAMFileHeader.h"
 
 class ReferenceCache
 {
 private:
     char * bases;
-    char chroName[32];   // name of cached chromosome
+    int tid;
     hts_pos_t start;
     hts_pos_t end;
-
+    SAMFileHeader* header;
     faidx_t * fai;
+
 public:
-    ReferenceCache(char * refName);
+    ReferenceCache(char * refName, SAMFileHeader* header);
 
     ~ReferenceCache();
 
+    void setTid(int tid);
+
     // get the name of cached chromosome
-    char * getContig();
+    std::string getContig();
 
     // delete all the elements in the cache
     void clear();
 
-    void fill(const char *chrmName, hts_pos_t start);
-
-    /**
-     * Get sequence of a specific interval, without copying to another array
-     */
-    const char * getSequence(hts_pos_t start, hts_pos_t end);
+    void advanceLoad();
 
     /**
      * Get a single base from the reference cache

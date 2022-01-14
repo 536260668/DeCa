@@ -98,10 +98,10 @@ void ReadCache::advanceLoad() {
     if(!normalReads.empty() && !tumorReads.empty())
         throw std::logic_error("error");
     start = end + 1;
-    end = start + 100000 -1;
+    end = start + 1000000 -1;
 
     std::string region = data[0]->header->getSequenceDictionary().getSequences()[tid].getSequenceName() + ':' +
-            std::to_string(start) + '-' + std::to_string(end);
+            std::to_string(start+1) + '-' + std::to_string(end);
     bam1_t * b;
     b = bam_init1();
     for(int i = 0; i < bam_name.size(); i++){
@@ -119,6 +119,7 @@ void ReadCache::advanceLoad() {
         }
         hts_itr_destroy(iter);
     }
+
     bam_destroy1(b);
 }
 
@@ -126,6 +127,24 @@ AlignmentContext ReadCache::getAlignmentContext() {
     getNextPos();
     std::vector<std::shared_ptr<SAMRecord>> tumor;
     std::vector<std::shared_ptr<SAMRecord>> normal;
+
+    std::list<std::shared_ptr<SAMRecord>>::iterator iter = tumorReadsForAlignment.begin();
+    while(iter != tumorReadsForAlignment.end()) {
+        if((*iter)->getEndAfterFliter() < currentPose) {
+            tumorReadsForAlignment.erase(iter++);
+        } else {
+            iter++;
+        }
+    }
+    iter = normalReadsForAlignment.begin();
+    while(iter != normalReadsForAlignment.end()) {
+        if((*iter)->getEndAfterFliter() < currentPose) {
+            normalReadsForAlignment.erase(iter++);
+        } else {
+            iter++;
+        }
+    }
+
     while(!tumorReads.empty() && tumorReads.front()->getStart() <= currentPose){
         tumorReadsForAlignment.emplace_back(tumorReads.front());
         tumorReadsForRegion.emplace_back(tumorReads.front());
@@ -135,22 +154,6 @@ AlignmentContext ReadCache::getAlignmentContext() {
         normalReadsForAlignment.emplace_back(normalReads.front());
         normalReadsForRegion.emplace_back(normalReads.front());
         normalReads.pop();
-    }
-    std::list<std::shared_ptr<SAMRecord>>::iterator iter = tumorReadsForAlignment.begin();
-    while(iter != tumorReadsForAlignment.end()) {
-        if((*iter)->getEnd() < currentPose) {
-            tumorReadsForAlignment.erase(iter++);
-        } else {
-            iter++;
-        }
-    }
-    iter = normalReadsForAlignment.begin();
-    while(iter != normalReadsForAlignment.end()) {
-        if((*iter)->getEnd() < currentPose) {
-            normalReadsForAlignment.erase(iter++);
-        } else {
-            iter++;
-        }
     }
     SimpleInterval loc(data[0]->header->getSequenceDictionary().getSequences()[tid].getSequenceName(), currentPose, currentPose);
     for(std::shared_ptr<SAMRecord>& read : tumorReadsForAlignment) {
@@ -167,29 +170,32 @@ AlignmentContext ReadCache::getAlignmentContext() {
 std::vector<std::shared_ptr<SAMRecord>> ReadCache::getReadsForRegion(AssemblyRegion & region) {
     std::vector<std::shared_ptr<SAMRecord>> ret;
     SimpleInterval loc = region.getExtendedSpan();
-    int locStart = loc.getStart();
-    int locEnd = loc.getEnd();
     std::list<std::shared_ptr<SAMRecord>>::iterator iter = tumorReadsForRegion.begin();
     while(iter != tumorReadsForRegion.end()) {
         SimpleInterval readLoc = (*iter)->getLoc();
-        if(loc.overlaps(&readLoc)) {
-            ret.emplace_back((*iter));
-        }
-        if((*iter)->getEnd() <= region.getEnd()) {
+
+
+        if((*iter)->getEndAfterFliter() < loc.getStart()) {
             tumorReadsForRegion.erase(iter++);
         } else {
+            if(loc.overlaps(&readLoc)) {
+                ret.emplace_back((*iter));
+            }
             iter++;
         }
+
     }
     iter = normalReadsForRegion.begin();
     while(iter != normalReadsForRegion.end()) {
         SimpleInterval readLoc = (*iter)->getLoc();
-        if(loc.overlaps(&readLoc)) {
-            ret.emplace_back((*iter));
-        }
-        if((*iter)->getEnd() <= region.getEnd()) {
+
+
+        if((*iter)->getEndAfterFliter() < loc.getStart()) {
             normalReadsForRegion.erase(iter++);
         } else {
+            if(loc.overlaps(&readLoc)) {
+                ret.emplace_back((*iter));
+            }
             iter++;
         }
     }

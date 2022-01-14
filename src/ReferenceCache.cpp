@@ -6,15 +6,14 @@
 #include "assert.h"
 
 
-ReferenceCache::ReferenceCache(char * refName)
+ReferenceCache::ReferenceCache(char * refName, SAMFileHeader* header) : tid(0), header(header)
 {
-    this->fai = fai_load3_format(refName, NULL, NULL, FAI_CREATE, FAI_FASTA);
-    assert(fai != NULL);
-    memset(this->chroName, '\0', sizeof(this->chroName));
-
-    this->bases = NULL;
-    this->start = -1;
-    this->end = -1;
+    fai = fai_load3_format(refName, NULL, NULL, FAI_CREATE, FAI_FASTA);
+    start = 0;
+    end = std::max(999999, header->getSequenceDictionary().getSequences()[tid].getSequenceLength());
+    std::string region = header->getSequenceDictionary().getSequences()[tid].getSequenceName() + ':' + std::to_string(start) + '-' + std::to_string(end);
+    hts_pos_t seq_len;
+    bases = fai_fetch64(fai, region.c_str(), &seq_len);
 }
 
 ReferenceCache::~ReferenceCache()
@@ -23,9 +22,9 @@ ReferenceCache::~ReferenceCache()
     fai_destroy(fai);
 }
 
-char * ReferenceCache::getContig()
+std::string ReferenceCache::getContig()
 {
-    return this->chroName;
+    return header->getSequenceDictionary().getSequences()[tid].getSequenceName();
 }
 
 void ReferenceCache::clear()
@@ -34,62 +33,31 @@ void ReferenceCache::clear()
         free(bases);
 }
 
-void ReferenceCache::fill(const char *chrmName, hts_pos_t start)
-{
-    char region[20];
-    sprintf(region, "%s:%ld-", chrmName, start+1);  // region requires 1-based?
-    //printf("start: %ld\n", start);
-    hts_pos_t seq_len;
-    bases = fai_fetch64(fai, region, &seq_len);
-    assert(seq_len > 0);
 
-    strcpy(this->chroName, chrmName);
-    this->start = start;
-    this->end = start + seq_len - 1;
-}
 
-// get sequence using with copying
-const char * ReferenceCache::getSequence(hts_pos_t start, hts_pos_t end)
-{
-    assert(bases);  // bases shouldn't be NULL, otherwise strlen will throw an error
-    if (!strlen(bases) || start > this->end)
-        return NULL;
-
-    int readLength = end - start + 1;
-    char * refBases = new char[readLength + 1]; // rlen + '\0'
-
-    if (start < this->start)    // if the read is not ordered
-    {
-        hts_pos_t fai_ref_len;
-        //printf("read is not ordered\n");
-	    return faidx_fetch_seq64(fai, this->chroName, start, end, &fai_ref_len);
-    }
-    hts_pos_t index = start - this->start;
-
-    memcpy(refBases, bases + index, readLength);
-    refBases[readLength] = '\0';
-
-    //printf("%s\n", refBases);
-
-    return refBases;
-}
 
 char ReferenceCache::getBase(hts_pos_t pos)
 {
-    assert(bases);  // bases shouldn't be NULL, otherwise strlen will throw an error
-    if (!strlen(bases) || pos > this->end)
-        return (char)NULL;
-
-    if (pos < this->start)    // if the read is not ordered
-    {
-        hts_pos_t fai_ref_len;
-        //printf("read is not ordered\n");
-        char * base = faidx_fetch_seq64(fai, this->chroName, pos, pos, &fai_ref_len);
-        char temp = *base;
-        free(base);
-        return temp;
+    while(pos > end) {
+        advanceLoad();
     }
+    return bases[pos - start];
+}
 
-    hts_pos_t index = pos - this->start;
-    return *(bases + index);
+void ReferenceCache::advanceLoad() {
+    start = end + 1;
+    end = std::max(start + 999999, static_cast<hts_pos_t>(header->getSequenceDictionary().getSequences()[tid].getSequenceLength()));
+    std::string region = header->getSequenceDictionary().getSequences()[tid].getSequenceName() + ':' + std::to_string(start) + '-' + std::to_string(end);
+    hts_pos_t seq_len;
+    clear();
+    bases = fai_fetch64(fai, region.c_str(), &seq_len);;
+}
+
+void ReferenceCache::setTid(int tid) {
+    start = 0;
+    end = std::max(99999, header->getSequenceDictionary().getSequences()[tid].getSequenceLength());
+    std::string region = header->getSequenceDictionary().getSequences()[tid].getSequenceName() + ':' + std::to_string(start) + '-' + std::to_string(end);
+    hts_pos_t seq_len;
+    clear();
+    bases = fai_fetch64(fai, region.c_str(), &seq_len);
 }

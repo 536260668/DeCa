@@ -192,12 +192,15 @@ int main(int argc, char *argv[])
     // TODO: add multi-thread mode here
     for(int k=0; k<nref; k++)
     {
-        std::string region = header->getSequenceDictionary().getSequences()[k].getSequenceName() + ":0-99999";
+        std::string region = header->getSequenceDictionary().getSequences()[k].getSequenceName() + ":0-999999";
         ReadCache cache(data, input_bam, k, region);
         int currentPose = 0;
         int len = 0;
         std::string contig = header->getSequenceDictionary().getSequences()[k].getSequenceName();
         char* refBases = faidx_fetch_seq(refPoint, contig.c_str(), 0, header->getSequenceDictionary().getSequences()[k].getSequenceLength(), &len);
+        if(k != 0) {
+            m2Engine.refCache.setTid(k);
+        }
         while(cache.hasNextPos()) {
             AlignmentContext pileup = cache.getAlignmentContext();
             if(!activityProfile->isEmpty()){
@@ -227,8 +230,11 @@ int main(int argc, char *argv[])
                 }
                 AssemblyRegion nextRegion = pendingRegions.front();
                 pendingRegions.pop();
+                if(nextRegion.getStart() == 866771)
+                    std::cout << nextRegion.getStart() << '~' << nextRegion.getEnd() << ':' << nextRegion.getReads().size() << std::endl;
                 Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
-                std::cout << nextRegion.getStart() << '~' << nextRegion.getEnd() << ':' << nextRegion.getReads().size() << std::endl;
+                if(nextRegion.getStart() == 866771)
+                    std::cout << nextRegion.getStart() << '~' << nextRegion.getEnd() << ':' << nextRegion.getReads().size() << std::endl;
             }
         }
 
