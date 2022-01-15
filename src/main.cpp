@@ -213,14 +213,13 @@ int main(int argc, char *argv[])
             }
 
             if(pileup.isEmpty()) {
-                ActivityProfileState state(pileup.getRefName().c_str(), pileup.getPosition(), 0.0);
+                ActivityProfileState state(contig.c_str(), pileup.getPosition(), 0.0);
                 activityProfile->add(state);
                 continue;
             }
             SimpleInterval pileupInterval = SimpleInterval(contig, (int)pileup.getPosition(), (int)pileup.getPosition());
             ReferenceContext pileupRefContext(refBases, pileupInterval);
             ActivityProfileState profile = m2Engine.isActive(pileup, pileupRefContext);
-
             activityProfile->add(profile);
 
             if(!pendingRegions.empty() && IntervalUtils::isAfter(pileup.getLocation(), pendingRegions.front().getExtendedSpan(), header->getSequenceDictionary())) {

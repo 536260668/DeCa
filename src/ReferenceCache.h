@@ -37,6 +37,8 @@ public:
      * Get a single base from the reference cache
      */
     char getBase(hts_pos_t pos);
+
+    uint8_t * getSubsequenceAt(int tid, int start, int stop);
 };
 
 

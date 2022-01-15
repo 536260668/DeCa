@@ -10,8 +10,8 @@
 
 class AlignmentUtils {
 public:
-    static Cigar* consolidateCigar(Cigar* c);
-    static bool needsConsolidation(Cigar* c);
+    static std::shared_ptr<Cigar> consolidateCigar(std::shared_ptr<Cigar> c);
+    static bool needsConsolidation(const std::shared_ptr<Cigar>& c);
 
     /**
      * Get the byte[] from bases that cover the reference interval refStart -> refEnd given the
@@ -32,9 +32,9 @@ public:
      * @param basesToRefCigar the cigar that maps the bases to the reference genome
      * @return a byte[] containing the bases covering this interval, or null if we would start or end within a deletion
      */
-    static uint8_t * getBasesCoveringRefInterval(int refStart, int refEnd, uint8_t* bases, int length, int basesStartOnRef, Cigar* basesToRefCigar);
+    static uint8_t * getBasesCoveringRefInterval(int refStart, int refEnd, uint8_t* bases, int length, int basesStartOnRef, const std::shared_ptr<Cigar>& basesToRefCigar);
 
-    static Cigar * trimCigarByReference(Cigar * cigar, int start, int end);
+    static std::shared_ptr<Cigar> trimCigarByReference(const std::shared_ptr<Cigar>& cigar, int start, int end);
 
     /**
      * Does cigar start or end with a deletion operation?
@@ -42,7 +42,7 @@ public:
      * @param cigar a non-null cigar to test
      * @return true if the first or last operator of cigar is a D
      */
-    static bool startsOrEndsWithInsertionOrDeletion(Cigar * cigar);
+    static bool startsOrEndsWithInsertionOrDeletion(const std::shared_ptr<Cigar>& cigar);
 
     /**
      * Removing a trailing deletion from the incoming cigar if present
@@ -50,24 +50,24 @@ public:
      * @param c the cigar we want to update
      * @return a non-null Cigar
      */
-    static Cigar* removeTrailingDeletions(Cigar* c);
+    static std::shared_ptr<Cigar> removeTrailingDeletions(std::shared_ptr<Cigar> c);
 
-    static Cigar* trimCigarByBases(Cigar* cigar, int start, int end);
+    static std::shared_ptr<Cigar> trimCigarByBases(const std::shared_ptr<Cigar>& cigar, int start, int end);
 
-    static Cigar* leftAlignSingleIndel(Cigar* cigar, uint8_t* refSeq, int refLength, uint8_t* readSeq, int readLength, int refIndex, int readIndex, bool cleanupCigar);
+    static std::shared_ptr<Cigar> leftAlignSingleIndel(std::shared_ptr<Cigar> cigar, uint8_t* refSeq, int refLength, uint8_t* readSeq, int readLength, int refIndex, int readIndex, bool cleanupCigar);
 
-    static Cigar* leftAlignSingleIndel(Cigar* cigar, uint8_t* refSeq, int refLength, uint8_t* readSeq, int readLength, int refIndex, int readIndex, int leftmostAllowedAlignment, bool cleanupCigar1);
+    static std::shared_ptr<Cigar> leftAlignSingleIndel(std::shared_ptr<Cigar> cigar, uint8_t* refSeq, int refLength, uint8_t* readSeq, int readLength, int refIndex, int readIndex, int leftmostAllowedAlignment, bool cleanupCigar1);
 
-    static Cigar* cleanUpCigar(Cigar* c);
+    static std::shared_ptr<Cigar> cleanUpCigar(const std::shared_ptr<Cigar>& c);
 
 private:
-    static Cigar* trimCigar(Cigar * cigar, int start, int end, bool byReference);
+    static std::shared_ptr<Cigar> trimCigar(const std::shared_ptr<Cigar>& cigar, int start, int end, bool byReference);
 
-    static void ensureLeftAlignmentHasGoodArguments(Cigar* cigar, uint8_t* refSeq, uint8_t* readSeq, int refIndex, int readIndex);
+    static void ensureLeftAlignmentHasGoodArguments(const std::shared_ptr<Cigar>& cigar, uint8_t* refSeq, uint8_t* readSeq, int refIndex, int readIndex);
 
-    static uint8_t * createIndelString(Cigar* cigar, int indexOfIndel, uint8_t * refSeq, int refLength, uint8_t * readSeq, int readLength, int refIndex, int readIndex, int &);
+    static uint8_t * createIndelString(const std::shared_ptr<Cigar>& cigar, int indexOfIndel, uint8_t * refSeq, int refLength, uint8_t * readSeq, int readLength, int refIndex, int readIndex, int &);
 
-    static Cigar* moveCigarLeft(Cigar* cigar, int indexOfIndel);
+    static std::shared_ptr<Cigar> moveCigarLeft(const std::shared_ptr<Cigar>& cigar, int indexOfIndel);
 
 protected:
     /**
@@ -89,9 +89,9 @@ protected:
      */
     static int addCigarElements(std::vector<CigarElement> & dest, int pos, int start, int end, CigarElement elt);
 
-    static bool isIndelAlignedTooFarLeft(Cigar* cigar, int leftmostAllowedAlignment);
+    static bool isIndelAlignedTooFarLeft(const std::shared_ptr<Cigar>& cigar, int leftmostAllowedAlignment);
 
-    static bool cigarHasZeroSizeElement(Cigar* c);
+    static bool cigarHasZeroSizeElement(const std::shared_ptr<Cigar>& c);
 };
 
 #endif //MUTECT2CPP_MASTER_ALIGNMENTUTILS_H

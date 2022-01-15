@@ -17,12 +17,12 @@ uint8_t *Haplotype::copyArray(uint8_t *base, int length) {
 
 Haplotype::Haplotype(uint8_t *bases, int length) : Allele(copyArray(bases, length), length, false){}
 
-void Haplotype::setCigar(Cigar *cigar) {
+void Haplotype::setCigar(std::shared_ptr<Cigar> & cigar) {
     this->cigar = AlignmentUtils::consolidateCigar(cigar);
     Mutect2Utils::validateArg(this->cigar->getReadLength() == getLength(), "Read length is not equal to the read length of the cigar");
 }
 
-Haplotype::Haplotype(uint8_t *bases, bool isRef, int length, int alignmentStartHapwrtRef, Cigar *cigar) : Allele(copyArray(bases, length), length, false), alignmentStartHapwrtRef(alignmentStartHapwrtRef){
+Haplotype::Haplotype(uint8_t *bases, bool isRef, int length, int alignmentStartHapwrtRef, std::shared_ptr<Cigar> & cigar) : Allele(copyArray(bases, length), length, false), alignmentStartHapwrtRef(alignmentStartHapwrtRef){
     setCigar(cigar);
 }
 
@@ -38,7 +38,7 @@ Haplotype *Haplotype::trim(Locatable* loc) {
     int newStart = loc->getStart() - this->genomeLocation->getStart();
     int newStop = newStart + loc->getEnd() - loc->getStart();
     uint8_t * newBases = AlignmentUtils::getBasesCoveringRefInterval(newStart, newStop, getBases(), getBasesLength(), 0, getCigar());
-    Cigar* newCigar = AlignmentUtils::trimCigarByReference(getCigar(), newStart, newStop);
+    std::shared_ptr<Cigar> newCigar = AlignmentUtils::trimCigarByReference(getCigar(), newStart, newStop);
 
     if(newBases == nullptr || AlignmentUtils::startsOrEndsWithInsertionOrDeletion(newCigar))
         return nullptr;
@@ -51,7 +51,7 @@ Haplotype *Haplotype::trim(Locatable* loc) {
     return ret;
 }
 
-Cigar *Haplotype::getCigar() {
+std::shared_ptr<Cigar> Haplotype::getCigar() {
     return cigar;
 }
 

@@ -10,7 +10,7 @@ SWNativeResultWrapper::SWNativeResultWrapper(const SWNativeAlignerResult& native
 
 SWNativeResultWrapper::SWNativeResultWrapper(Cigar *cigar, int alignmentOffset) : cigar(cigar), alignmentOffset(alignmentOffset){}
 
-Cigar* SWNativeResultWrapper::getCigar() {
+std::shared_ptr<Cigar> & SWNativeResultWrapper::getCigar() {
     return cigar;
 }
 

@@ -3,15 +3,17 @@
 //
 
 #include "AlignmentUtils.h"
+
+#include <utility>
 #include "Mutect2Utils.h"
 
-Cigar *AlignmentUtils::consolidateCigar(Cigar *c) {
+std::shared_ptr<Cigar> AlignmentUtils::consolidateCigar(std::shared_ptr<Cigar> c) {
     if(c == nullptr) {throw std::invalid_argument("Cigar cannot be null");}
 
     if(!needsConsolidation(c))
         return c;
 
-    Cigar* returnCigar = new Cigar();
+    std::shared_ptr<Cigar> returnCigar(new Cigar());
     int sumLength = 0;
     CigarElement* lastElement = nullptr;
 
@@ -32,7 +34,7 @@ Cigar *AlignmentUtils::consolidateCigar(Cigar *c) {
     return returnCigar;
 }
 
-bool AlignmentUtils::needsConsolidation(Cigar *c) {
+bool AlignmentUtils::needsConsolidation(const std::shared_ptr<Cigar>& c) {
     if(c->numCigarElements() <= 1)
         return false;
     CigarOperator lastOp;
@@ -45,7 +47,7 @@ bool AlignmentUtils::needsConsolidation(Cigar *c) {
 }
 
 uint8_t *AlignmentUtils::getBasesCoveringRefInterval(int refStart, int refEnd, uint8_t *bases, int length, int basesStartOnRef,
-                                                     Cigar *basesToRefCigar) {
+                                                     const std::shared_ptr<Cigar>& basesToRefCigar) {
     if(refStart < 0 || refEnd < refStart) {
         throw std::invalid_argument("Bad start and/or stop");
     }
@@ -102,17 +104,17 @@ uint8_t *AlignmentUtils::getBasesCoveringRefInterval(int refStart, int refEnd, u
     return ret;
 }
 
-Cigar *AlignmentUtils::trimCigarByReference(Cigar *cigar, const int start, const int end) {
+std::shared_ptr<Cigar> AlignmentUtils::trimCigarByReference(const std::shared_ptr<Cigar>&cigar, const int start, const int end) {
     Mutect2Utils::validateArg(start >= 0, "Start must be >= 0");
     Mutect2Utils::validateArg(end >= start, "End is < start");
     Mutect2Utils::validateArg(end <= cigar->getReferenceLength(), "End is beyond the cigar's reference length");
 
-    Cigar * result = trimCigar(cigar, start, end, true);
+    std::shared_ptr<Cigar> result = trimCigar(cigar, start, end, true);
     Mutect2Utils::validateArg(result->getReferenceLength() == end - start + 1, "trimCigarByReference failure");
     return result;
 }
 
-Cigar *AlignmentUtils::trimCigar(Cigar *cigar, const int start, const int end, const bool byReference) {
+std::shared_ptr<Cigar> AlignmentUtils::trimCigar(const std::shared_ptr<Cigar>& cigar, const int start, const int end, const bool byReference) {
     std::vector<CigarElement> newElements;
 
     int pos = 0;
@@ -144,10 +146,8 @@ Cigar *AlignmentUtils::trimCigar(Cigar *cigar, const int start, const int end, c
                 throw std::invalid_argument("Cannot handle");
         }
     }
-    Cigar* tmp = new Cigar(newElements);
-    Cigar* ret = consolidateCigar(tmp);
-    if(tmp != ret)
-        delete tmp;
+    std::shared_ptr<Cigar> tmp(new Cigar(newElements));
+    std::shared_ptr<Cigar> ret = consolidateCigar(tmp);
     return ret;
 }
 
@@ -158,7 +158,7 @@ int AlignmentUtils::addCigarElements(std::vector<CigarElement> & dest, int pos, 
     return pos + elt.getLength();
 }
 
-bool AlignmentUtils::startsOrEndsWithInsertionOrDeletion(Cigar *cigar) {
+bool AlignmentUtils::startsOrEndsWithInsertionOrDeletion(const std::shared_ptr<Cigar>& cigar) {
     Mutect2Utils::validateArg(cigar != nullptr, "Null is not allowed");
     if(cigar->isEmpty())
         return false;
@@ -167,33 +167,33 @@ bool AlignmentUtils::startsOrEndsWithInsertionOrDeletion(Cigar *cigar) {
     return first == D || first == I || last == D || last == I;
 }
 
-Cigar *AlignmentUtils::removeTrailingDeletions(Cigar *c) {
+std::shared_ptr<Cigar> AlignmentUtils::removeTrailingDeletions(std::shared_ptr<Cigar> c) {
     std::vector<CigarElement> elements = c->getCigarElements();
     if(elements.at(elements.size()-1).getOperator() != D)
         return c;
     std::vector<CigarElement> newElements(elements.begin(), elements.end()-1);
-    return new Cigar(newElements);
+    return std::shared_ptr<Cigar>(new Cigar(newElements));
 }
 
-Cigar *AlignmentUtils::trimCigarByBases(Cigar *cigar, int start, int end) {
+std::shared_ptr<Cigar> AlignmentUtils::trimCigarByBases(const std::shared_ptr<Cigar>&cigar, int start, int end) {
     Mutect2Utils::validateArg(start >= 0, "tart must be >= 0 but got");
     Mutect2Utils::validateArg(end >= start, "End is < start ");
     Mutect2Utils::validateArg(end <= (cigar->getReadLength()), "End is beyond the cigar's read length");
 
-    Cigar* result = trimCigar(cigar, start, end, false);
+    std::shared_ptr<Cigar> result = trimCigar(cigar, start, end, false);
     int expectedSize = end - start + 1;
     Mutect2Utils::validateArg((result->getReadLength()) == expectedSize, "trimCigarByBases failure");
     return result;
 }
 
-Cigar *
-AlignmentUtils::leftAlignSingleIndel(Cigar *cigar, uint8_t *refSeq, int refLength, uint8_t *readSeq, int readLength,
+std::shared_ptr<Cigar>
+AlignmentUtils::leftAlignSingleIndel(std::shared_ptr<Cigar> cigar, uint8_t *refSeq, int refLength, uint8_t *readSeq, int readLength,
                                      int refIndex, int readIndex, bool cleanupCigar) {
-    return leftAlignSingleIndel(cigar, refSeq, refLength, readSeq, readLength, refIndex, readIndex, 0, false);
+    return leftAlignSingleIndel(std::move(cigar), refSeq, refLength, readSeq, readLength, refIndex, readIndex, 0, false);
 }
 
-Cigar *
-AlignmentUtils::leftAlignSingleIndel(Cigar *cigar, uint8_t *refSeq, int refLength, uint8_t *readSeq, int readLength,
+std::shared_ptr<Cigar>
+AlignmentUtils::leftAlignSingleIndel(std::shared_ptr<Cigar> cigar, uint8_t *refSeq, int refLength, uint8_t *readSeq, int readLength,
                                      int refIndex, int readIndex, int leftmostAllowedAlignment, bool cleanupCigar1) {
     ensureLeftAlignmentHasGoodArguments(cigar, refSeq, readSeq, refIndex, readIndex);
 
@@ -217,10 +217,9 @@ AlignmentUtils::leftAlignSingleIndel(Cigar *cigar, uint8_t *refSeq, int refLengt
     uint8_t * altString = createIndelString(cigar, indexOfIndel, refSeq, refLength, readSeq, readLength, refIndex, refIndex, altStringLength);
     if(altString == nullptr)
         return cigar;
-    Cigar* newCigar = new Cigar(*cigar);
+    std::shared_ptr<Cigar> newCigar(new Cigar(*cigar));
     for(int i = 0; i < indelLength; i++) {
-        Cigar * tmp = moveCigarLeft(newCigar, indexOfIndel);
-        delete newCigar;
+        std::shared_ptr<Cigar> tmp = moveCigarLeft(newCigar, indexOfIndel);
         newCigar = tmp;
         if(isIndelAlignedTooFarLeft(newCigar,leftmostAllowedAlignment)){
             break;
@@ -253,9 +252,9 @@ AlignmentUtils::leftAlignSingleIndel(Cigar *cigar, uint8_t *refSeq, int refLengt
     return cigar;
 }
 
-void AlignmentUtils::ensureLeftAlignmentHasGoodArguments(Cigar *cigar, uint8_t *refSeq, uint8_t *readSeq,
+void AlignmentUtils::ensureLeftAlignmentHasGoodArguments(const std::shared_ptr<Cigar>&cigar, uint8_t *refSeq, uint8_t *readSeq,
                                                           int refIndex, int readIndex) {
-    Mutect2Utils::validateArg(cigar, "ciagr");
+    Mutect2Utils::validateArg(cigar.get(), "ciagr");
     Mutect2Utils::validateArg(refSeq, "refSeq");
     Mutect2Utils::validateArg(readSeq, "readSeq");
     Mutect2Utils::validateArg(refIndex >= 0, "attempting to left align with a reference index less than 0");
@@ -263,7 +262,7 @@ void AlignmentUtils::ensureLeftAlignmentHasGoodArguments(Cigar *cigar, uint8_t *
 }
 
 uint8_t *
-AlignmentUtils::createIndelString(Cigar *cigar, int indexOfIndel, uint8_t *refSeq, int refLength, uint8_t *readSeq,
+AlignmentUtils::createIndelString(const std::shared_ptr<Cigar>& cigar, int indexOfIndel, uint8_t *refSeq, int refLength, uint8_t *readSeq,
                                   int readLength, int refIndex, int readIndex, int & newLength) {
     CigarElement indel = cigar->getCigarElement(indexOfIndel);
     int indelLength = indel.getLength();
@@ -318,8 +317,9 @@ AlignmentUtils::createIndelString(Cigar *cigar, int indexOfIndel, uint8_t *refSe
     return alt;
 }
 
-Cigar *AlignmentUtils::moveCigarLeft(Cigar *cigar, int indexOfIndel) {
+std::shared_ptr<Cigar> AlignmentUtils::moveCigarLeft(const std::shared_ptr<Cigar>&cigar, int indexOfIndel) {
     std::vector<CigarElement> elements;
+    elements.reserve(indexOfIndel - 1);
     for(int i = 0; i < indexOfIndel - 1; i++)
         elements.emplace_back(cigar->getCigarElement(i));
 
@@ -336,10 +336,10 @@ Cigar *AlignmentUtils::moveCigarLeft(Cigar *cigar, int indexOfIndel) {
     for (int i = indexOfIndel + 2; i < cigar->numCigarElements(); i++)
         elements.emplace_back(cigar->getCigarElement(i));
 
-    return new Cigar(elements);
+    return std::shared_ptr<Cigar>(new Cigar(elements));
 }
 
-bool AlignmentUtils::isIndelAlignedTooFarLeft(Cigar *cigar, int leftmostAllowedAlignment) {
+bool AlignmentUtils::isIndelAlignedTooFarLeft(const std::shared_ptr<Cigar>&cigar, int leftmostAllowedAlignment) {
     int location = 0;
     for(CigarElement element : cigar->getCigarElements()) {
         if(element.getOperator() == D || element.getOperator() == I) {
@@ -352,7 +352,7 @@ bool AlignmentUtils::isIndelAlignedTooFarLeft(Cigar *cigar, int leftmostAllowedA
     return false;
 }
 
-bool AlignmentUtils::cigarHasZeroSizeElement(Cigar *c) {
+bool AlignmentUtils::cigarHasZeroSizeElement(const std::shared_ptr<Cigar>&c) {
     for(CigarElement ce : c->getCigarElements()) {
         if(ce.getLength() == 0)
             return true;
@@ -360,7 +360,7 @@ bool AlignmentUtils::cigarHasZeroSizeElement(Cigar *c) {
     return false;
 }
 
-Cigar *AlignmentUtils::cleanUpCigar(Cigar *c) {
+std::shared_ptr<Cigar> AlignmentUtils::cleanUpCigar(const std::shared_ptr<Cigar>& c) {
     std::vector<CigarElement> elements;
     for(CigarElement ce : c->getCigarElements()) {
         if(ce.getLength() != 0 && (! elements.empty() || ce.getOperator() != D)) {
@@ -368,5 +368,5 @@ Cigar *AlignmentUtils::cleanUpCigar(Cigar *c) {
         }
     }
 
-    return new Cigar(elements);
+    return std::shared_ptr<Cigar>(new Cigar(elements));
 }

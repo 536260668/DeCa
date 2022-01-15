@@ -25,7 +25,7 @@ ActivityProfileState Mutect2Engine::isActive(AlignmentContext& context, Referenc
 //    if(pos == 13272)
 //        std::cout << "hello" << std::endl;
 
-    const char * refName = context.getRefName().c_str();
+    std::string refName = context.getRefName();
 
     if(context.getReadNum() > minCallableDepth)
         callableSites++;
@@ -44,7 +44,7 @@ ActivityProfileState Mutect2Engine::isActive(AlignmentContext& context, Referenc
     double tumorLogOdds = logLikelihoodRatio(tumorPileup.size() - tumorAltQuals.size(), tumorAltQuals);
 
     if(tumorLogOdds < M2ArgumentCollection::getInitialLogOdds()) {
-        return {refName, pos, 0.0};
+        return {refName.c_str(), pos, 0.0};
     } else if (hasNormal() && !MATC.genotypeGermlineSites) {
         ReadPileup normalPileup = context.makeNormalPileup();
         std::vector<char> normalAltQuals = altQuals(tumorPileup, refBase, 40);
@@ -54,10 +54,10 @@ ActivityProfileState Mutect2Engine::isActive(AlignmentContext& context, Referenc
             normalQualSum += i;
         }
         if(normalAltCount > normalPileup.size() * 0.3 && normalQualSum > 100) {
-            return {refName, pos, 0.0};
+            return {refName.c_str(), pos, 0.0};
         }
     }
-    return {refName, pos, 1.0};
+    return {refName.c_str(), pos, 1.0};
 }
 
 // TODO: finish this method 2021.11.1

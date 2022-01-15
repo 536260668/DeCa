@@ -9,7 +9,7 @@
 
 class SmithWatermanAlignment {
 public:
-    virtual Cigar* getCigar() = 0;
+    virtual std::shared_ptr<Cigar> & getCigar() = 0;
     virtual int getAlignmentOffset() = 0;
 };
 

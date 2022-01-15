@@ -11,13 +11,13 @@
 
 class SWNativeResultWrapper : public SmithWatermanAlignment{
 private:
-    Cigar* cigar;
+    std::shared_ptr<Cigar> cigar;
     int alignmentOffset;
 
 public:
     SWNativeResultWrapper(const SWNativeAlignerResult& nativeResult);
     SWNativeResultWrapper(Cigar* cigar, int alignmentOffset);
-    Cigar* getCigar();
+    std::shared_ptr<Cigar> & getCigar();
     int getAlignmentOffset();
 };
 

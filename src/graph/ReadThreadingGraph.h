@@ -213,7 +213,7 @@ public:
 
      bool removeVertex(MultiDeBruijnVertex* V) override;
 
-     void setPending();
+     //void setPending();
 
 
     void removeSingletonOrphanVertices() override;
@@ -228,7 +228,7 @@ public:
      */
     void recoverDanglingTails(int pruneFactor, int minDanglingBranchLength, bool recoverAll);
 
-    static bool cigarIsOkayToMerge(Cigar* cigar, bool requireFirstElementM, bool requireLastElementM);
+    static bool cigarIsOkayToMerge(std::shared_ptr<Cigar> & cigar, bool requireFirstElementM, bool requireLastElementM);
 
     void recoverDanglingHeads(int pruneFactor, int minDanglingBranchLength, bool recoverAll);
 

@@ -11,10 +11,11 @@
 #include "SimpleInterval.h"
 #include "ActivityProfileState.h"
 #include "samtools/SAMRecord.h"
+#include "ReferenceCache.h"
 
 class AssemblyRegion : public Locatable{
 private:
-    sam_hdr_t *hdr;
+    SAMFileHeader *header;
 
     /**
      * The reads included in this assembly region.  May be empty upon creation, and expand / contract
@@ -81,8 +82,21 @@ private:
 
     void checkStates(SimpleInterval& activeRegion);
 
+    /**
+     * Get the reference bases from referenceReader spanned by the extended location of this region,
+     * including additional padding bp on either side.  If this expanded region would exceed the boundaries
+     * of the active region's contig, the returned result will be truncated to only include on-genome reference
+     * bases.
+     *
+     * @param referenceReader the source of the reference genome bases
+     * @param padding the padding, in BP, we want to add to either side of this active region extended region
+     * @param genomeLoc a non-null genome loc indicating the base span of the bp we'd like to get the reference for
+     * @return a non-null array of bytes holding the reference bases in referenceReader
+     */
+     uint8_t * getReference(ReferenceCache* referenceReader, int padding, SimpleInterval & genomeLoc);
+
 public:
-    AssemblyRegion(SimpleInterval const &activeRegionLoc, std::vector<ActivityProfileState> supportingStates, bool isActive, int extension, sam_hdr_t * header);
+    AssemblyRegion(SimpleInterval const &activeRegionLoc, std::vector<ActivityProfileState> supportingStates, bool isActive, int extension, SAMFileHeader * header);
 
     /**
      * Simple interface to create an assembly region that isActive without any profile state
@@ -137,7 +151,7 @@ public:
     /**
      * Returns the header for the reads in this region.
      */
-    sam_hdr_t* getHeader();
+    SAMFileHeader* getHeader();
 
     /**
      * Intersect this assembly region with the allowed intervals, returning a list of active regions
@@ -222,6 +236,20 @@ public:
      * @param readsToAdd a collection of readsToAdd to add to this active region
      */
     void addAll(std::vector<std::shared_ptr<SAMRecord>> & readsToAdd);
+
+    /**
+     * Get the reference bases from referenceReader spanned by the extended location of this active region,
+     * including additional padding bp on either side.  If this expanded region would exceed the boundaries
+     * of the active region's contig, the returned result will be truncated to only include on-genome reference
+     * bases
+     *
+     * @param referenceReader the source of the reference genome bases
+     * @param padding the padding, in BP, we want to add to either side of this active region extended region
+     * @return a non-null array of bytes holding the reference bases in referenceReader
+     */
+    uint8_t * getAssemblyRegionReference(ReferenceCache * cache, int padding);
+
+
 };
 
 

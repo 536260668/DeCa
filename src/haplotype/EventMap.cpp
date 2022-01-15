@@ -20,7 +20,7 @@ EventMap::EventMap(Haplotype *haplotype, uint8_t *ref, int refLength, Locatable 
 
 void EventMap::processCigarForInitialEvents(int maxMnpDistance) {
     ParamUtils::isPositiveOrZero(maxMnpDistance, "maxMnpDistance may not be negative.");
-    Cigar* cigar = haplotype->getCigar();
+    std::shared_ptr<Cigar> cigar = haplotype->getCigar();
     uint8_t * alignment = haplotype->getBases();
     int alignmentLength = haplotype->getLength();
 

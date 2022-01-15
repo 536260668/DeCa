@@ -83,7 +83,7 @@ ReadThreadingAssembler::findBestPaths(const std::list<SeqGraph *>& graphs, Haplo
                 if(kBestHaplotype->getIsReference()) {
                     refHaplotype->setScore(kBestHaplotype->getScore());
                 }
-                Cigar* cigar = CigarUtils::calculateCigar(refHaplotype->getBases(), refHaplotype->getLength(), h->getBases(), h->getLength());
+                std::shared_ptr<Cigar> cigar = CigarUtils::calculateCigar(refHaplotype->getBases(), refHaplotype->getLength(), h->getBases(), h->getLength());
 
                 h->setCigar(cigar);
                 h->setAlignmentStartHapwrtRef(activeRegionStart);
@@ -174,7 +174,7 @@ ReadThreadingAssembler::createGraph(std::vector<std::shared_ptr<SAMRecord>> read
         rtgraph->addRead(read);
     }
     //TODO:DELETE
-    rtgraph->setPending();
+    //rtgraph->setPending();
     rtgraph->buildGraphIfNecessary();
     chainPruner->pruneLowWeightChains(*rtgraph);
     if(rtgraph->hasCycles()) {
@@ -224,7 +224,7 @@ ReadThreadingAssembler::findBestPaths(const std::vector<SeqGraph *> &graphs, Hap
                 if(kBestHaplotype->getIsReference()) {
                     refHaplotype->setScore(kBestHaplotype->getScore());
                 }
-                Cigar* cigar = CigarUtils::calculateCigar(refHaplotype->getBases(), refHaplotype->getLength(), h->getBases(), h->getLength());
+                std::shared_ptr<Cigar> cigar = CigarUtils::calculateCigar(refHaplotype->getBases(), refHaplotype->getLength(), h->getBases(), h->getLength());
 
                 h->setCigar(cigar);
                 h->setAlignmentStartHapwrtRef(activeRegionStart);

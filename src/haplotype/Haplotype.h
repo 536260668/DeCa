@@ -16,7 +16,7 @@ class EventMap;
 class Haplotype : public Allele{
 private:
     Locatable* genomeLocation;
-    Cigar* cigar;
+    std::shared_ptr<Cigar> cigar;
     EventMap * eventMap;
     int alignmentStartHapwrtRef;
     double score;
@@ -48,7 +48,7 @@ public:
     * @param alignmentStartHapwrtRef offset of this haplotype w.r.t. the reference
     * @param cigar the cigar that maps this haplotype to the reference sequence
     */
-    Haplotype(uint8_t* bases, bool isRef, int length, int alignmentStartHapwrtRef, Cigar * cigar);
+    Haplotype(uint8_t* bases, bool isRef, int length, int alignmentStartHapwrtRef, std::shared_ptr<Cigar> & cigar);
 
     Haplotype(uint8_t* bases, int length, Locatable* loc);
 
@@ -59,7 +59,7 @@ public:
     *
     * @param cigar a cigar whose readLength == length()
     */
-     void setCigar(Cigar *cigar);
+     void setCigar(std::shared_ptr<Cigar> & cigar);
 
     /**
     * Create a new Haplotype derived from this one that exactly spans the provided location
@@ -80,7 +80,7 @@ public:
     * in that multiple adjacent equal operates will have been merged
     * @return the cigar of this haplotype
     */
-     Cigar* getCigar();
+    std::shared_ptr<Cigar> getCigar();
 
      void setGenomeLocation(Locatable* genomeLocation);
 

@@ -3,6 +3,7 @@
 //
 
 #include "SimpleInterval.h"
+#include <iostream>
 
 SimpleInterval::SimpleInterval(const std::string& contig, int start, int end) : contig(contig), start(start), end(end){
     validatePositions(contig, start, end);

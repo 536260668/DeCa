@@ -9,8 +9,8 @@
 
 AssemblyRegion::AssemblyRegion(SimpleInterval const &activeRegionLoc,
                                std::vector<ActivityProfileState> supportingStates, const bool isActive,
-                               const int extension, sam_hdr_t * header) : activeRegionLoc(activeRegionLoc), supportingStates(std::move(supportingStates)), isActive(isActive),
-                               extension(extension), hdr(header){
+                               const int extension, SAMFileHeader * header) : activeRegionLoc(activeRegionLoc), supportingStates(std::move(supportingStates)), isActive(isActive),
+                               extension(extension), header(header){
 
     std::string contig = activeRegionLoc.getContig();
     SimpleInterval* simpleInterval = trimIntervalToContig(contig, activeRegionLoc.getStart() - extension, activeRegionLoc.getEnd() + extension);
@@ -36,7 +36,7 @@ AssemblyRegion::AssemblyRegion(SimpleInterval const &activeRegionLoc, const int 
 }
 
 SimpleInterval *AssemblyRegion::trimIntervalToContig(std::string& contig, const int start, const int stop) {
-    const int contigLength = sam_hdr_tid2len(hdr, sam_hdr_name2tid(hdr, contig.c_str()));
+    const int contigLength = header->getSequenceDictionary().getSequence(contig).getSequenceLength();
     return IntervalUtils::trimIntervalToContig(contig, start, stop, contigLength);
 }
 
@@ -68,9 +68,9 @@ bool AssemblyRegion::equalsIgnoreReads(const AssemblyRegion &other) {
 }
 void AssemblyRegion::setFinalized(bool value) {hasBeenFinalized = value;}
 
-sam_hdr_t * AssemblyRegion::getHeader()
+SAMFileHeader * AssemblyRegion::getHeader()
 {
-    return hdr;
+    return header;
 }
 
 std::vector<std::shared_ptr<SAMRecord>> & AssemblyRegion::getReads(){
@@ -91,7 +91,7 @@ AssemblyRegion *AssemblyRegion::trim(SimpleInterval *span, SimpleInterval *exten
     int requiredOnLeft = std::max(subActive->getStart() - extendedSpan->getStart(), 0);
     int requiredExtension = std::min(std::max(requiredOnLeft, requiredOnRight), getExtension());
 
-    AssemblyRegion* result = new AssemblyRegion(subActive, std::vector<ActivityProfileState>(), isActive, requiredExtension, hdr);
+    AssemblyRegion* result = new AssemblyRegion(subActive, std::vector<ActivityProfileState>(), isActive, requiredExtension, header);
     std::vector<std::shared_ptr<SAMRecord>>  myReads = getReads();
     SimpleInterval resultExtendedLoc = result->getExtendedSpan();
     int resultExtendedLocStart = resultExtendedLoc.getStart();
@@ -127,4 +127,17 @@ void AssemblyRegion::addAll(std::vector<std::shared_ptr<SAMRecord>> &readsToAdd)
     for(std::shared_ptr<SAMRecord> & samRecord : readsToAdd) {
         reads.emplace_back(samRecord);
     }
+}
+
+uint8_t *AssemblyRegion::getAssemblyRegionReference(ReferenceCache *cache, int padding) {
+    return getReference(cache, padding, extendedLoc);
+}
+
+uint8_t *AssemblyRegion::getReference(ReferenceCache *referenceReader, int padding, SimpleInterval &genomeLoc) {
+    Mutect2Utils::validateArg(referenceReader, "referenceReader cannot be null");
+    Mutect2Utils::validateArg(padding >= 0, "padding must be a positive integer but got");
+    Mutect2Utils::validateArg(genomeLoc.size() > 0, "GenomeLoc must have size > 0 but got ");
+    std::string contig = genomeLoc.getContig();
+    return referenceReader->getSubsequenceAt(header->getSequenceDictionary().getSequenceIndex(contig), std::max(0, genomeLoc.getStart() - padding),
+                                             std::min(header->getSequenceDictionary().getSequence(contig).getSequenceLength(), genomeLoc.getEnd() + padding));
 }

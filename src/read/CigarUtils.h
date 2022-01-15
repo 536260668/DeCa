@@ -11,9 +11,9 @@
 
 class CigarUtils {
 public:
-    static Cigar* calculateCigar(uint8_t* refSeq, int refLength, uint8_t* altSeq, int altLength);
+    static std::shared_ptr<Cigar> calculateCigar(uint8_t* refSeq, int refLength, uint8_t* altSeq, int altLength);
     static const SWParameters NEW_SW_PARAMETERS;
-    static Cigar* leftAlignCigarSequentially(Cigar* cigar, uint8_t* refSeq, int refLength, uint8_t* readSeq, int readLength, int refIndex, int readIndex);
+    static std::shared_ptr<Cigar> leftAlignCigarSequentially(std::shared_ptr<Cigar> & cigar, uint8_t* refSeq, int refLength, uint8_t* readSeq, int readLength, int refIndex, int readIndex);
     static bool isGood(Cigar* c);
     static bool containsNOperator(std::vector<CigarElement> cigarElements);
 
