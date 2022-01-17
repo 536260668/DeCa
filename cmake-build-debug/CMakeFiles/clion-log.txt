@@ -1,0 +1,15 @@
+/usr/local/Cellar/cmake/3.20.5/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/usr/local/Cellar/make/4.3/bin/gmake -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -G "CodeBlocks - Unix Makefiles" /Users/bigdreamerxixi/Mutect2Cpp-master
+CMake Warning at /usr/local/Cellar/cmake/3.20.5/share/cmake/Modules/Platform/Darwin-Initialize.cmake:303 (message):
+  Ignoring CMAKE_OSX_SYSROOT value:
+
+   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.0.sdk
+
+  because the directory does not exist.
+Call Stack (most recent call first):
+  /usr/local/Cellar/cmake/3.20.5/share/cmake/Modules/CMakeSystemSpecificInitialize.cmake:21 (include)
+  CMakeLists.txt:2 (project)
+
+
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug

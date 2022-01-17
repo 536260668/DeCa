@@ -1,0 +1,2 @@
+/usr/bin/ar qc libPathFunctions.a CMakeFiles/PathFunctions.dir/AdaptiveChainPruner.cpp.o CMakeFiles/PathFunctions.dir/ChainPruner.cpp.o CMakeFiles/PathFunctions.dir/Path.cpp.o
+/usr/bin/ranlib libPathFunctions.a

@@ -1,0 +1,2 @@
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar qc libToolsFunctions.a CMakeFiles/ToolsFunctions.dir/haplotypecaller/CountedKmer.cpp.o CMakeFiles/ToolsFunctions.dir/haplotypecaller/KMerCounter.cpp.o CMakeFiles/ToolsFunctions.dir/haplotypecaller/ReadErrorCorrector.cpp.o
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib libToolsFunctions.a

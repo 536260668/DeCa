@@ -1,0 +1,2 @@
+/usr/bin/ar qc libHaplotypeFunctions.a CMakeFiles/HaplotypeFunctions.dir/Allele.cpp.o CMakeFiles/HaplotypeFunctions.dir/EventMap.cpp.o CMakeFiles/HaplotypeFunctions.dir/Haplotype.cpp.o
+/usr/bin/ranlib libHaplotypeFunctions.a

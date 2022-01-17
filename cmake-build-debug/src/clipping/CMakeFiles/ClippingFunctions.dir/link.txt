@@ -1,0 +1,2 @@
+/usr/bin/ar qc libClippingFunctions.a CMakeFiles/ClippingFunctions.dir/ClippingOp.cpp.o CMakeFiles/ClippingFunctions.dir/ReadClipper.cpp.o
+/usr/bin/ranlib libClippingFunctions.a

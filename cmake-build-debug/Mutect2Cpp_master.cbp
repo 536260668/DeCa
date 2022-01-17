@@ -1,0 +1,1923 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="Mutect2Cpp_master"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;CMake Files\src\;CMake Files\src\cache\;CMake Files\src\cigar\;CMake Files\src\haplotype\;CMake Files\src\path\;CMake Files\src\read\;CMake Files\src\graph\;CMake Files\src\intel\;CMake Files\src\intel\smithwaterman\;CMake Files\src\smithwaterman\;CMake Files\src\Mutect2\;CMake Files\src\variantcontext\;CMake Files\src\haplotypecaller\;CMake Files\src\utils\;CMake Files\src\tools\;CMake Files\src\samtools\;CMake Files\src\param\;CMake Files\src\clipping\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Mutect2Cpp_master">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/Mutect2Cpp_master" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/Makefile&quot;  VERBOSE=1 Mutect2Cpp_master"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Mutect2Cpp_master/fast">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/Mutect2Cpp_master" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/Makefile&quot;  VERBOSE=1 Mutect2Cpp_master/fast"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="CacheFunctions">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/cache/libCacheFunctions.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/cache"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/cache/Makefile&quot;  VERBOSE=1 CacheFunctions"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/cache/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/cache/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/cache/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="CacheFunctions/fast">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/cache/libCacheFunctions.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/cache"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/cache/Makefile&quot;  VERBOSE=1 CacheFunctions/fast"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/cache/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/cache/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/cache/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="CigarFunctions">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/cigar/libCigarFunctions.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/cigar"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/cigar/Makefile&quot;  VERBOSE=1 CigarFunctions"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/cigar/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/cigar/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/cigar/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="CigarFunctions/fast">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/cigar/libCigarFunctions.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/cigar"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/cigar/Makefile&quot;  VERBOSE=1 CigarFunctions/fast"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/cigar/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/cigar/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/cigar/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="HaplotypeFunctions">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/haplotype/libHaplotypeFunctions.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/haplotype"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/param"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/haplotype/Makefile&quot;  VERBOSE=1 HaplotypeFunctions"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/haplotype/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/haplotype/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/haplotype/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="HaplotypeFunctions/fast">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/haplotype/libHaplotypeFunctions.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/haplotype"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/param"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/haplotype/Makefile&quot;  VERBOSE=1 HaplotypeFunctions/fast"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/haplotype/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/haplotype/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/haplotype/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="PathFunctions">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/path/libPathFunctions.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/path"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/path/Makefile&quot;  VERBOSE=1 PathFunctions"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/path/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/path/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/path/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="PathFunctions/fast">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/path/libPathFunctions.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/path"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/path/Makefile&quot;  VERBOSE=1 PathFunctions/fast"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/path/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/path/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/path/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="ReadFunctions">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/read/libReadFunctions.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/read"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/read/Makefile&quot;  VERBOSE=1 ReadFunctions"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/read/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/read/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/read/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="ReadFunctions/fast">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/read/libReadFunctions.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/read"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/read/Makefile&quot;  VERBOSE=1 ReadFunctions/fast"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/read/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/read/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/read/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="GraphFunctions">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/graph/libGraphFunctions.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/graph"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/graph/Makefile&quot;  VERBOSE=1 GraphFunctions"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/graph/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/graph/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/graph/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="GraphFunctions/fast">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/graph/libGraphFunctions.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/graph"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/graph/Makefile&quot;  VERBOSE=1 GraphFunctions/fast"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/graph/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/graph/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/graph/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="smithwatermanFunctions">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/intel/smithwaterman/libsmithwatermanFunctions.dylib" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/intel/smithwaterman"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman/../common"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/intel/smithwaterman/Makefile&quot;  VERBOSE=1 smithwatermanFunctions"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/intel/smithwaterman/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/intel/smithwaterman/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/intel/smithwaterman/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="smithwatermanFunctions/fast">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/intel/smithwaterman/libsmithwatermanFunctions.dylib" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/intel/smithwaterman"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman/../common"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/intel/smithwaterman/Makefile&quot;  VERBOSE=1 smithwatermanFunctions/fast"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/intel/smithwaterman/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/intel/smithwaterman/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/intel/smithwaterman/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="SWFunctions">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/smithwaterman/libSWFunctions.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/smithwaterman"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/smithwaterman/Makefile&quot;  VERBOSE=1 SWFunctions"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/smithwaterman/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/smithwaterman/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/smithwaterman/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="SWFunctions/fast">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/smithwaterman/libSWFunctions.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/smithwaterman"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/smithwaterman/Makefile&quot;  VERBOSE=1 SWFunctions/fast"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/smithwaterman/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/smithwaterman/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/smithwaterman/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Mutect2Functions">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/Mutect2/libMutect2Functions.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/Mutect2"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/param"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/Mutect2/Makefile&quot;  VERBOSE=1 Mutect2Functions"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/Mutect2/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/Mutect2/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/Mutect2/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Mutect2Functions/fast">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/Mutect2/libMutect2Functions.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/Mutect2"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/param"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/Mutect2/Makefile&quot;  VERBOSE=1 Mutect2Functions/fast"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/Mutect2/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/Mutect2/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/Mutect2/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="VariantContext">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/variantcontext/libVariantContext.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/variantcontext"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/variantcontext/Makefile&quot;  VERBOSE=1 VariantContext"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/variantcontext/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/variantcontext/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/variantcontext/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="VariantContext/fast">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/variantcontext/libVariantContext.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/variantcontext"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/variantcontext/Makefile&quot;  VERBOSE=1 VariantContext/fast"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/variantcontext/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/variantcontext/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/variantcontext/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="HaplotypeCallerFunctions">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/haplotypecaller/libHaplotypeCallerFunctions.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/haplotypecaller"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/haplotypecaller/Makefile&quot;  VERBOSE=1 HaplotypeCallerFunctions"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/haplotypecaller/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/haplotypecaller/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/haplotypecaller/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="HaplotypeCallerFunctions/fast">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/haplotypecaller/libHaplotypeCallerFunctions.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/haplotypecaller"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/haplotypecaller/Makefile&quot;  VERBOSE=1 HaplotypeCallerFunctions/fast"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/haplotypecaller/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/haplotypecaller/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/haplotypecaller/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="UtilsFunctions">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/utils/libUtilsFunctions.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/utils"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/utils/Makefile&quot;  VERBOSE=1 UtilsFunctions"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/utils/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/utils/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/utils/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="UtilsFunctions/fast">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/utils/libUtilsFunctions.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/utils"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/utils/Makefile&quot;  VERBOSE=1 UtilsFunctions/fast"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/utils/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/utils/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/utils/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="ToolsFunctions">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/tools/libToolsFunctions.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/tools"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/tools/Makefile&quot;  VERBOSE=1 ToolsFunctions"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/tools/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/tools/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/tools/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="ToolsFunctions/fast">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/tools/libToolsFunctions.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/tools"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/tools/Makefile&quot;  VERBOSE=1 ToolsFunctions/fast"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/tools/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/tools/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/tools/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="SamtoolsFunctions">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/samtools/libSamtoolsFunctions.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/samtools"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/samtools/Makefile&quot;  VERBOSE=1 SamtoolsFunctions"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/samtools/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/samtools/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/samtools/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="SamtoolsFunctions/fast">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/samtools/libSamtoolsFunctions.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/samtools"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/samtools/Makefile&quot;  VERBOSE=1 SamtoolsFunctions/fast"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/samtools/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/samtools/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/samtools/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="ParamFunctions">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/param/libParamFunctions.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/param"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/param/Makefile&quot;  VERBOSE=1 ParamFunctions"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/param/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/param/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/param/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="ParamFunctions/fast">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/param/libParamFunctions.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/param"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/param/Makefile&quot;  VERBOSE=1 ParamFunctions/fast"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/param/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/param/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/param/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="ClippingFunctions">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/clipping/libClippingFunctions.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/clipping"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/clipping/Makefile&quot;  VERBOSE=1 ClippingFunctions"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/clipping/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/clipping/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/clipping/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="ClippingFunctions/fast">
+				<Option output="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/clipping/libClippingFunctions.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/clipping"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/../htslib"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2"/>
+					<Add directory="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/clipping/Makefile&quot;  VERBOSE=1 ClippingFunctions/fast"/>
+					<CompileFile command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/clipping/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/clipping/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/Cellar/make/4.3/bin/gmake -j12 -f &quot;/Users/bigdreamerxixi/Mutect2Cpp-master/cmake-build-debug/src/clipping/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/ActivityProfile.cpp">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/ActivityProfile.h">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/ActivityProfileState.cpp">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/ActivityProfileState.h">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/AssemblyRegion.cpp">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/AssemblyRegion.h">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/BandPassActivityProfile.cpp">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/BandPassActivityProfile.h">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/IntervalUtils.cpp">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/IntervalUtils.h">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Locatable.cpp">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Locatable.h">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/MathUtils.cpp">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/MathUtils.h">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2/AssemblyResult.cpp">
+			<Option target="Mutect2Functions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2/AssemblyResult.h">
+			<Option target="Mutect2Functions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2/AssemblyResultSet.cpp">
+			<Option target="Mutect2Functions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2/AssemblyResultSet.h">
+			<Option target="Mutect2Functions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2/ReadThreadingAssembler.cpp">
+			<Option target="Mutect2Functions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2/ReadThreadingAssembler.h">
+			<Option target="Mutect2Functions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2Engine.cpp">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2Engine.h">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2Utils.cpp">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2Utils.h">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/NaturalLogUtils.cpp">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/NaturalLogUtils.h">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/QualityUtils.cpp">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/QualityUtils.h">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/ReadFilter.cpp">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/ReadFilter.h">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/ReferenceCache.cpp">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/ReferenceCache.h">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/SimpleInterval.cpp">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/SimpleInterval.h">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/StringUtils.cpp">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/StringUtils.h">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache/DigammaCache.cpp">
+			<Option target="CacheFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache/DigammaCache.h">
+			<Option target="CacheFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache/IntToDoubleFunctionCache.cpp">
+			<Option target="CacheFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache/IntToDoubleFunctionCache.h">
+			<Option target="CacheFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache/Log10FactorialCache.cpp">
+			<Option target="CacheFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache/Log10FactorialCache.h">
+			<Option target="CacheFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar/Cigar.cpp">
+			<Option target="CigarFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar/Cigar.h">
+			<Option target="CigarFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar/CigarElement.cpp">
+			<Option target="CigarFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar/CigarElement.h">
+			<Option target="CigarFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar/CigarOperator.cpp">
+			<Option target="CigarFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar/CigarOperator.h">
+			<Option target="CigarFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar/TextCigarCodec.cpp">
+			<Option target="CigarFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar/TextCigarCodec.h">
+			<Option target="CigarFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/clipping/ClippingOp.cpp">
+			<Option target="ClippingFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/clipping/ClippingOp.h">
+			<Option target="ClippingFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/clipping/ClippingRepresentation.h">
+			<Option target="ClippingFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/clipping/ReadClipper.cpp">
+			<Option target="ClippingFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/clipping/ReadClipper.h">
+			<Option target="ClippingFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/engine/AlignmentContext.cpp">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/engine/AlignmentContext.h">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/engine/ReferenceContext.cpp">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/engine/ReferenceContext.h">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/BaseEdge.cpp">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/BaseEdge.h">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/BaseGraph/BaseGraphIterator.cpp">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/BaseGraph/BaseGraphIterator.h">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/BaseGraph/DFS_CycleDetect.cpp">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/BaseGraph/DFS_CycleDetect.h">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/BaseGraph/DirectedEdgeContainer.cpp">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/BaseGraph/DirectedEdgeContainer.h">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/BaseGraph/DirectedSpecifics.cpp">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/BaseGraph/DirectedSpecifics.h">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/BaseGraph/Specifics.cpp">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/BaseGraph/Specifics.h">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/BaseVertex.cpp">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/BaseVertex.h">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/DanglingChainMergeHelper.cpp">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/DanglingChainMergeHelper.h">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/KBestHaplotype.cpp">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/KBestHaplotype.h">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/KBestHaplotypeFinder.cpp">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/KBestHaplotypeFinder.h">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/Kmer.cpp">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/Kmer.h">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/MultiDeBruijnVertex.cpp">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/MultiDeBruijnVertex.h">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/MultiSampleEdge.cpp">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/MultiSampleEdge.h">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/ReadThreadingGraph.cpp">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/ReadThreadingGraph.h">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/SeqGraph.cpp">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/SeqGraph.h">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/SeqVertex.cpp">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/SeqVertex.h">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/set/ArraySet.cpp">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/set/ArraySet.h">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/utils/CommonSuffixSplitter.cpp">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/utils/CommonSuffixSplitter.h">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/utils/GraphUtils.cpp">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/utils/GraphUtils.h">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/utils/MergeCommonSuffices.cpp">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/utils/MergeCommonSuffices.h">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/utils/MergeDiamonds.cpp">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/utils/MergeDiamonds.h">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/utils/MergeTails.cpp">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/utils/MergeTails.h">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/utils/SharedSequenceMerger.cpp">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/utils/SharedSequenceMerger.h">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/utils/SharedVertexSequenceSplitter.cpp">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/utils/SharedVertexSequenceSplitter.h">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/utils/SplitCommonSuffices.cpp">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/utils/SplitCommonSuffices.h">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/utils/VertexBasedTransformer.cpp">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/utils/VertexBasedTransformer.h">
+			<Option target="GraphFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype/Allele.cpp">
+			<Option target="HaplotypeFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype/Allele.h">
+			<Option target="HaplotypeFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype/EventMap.cpp">
+			<Option target="HaplotypeFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype/EventMap.h">
+			<Option target="HaplotypeFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype/Haplotype.cpp">
+			<Option target="HaplotypeFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype/Haplotype.h">
+			<Option target="HaplotypeFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotypecaller/AssemblyBasedCallerUtils.cpp">
+			<Option target="HaplotypeCallerFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotypecaller/AssemblyBasedCallerUtils.h">
+			<Option target="HaplotypeCallerFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotypecaller/AssemblyRegionTrimmer.cpp">
+			<Option target="HaplotypeCallerFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotypecaller/AssemblyRegionTrimmer.h">
+			<Option target="HaplotypeCallerFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotypecaller/AssemblyRegionTrimmer_Result.cpp">
+			<Option target="HaplotypeCallerFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotypecaller/AssemblyRegionTrimmer_Result.h">
+			<Option target="HaplotypeCallerFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotypecaller/MutectReadThreadingAssemblerArgumentCollection.cpp">
+			<Option target="HaplotypeCallerFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotypecaller/MutectReadThreadingAssemblerArgumentCollection.h">
+			<Option target="HaplotypeCallerFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotypecaller/ReadThreadingAssemblerArgumentCollection.cpp">
+			<Option target="HaplotypeCallerFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotypecaller/ReadThreadingAssemblerArgumentCollection.h">
+			<Option target="HaplotypeCallerFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotypecaller/ReferenceConfidenceModel.cpp">
+			<Option target="HaplotypeCallerFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotypecaller/ReferenceConfidenceModel.h">
+			<Option target="HaplotypeCallerFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman/IntelSmithWaterman.cc">
+			<Option target="smithwatermanFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman/IntelSmithWaterman.h">
+			<Option target="smithwatermanFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman/avx2_impl.cc">
+			<Option target="smithwatermanFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman/avx2_impl.h">
+			<Option target="smithwatermanFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman/avx512_impl.cc">
+			<Option target="smithwatermanFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman/avx512_impl.h">
+			<Option target="smithwatermanFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman/smithwaterman_common.cc">
+			<Option target="smithwatermanFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman/smithwaterman_common.h">
+			<Option target="smithwatermanFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/main.cpp">
+			<Option target="Mutect2Cpp_master"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/param/ParamUtils.cpp">
+			<Option target="ParamFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/param/ParamUtils.h">
+			<Option target="ParamFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path/AdaptiveChainPruner.cpp">
+			<Option target="PathFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path/AdaptiveChainPruner.h">
+			<Option target="PathFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path/ChainPruner.cpp">
+			<Option target="PathFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path/ChainPruner.h">
+			<Option target="PathFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path/Path.cpp">
+			<Option target="PathFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path/Path.h">
+			<Option target="PathFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read/AlignmentUtils.cpp">
+			<Option target="ReadFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read/AlignmentUtils.h">
+			<Option target="ReadFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read/CigarUtils.cpp">
+			<Option target="ReadFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read/CigarUtils.h">
+			<Option target="ReadFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read/ReadCache.cpp">
+			<Option target="ReadFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read/ReadCache.h">
+			<Option target="ReadFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read/ReadConstants.cpp">
+			<Option target="ReadFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read/ReadConstants.h">
+			<Option target="ReadFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read/ReadCoordinateComparator.cpp">
+			<Option target="ReadFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read/ReadCoordinateComparator.h">
+			<Option target="ReadFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read/ReadUtils.cpp">
+			<Option target="ReadFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read/ReadUtils.h">
+			<Option target="ReadFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/samtools/AbstractSAMHeaderRecord.cpp">
+			<Option target="SamtoolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/samtools/AbstractSAMHeaderRecord.h">
+			<Option target="SamtoolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/samtools/HeaderRecordAndFileHeader.cpp">
+			<Option target="SamtoolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/samtools/HeaderRecordAndFileHeader.h">
+			<Option target="SamtoolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/samtools/HeaderRecordFactory.cpp">
+			<Option target="SamtoolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/samtools/HeaderRecordFactory.h">
+			<Option target="SamtoolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/samtools/SAMBinaryTagAndValue.cpp">
+			<Option target="SamtoolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/samtools/SAMBinaryTagAndValue.h">
+			<Option target="SamtoolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/samtools/SAMFileHeader.cpp">
+			<Option target="SamtoolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/samtools/SAMFileHeader.h">
+			<Option target="SamtoolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/samtools/SAMFlag.cpp">
+			<Option target="SamtoolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/samtools/SAMFlag.h">
+			<Option target="SamtoolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/samtools/SAMProgramRecord.cpp">
+			<Option target="SamtoolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/samtools/SAMProgramRecord.h">
+			<Option target="SamtoolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/samtools/SAMReadGroupRecord.cpp">
+			<Option target="SamtoolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/samtools/SAMReadGroupRecord.h">
+			<Option target="SamtoolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/samtools/SAMRecord.cpp">
+			<Option target="SamtoolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/samtools/SAMRecord.h">
+			<Option target="SamtoolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/samtools/SAMSequenceDictionary.cpp">
+			<Option target="SamtoolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/samtools/SAMSequenceDictionary.h">
+			<Option target="SamtoolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/samtools/SAMSequenceRecord.cpp">
+			<Option target="SamtoolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/samtools/SAMSequenceRecord.h">
+			<Option target="SamtoolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/samtools/SAMTools_decode.cpp">
+			<Option target="SamtoolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/samtools/SAMTools_decode.h">
+			<Option target="SamtoolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/samtools/SAMUtils.cpp">
+			<Option target="SamtoolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/samtools/SAMUtils.h">
+			<Option target="SamtoolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/samtools/SamFileHeaderMerger.cpp">
+			<Option target="SamtoolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/samtools/SamFileHeaderMerger.h">
+			<Option target="SamtoolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman/IntelSmithWaterman.cpp">
+			<Option target="SWFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman/IntelSmithWaterman.h">
+			<Option target="SWFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman/SWNativeAlignerResult.cpp">
+			<Option target="SWFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman/SWNativeAlignerResult.h">
+			<Option target="SWFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman/SWNativeAlignerWrapper.cpp">
+			<Option target="SWFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman/SWNativeAlignerWrapper.h">
+			<Option target="SWFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman/SWNativeResultWrapper.cpp">
+			<Option target="SWFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman/SWNativeResultWrapper.h">
+			<Option target="SWFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman/SWParameters.cpp">
+			<Option target="SWFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman/SWParameters.h">
+			<Option target="SWFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman/SmithWatermanAligner.cpp">
+			<Option target="SWFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman/SmithWatermanAligner.h">
+			<Option target="SWFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman/SmithWatermanAlignment.cpp">
+			<Option target="SWFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman/SmithWatermanAlignment.h">
+			<Option target="SWFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/tools/haplotypecaller/CountedKmer.cpp">
+			<Option target="ToolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/tools/haplotypecaller/CountedKmer.h">
+			<Option target="ToolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/tools/haplotypecaller/KMerCounter.cpp">
+			<Option target="ToolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/tools/haplotypecaller/KMerCounter.h">
+			<Option target="ToolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/tools/haplotypecaller/ReadErrorCorrector.cpp">
+			<Option target="ToolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/tools/haplotypecaller/ReadErrorCorrector.h">
+			<Option target="ToolsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/utils/BaseUtils.cpp">
+			<Option target="UtilsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/utils/BaseUtils.h">
+			<Option target="UtilsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/utils/PeUtils.cpp">
+			<Option target="UtilsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/utils/PeUtils.h">
+			<Option target="UtilsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/utils/ReadPileup.cpp">
+			<Option target="UtilsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/utils/ReadPileup.h">
+			<Option target="UtilsFunctions"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext/CommonInfo.cpp">
+			<Option target="VariantContext"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext/CommonInfo.h">
+			<Option target="VariantContext"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext/FastGenotype.cpp">
+			<Option target="VariantContext"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext/FastGenotype.h">
+			<Option target="VariantContext"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext/GenoTypesContext.cpp">
+			<Option target="VariantContext"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext/GenoTypesContext.h">
+			<Option target="VariantContext"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext/Genotype.cpp">
+			<Option target="VariantContext"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext/Genotype.h">
+			<Option target="VariantContext"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext/GenotypeLikelihoods.cpp">
+			<Option target="VariantContext"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext/GenotypeLikelihoods.h">
+			<Option target="VariantContext"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext/GenotypeLikelihoodsAllelePair.cpp">
+			<Option target="VariantContext"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext/GenotypeLikelihoodsAllelePair.h">
+			<Option target="VariantContext"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext/GenotypeType.h">
+			<Option target="VariantContext"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext/VCFConstants.h">
+			<Option target="VariantContext"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext/VariantContext.cpp">
+			<Option target="VariantContext"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext/VariantContext.h">
+			<Option target="VariantContext"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext/builder/GenotypeBuilder.cpp">
+			<Option target="VariantContext"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext/builder/GenotypeBuilder.h">
+			<Option target="VariantContext"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext/builder/VariantContextBuilder.cpp">
+			<Option target="VariantContext"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext/builder/VariantContextBuilder.h">
+			<Option target="VariantContext"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext/utils/GeneralUtils.cpp">
+			<Option target="VariantContext"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext/utils/GeneralUtils.h">
+			<Option target="VariantContext"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cache/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\src\cache\"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/cigar/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\src\cigar\"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotype/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\src\haplotype\"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/path/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\src\path\"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/read/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\src\read\"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/graph/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\src\graph\"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/intel/smithwaterman/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\src\intel\smithwaterman\"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/smithwaterman/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\src\smithwaterman\"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/Mutect2/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\src\Mutect2\"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/variantcontext/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\src\variantcontext\"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/haplotypecaller/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\src\haplotypecaller\"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/utils/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\src\utils\"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/tools/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\src\tools\"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/samtools/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\src\samtools\"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/param/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\src\param\"/>
+		</Unit>
+		<Unit filename="/Users/bigdreamerxixi/Mutect2Cpp-master/src/clipping/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\src\clipping\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>
