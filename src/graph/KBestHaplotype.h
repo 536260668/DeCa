@@ -19,7 +19,7 @@ public:
     bool getIsReference() {return isReference;}
     KBestHaplotype(SeqVertex* initialVertex, DirectedSpecifics<SeqVertex, BaseEdge> & graph);
     KBestHaplotype(KBestHaplotype* p, BaseEdge* edge, int totalOutgoingMultiplicity);
-    Haplotype* getHaplotype();
+    std::shared_ptr<Haplotype> getHaplotype();
 };
 
 

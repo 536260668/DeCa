@@ -7,9 +7,9 @@
 #include "assert.h"
 
 
-ActivityProfile::ActivityProfile(int maxProbPropagationDistance, double activeProbThreshold, sam_hdr_t * header):
+ActivityProfile::ActivityProfile(int maxProbPropagationDistance, double activeProbThreshold, SAMFileHeader * header):
                     stateList(), maxProbPropagationDistance(maxProbPropagationDistance),
-                    activeProbThreshold(activeProbThreshold) , regionStartLoc(), regionStopLoc() ,samHeader(header),
+                    activeProbThreshold(activeProbThreshold) , regionStartLoc(), regionStopLoc() ,header(header),
                     contigLength(-1), regions(new vector<AssemblyRegion>)
 {
 }
@@ -30,7 +30,7 @@ void ActivityProfile::add(ActivityProfileState & state)
     if(regionStartLoc.getContig().empty()){
         regionStartLoc = state.getLoc();
         regionStopLoc = regionStartLoc;
-        contigLength = sam_hdr_tid2len(samHeader, sam_hdr_name2tid(samHeader, regionStartLoc.getContig().c_str()));
+        contigLength = header->getSequenceDictionary().getSequence(regionStartLoc.getContig()).getSequenceLength();
     } else {
         // GATK requires the activityProfile to be contiguous with the previously added one
         assert(regionStopLoc.getStart() == state.getLoc().getStart() - 1);
@@ -131,7 +131,7 @@ optional<struct AssemblyRegion> ActivityProfile::popReadyAssemblyRegion(int asse
 
 
     SimpleInterval regionLoc = SimpleInterval(first.getLoc().getContig(), first.getLoc().getStart(), first.getLoc().getStart() + offsetOfNextRegionEnd);
-    return optional<AssemblyRegion>( AssemblyRegion(regionLoc, sub, isActiveRegion, assemblyRegionExtension, samHeader));
+    return optional<AssemblyRegion>( AssemblyRegion(regionLoc, sub, isActiveRegion, assemblyRegionExtension, header));
 }
 
 int ActivityProfile::findEndOfRegion(bool isActiveRegion, int minRegionSize, int maxRegionSize, bool forceConversion)

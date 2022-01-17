@@ -7,7 +7,7 @@
 
 BandPassActivityProfile::BandPassActivityProfile(int maxProbPropagationDistance, double activeProbThreshold,
                                                  int maxFilterSize, double sigma, bool adaptiveFilterSize,
-                                                 sam_hdr_t *header) : ActivityProfile(maxProbPropagationDistance, activeProbThreshold, header), sigma(sigma)
+                                                 SAMFileHeader *header) : ActivityProfile(maxProbPropagationDistance, activeProbThreshold, header), sigma(sigma)
 {
     std::vector<double> * fullKernel = makeKernel(maxFilterSize, sigma);
     filterSize = adaptiveFilterSize ? determineFilterSize(fullKernel, MIN_PROB_TO_KEEP_IN_FILTER) : maxFilterSize;

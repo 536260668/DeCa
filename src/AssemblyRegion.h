@@ -93,7 +93,7 @@ private:
      * @param genomeLoc a non-null genome loc indicating the base span of the bp we'd like to get the reference for
      * @return a non-null array of bytes holding the reference bases in referenceReader
      */
-     uint8_t * getReference(ReferenceCache* referenceReader, int padding, SimpleInterval & genomeLoc);
+     uint8_t * getReference(ReferenceCache* referenceReader, int padding, SimpleInterval & genomeLoc, int & length);
 
 public:
     AssemblyRegion(SimpleInterval const &activeRegionLoc, std::vector<ActivityProfileState> supportingStates, bool isActive, int extension, SAMFileHeader * header);
@@ -247,7 +247,7 @@ public:
      * @param padding the padding, in BP, we want to add to either side of this active region extended region
      * @return a non-null array of bytes holding the reference bases in referenceReader
      */
-    uint8_t * getAssemblyRegionReference(ReferenceCache * cache, int padding);
+    uint8_t * getAssemblyRegionReference(ReferenceCache * cache, int padding, int & length);
 
 
 };

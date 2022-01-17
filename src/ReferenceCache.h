@@ -38,7 +38,7 @@ public:
      */
     char getBase(hts_pos_t pos);
 
-    uint8_t * getSubsequenceAt(int tid, int start, int stop);
+    uint8_t * getSubsequenceAt(int tid, int start, int stop, int & length);
 };
 
 

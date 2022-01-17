@@ -31,7 +31,7 @@ public:
     constexpr static double DEFAULT_SIGMA = 17.0;
 
     BandPassActivityProfile(int maxProbPropagationDistance, double activeProbThreshold, int maxFilterSize,
-                                double sigma, bool adaptiveFilterSize, sam_hdr_t * header);
+                                double sigma, bool adaptiveFilterSize, SAMFileHeader * header);
 
     ~BandPassActivityProfile();
 

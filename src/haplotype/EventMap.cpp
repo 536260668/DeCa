@@ -13,8 +13,8 @@
 
 const Allele* EventMap::SYMBOLIC_UNASSEMBLED_EVENT_ALLELE = Allele::create((uint8_t *) "<UNASSEMBLED_EVENT>", 19, false);
 
-EventMap::EventMap(Haplotype *haplotype, uint8_t *ref, int refLength, Locatable *refLoc, std::string sourceNameToAdd,
-                   int maxMnpDistance) : haplotype(haplotype), ref(ref), refLength(refLength), refLoc(refLoc), sourceNameToAdd(std::move(sourceNameToAdd)){
+EventMap::EventMap(std::shared_ptr<Haplotype> haplotype, uint8_t *ref, int refLength, Locatable *refLoc, std::string sourceNameToAdd,
+                   int maxMnpDistance) : haplotype(std::move(haplotype)), ref(ref), refLength(refLength), refLoc(refLoc), sourceNameToAdd(std::move(sourceNameToAdd)){
     processCigarForInitialEvents(maxMnpDistance);
 }
 
@@ -28,7 +28,7 @@ void EventMap::processCigarForInitialEvents(int maxMnpDistance) {
     if(refPos < 0) {
         return;
     }
-    std::vector<VariantContext*> proposedEvents;
+    std::vector<std::shared_ptr<VariantContext>> proposedEvents;
     int alignmentPos = 0;
     for(int cigarIndex = 0; cigarIndex < cigar->numCigarElements(); cigarIndex++) {
         CigarElement ce = cigar->getCigarElement(cigarIndex);
@@ -133,21 +133,21 @@ void EventMap::processCigarForInitialEvents(int maxMnpDistance) {
                 throw std::invalid_argument("Unsupported cigar operator created during SW alignment");
         }
     }
-    for(VariantContext* proposedEvent : proposedEvents )
+    for(std::shared_ptr<VariantContext> proposedEvent : proposedEvents )
         addVC(proposedEvent, true);
 }
 
-void EventMap::addVC(VariantContext *vc, bool merge) {
-    Mutect2Utils::validateArg(vc, "null is not allowed here");
+void EventMap::addVC(std::shared_ptr<VariantContext> vc, bool merge) {
+    Mutect2Utils::validateArg(vc.get(), "null is not allowed here");
     if(variantMap.find(vc->getStart()) != variantMap.end()) {
         Mutect2Utils::validateArg(merge, "Will not merge previously bound variant contexts as merge is false");
-        VariantContext* prev = variantMap.at(vc->getStart());
-        variantMap.insert(std::pair<int, VariantContext*>(vc->getStart(), makeBlock(prev, vc)));
+        std::shared_ptr<VariantContext> prev = variantMap.at(vc->getStart());
+        variantMap.insert(std::pair<int, std::shared_ptr<VariantContext>>(vc->getStart(), makeBlock(prev, vc)));
     } else
-        variantMap.insert(std::pair<int, VariantContext*>(vc->getStart(), vc));
+        variantMap.insert(std::pair<int, std::shared_ptr<VariantContext>>(vc->getStart(), vc));
 }
 
-VariantContext *EventMap::makeBlock(VariantContext *vc1, VariantContext *vc2) {
+std::shared_ptr<VariantContext> EventMap::makeBlock(std::shared_ptr<VariantContext> vc1, std::shared_ptr<VariantContext> vc2) {
     Mutect2Utils::validateArg(vc1->getStart() == vc2->getStart(), "vc1 and 2 must have the same start");
     Mutect2Utils::validateArg(vc1->isBiallelic(), "vc1 must be biallelic");
     if( ! vc1->isSNP()) {
@@ -176,8 +176,8 @@ VariantContext *EventMap::makeBlock(VariantContext *vc1, VariantContext *vc2) {
             b.setStop(vc2->getEnd());
         }
     } else {
-        VariantContext* insertion = vc1->isSimpleInsertion() ? vc1 : vc2;
-        VariantContext* deletion  = vc1->isSimpleInsertion() ? vc2 : vc1;
+        std::shared_ptr<VariantContext> insertion = vc1->isSimpleInsertion() ? vc1 : vc2;
+        std::shared_ptr<VariantContext> deletion  = vc1->isSimpleInsertion() ? vc2 : vc1;
         new_ref = deletion->getReference();
         new_alt = insertion->getAlternateAllele(0);
         b.setStop(deletion->getEnd());
@@ -191,12 +191,12 @@ bool EventMap::empty() {
     return variantMap.empty();
 }
 
-std::set<int> EventMap::buildEventMapsForHaplotypes(std::vector<Haplotype *> & haplotypes, uint8_t *ref, int refLength,
+std::set<int> EventMap::buildEventMapsForHaplotypes(std::vector<std::shared_ptr<Haplotype>> & haplotypes, uint8_t *ref, int refLength,
                                                     Locatable *refLoc, bool debug, int maxMnpDistance) {
     Mutect2Utils::validateArg(maxMnpDistance >= 0, "maxMnpDistance may not be negative.");
     std::set<int> startPosKeySet;
     int hapNumber = 0;
-    for(Haplotype* h : haplotypes) {
+    for(const std::shared_ptr<Haplotype>& h : haplotypes) {
         h->setEventMap(new EventMap(h, ref, refLength, refLoc, "HC" + std::to_string(hapNumber), maxMnpDistance));
         for(int i : h->getEventMap()->getStartPositions()) {
             startPosKeySet.insert(i);
@@ -207,26 +207,26 @@ std::set<int> EventMap::buildEventMapsForHaplotypes(std::vector<Haplotype *> & h
 
 std::set<int> EventMap::getStartPositions() {
     std::set<int> ret;
-    for(std::pair<int, VariantContext*> pair_vc : variantMap) {
+    for(std::pair<int, std::shared_ptr<VariantContext>> pair_vc : variantMap) {
         ret.insert(pair_vc.first);
     }
     return {ret.begin(), ret.end()};
 }
 
-std::set<VariantContext *, VariantContextComparator>
-EventMap::getAllVariantContexts(std::vector<Haplotype *> haplotypes) {
-    std::set<VariantContext *, VariantContextComparator> ret;
-    for(Haplotype* h : haplotypes) {
-        for(VariantContext* vc : h->getEventMap()->getVariantContexts()) {
+std::set<std::shared_ptr<VariantContext>, VariantContextComparator>
+EventMap::getAllVariantContexts(std::vector<std::shared_ptr<Haplotype>> & haplotypes) {
+    std::set<std::shared_ptr<VariantContext>, VariantContextComparator> ret;
+    for(const std::shared_ptr<Haplotype>& h : haplotypes) {
+        for(std::shared_ptr<VariantContext> vc : h->getEventMap()->getVariantContexts()) {
             ret.insert(vc);
         }
     }
     return ret;
 }
 
-std::vector<VariantContext *> EventMap::getVariantContexts() {
-    std::vector<VariantContext *> ret;
-    for(std::pair<int, VariantContext*> pair_vc : variantMap) {
+std::vector<std::shared_ptr<VariantContext>> EventMap::getVariantContexts() {
+    std::vector<std::shared_ptr<VariantContext>> ret;
+    for(std::pair<int, std::shared_ptr<VariantContext>> pair_vc : variantMap) {
         ret.emplace_back(pair_vc.second);
     }
     return ret;

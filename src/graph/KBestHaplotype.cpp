@@ -13,10 +13,10 @@ KBestHaplotype::KBestHaplotype(KBestHaplotype *p, BaseEdge *edge, int totalOutgo
     score = p->getScore() + std::log10(edge->getMultiplicity()) - std::log10(totalOutgoingMultiplicity);
 }
 
-Haplotype *KBestHaplotype::getHaplotype() {
+std::shared_ptr<Haplotype> KBestHaplotype::getHaplotype() {
     int length = 0;
     uint8_t * base = getBases(length);
-    Haplotype* haplotype = new Haplotype(base, length, getIsReference());
+    std::shared_ptr<Haplotype> haplotype(new Haplotype(base, length, getIsReference()));
     haplotype->setScore(score);
     return haplotype;
 }

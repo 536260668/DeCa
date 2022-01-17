@@ -11,20 +11,20 @@ VariantContextBuilder::VariantContextBuilder(std::string & source, std::string &
     toValidate.insert(ALLELES);
 }
 
-VariantContext *VariantContextBuilder::make(bool leaveModifyableAsIs) {
+std::shared_ptr<VariantContext> VariantContextBuilder::make(bool leaveModifyableAsIs) {
     if(!leaveModifyableAsIs) {
         attributesCanBeModified = false;
     }
 
-    VariantContext* ret = new VariantContext(source, ID, contig, start, stop, alleles, genotypes, log10PError, filters, attribute, fullyDecoded,toValidate);
+    std::shared_ptr<VariantContext> ret (new VariantContext(source, ID, contig, start, stop, alleles, genotypes, log10PError, filters, attribute, fullyDecoded,toValidate));
     return ret;
 }
 
-VariantContext *VariantContextBuilder::make() {
+std::shared_ptr<VariantContext> VariantContextBuilder::make() {
     return make(false);
 }
 
-VariantContextBuilder::VariantContextBuilder(VariantContext *parent) : alleles(&parent->getAlleles()), attribute(&parent->getAttributes()),attributesCanBeModified(false),
+VariantContextBuilder::VariantContextBuilder(std::shared_ptr<VariantContext> &parent) : alleles(&parent->getAlleles()), attribute(&parent->getAttributes()),attributesCanBeModified(false),
 contig(parent->getContig()), filters(parent->getFiltersMaybeNull()), genotypes(parent->getGenotypes()), ID(parent->getID()), log10PError(parent->getLog10PError()),
 source(parent->getSource()), start(parent->getStart()), stop(parent->getEnd()), fullyDecoded(parent->isFullyDecoded()){}
 

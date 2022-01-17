@@ -3,19 +3,21 @@
 //
 
 #include "AssemblyResultSet.h"
+
+#include <utility>
 #include "param/ParamUtils.h"
 
-bool AssemblyResultSet::add(Haplotype *h, AssemblyResult *ar) {
-    Mutect2Utils::validateArg(h, "input haplotype cannot be null");
-    Mutect2Utils::validateArg(ar, "input assembly-result cannot be null");
+bool AssemblyResultSet::add(std::shared_ptr<Haplotype> &h, std::shared_ptr<AssemblyResult> &ar) {
+    Mutect2Utils::validateArg(h.get(), "input haplotype cannot be null");
+    Mutect2Utils::validateArg(ar.get(), "input assembly-result cannot be null");
     Mutect2Utils::validateArg(h->getGenomeLocation(), "the haplotype provided must have a genomic location");
 
     bool assemblyResultAdditionReturn = add(ar);
 
     if(haplotypes.find(h) != haplotypes.end()) {
-        AssemblyResult* previousAr = assemblyResultByHaplotype.at(h);
+        std::shared_ptr<AssemblyResult> previousAr = assemblyResultByHaplotype.at(h);
         if(previousAr == nullptr) {
-            assemblyResultByHaplotype.insert(std::pair<Haplotype*, AssemblyResult*>(h, ar));
+            assemblyResultByHaplotype.insert(std::pair<std::shared_ptr<Haplotype>, std::shared_ptr<AssemblyResult>>(h, ar));
             return true;
         } else if (previousAr != ar) {
             throw std::invalid_argument("there is already a different assembly result for the input haplotype");
@@ -24,7 +26,7 @@ bool AssemblyResultSet::add(Haplotype *h, AssemblyResult *ar) {
         }
     } else {
         haplotypes.insert(h);
-        assemblyResultByHaplotype.insert(std::pair<Haplotype*, AssemblyResult*>(h, ar));
+        assemblyResultByHaplotype.insert(std::pair<std::shared_ptr<Haplotype>, std::shared_ptr<AssemblyResult>>(h, ar));
         updateReferenceHaplotype(h);
         if(h->getIsNonReference()) {
             variationPresent = true;
@@ -33,8 +35,8 @@ bool AssemblyResultSet::add(Haplotype *h, AssemblyResult *ar) {
     }
 }
 
-bool AssemblyResultSet::add(AssemblyResult *ar) {
-    Mutect2Utils::validateArg(ar, "input assembly-result cannot be null");
+bool AssemblyResultSet::add(std::shared_ptr<AssemblyResult> &ar) {
+    Mutect2Utils::validateArg(ar.get(), "input assembly-result cannot be null");
     int kmerSize = ar->getKmerSize();
     if(assemblyResultByKmerSize.find(kmerSize) != assemblyResultByKmerSize.end()) {
         if(assemblyResultByKmerSize.at(kmerSize) != ar) {
@@ -42,13 +44,13 @@ bool AssemblyResultSet::add(AssemblyResult *ar) {
         }
         return false;
     } else {
-        assemblyResultByKmerSize.insert(std::pair<int, AssemblyResult*>(kmerSize, ar));
+        assemblyResultByKmerSize.insert(std::pair<int, std::shared_ptr<AssemblyResult>>(kmerSize, ar));
         kmerSizes.insert(kmerSize);
         return true;
     }
 }
 
-void AssemblyResultSet::updateReferenceHaplotype(Haplotype *newHaplotype) {
+void AssemblyResultSet::updateReferenceHaplotype(std::shared_ptr<Haplotype> &newHaplotype) {
     if(!newHaplotype->getIsReference()) {
         return;
     }
@@ -59,8 +61,8 @@ void AssemblyResultSet::updateReferenceHaplotype(Haplotype *newHaplotype) {
     }
 }
 
-void AssemblyResultSet::setRegionForGenotyping(AssemblyRegion *regionForGenotyping) {
-    this->regionForGenotyping = regionForGenotyping;
+void AssemblyResultSet::setRegionForGenotyping(AssemblyRegion & regionForGenotyping) {
+    this->regionForGenotyping = &regionForGenotyping;
 }
 
 void AssemblyResultSet::setFullReferenceWithPadding(uint8_t *fullReferenceWithPadding, int length) {
@@ -72,8 +74,8 @@ void AssemblyResultSet::setPaddedReferenceLoc(SimpleInterval *paddedReferenceLoc
     this->paddedReferenceLoc = paddedReferenceLoc;
 }
 
-bool AssemblyResultSet::add(Haplotype *h) {
-    Mutect2Utils::validateArg(h, "input haplotype can not be null");
+bool AssemblyResultSet::add(std::shared_ptr<Haplotype> &h) {
+    Mutect2Utils::validateArg(h.get(), "input haplotype can not be null");
     Mutect2Utils::validateArg(h->getGenomeLocation(), "haplotype genomeLocation cannot be null");
     if(haplotypes.find(h) != haplotypes.end()) {
         return false;
@@ -83,12 +85,12 @@ bool AssemblyResultSet::add(Haplotype *h) {
     return true;
 }
 
-std::set<VariantContext *, VariantContextComparator> & AssemblyResultSet::getVariationEvents(int maxMnpDistance) {
+std::set<std::shared_ptr<VariantContext>, VariantContextComparator> & AssemblyResultSet::getVariationEvents(int maxMnpDistance) {
     ParamUtils::isPositiveOrZero(maxMnpDistance, "maxMnpDistance may not be negative.");
     bool sameMnpDistance = lastMaxMnpDistanceUsed != -1 && maxMnpDistance == lastMaxMnpDistanceUsed;
     lastMaxMnpDistanceUsed = maxMnpDistance;
     bool flag = false;
-    for(Haplotype* haplotype : haplotypes) {
+    for(const std::shared_ptr<Haplotype>& haplotype : haplotypes) {
         if(haplotype->getIsReference() && haplotype->getEventMap()->empty()) {
             flag = true;
             break;
@@ -101,11 +103,11 @@ std::set<VariantContext *, VariantContextComparator> & AssemblyResultSet::getVar
 }
 
 void AssemblyResultSet::regenerateVariationEvents(int maxMnpDistance) {
-    std::vector<Haplotype*> haplotypeList = getHaplotypeList();
+    std::vector<std::shared_ptr<Haplotype>> haplotypeList = getHaplotypeList();
     EventMap::buildEventMapsForHaplotypes(haplotypeList, fullReferenceWithPadding, fullReferenceWithPaddingLength, paddedReferenceLoc, false, maxMnpDistance);
     variationEvents = EventMap::getAllVariantContexts(haplotypeList);
     lastMaxMnpDistanceUsed = maxMnpDistance;
-    for(Haplotype* haplotype : haplotypeList) {
+    for(std::shared_ptr<Haplotype> haplotype : haplotypeList) {
         if(haplotype->getIsNonReference()) {
             variationPresent = true;
             break;
@@ -113,6 +115,6 @@ void AssemblyResultSet::regenerateVariationEvents(int maxMnpDistance) {
     }
 }
 
-std::vector<Haplotype *> AssemblyResultSet::getHaplotypeList() {
+std::vector<std::shared_ptr<Haplotype>> AssemblyResultSet::getHaplotypeList() {
     return {haplotypes.begin(), haplotypes.end()};
 }

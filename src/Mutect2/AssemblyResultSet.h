@@ -13,33 +13,33 @@
 
 class AssemblyResultSet {
 private:
-    std::map<int, AssemblyResult*> assemblyResultByKmerSize;
-    std::set<Haplotype*> haplotypes;
-    std::map<Haplotype*, AssemblyResult*> assemblyResultByHaplotype;
-    AssemblyRegion* regionForGenotyping;
+    std::map<int, std::shared_ptr<AssemblyResult>> assemblyResultByKmerSize;
+    std::set<std::shared_ptr<Haplotype>> haplotypes;
+    std::map<std::shared_ptr<Haplotype>, std::shared_ptr<AssemblyResult>> assemblyResultByHaplotype;
+    AssemblyRegion * regionForGenotyping;
     uint8_t * fullReferenceWithPadding;
     int fullReferenceWithPaddingLength;
     SimpleInterval* paddedReferenceLoc;
     bool variationPresent;
-    Haplotype* refHaplotype;
+    std::shared_ptr<Haplotype>  refHaplotype;
     bool wasTrimmed = false;
     int lastMaxMnpDistanceUsed = -1;
     std::set<int> kmerSizes;
-    std::set<VariantContext*, VariantContextComparator> variationEvents;
-    bool add(AssemblyResult* ar);
-    void updateReferenceHaplotype(Haplotype* newHaplotype);
+    std::set<std::shared_ptr<VariantContext>, VariantContextComparator> variationEvents;
+    bool add(std::shared_ptr<AssemblyResult> &ar);
+    void updateReferenceHaplotype(std::shared_ptr<Haplotype> & newHaplotype);
 
 public:
     AssemblyResultSet() = default;
-    bool add(Haplotype * h, AssemblyResult* ar);
-    bool add(Haplotype* h);
-    void setRegionForGenotyping(AssemblyRegion* regionForGenotyping);
+    bool add(std::shared_ptr<Haplotype> & h, std::shared_ptr<AssemblyResult> &ar);
+    bool add(std::shared_ptr<Haplotype> & h);
+    void setRegionForGenotyping(AssemblyRegion & regionForGenotyping);
     void setFullReferenceWithPadding(uint8_t* fullReferenceWithPadding, int length);
     void setPaddedReferenceLoc(SimpleInterval* paddedReferenceLoc);
-    std::set<VariantContext*, VariantContextComparator> & getVariationEvents(int maxMnpDistance);
+    std::set<std::shared_ptr<VariantContext>, VariantContextComparator> & getVariationEvents(int maxMnpDistance);
 
     void regenerateVariationEvents(int distance);
-    std::vector<Haplotype*> getHaplotypeList();
+    std::vector<std::shared_ptr<Haplotype>> getHaplotypeList();
 };
 
 

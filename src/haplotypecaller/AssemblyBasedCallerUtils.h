@@ -8,6 +8,9 @@
 #include "haplotype/Haplotype.h"
 #include "AssemblyRegion.h"
 #include "ReferenceCache.h"
+#include "Mutect2/AssemblyResultSet.h"
+#include "M2ArgumentCollection.h"
+#include "ReadThreadingAssembler.h"
 
 class AssemblyBasedCallerUtils {
 public:
@@ -18,6 +21,12 @@ public:
      * @return a non-null haplotype
      */
     static std::shared_ptr<Haplotype> createReferenceHaplotype(AssemblyRegion & region, SimpleInterval referencePadding, ReferenceCache & cache);
+
+    static std::shared_ptr<AssemblyResultSet> assembleReads(AssemblyRegion& region, M2ArgumentCollection & argumentCollection, SAMFileHeader* header, ReferenceCache & cache, ReadThreadingAssembler& assemblyEngine);
+
+    static const int REFERENCE_PADDING_FOR_ASSEMBLY = 500;
+
+    static SimpleInterval getPaddedReferenceLoc(AssemblyRegion& region, int referencePadding, SAMFileHeader* header);
 };
 
 

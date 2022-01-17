@@ -30,11 +30,11 @@ private:
 public:
     VariantContextBuilder(std::string & source, std::string & contig, long start, long stop, std::vector<Allele*> * alleles);
 
-    VariantContextBuilder(VariantContext * parent);
+    VariantContextBuilder(std::shared_ptr<VariantContext> & parent);
 
-    VariantContext* make(bool leaveModifyableAsIs);
+    std::shared_ptr<VariantContext> make(bool leaveModifyableAsIs);
 
-    VariantContext* make();
+    std::shared_ptr<VariantContext> make();
 
     void setStop(long stop);
 

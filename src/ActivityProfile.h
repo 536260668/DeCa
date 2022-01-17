@@ -13,6 +13,7 @@
 #include "htslib/sam.h"
 #include "ActivityProfileState.h"
 #include "AssemblyRegion.h"
+#include "samtools/SAMFileHeader.h"
 using namespace std;
 
 class ActivityProfile {
@@ -35,7 +36,7 @@ protected:
     double activeProbThreshold;
     SimpleInterval regionStartLoc;
     SimpleInterval regionStopLoc;
-    sam_hdr_t * samHeader;
+    SAMFileHeader * header;
 
     int contigLength;
 
@@ -78,7 +79,7 @@ protected:
      */
     bool isMinimum(int index);
 public:
-    ActivityProfile(int maxProbPropagationDistance, double activeProbThreshold, sam_hdr_t * header);
+    ActivityProfile(int maxProbPropagationDistance, double activeProbThreshold, SAMFileHeader * header);
 
     ~ActivityProfile();
 

@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
     Mutect2Engine m2Engine(MTAC, ref, header);
     queue<AssemblyRegion> pendingRegions;
     ActivityProfile * activityProfile = new BandPassActivityProfile(MTAC.maxProbPropagationDistance, MTAC.activeProbThreshold, BandPassActivityProfile::MAX_FILTER_SIZE, BandPassActivityProfile::DEFAULT_SIGMA,
-                                                                    true , h);
+                                                                    true , header);
     int count = 0;
     // TODO: add multi-thread mode here
     for(int k=0; k<nref; k++)
