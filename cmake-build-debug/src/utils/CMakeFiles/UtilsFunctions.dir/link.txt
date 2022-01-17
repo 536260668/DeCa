@@ -1,2 +1,0 @@
-/usr/bin/ar qc libUtilsFunctions.a CMakeFiles/UtilsFunctions.dir/BaseUtils.cpp.o CMakeFiles/UtilsFunctions.dir/PeUtils.cpp.o CMakeFiles/UtilsFunctions.dir/ReadPileup.cpp.o
-/usr/bin/ranlib libUtilsFunctions.a

@@ -1,2 +1,0 @@
-/usr/bin/ar qc libMutect2Functions.a CMakeFiles/Mutect2Functions.dir/AssemblyResult.cpp.o CMakeFiles/Mutect2Functions.dir/AssemblyResultSet.cpp.o CMakeFiles/Mutect2Functions.dir/ReadThreadingAssembler.cpp.o
-/usr/bin/ranlib libMutect2Functions.a

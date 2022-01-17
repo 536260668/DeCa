@@ -1,2 +1,0 @@
-/usr/bin/ar qc libUtilsFunction.a CMakeFiles/UtilsFunction.dir/BaseUtils.cpp.o
-/usr/bin/ranlib libUtilsFunction.a

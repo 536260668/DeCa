@@ -1,2 +1,0 @@
-/usr/bin/ar qc libCigarFunctions.a CMakeFiles/CigarFunctions.dir/Cigar.cpp.o CMakeFiles/CigarFunctions.dir/CigarElement.cpp.o CMakeFiles/CigarFunctions.dir/CigarOperator.cpp.o CMakeFiles/CigarFunctions.dir/TextCigarCodec.cpp.o
-/usr/bin/ranlib libCigarFunctions.a

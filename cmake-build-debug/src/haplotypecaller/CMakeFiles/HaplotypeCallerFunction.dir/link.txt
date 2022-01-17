@@ -1,2 +1,0 @@
-/usr/bin/ar qc libHaplotypeCallerFunction.a CMakeFiles/HaplotypeCallerFunction.dir/AssemblyBasedCallerUtils.cpp.o CMakeFiles/HaplotypeCallerFunction.dir/AssemblyRegionTrimmer.cpp.o CMakeFiles/HaplotypeCallerFunction.dir/AssemblyRegionTrimmer_Result.cpp.o CMakeFiles/HaplotypeCallerFunction.dir/MutectReadThreadingAssemblerArgumentCollection.cpp.o CMakeFiles/HaplotypeCallerFunction.dir/ReadThreadingAssemblerArgumentCollection.cpp.o
-/usr/bin/ranlib libHaplotypeCallerFunction.a

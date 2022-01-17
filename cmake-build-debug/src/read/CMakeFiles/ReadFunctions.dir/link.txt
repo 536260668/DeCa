@@ -1,2 +1,0 @@
-/usr/bin/ar qc libReadFunctions.a CMakeFiles/ReadFunctions.dir/AlignmentUtils.cpp.o CMakeFiles/ReadFunctions.dir/CigarUtils.cpp.o CMakeFiles/ReadFunctions.dir/ReadCache.cpp.o CMakeFiles/ReadFunctions.dir/ReadConstants.cpp.o CMakeFiles/ReadFunctions.dir/ReadCoordinateComparator.cpp.o CMakeFiles/ReadFunctions.dir/ReadUtils.cpp.o
-/usr/bin/ranlib libReadFunctions.a
