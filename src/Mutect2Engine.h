@@ -17,6 +17,7 @@
 #include "utils/ReadPileup.h"
 #include "ReadCache.h"
 #include "variantcontext/VariantContext.h"
+#include "ReadThreadingAssembler.h"
 
 class Mutect2Engine {
 private:
@@ -24,7 +25,7 @@ private:
     std::set<std::string> & normalSamples;
     SAMFileHeader * header;
     M2ArgumentCollection & MATC;
-
+    ReadThreadingAssembler assemblyEngine;
 
 
     std::vector<char> altQuals(ReadPileup & pileup, char refBase, int pcrErrorQual);

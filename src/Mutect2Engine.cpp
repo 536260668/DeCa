@@ -10,9 +10,12 @@
 #include "MathUtils.h"
 #include "QualityUtils.h"
 #include "NaturalLogUtils.h"
+#include "AssemblyResultSet.h"
+#include "haplotypecaller/AssemblyBasedCallerUtils.h"
 
 Mutect2Engine::Mutect2Engine(M2ArgumentCollection & MTAC, char * ref, SAMFileHeader* samFileHeader):MATC(MTAC), minCallableDepth(MTAC.callableDepth),
-                                                            normalSamples(MTAC.normalSamples) ,callableSites(0), refCache(ref, header), header(samFileHeader)
+                                                            normalSamples(MTAC.normalSamples) ,callableSites(0), refCache(ref, header), header(samFileHeader),
+                                                                                                    assemblyEngine(0, 1, 128, false, {10, 25})
 {
 
 }
@@ -142,5 +145,5 @@ void Mutect2Engine::fillNextAssemblyRegionWithReads(AssemblyRegion &region, Read
 
 std::vector<std::shared_ptr<VariantContext>>
 Mutect2Engine::callRegion(AssemblyRegion &originalAssemblyRegion, ReferenceContext &referenceContext) {
-    return std::vector<std::shared_ptr<VariantContext>>();
+    std::shared_ptr<AssemblyResultSet> untrimmedAssemblyResult = AssemblyBasedCallerUtils::assembleReads(originalAssemblyRegion, MATC, header, refCache, assemblyEngine);
 }
