@@ -139,3 +139,8 @@ void Mutect2Engine::fillNextAssemblyRegionWithReads(AssemblyRegion &region, Read
     std::vector<std::shared_ptr<SAMRecord>> toAdd = readCache.getReadsForRegion(region);
     region.setRead(toAdd);
 }
+
+std::vector<std::shared_ptr<VariantContext>>
+Mutect2Engine::callRegion(AssemblyRegion &originalAssemblyRegion, ReferenceContext &referenceContext) {
+    return std::vector<std::shared_ptr<VariantContext>>();
+}

@@ -16,6 +16,7 @@
 #include "engine/AlignmentContext.h"
 #include "utils/ReadPileup.h"
 #include "ReadCache.h"
+#include "variantcontext/VariantContext.h"
 
 class Mutect2Engine {
 private:
@@ -57,6 +58,8 @@ public:
     ActivityProfileState isActive(AlignmentContext& context, ReferenceContext & referenceContext);
 
     static void fillNextAssemblyRegionWithReads(AssemblyRegion & region, ReadCache & readCache);
+
+    std::vector<std::shared_ptr<VariantContext>> callRegion(AssemblyRegion& originalAssemblyRegion, ReferenceContext & referenceContext);
 };
 
 
