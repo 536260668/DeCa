@@ -1,2 +1,0 @@
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar qc libCacheFunctions.a CMakeFiles/CacheFunctions.dir/DigammaCache.cpp.o CMakeFiles/CacheFunctions.dir/IntToDoubleFunctionCache.cpp.o CMakeFiles/CacheFunctions.dir/Log10FactorialCache.cpp.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib libCacheFunctions.a

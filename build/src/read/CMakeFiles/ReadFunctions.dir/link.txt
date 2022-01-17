@@ -1,2 +1,0 @@
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar qc libReadFunctions.a CMakeFiles/ReadFunctions.dir/AlignmentUtils.cpp.o CMakeFiles/ReadFunctions.dir/CigarUtils.cpp.o CMakeFiles/ReadFunctions.dir/ReadConstants.cpp.o CMakeFiles/ReadFunctions.dir/ReadCoordinateComparator.cpp.o CMakeFiles/ReadFunctions.dir/ReadUtils.cpp.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib libReadFunctions.a
