@@ -10,16 +10,26 @@
 #include "Haplotype.h"
 #include "AssemblyRegion.h"
 #include "VariantContext.h"
+//#include "ReadThreadingAssembler.h"
+
+class HaplotypeComp
+{
+public:
+    bool operator()(const std::shared_ptr<Haplotype>& left, const std::shared_ptr<Haplotype>& right)
+    {
+        return (*left) < (*right);
+    }
+};
 
 class AssemblyResultSet {
 private:
     std::map<int, std::shared_ptr<AssemblyResult>> assemblyResultByKmerSize;
-    std::set<std::shared_ptr<Haplotype>> haplotypes;
+    std::set<std::shared_ptr<Haplotype>, HaplotypeComp> haplotypes;
     std::map<std::shared_ptr<Haplotype>, std::shared_ptr<AssemblyResult>> assemblyResultByHaplotype;
     AssemblyRegion * regionForGenotyping;
     uint8_t * fullReferenceWithPadding;
     int fullReferenceWithPaddingLength;
-    SimpleInterval* paddedReferenceLoc;
+    SimpleInterval paddedReferenceLoc;
     bool variationPresent;
     std::shared_ptr<Haplotype>  refHaplotype;
     bool wasTrimmed = false;

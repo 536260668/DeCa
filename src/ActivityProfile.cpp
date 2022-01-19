@@ -10,7 +10,7 @@
 ActivityProfile::ActivityProfile(int maxProbPropagationDistance, double activeProbThreshold, SAMFileHeader * header):
                     stateList(), maxProbPropagationDistance(maxProbPropagationDistance),
                     activeProbThreshold(activeProbThreshold) , regionStartLoc(), regionStopLoc() ,header(header),
-                    contigLength(-1), regions(new vector<AssemblyRegion>)
+                    contigLength(-1), regions(new vector<std::shared_ptr<AssemblyRegion>>)
 {
 }
 
@@ -80,7 +80,7 @@ int ActivityProfile::getEnd()
     return regionStopLoc.getEnd();
 }
 
-vector<AssemblyRegion> * ActivityProfile::popReadyAssemblyRegions(int assemblyRegionExtension, int minRegionSize,
+vector<std::shared_ptr<AssemblyRegion>> * ActivityProfile::popReadyAssemblyRegions(int assemblyRegionExtension, int minRegionSize,
                                                                   int maxRegionSize, bool forceConversion)
 {
     if(!regions->empty())
@@ -90,19 +90,19 @@ vector<AssemblyRegion> * ActivityProfile::popReadyAssemblyRegions(int assemblyRe
 
     while(true)
     {
-        optional<AssemblyRegion> ReadyAssemblyRegion = popReadyAssemblyRegion(assemblyRegionExtension, minRegionSize, maxRegionSize, forceConversion);
+        optional<std::shared_ptr<AssemblyRegion>> ReadyAssemblyRegion = popReadyAssemblyRegion(assemblyRegionExtension, minRegionSize, maxRegionSize, forceConversion);
         if(ReadyAssemblyRegion.has_value()){
             // only active regions are added here
-            if(ReadyAssemblyRegion.value().getIsActive())
+            if(ReadyAssemblyRegion.value()->getIsActive())
                 regions->emplace_back(ReadyAssemblyRegion.value());
-            cout << ReadyAssemblyRegion.value();
+            cout << *ReadyAssemblyRegion.value();
         } else {
             return regions;
         }
     }
 }
 
-optional<struct AssemblyRegion> ActivityProfile::popReadyAssemblyRegion(int assemblyRegionExtension, int minRegionSize, int maxRegionSize,
+optional<struct std::shared_ptr<AssemblyRegion>> ActivityProfile::popReadyAssemblyRegion(int assemblyRegionExtension, int minRegionSize, int maxRegionSize,
                                         bool forceConversion)
 {
     if(stateList.empty()){
@@ -131,7 +131,7 @@ optional<struct AssemblyRegion> ActivityProfile::popReadyAssemblyRegion(int asse
 
 
     SimpleInterval regionLoc = SimpleInterval(first.getLoc().getContig(), first.getLoc().getStart(), first.getLoc().getStart() + offsetOfNextRegionEnd);
-    return optional<AssemblyRegion>( AssemblyRegion(regionLoc, sub, isActiveRegion, assemblyRegionExtension, header));
+    return optional<std::shared_ptr<AssemblyRegion>>( new AssemblyRegion(regionLoc, sub, isActiveRegion, assemblyRegionExtension, header));
 }
 
 int ActivityProfile::findEndOfRegion(bool isActiveRegion, int minRegionSize, int maxRegionSize, bool forceConversion)

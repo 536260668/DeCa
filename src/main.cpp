@@ -23,7 +23,7 @@
 #include "engine/ReferenceContext.h"
 #include "read/ReadCache.h"
 #include "MathUtils.h"
-
+#include "intel/smithwaterman/IntelSmithWaterman.h"
 
 
 static int usage() {
@@ -184,8 +184,9 @@ int main(int argc, char *argv[])
     sam_hdr_t *h = data[0]->hdr; // easy access to the header of the 1st BAM   //---why use header of the first bam
     int nref = sam_hdr_nref(h);
 
+    smithwaterman_initial();
     Mutect2Engine m2Engine(MTAC, ref, header);
-    queue<AssemblyRegion> pendingRegions;
+    queue<std::shared_ptr<AssemblyRegion>> pendingRegions;
     ActivityProfile * activityProfile = new BandPassActivityProfile(MTAC.maxProbPropagationDistance, MTAC.activeProbThreshold, BandPassActivityProfile::MAX_FILTER_SIZE, BandPassActivityProfile::DEFAULT_SIGMA,
                                                                     true , header);
     int count = 0;
@@ -205,10 +206,10 @@ int main(int argc, char *argv[])
             AlignmentContext pileup = cache.getAlignmentContext();
             if(!activityProfile->isEmpty()){
                 bool forceConversion = pileup.getPosition() != activityProfile->getEnd() + 1;
-                vector<AssemblyRegion> * ReadyAssemblyRegions = activityProfile->popReadyAssemblyRegions(MTAC.assemblyRegionPadding, MTAC.minAssemblyRegionSize, MTAC.maxAssemblyRegionSize, forceConversion);
-                for(AssemblyRegion & region : *ReadyAssemblyRegions)
+                vector<std::shared_ptr<AssemblyRegion>> * ReadyAssemblyRegions = activityProfile->popReadyAssemblyRegions(MTAC.assemblyRegionPadding, MTAC.minAssemblyRegionSize, MTAC.maxAssemblyRegionSize, forceConversion);
+                for(std::shared_ptr<AssemblyRegion> newRegion : *ReadyAssemblyRegions)
                 {
-                    pendingRegions.emplace(region);
+                    pendingRegions.emplace(newRegion);
                 }
             }
 
@@ -222,18 +223,17 @@ int main(int argc, char *argv[])
             ActivityProfileState profile = m2Engine.isActive(pileup, pileupRefContext);
             activityProfile->add(profile);
 
-            if(!pendingRegions.empty() && IntervalUtils::isAfter(pileup.getLocation(), pendingRegions.front().getExtendedSpan(), header->getSequenceDictionary())) {
+            if(!pendingRegions.empty() && IntervalUtils::isAfter(pileup.getLocation(), pendingRegions.front()->getExtendedSpan(), header->getSequenceDictionary())) {
                 count++;
-                if(count > 1000) {
+                if(count > 10) {
                     break;
                 }
-                AssemblyRegion nextRegion = pendingRegions.front();
+                std::shared_ptr<AssemblyRegion> nextRegion = pendingRegions.front();
                 pendingRegions.pop();
-                if(nextRegion.getStart() == 866771)
-                    std::cout << nextRegion.getStart() << '~' << nextRegion.getEnd() << ':' << nextRegion.getReads().size() << std::endl;
                 Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
-                if(nextRegion.getStart() == 866771)
-                    std::cout << nextRegion.getStart() << '~' << nextRegion.getEnd() << ':' << nextRegion.getReads().size() << std::endl;
+                std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext);
+                if(variant.size() != 0)
+                    std::cout << variant.size();
             }
         }
 

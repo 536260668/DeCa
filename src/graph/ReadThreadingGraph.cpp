@@ -12,8 +12,8 @@
 #include "SeqVertex.h"
 
 void ReadThreadingGraph::addRead(std::shared_ptr<SAMRecord> & read) {
-    uint8_t* sequence = read->getBases();
-    uint8_t* qualities = read->getBaseQualities();
+    uint8_t* sequence = read->getBasesNoCopy();
+    uint8_t* qualities = read->getBaseQualitiesNoCopy();
 
     int lastGood = -1;
     for(int end = 0; end <= read->getLength(); end++) {
@@ -24,7 +24,7 @@ void ReadThreadingGraph::addRead(std::shared_ptr<SAMRecord> & read) {
             if(start != -1 && len >= kmerSize) {
                 std::string name = read->getName();
                 name += '_' + std::to_string(start) + '_' + std::to_string(end);
-                std::string sampleName = "SAMFileHeader{VN=1.6, GO=none, SO=coordinate}";
+                std::string sampleName = read->getGroup() == 0 ? "normal" : "tumor";
                 addSequence(name, sampleName, sequence, start, end, 1, false);
             }
             lastGood = -1;

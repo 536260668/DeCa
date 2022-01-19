@@ -152,3 +152,7 @@ SimpleInterval *SimpleInterval::expandWithinContig(int padding, SAMSequenceDicti
     return expandWithinContig(padding, contigRecord.getSequenceLength());
 }
 
+SimpleInterval::SimpleInterval() : start(0), end(0), contig(""){
+
+}
+

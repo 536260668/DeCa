@@ -28,17 +28,17 @@ void AssemblyRegionTrimmer::checkUserArguments() {
     }
 }
 
-AssemblyRegionTrimmer_Result *AssemblyRegionTrimmer::trim(AssemblyRegion *originalRegion,
-                                                          std::set<VariantContext *, VariantContextComparator> & allVariantsWithinExtendedRegion) {
+std::shared_ptr<AssemblyRegionTrimmer_Result> AssemblyRegionTrimmer::trim(std::shared_ptr<AssemblyRegion> originalRegion,
+                                                          std::set<std::shared_ptr<VariantContext>, VariantContextComparator> & allVariantsWithinExtendedRegion) {
     if(allVariantsWithinExtendedRegion.empty()) {
         return AssemblyRegionTrimmer_Result::noVariation(emitReferenceConfidence, originalRegion, assemblyArgs->snpPadding, usableExtension);
     }
-    std::vector<VariantContext*> withinActiveRegion;
+    std::vector<std::shared_ptr<VariantContext>> withinActiveRegion;
     SimpleInterval & originalRegionRange = originalRegion->getSpan();
     bool foundNonSnp = false;
     SimpleInterval variantSpan;
     bool flag = false;
-    for(VariantContext* vc : allVariantsWithinExtendedRegion) {
+    for(std::shared_ptr<VariantContext> vc : allVariantsWithinExtendedRegion) {
         SimpleInterval vcLoc(vc->getContig(), vc->getStart(), vc->getEnd());
         if(originalRegionRange.overlaps(&vcLoc)) {
             foundNonSnp = foundNonSnp || !vc->isSNP();
@@ -62,7 +62,7 @@ AssemblyRegionTrimmer_Result *AssemblyRegionTrimmer::trim(AssemblyRegion *origin
     SimpleInterval* finalSpan = maximumSpan->intersect(idealSpan)->mergeWithContiguous(&variantSpan);
     SimpleInterval* callableSpan = emitReferenceConfidence ? variantSpan.intersect(&originalRegionRange) : &variantSpan;
     std::pair<SimpleInterval *, SimpleInterval *> * nonVariantRegions = nonVariantTargetRegions(originalRegion, callableSpan);
-    AssemblyRegionTrimmer_Result* ret = new AssemblyRegionTrimmer_Result(emitReferenceConfidence, true, originalRegion, padding, usableExtension, &withinActiveRegion, nonVariantRegions, finalSpan, idealSpan, maximumSpan, &variantSpan);
+    std::shared_ptr<AssemblyRegionTrimmer_Result> ret(new AssemblyRegionTrimmer_Result(emitReferenceConfidence, true, originalRegion, padding, usableExtension, &withinActiveRegion, nonVariantRegions, finalSpan, idealSpan, maximumSpan, &variantSpan));
     delete maximumSpan;
     delete idealSpan;
     delete finalSpan;
@@ -75,7 +75,7 @@ AssemblyRegionTrimmer_Result *AssemblyRegionTrimmer::trim(AssemblyRegion *origin
 }
 
 std::pair<SimpleInterval *, SimpleInterval *> *
-AssemblyRegionTrimmer::nonVariantTargetRegions(AssemblyRegion *targetRegion, SimpleInterval *variantSpan) {
+AssemblyRegionTrimmer::nonVariantTargetRegions(std::shared_ptr<AssemblyRegion> targetRegion, SimpleInterval *variantSpan) {
     SimpleInterval targetRegionRange = targetRegion->getSpan();
     int finalStart = variantSpan->getStart();
     int finalStop = variantSpan->getEnd();

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 project(Mutect2Cpp_master)
 
 set(CMAKE_CXX_STANDARD 17)
-SET(CMAKE_BUILD_TYPE "Release")
+SET(CMAKE_BUILD_TYPE "DEBUG")
 #
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0")
 

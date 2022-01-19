@@ -17,6 +17,7 @@ class SAMRecord{
 private:
     uint8_t * mReadBases;
     int baseLength;
+    uint8_t readGroup;
     uint8_t * mBaseQualities;
     int baseQualitiesLength;
     std::string mReadName;
@@ -117,6 +118,8 @@ public:
     int getAdaptorBoundary();
     int getEndAfterFliter();
     SimpleInterval getLoc();
+    void setGroup(uint8_t i) {readGroup = i;}
+    uint8_t getGroup() {return readGroup;}
 
 private:
     void setAttribute(short tag, void* value, Void_Type type, int length, bool isUnsignedArray);

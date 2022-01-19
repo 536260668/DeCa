@@ -41,7 +41,7 @@ private:
     static int arrayMaxInt(std::vector<int> array);
 
 public:
-    ReadThreadingAssembler(int pruneFactor, int numPruningSamples, int numBestHaplotypesPerGraph, bool allowNonUniqueKmersInRef, std::vector<int> kmerSizes);
+    ReadThreadingAssembler(int pruneFactor, int numPruningSamples, int numBestHaplotypesPerGraph, bool dontIncreaseKmerSizesForCycles, bool allowNonUniqueKmersInRef, std::vector<int> kmerSizes);
     ReadThreadingAssembler(int maxAllowedPathsForReadThreadingAssembler, std::vector<int> kmerSizes, bool dontIncreaseKmerSizesForCycles, bool allowNonUniqueKmersInRef, int numPruningSamples,
                            int pruneFactor, bool useAdaptivePruning, double initialErrorRateForPruning, double pruningLogOddsThreshold, int maxUnprunedVariants);
     std::shared_ptr<AssemblyResultSet> runLocalAssembly(AssemblyRegion &assemblyRegion, std::shared_ptr<Haplotype>& refHaplotype, uint8_t* fullReferenceWithPadding, int refLength, SimpleInterval* refLoc, ReadErrorCorrector* readErrorCorrector);

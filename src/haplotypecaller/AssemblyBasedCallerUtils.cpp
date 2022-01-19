@@ -6,10 +6,11 @@
 #include "haplotypecaller/ReferenceConfidenceModel.h"
 
 std::shared_ptr<Haplotype>
-AssemblyBasedCallerUtils::createReferenceHaplotype(AssemblyRegion &region, SimpleInterval referencePadding,
+AssemblyBasedCallerUtils::createReferenceHaplotype(AssemblyRegion &region, SimpleInterval &referencePadding,
                                                    ReferenceCache &cache) {
     int length = 0;
-    return ReferenceConfidenceModel::createReferenceHaplotype(region, region.getAssemblyRegionReference(&cache, 0, length), referencePadding);
+    uint8_t * tmp = region.getAssemblyRegionReference(&cache, 0, length);
+    return ReferenceConfidenceModel::createReferenceHaplotype(region, tmp, length, referencePadding);
 }
 
 std::shared_ptr<AssemblyResultSet>

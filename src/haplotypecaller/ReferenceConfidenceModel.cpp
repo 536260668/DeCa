@@ -6,13 +6,13 @@
 #include "Mutect2Utils.h"
 
 std::shared_ptr<Haplotype>
-ReferenceConfidenceModel::createReferenceHaplotype(AssemblyRegion &activeRegion, uint8_t *refBases,
+ReferenceConfidenceModel::createReferenceHaplotype(AssemblyRegion &activeRegion, uint8_t *refBases, int & length,
                                                    SimpleInterval &paddedReferenceLoc) {
    int alignmentStart = activeRegion.getExtendedSpan().getStart() - paddedReferenceLoc.getStart();
    if(alignmentStart < 0) {
        throw std::invalid_argument("Bad alignment start in createReferenceHaplotype");
    }
-    std::shared_ptr<Haplotype> refHaplotype(new Haplotype(refBases, true));
+    std::shared_ptr<Haplotype> refHaplotype(new Haplotype(refBases, length, true));
     refHaplotype->setAlignmentStartHapwrtRef(alignmentStart);
     std::shared_ptr<Cigar> c(new Cigar());
     c->add(CigarElement(refHaplotype->getBasesLength(), M));

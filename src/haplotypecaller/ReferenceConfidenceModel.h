@@ -10,7 +10,7 @@
 
 class ReferenceConfidenceModel {
 public:
-    static std::shared_ptr<Haplotype> createReferenceHaplotype(AssemblyRegion & activeRegion, uint8_t* refBase, SimpleInterval& paddedReferenceLoc);
+    static std::shared_ptr<Haplotype> createReferenceHaplotype(AssemblyRegion & activeRegion, uint8_t* refBase, int &length,SimpleInterval& paddedReferenceLoc);
 };
 
 

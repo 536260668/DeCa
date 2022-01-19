@@ -20,7 +20,7 @@ public:
      * @param paddedReferenceLoc the interval which includes padding and shows how big the reference haplotype should be
      * @return a non-null haplotype
      */
-    static std::shared_ptr<Haplotype> createReferenceHaplotype(AssemblyRegion & region, SimpleInterval referencePadding, ReferenceCache & cache);
+    static std::shared_ptr<Haplotype> createReferenceHaplotype(AssemblyRegion & region, SimpleInterval &referencePadding, ReferenceCache & cache);
 
     static std::shared_ptr<AssemblyResultSet> assembleReads(AssemblyRegion& region, M2ArgumentCollection & argumentCollection, SAMFileHeader* header, ReferenceCache & cache, ReadThreadingAssembler& assemblyEngine);
 

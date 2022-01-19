@@ -21,10 +21,14 @@ ReadCache::ReadCache(aux_t **data, std::vector<char*> & bam_name) : data(data), 
         while((result = sam_itr_next(data[i]->fp, iter, b)) >= 0) {
             std::shared_ptr<SAMRecord> read(new SAMRecord(b, data[i]->header));
             if(ReadFilter::test(read, data[i]->header)) {
-                if(i == 0)
+                if(i == 0) {
+                    read->setGroup(0);
                     normalReads.emplace(read);
-                else
+                }
+                else {
+                    read->setGroup(1);
                     tumorReads.emplace(read);
+                }
                 count++;
             }
             if(count > 500)
@@ -49,10 +53,14 @@ ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, const
         while((result = sam_itr_next(data[i]->fp, iter, b)) >= 0) {
             std::shared_ptr<SAMRecord> read(new SAMRecord(b, data[i]->header));
             if(ReadFilter::test(read, data[i]->header)) {
-                if(i == 0)
+                if(i == 0) {
+                    read->setGroup(0);
                     normalReads.emplace(read);
-                else
+                    }
+                else {
+                    read->setGroup(1);
                     tumorReads.emplace(read);
+                }
             }
         }
         hts_itr_destroy(iter);
@@ -111,10 +119,14 @@ void ReadCache::advanceLoad() {
         while((result = sam_itr_next(data[i]->fp, iter, b)) >= 0) {
             std::shared_ptr<SAMRecord> read(new SAMRecord(b, data[i]->header));
             if(ReadFilter::test(read, data[i]->header)) {
-                if(i == 0)
+                if(i == 0) {
+                    read->setGroup(0);
                     normalReads.emplace(read);
-                else
+                }
+                else {
+                    read->setGroup(1);
                     tumorReads.emplace(read);
+                }
             }
         }
         hts_itr_destroy(iter);

@@ -14,7 +14,7 @@ private:
 
 public:
     ArraySet(ArraySet const & other) : arraySet(other.arraySet) {};
-    ArraySet() = default;;
+    ArraySet() = default;
     std::pair<typename std::vector<T>::iterator, bool> insert(T t) {
         typename std::vector<T>::iterator iter = std::find(arraySet.begin(), arraySet.end(), t);
         if(iter != arraySet.end())

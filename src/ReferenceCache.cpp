@@ -10,7 +10,7 @@ ReferenceCache::ReferenceCache(char * refName, SAMFileHeader* header) : tid(0), 
 {
     fai = fai_load3_format(refName, NULL, NULL, FAI_CREATE, FAI_FASTA);
     start = 0;
-    end = std::max(999999, header->getSequenceDictionary().getSequences()[tid].getSequenceLength());
+    end = std::min(999999, header->getSequenceDictionary().getSequences()[tid].getSequenceLength());
     std::string region = header->getSequenceDictionary().getSequences()[tid].getSequenceName() + ':' + std::to_string(start) + '-' + std::to_string(end);
     hts_pos_t seq_len;
     bases = fai_fetch64(fai, region.c_str(), &seq_len);
@@ -64,8 +64,8 @@ void ReferenceCache::setTid(int tid) {
 
 uint8_t *ReferenceCache::getSubsequenceAt(int tid, int start, int stop, int & length) {
     if(tid == this->tid && start >= this->start && stop <= this->end) {
-        uint8_t * ret = new uint8_t[stop-start+1];
-        std::copy(bases+start, bases+stop, ret);
+        uint8_t * ret = new uint8_t[stop-start+1]{0};
+        std::copy(bases+start, bases+stop + 1, ret);
         length = stop - start + 1;
         return ret;
     }

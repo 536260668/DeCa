@@ -40,7 +40,7 @@ protected:
 
     int contigLength;
 
-    vector<AssemblyRegion> * regions;
+    vector<std::shared_ptr<AssemblyRegion>> * regions;
 
     optional<SimpleInterval> getLocForOffset(SimpleInterval relativeLoc, int offset);
 
@@ -116,9 +116,9 @@ public:
      * @param forceConversion
      * @return
      */
-    vector<AssemblyRegion>* popReadyAssemblyRegions(int assemblyRegionExtension, int minRegionSize, int maxRegionSize, bool forceConversion);
+    vector<std::shared_ptr<AssemblyRegion>>* popReadyAssemblyRegions(int assemblyRegionExtension, int minRegionSize, int maxRegionSize, bool forceConversion);
 
-    optional<AssemblyRegion> popReadyAssemblyRegion(int assemblyRegionExtension, int minRegionSize, int maxRegionSize, bool forceConversion);
+    optional<std::shared_ptr<AssemblyRegion>> popReadyAssemblyRegion(int assemblyRegionExtension, int minRegionSize, int maxRegionSize, bool forceConversion);
 
     virtual int getMaxProbPropagationDistance() = 0;
 

@@ -18,6 +18,8 @@
 #include "ReadCache.h"
 #include "variantcontext/VariantContext.h"
 #include "ReadThreadingAssembler.h"
+#include "haplotypecaller/MutectReadThreadingAssemblerArgumentCollection.h"
+#include "haplotypecaller/AssemblyRegionTrimmer.h"
 
 class Mutect2Engine {
 private:
@@ -26,7 +28,8 @@ private:
     SAMFileHeader * header;
     M2ArgumentCollection & MATC;
     ReadThreadingAssembler assemblyEngine;
-
+    MutectReadThreadingAssemblerArgumentCollection assemblerArgs;
+    AssemblyRegionTrimmer trimmer;
 
     std::vector<char> altQuals(ReadPileup & pileup, char refBase, int pcrErrorQual);
 
@@ -58,9 +61,9 @@ public:
 
     ActivityProfileState isActive(AlignmentContext& context, ReferenceContext & referenceContext);
 
-    static void fillNextAssemblyRegionWithReads(AssemblyRegion & region, ReadCache & readCache);
+    static void fillNextAssemblyRegionWithReads(std::shared_ptr<AssemblyRegion> region, ReadCache & readCache);
 
-    std::vector<std::shared_ptr<VariantContext>> callRegion(AssemblyRegion& originalAssemblyRegion, ReferenceContext & referenceContext);
+    std::vector<std::shared_ptr<VariantContext>> callRegion(std::shared_ptr<AssemblyRegion> originalAssemblyRegion, ReferenceContext & referenceContext);
 };
 
 

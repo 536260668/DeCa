@@ -3,7 +3,6 @@
 //
 
 #include "ReadThreadingAssembler.h"
-
 #include <utility>
 #include "AssemblyResultSet.h"
 #include "graph/KBestHaplotypeFinder.h"
@@ -11,14 +10,7 @@
 #include "read/CigarUtils.h"
 #include "AdaptiveChainPruner.h"
 
-class HaplotypeComp
-{
-public:
-    bool operator()(const std::shared_ptr<Haplotype>& left, const std::shared_ptr<Haplotype>& right)
-    {
-        return (*left) < (*right);
-    }
-};
+
 
 std::shared_ptr<AssemblyResult>
 ReadThreadingAssembler::getAssemblyResult(std::shared_ptr<Haplotype>& refHaplotype, int kmerSize, ReadThreadingGraph *rtgraph) {
@@ -167,7 +159,7 @@ ReadThreadingAssembler::createGraph(std::vector<std::shared_ptr<SAMRecord>> read
         return nullptr;
     }
     ReadThreadingGraph* rtgraph = new ReadThreadingGraph(kmerSize, debugGraphTransformations, minBaseQualityToUseInAssembly, numPruningSamples);
-    rtgraph->setThreadingStartOnlyAtExistingVertex(!recoverAllDanglingBranches);
+    rtgraph->setThreadingStartOnlyAtExistingVertex(!recoverDanglingBranches);
     rtgraph->addSequence("ref", refHaplotype->getBases(), refHaplotype->getLength(), true);
 
     for(std::shared_ptr<SAMRecord> read : reads) {
@@ -243,9 +235,9 @@ ReadThreadingAssembler::findBestPaths(const std::vector<SeqGraph *> &graphs, std
     return {returnHaplotypes.begin(), returnHaplotypes.end()};
 }
 
-ReadThreadingAssembler::ReadThreadingAssembler(int pruneFactor, int numPruningSamples, int numBestHaplotypesPerGraph,
+ReadThreadingAssembler::ReadThreadingAssembler(int pruneFactor, int numPruningSamples, int numBestHaplotypesPerGraph, bool dontIncreaseKmerSizesForCycles,
                                                bool allowNonUniqueKmersInRef, std::vector<int> kmerSizes) : pruneFactor(pruneFactor), numPruningSamples(numPruningSamples), numBestHaplotypesPerGraph(numBestHaplotypesPerGraph)
-                                               , allowNonUniqueKmersInRef(allowNonUniqueKmersInRef), kmerSizes(std::move(kmerSizes)){
+                                               , dontIncreaseKmerSizesForCycles(dontIncreaseKmerSizesForCycles),allowNonUniqueKmersInRef(allowNonUniqueKmersInRef), kmerSizes(std::move(kmerSizes)){
     chainPruner = new AdaptiveChainPruner<MultiDeBruijnVertex, MultiSampleEdge>(0.001, 2.302585092994046, 100);
     setMinDanglingBranchLength(4);
 }

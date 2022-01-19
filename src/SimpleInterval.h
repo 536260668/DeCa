@@ -58,7 +58,7 @@ public:
      */
     SimpleInterval(std::string& str);
 
-    SimpleInterval() {};
+    SimpleInterval();
 
     virtual ~SimpleInterval() = default;
 

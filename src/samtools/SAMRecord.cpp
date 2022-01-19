@@ -170,8 +170,8 @@ void SAMRecord::setMappingQuality(int mappingQuality) {
 
 uint8_t *SAMRecord::getBases() {
     if(mReadBases != nullptr){
-        uint8_t * ret = new uint8_t[baseLength];
-        memcpy(ret, mReadBases, baseLength);
+        uint8_t * ret = new uint8_t[baseLength+1]{0};
+        std::copy(mReadBases, mReadBases + baseLength, ret);
         return ret;
     } else {
         return nullptr;
@@ -190,8 +190,8 @@ void SAMRecord::setBases(uint8_t *bases, int length) {
 
 uint8_t *SAMRecord::getBaseQualities() {
     if(mBaseQualities != nullptr){
-        uint8_t * ret = new uint8_t[baseQualitiesLength];
-        memcpy(ret, mBaseQualities, baseQualitiesLength);
+        uint8_t * ret = new uint8_t[baseQualitiesLength+1]{0};
+        std::copy(mBaseQualities, mBaseQualities+baseQualitiesLength, ret);
         return ret;
     } else {
         return nullptr;

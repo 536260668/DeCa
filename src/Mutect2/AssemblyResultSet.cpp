@@ -15,11 +15,10 @@ bool AssemblyResultSet::add(std::shared_ptr<Haplotype> &h, std::shared_ptr<Assem
     bool assemblyResultAdditionReturn = add(ar);
 
     if(haplotypes.find(h) != haplotypes.end()) {
-        std::shared_ptr<AssemblyResult> previousAr = assemblyResultByHaplotype.at(h);
-        if(previousAr == nullptr) {
+        if(assemblyResultByHaplotype.find(h) == assemblyResultByHaplotype.end()) {
             assemblyResultByHaplotype.insert(std::pair<std::shared_ptr<Haplotype>, std::shared_ptr<AssemblyResult>>(h, ar));
             return true;
-        } else if (previousAr != ar) {
+        } else if ( assemblyResultByHaplotype.at(h) != ar) {
             throw std::invalid_argument("there is already a different assembly result for the input haplotype");
         } else {
             return assemblyResultAdditionReturn;
@@ -91,12 +90,12 @@ std::set<std::shared_ptr<VariantContext>, VariantContextComparator> & AssemblyRe
     lastMaxMnpDistanceUsed = maxMnpDistance;
     bool flag = false;
     for(const std::shared_ptr<Haplotype>& haplotype : haplotypes) {
-        if(haplotype->getIsReference() && haplotype->getEventMap()->empty()) {
+        if(haplotype->getIsNonReference() && (haplotype->getEventMap() == nullptr || haplotype->getEventMap()->empty())) {
             flag = true;
             break;
         }
     }
-    if(variationEvents.empty() || !sameMnpDistance) {
+    if(variationEvents.empty() || !sameMnpDistance || flag) {
         regenerateVariationEvents(maxMnpDistance);
     }
     return variationEvents;
@@ -104,7 +103,7 @@ std::set<std::shared_ptr<VariantContext>, VariantContextComparator> & AssemblyRe
 
 void AssemblyResultSet::regenerateVariationEvents(int maxMnpDistance) {
     std::vector<std::shared_ptr<Haplotype>> haplotypeList = getHaplotypeList();
-    EventMap::buildEventMapsForHaplotypes(haplotypeList, fullReferenceWithPadding, fullReferenceWithPaddingLength, paddedReferenceLoc, false, maxMnpDistance);
+    EventMap::buildEventMapsForHaplotypes(haplotypeList, fullReferenceWithPadding, fullReferenceWithPaddingLength, &paddedReferenceLoc, false, maxMnpDistance);
     variationEvents = EventMap::getAllVariantContexts(haplotypeList);
     lastMaxMnpDistanceUsed = maxMnpDistance;
     for(std::shared_ptr<Haplotype> haplotype : haplotypeList) {

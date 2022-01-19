@@ -15,7 +15,9 @@
 
 Mutect2Engine::Mutect2Engine(M2ArgumentCollection & MTAC, char * ref, SAMFileHeader* samFileHeader):MATC(MTAC), minCallableDepth(MTAC.callableDepth),
                                                             normalSamples(MTAC.normalSamples) ,callableSites(0), refCache(ref, header), header(samFileHeader),
-                                                                                                    assemblyEngine(0, 1, 128, false, {10, 25})
+                                                                                                    assemblyEngine(0, 1, 128, false, false, {10, 25}),
+                                                                                                    trimmer(&assemblerArgs, &header->getSequenceDictionary(), false,
+                                                                                                            false)
 {
 
 }
@@ -138,12 +140,15 @@ bool Mutect2Engine::hasNormal() {
     return !normalSamples.empty();
 }
 
-void Mutect2Engine::fillNextAssemblyRegionWithReads(AssemblyRegion &region, ReadCache &readCache) {
-    std::vector<std::shared_ptr<SAMRecord>> toAdd = readCache.getReadsForRegion(region);
-    region.setRead(toAdd);
+void Mutect2Engine::fillNextAssemblyRegionWithReads(std::shared_ptr<AssemblyRegion> region, ReadCache &readCache) {
+    std::vector<std::shared_ptr<SAMRecord>> toAdd = readCache.getReadsForRegion(*region);
+    region->setRead(toAdd);
 }
 
 std::vector<std::shared_ptr<VariantContext>>
-Mutect2Engine::callRegion(AssemblyRegion &originalAssemblyRegion, ReferenceContext &referenceContext) {
-    std::shared_ptr<AssemblyResultSet> untrimmedAssemblyResult = AssemblyBasedCallerUtils::assembleReads(originalAssemblyRegion, MATC, header, refCache, assemblyEngine);
+Mutect2Engine::callRegion(std::shared_ptr<AssemblyRegion> originalAssemblyRegion, ReferenceContext &referenceContext) {
+    std::shared_ptr<AssemblyResultSet> untrimmedAssemblyResult = AssemblyBasedCallerUtils::assembleReads(*originalAssemblyRegion, MATC, header, refCache, assemblyEngine);
+    std::set<std::shared_ptr<VariantContext>, VariantContextComparator> & allVariationEvents = untrimmedAssemblyResult->getVariationEvents(1);
+    std::shared_ptr<AssemblyRegionTrimmer_Result> trimmingResult = trimmer.trim(originalAssemblyRegion, allVariationEvents);
+    return  {allVariationEvents.begin(), allVariationEvents.end()};
 }

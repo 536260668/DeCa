@@ -12,31 +12,31 @@
 class AssemblyRegionTrimmer_Result {
 protected:
     bool needsTrimming;
-    AssemblyRegion* originalRegion;
+    std::shared_ptr<AssemblyRegion> originalRegion;
     SimpleInterval* callableSpan;
     SimpleInterval* maximumSpan;
     SimpleInterval* extendedSpan;
     SimpleInterval* idealSpan;
     std::pair<SimpleInterval*, SimpleInterval*> * nonVariantFlanks;
-    std::vector<VariantContext*> callableEvents;
+    std::vector<std::shared_ptr<VariantContext>> callableEvents;
     int padding;
     int usableExtension;
-    AssemblyRegion* callableRegion;
+    std::shared_ptr<AssemblyRegion> callableRegion;
 
 private:
-    AssemblyRegion* leftFlankRegion;
-    AssemblyRegion* rightFlankRegion;
+    std::shared_ptr<AssemblyRegion> leftFlankRegion;
+    std::shared_ptr<AssemblyRegion> rightFlankRegion;
     bool emitReferenceConfidence;
 
 public:
-    AssemblyRegionTrimmer_Result(bool emitReferenceConfidence, bool needsTrimming, AssemblyRegion* originalRegion, int padding, int extension,
-                                 std::vector<VariantContext*> * overlappingEvents, std::pair<SimpleInterval*, SimpleInterval*> * nonVariantFlanks,
+    AssemblyRegionTrimmer_Result(bool emitReferenceConfidence, bool needsTrimming, std::shared_ptr<AssemblyRegion> originalRegion, int padding, int extension,
+                                 std::vector<std::shared_ptr<VariantContext>> * overlappingEvents, std::pair<SimpleInterval*, SimpleInterval*> * nonVariantFlanks,
                                  SimpleInterval* extendedSpan, SimpleInterval* idealSpan, SimpleInterval* maximumSpan, SimpleInterval* callableSpan);
-    static AssemblyRegionTrimmer_Result* noVariation(bool emitReferenceConfidence, AssemblyRegion* targetRegion, int padding, int usableExtension);
+    static std::shared_ptr<AssemblyRegionTrimmer_Result> noVariation(bool emitReferenceConfidence, std::shared_ptr<AssemblyRegion> targetRegion, int padding, int usableExtension);
     ~AssemblyRegionTrimmer_Result();
-    static AssemblyRegionTrimmer_Result* noTrimming(bool emitReferenceConfidence, AssemblyRegion* targetRegion, int padding, int usableExtension, std::vector<VariantContext*> * events);
+    static std::shared_ptr<AssemblyRegionTrimmer_Result> noTrimming(bool emitReferenceConfidence, std::shared_ptr<AssemblyRegion> targetRegion, int padding, int usableExtension, std::vector<std::shared_ptr<VariantContext>> * events);
     bool isVariationPresent();
-    AssemblyRegion* getCallableRegion();
+    std::shared_ptr<AssemblyRegion> getCallableRegion();
 };
 
 

@@ -7,10 +7,11 @@
 #include "read/AlignmentUtils.h"
 #include "SimpleInterval.h"
 
-Haplotype::Haplotype(uint8_t *bases, int length, bool isRef) : Allele(copyArray(bases, length), length, isRef){}
+Haplotype::Haplotype(uint8_t *bases, int length, bool isRef) : Allele(copyArray(bases, length), length, isRef), eventMap(
+        nullptr){}
 
 uint8_t *Haplotype::copyArray(uint8_t *base, int length) {
-    uint8_t * res = new uint8_t[length];
+    uint8_t * res = new uint8_t[length+1]{0};
     memcpy(res, base, length);
     return res;
 }
