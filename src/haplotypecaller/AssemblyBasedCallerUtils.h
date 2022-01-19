@@ -27,6 +27,8 @@ public:
     static const int REFERENCE_PADDING_FOR_ASSEMBLY = 500;
 
     static SimpleInterval getPaddedReferenceLoc(AssemblyRegion& region, int referencePadding, SAMFileHeader* header);
+
+    static void finalizeRegion(AssemblyRegion& region, bool errorCorrectReads, bool dontUseSoftClippedBases, uint8_t minTailQuality, SAMFileHeader* header, bool correctOverlappingBaseQualities);
 };
 
 

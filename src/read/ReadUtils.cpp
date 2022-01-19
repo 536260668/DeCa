@@ -19,10 +19,10 @@ std::shared_ptr<SAMRecord> ReadUtils::emptyRead(std::shared_ptr<SAMRecord> & rea
     emptyRead->setBaseQualities(nullptr, 0);
     emptyRead->clearAttributes();
 
-    std::string readGroup = read->getReadGroup();
-    if(readGroup.empty()) {
-        emptyRead->setAttribute((std::string&)"RG", readGroup);
-    }
+//    std::string readGroup = read->getReadGroup();
+//    if(readGroup.empty()) {
+//        emptyRead->setAttribute((std::string&)"RG", readGroup);
+//    }
     return emptyRead;
 }
 
@@ -79,8 +79,8 @@ std::pair<int, bool> ReadUtils::getReadCoordinateForReferenceCoordinate(int alig
             refBases += shift;
         }
         goalReached = refBases == goal;
-        if(!goalReached && CigarOperatorUtils::getConsumesReferenceBases(cigarElement.getOperator())) {
-            refBases += cigarElement.getLength();
+        if(!goalReached && CigarOperatorUtils::getConsumesReadBases(cigarElement.getOperator())) {
+            readBases += cigarElement.getLength();
         }
         if(goalReached) {
             bool endsWithinCigar = shift < cigarElement.getLength();
@@ -150,8 +150,8 @@ CigarElement* ReadUtils::readStartsWithInsertion(Cigar *cigarForRead) {
 }
 
 int ReadUtils::getReadCoordinateForReferenceCoordinate(std::shared_ptr<SAMRecord> & read, int refCoord, ClippingTail tail) {
-    int leftmostSafeVariantPosition = std::max(read->getSoftStart(), refCoord);
-    return getReadCoordinateForReferenceCoordinate(read->getSoftStart(), read->getCigar(), leftmostSafeVariantPosition, tail,
+    //int leftmostSafeVariantPosition = std::max(read->getSoftStart(), refCoord);
+    return getReadCoordinateForReferenceCoordinate(read->getSoftStart(), read->getCigar(), refCoord, tail,
                                                    false);
 }
 
@@ -341,5 +341,9 @@ bool ReadUtils::isBaseInsideAdaptor(std::shared_ptr<SAMRecord> & read, long base
     if(adaptorBoundary == INT32_MIN || read->getFragmentLength() > 100)
         return false;
     return read->isReverseStrand() ? basePos <= adaptorBoundary : basePos >= adaptorBoundary;
+}
+
+bool ReadUtils::isInsideRead(std::shared_ptr<SAMRecord> &read, int referenceCoordinate) {
+    return referenceCoordinate >= read->getStart() && referenceCoordinate <= read->getEnd();
 }
 

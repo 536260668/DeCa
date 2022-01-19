@@ -19,6 +19,7 @@ public:
 
 private:
     std::shared_ptr<SAMRecord> applyHardClipBases(std::shared_ptr<SAMRecord> read, int start, int stop);
+    std::shared_ptr<SAMRecord> applyRevertSoftClippedBases(const std::shared_ptr<SAMRecord>& read);
     class CigarShift {
     public:
         CigarShift(Cigar* cigar, int shiftFromStart, int shiftFromEnd);

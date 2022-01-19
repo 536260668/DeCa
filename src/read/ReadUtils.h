@@ -15,6 +15,7 @@ enum ClippingTail {
 
 class ReadUtils {
 public:
+    static const int CANNOT_COMPUTE_ADAPTOR_BOUNDARY = INT32_MIN;
     static std::shared_ptr<SAMRecord> emptyRead(std::shared_ptr<SAMRecord> & read);
     static void assertAttributeNameIsLegal(std::string& attributeName);
     static int getReadCoordinateForReferenceCoordinate(std::shared_ptr<SAMRecord> & read, int refCoord, ClippingTail tail);
@@ -40,6 +41,7 @@ public:
     static bool hasWellDefinedFragmentSize(std::shared_ptr<SAMRecord> & read);
     static int getAdaptorBoundary(std::shared_ptr<SAMRecord> & read);
     static bool isBaseInsideAdaptor(std::shared_ptr<SAMRecord> & read, long basePos);
+    static bool isInsideRead(std::shared_ptr<SAMRecord> & read, int referenceCoordinate);
 
 private:
     static std::pair<int, bool> getReadCoordinateForReferenceCoordinate(int alignmentStart, Cigar* cigar, int refCoord, bool allowGoalNotReached);

@@ -64,7 +64,7 @@ private:
     /**
      * Indicates whether the region has been finalized
      */
-     bool hasBeenFinalized;
+     bool hasBeenFinalized = false;
 
     /**
     * Create a new SimpleInterval, bounding start and stop by the start and end of contig

@@ -22,6 +22,10 @@ public:
     static std::shared_ptr<SAMRecord> hardClipBothEndsByReferenceCoordinates(std::shared_ptr<SAMRecord> read, int left, int right);
     static std::shared_ptr<SAMRecord> hardClipByReferenceCoordinatesLeftTail(std::shared_ptr<SAMRecord> read, int refStop);
     static std::shared_ptr<SAMRecord> hardClipByReferenceCoordinatesRightTail(std::shared_ptr<SAMRecord> read, int refStop);
+    static std::shared_ptr<SAMRecord> hardClipLowQualEnds(std::shared_ptr<SAMRecord> read, uint8_t lowQual);
+    static std::shared_ptr<SAMRecord> hardClipSoftClippedBases(std::shared_ptr<SAMRecord> read);
+    static std::shared_ptr<SAMRecord> revertSoftClippedBases(std::shared_ptr<SAMRecord> read);
+    static std::shared_ptr<SAMRecord> hardClipAdaptorSequence(std::shared_ptr<SAMRecord> read);
 
 private:
     static std::shared_ptr<SAMRecord> hardClipToRegion(std::shared_ptr<SAMRecord> read, int refStart, int refStop, int alignmentStart, int alignmentStop);
@@ -29,6 +33,11 @@ private:
     std::shared_ptr<SAMRecord> clipByReferenceCoordinates(int refStart, int refStop, ClippingRepresentation clippingOp, bool runAsserts);
     std::shared_ptr<SAMRecord> clipRead(ClippingRepresentation algorithm, bool runAsserts);
     std::shared_ptr<SAMRecord> hardClipByReferenceCoordinatesLeftTail(int refStop);
+    std::shared_ptr<SAMRecord> hardClipLowQualEnds(uint8_t lowQual);
+    std::shared_ptr<SAMRecord> clipLowQualEnds(ClippingRepresentation algorithm, uint8_t lowQual);
+    std::shared_ptr<SAMRecord> hardClipSoftClippedBases();
+    std::shared_ptr<SAMRecord> revertSoftClippedBases();
+    std::shared_ptr<SAMRecord> hardClipAdaptorSequence();
 };
 
 

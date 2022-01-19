@@ -25,8 +25,8 @@ std::shared_ptr<SAMRecord> ClippingOp::applyHardClipBases(std::shared_ptr<SAMRec
         delete cigarShift;
         return ReadUtils::emptyRead(read);
     }
-    uint8_t * newBases = new uint8_t[newLength];
-    uint8_t * newQuals = new uint8_t[newLength];
+    uint8_t * newBases = new uint8_t[newLength]{0};
+    uint8_t * newQuals = new uint8_t[newLength]{0};
     int copyStart = (start == 0) ? stop + 1 + cigarShift->shiftFromStart : cigarShift->shiftFromStart;
     memcpy(newBases, read->getBasesNoCopy()+copyStart, newLength);
     memcpy(newQuals, read->getBaseQualitiesNoCopy()+copyStart, newLength);
@@ -101,6 +101,7 @@ ClippingOp::CigarShift *ClippingOp::hardClipCigar(Cigar *cigar, int start, int s
         while(i < cigarElementIterator.size()) {
             cigarElement = cigarElementIterator[i];
             newCigar->add(CigarElement(cigarElement.getLength(), cigarElement.getOperator()));
+            i++;
         }
     } else {
         std::vector<CigarElement> cigarElementIterator = cigar->getCigarElements();
@@ -245,9 +246,47 @@ std::shared_ptr<SAMRecord> ClippingOp::apply(ClippingRepresentation algorithm, s
         case HARDCLIP_BASES: {
             return applyHardClipBases(originalRead, start, stop);
         }
+        case REVERT_SOFTCLIPPED_BASES: {
+            return applyRevertSoftClippedBases(originalRead);
+        }
         default: {
             throw std::invalid_argument("Unexpected Clipping operator type");
         }
+    }
+}
+
+std::shared_ptr<SAMRecord> ClippingOp::applyRevertSoftClippedBases(const std::shared_ptr<SAMRecord>& read) {
+    std::shared_ptr<SAMRecord> unclipped(new SAMRecord(*read));
+    Cigar* unclippedCigar = new Cigar();
+    int matchesCount = 0;
+    for(CigarElement element : read->getCigarElements()) {
+        if(element.getOperator() == S || element.getOperator() == M) {
+            matchesCount += element.getLength();
+        }else if (matchesCount > 0) {
+            unclippedCigar->add(CigarElement(matchesCount, M));
+            matchesCount = 0;
+            unclippedCigar->add(element);
+        } else {
+            unclippedCigar->add(element);
+        }
+    }
+    if (matchesCount > 0) {
+        unclippedCigar->add(CigarElement(matchesCount, M));
+    }
+    unclipped->setCigar(unclippedCigar);
+    int newStart = read->getStart() + calculateAlignmentStartShift(read->getCigar(), unclippedCigar);
+    if(newStart <= 0) {
+        unclipped->setPosition(unclipped->getContig(), 1);
+        unclipped = applyHardClipBases(unclipped, 0, -newStart);
+
+        if(! unclipped->isUnmapped()) {
+            unclipped->setPosition(unclipped->getContig(), 1);
+        }
+        return unclipped;
+    }
+    else {
+        unclipped->setPosition(unclipped->getContig(), newStart);
+        return unclipped;
     }
 }
 

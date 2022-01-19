@@ -127,3 +127,106 @@ std::shared_ptr<SAMRecord> ReadClipper::hardClipByReferenceCoordinatesLeftTail(s
 std::shared_ptr<SAMRecord> ReadClipper::hardClipByReferenceCoordinatesRightTail(std::shared_ptr<SAMRecord> read, int refStart) {
     return ReadClipper(read).clipByReferenceCoordinates(refStart, -1, HARDCLIP_BASES, true);
 }
+
+std::shared_ptr<SAMRecord> ReadClipper::clipLowQualEnds(ClippingRepresentation algorithm, uint8_t lowQual) {
+    if(read->isEmpty())
+        return read;
+
+    int readLength = read->getLength();
+    int leftClipIndex = 0;
+    int rightClipIndex = readLength - 1;
+
+    while (rightClipIndex >= 0 && read->getBaseQuality(rightClipIndex) <= lowQual) {
+        rightClipIndex--;
+    }
+    while (leftClipIndex < readLength && read->getBaseQuality(leftClipIndex) <= lowQual) {
+        leftClipIndex++;
+    }
+    if (leftClipIndex > rightClipIndex) {
+        return ReadUtils::emptyRead(read);
+    }
+
+    if(rightClipIndex < readLength - 1) {
+        addOp(ClippingOp(rightClipIndex + 1, readLength - 1));
+    }
+
+    if (leftClipIndex > 0 ) {
+        addOp(ClippingOp(0, leftClipIndex - 1));
+    }
+    return clipRead(algorithm, true);
+}
+
+std::shared_ptr<SAMRecord> ReadClipper::hardClipLowQualEnds(uint8_t lowQual) {
+    return clipLowQualEnds(HARDCLIP_BASES, lowQual);
+}
+
+std::shared_ptr<SAMRecord> ReadClipper::hardClipLowQualEnds(std::shared_ptr<SAMRecord> read, uint8_t lowQual) {
+    return ReadClipper(read).hardClipLowQualEnds(lowQual);
+}
+
+std::shared_ptr<SAMRecord> ReadClipper::hardClipSoftClippedBases(std::shared_ptr<SAMRecord> read) {
+    return ReadClipper(read).hardClipSoftClippedBases();
+}
+
+std::shared_ptr<SAMRecord> ReadClipper::hardClipSoftClippedBases() {
+    if(read->isEmpty()) {
+        return read;
+    }
+
+    int readIndex = 0;
+    int cutLeft = -1;            // first position to hard clip (inclusive)
+    int cutRight = -1;           // first position to hard clip (inclusive)
+    bool rightTail = false;
+
+    for(CigarElement cigarElement : read->getCigarElements()) {
+        if (cigarElement.getOperator() == S) {
+            if (rightTail) {
+                cutRight = readIndex;
+            }
+            else {
+                cutLeft = readIndex + cigarElement.getLength() - 1;
+            }
+        }
+        else if (cigarElement.getOperator() != H) {
+            rightTail = true;
+        }
+
+        if (CigarOperatorUtils::getConsumesReadBases(cigarElement.getOperator()) ) {
+            readIndex += cigarElement.getLength();
+        }
+    }
+
+    if (cutRight >= 0) {
+        addOp(ClippingOp(cutRight, read->getLength() - 1));
+    }
+    if (cutLeft >= 0) {
+        addOp(ClippingOp(0, cutLeft));
+    }
+    return clipRead(HARDCLIP_BASES, true);
+}
+
+std::shared_ptr<SAMRecord> ReadClipper::revertSoftClippedBases(std::shared_ptr<SAMRecord> read) {
+    return ReadClipper(read).revertSoftClippedBases();
+}
+
+std::shared_ptr<SAMRecord> ReadClipper::revertSoftClippedBases() {
+    if (read->isEmpty()) {
+        return read;
+    }
+    addOp(ClippingOp(0, 0));
+    return clipRead(REVERT_SOFTCLIPPED_BASES, true);
+}
+
+std::shared_ptr<SAMRecord> ReadClipper::hardClipAdaptorSequence(std::shared_ptr<SAMRecord> read) {
+    return ReadClipper(read).hardClipAdaptorSequence();
+}
+
+std::shared_ptr<SAMRecord> ReadClipper::hardClipAdaptorSequence() {
+    int adaptorBoundary = read->getAdaptorBoundary();
+
+    if (adaptorBoundary == ReadUtils::CANNOT_COMPUTE_ADAPTOR_BOUNDARY || !ReadUtils::isInsideRead(read, adaptorBoundary)) {
+        return read;
+    }
+
+    return read->isReverseStrand() ? hardClipByReferenceCoordinatesLeftTail(adaptorBoundary) : hardClipByReferenceCoordinatesRightTail(read, adaptorBoundary);
+}

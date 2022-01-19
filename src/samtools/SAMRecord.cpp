@@ -25,12 +25,12 @@ int SAMRecord::getLength() const {
 }
 
 void SAMRecord::setPosition(std::string& contig, int start) {
-    if(!contig.empty() || contig == NO_ALIGNMENT_REFERENCE_NAME || start < 1) {
+    if(contig.empty() || contig == NO_ALIGNMENT_REFERENCE_NAME || start < 1) {
         throw std::invalid_argument("contig must be non-null and start must be >= 1");
     }
     mReferenceName = contig;
     mAlignmentStart = start;
-    mAlignmentEnd = 0;
+    mAlignmentEnd = start + mCigar->getReferenceLength();
     setFlag(false, 4);
 }
 
@@ -164,7 +164,7 @@ int SAMRecord::getMappingQuality() const {
 }
 
 void SAMRecord::setMappingQuality(int mappingQuality) {
-    Mutect2Utils::validateArg(mappingQuality < 0 || mappingQuality > 255, "mapping quality must be >= 0 and <= 255");
+    Mutect2Utils::validateArg(mappingQuality >= 0 && mappingQuality <= 255, "mapping quality must be >= 0 and <= 255");
     mMappingQuality = mappingQuality;
 }
 
@@ -231,8 +231,10 @@ CigarElement SAMRecord::getCigarElement(const int index) {
 
 void SAMRecord::setCigar(Cigar *cigar) {
     //TODO::实现AlignmentBlock
+    isCalAdaptorBoundary = false;
+    delete mCigar;
     mCigar = cigar;
-    mAlignmentEnd = 0;
+    mAlignmentEnd = mAlignmentStart + mCigar->getReferenceLength();
 }
 
 bool SAMRecord::getProperPairFlag() {
@@ -546,8 +548,8 @@ SAMRecord::SAMRecord(bam1_t *read, SAMFileHeader* samFileHeader, bool load) {
 SAMRecord::~SAMRecord() {
     delete mCigar;
     delete mAttributes;
-    delete[] mReadBases;
-    delete[] mBaseQualities;
+    //delete[] mReadBases;
+    //delete[] mBaseQualities;
     //std::cout << "finished" << std::endl;
 }
 
