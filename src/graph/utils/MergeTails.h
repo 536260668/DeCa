@@ -13,10 +13,10 @@ class MergeTails : public VertexBasedTransformer{
 public:
     static const int MIN_COMMON_SEQUENCE_TO_MERGE_SOURCE_SINK_VERTICES = 10;
 
-    MergeTails(SeqGraph* graph) : VertexBasedTransformer(graph){}
+    MergeTails(std::shared_ptr<SeqGraph> graph) : VertexBasedTransformer(graph){}
 
 protected:
-    bool tryToTransform(SeqVertex* top) override;
+    bool tryToTransform(std::shared_ptr<SeqVertex> top) override;
 };
 
 

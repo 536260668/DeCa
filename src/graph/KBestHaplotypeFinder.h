@@ -11,24 +11,24 @@
 #include <vector>
 
 struct KBestHaplotypeComp{
-    bool operator() (KBestHaplotype* a, KBestHaplotype* b) {
+    bool operator() (std::shared_ptr<KBestHaplotype> a, std::shared_ptr<KBestHaplotype> b) {
         return a->getScore() > b->getScore();
     }
 };
 
 class KBestHaplotypeFinder {
 private:
-    SeqGraph* graph;
-    ArraySet<SeqVertex*> sinks;
-    ArraySet<SeqVertex*> sources;
-    static SeqGraph* removeCyclesAndVerticesThatDontLeadToSinks(SeqGraph* original, ArraySet<SeqVertex*> & sources, ArraySet<SeqVertex*> & sinks);
-    static bool findGuiltyVerticesAndEdgesToRemoveCycles(SeqGraph* graph, SeqVertex* currentVertex, ArraySet<SeqVertex*>& sinks, std::set<BaseEdge*> & edgesToRemove, std::set<SeqVertex*> & verticesToRemove, std::set<SeqVertex*> & parentVertices);
+    std::shared_ptr<SeqGraph> graph;
+    ArraySet<std::shared_ptr<SeqVertex>> sinks;
+    ArraySet<std::shared_ptr<SeqVertex>> sources;
+    static std::shared_ptr<SeqGraph> removeCyclesAndVerticesThatDontLeadToSinks(std::shared_ptr<SeqGraph> original, ArraySet<std::shared_ptr<SeqVertex>> & sources, ArraySet<std::shared_ptr<SeqVertex>> & sinks);
+    static bool findGuiltyVerticesAndEdgesToRemoveCycles(std::shared_ptr<SeqGraph> graph, std::shared_ptr<SeqVertex> currentVertex, ArraySet<std::shared_ptr<SeqVertex>>& sinks, std::set<std::shared_ptr<BaseEdge>> & edgesToRemove, std::set<std::shared_ptr<SeqVertex>> & verticesToRemove, std::set<std::shared_ptr<SeqVertex>> & parentVertices);
 
 public:
-    KBestHaplotypeFinder(SeqGraph* graph, ArraySet<SeqVertex*> & sources, ArraySet<SeqVertex*> & sinks);
-    KBestHaplotypeFinder(SeqGraph* graph, SeqVertex* source, SeqVertex* sink);
-    KBestHaplotypeFinder(SeqGraph* graph);
-    std::vector<KBestHaplotype*> findBestHaplotypes(int maxNumberOfHaplotypes);
+    KBestHaplotypeFinder(std::shared_ptr<SeqGraph> graph, ArraySet<std::shared_ptr<SeqVertex>> & sources, ArraySet<std::shared_ptr<SeqVertex>> & sinks);
+    KBestHaplotypeFinder(std::shared_ptr<SeqGraph> graph, std::shared_ptr<SeqVertex> source, std::shared_ptr<SeqVertex> sink);
+    KBestHaplotypeFinder(std::shared_ptr<SeqGraph> graph);
+    std::vector<std::shared_ptr<KBestHaplotype>> findBestHaplotypes(int maxNumberOfHaplotypes);
 };
 
 

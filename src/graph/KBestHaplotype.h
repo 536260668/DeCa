@@ -17,8 +17,8 @@ private:
 public:
     double getScore() {return score;}
     bool getIsReference() {return isReference;}
-    KBestHaplotype(SeqVertex* initialVertex, DirectedSpecifics<SeqVertex, BaseEdge> & graph);
-    KBestHaplotype(KBestHaplotype* p, BaseEdge* edge, int totalOutgoingMultiplicity);
+    KBestHaplotype(std::shared_ptr<SeqVertex> initialVertex, DirectedSpecifics<SeqVertex, BaseEdge> & graph);
+    KBestHaplotype(std::shared_ptr<KBestHaplotype> p, std::shared_ptr<BaseEdge> edge, int totalOutgoingMultiplicity);
     std::shared_ptr<Haplotype> getHaplotype();
 };
 

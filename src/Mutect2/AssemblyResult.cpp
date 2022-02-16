@@ -5,6 +5,6 @@
 #include "AssemblyResult.h"
 #include "Mutect2Utils.h"
 
-AssemblyResult::AssemblyResult(Status status, SeqGraph *graph, ReadThreadingGraph *threadingGraph) : status(status), graph(graph), threadingGraph(threadingGraph){
+AssemblyResult::AssemblyResult(Status status, const std::shared_ptr<SeqGraph>& graph, std::shared_ptr<ReadThreadingGraph> threadingGraph) : status(status), graph(graph), threadingGraph(threadingGraph){
     Mutect2Utils::validateArg(status == FAILED || graph != nullptr, "graph is null but status is not FAILED");
 }

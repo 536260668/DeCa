@@ -30,7 +30,7 @@ void SAMRecord::setPosition(std::string& contig, int start) {
     }
     mReferenceName = contig;
     mAlignmentStart = start;
-    mAlignmentEnd = start + mCigar->getReferenceLength();
+    mAlignmentEnd = start + mCigar->getReferenceLength() - 1;
     setFlag(false, 4);
 }
 
@@ -183,7 +183,7 @@ uint8_t *SAMRecord::getBasesNoCopy() {
 }
 
 void SAMRecord::setBases(uint8_t *bases, int length) {
-    delete[] bases;
+    delete[] mReadBases;
     mReadBases = bases;
     baseLength = length;
 }
@@ -234,7 +234,7 @@ void SAMRecord::setCigar(Cigar *cigar) {
     isCalAdaptorBoundary = false;
     delete mCigar;
     mCigar = cigar;
-    mAlignmentEnd = mAlignmentStart + mCigar->getReferenceLength();
+    mAlignmentEnd = mAlignmentStart + mCigar->getReferenceLength() - 1;
 }
 
 bool SAMRecord::getProperPairFlag() {
@@ -564,7 +564,7 @@ int SAMRecord::getAdaptorBoundary() {
 
 SAMRecord::SAMRecord(const SAMRecord &other) : mFlags(other.mFlags), baseLength(other.baseLength), baseQualitiesLength(other.baseQualitiesLength),
 mAlignmentStart(other.mAlignmentStart), mAlignmentEnd(other.mAlignmentEnd), mMateAlignmentStart(other.mMateAlignmentStart), mMappingQuality(other.mMappingQuality), mInferredInsertSize(other.mInferredInsertSize),
-mReferenceName(other.mReferenceName), mMateReferenceName(other.mMateReferenceName), mReadName(other.mReadName){
+mReferenceName(other.mReferenceName), mMateReferenceName(other.mMateReferenceName), mReadName(other.mReadName), readGroup(other.readGroup){
     mAttributes = nullptr;
     if(other.mReadBases != nullptr){
         mReadBases = new uint8_t[baseLength+1]{0};

@@ -4,14 +4,14 @@
 
 #include "MergeTails.h"
 
-bool MergeTails::tryToTransform(SeqVertex *top) {
-    Mutect2Utils::validateArg(top, "null is not allowed there");
-    ArraySet<SeqVertex*> tails = getGraph()->outgoingVerticesOf(top);
+bool MergeTails::tryToTransform(std::shared_ptr<SeqVertex> top) {
+    Mutect2Utils::validateArg(top.get(), "null is not allowed there");
+    ArraySet<std::shared_ptr<SeqVertex>> tails = getGraph()->outgoingVerticesOf(top);
     if(tails.size() <= 1) {
         return false;
     }
 
-    for(SeqVertex* t : tails) {
+    for(std::shared_ptr<SeqVertex> t : tails) {
         if(tails.size() <= 1) {
             return false;
         }

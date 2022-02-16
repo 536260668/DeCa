@@ -31,7 +31,7 @@ private:
      * @param source a non-null vertex
      * @return true if source might start a linear chain
      */
-    bool isLinearChainStart(SeqVertex* source);
+    bool isLinearChainStart(std::shared_ptr<SeqVertex> source);
 
     /**
      * Get all of the vertices in a linear chain of vertices starting at zipStart
@@ -43,11 +43,11 @@ private:
      * @return a list of vertices that comprise a linear chain starting with zipStart.  The resulting
      *         list will always contain at least zipStart as the first element.
      */
-    std::list<SeqVertex*> traceLinearChain(SeqVertex* zipStart);
+    std::list<std::shared_ptr<SeqVertex>> traceLinearChain(std::shared_ptr<SeqVertex> zipStart);
 
-    bool mergeLinearChain(std::list<SeqVertex*> & linearChain);
+    bool mergeLinearChain(std::list<std::shared_ptr<SeqVertex>> & linearChain);
 
-    static SeqVertex* mergeLinearChainVertices(std::list<SeqVertex*> & vertices);
+    static std::shared_ptr<SeqVertex> mergeLinearChainVertices(std::list<std::shared_ptr<SeqVertex>> & vertices);
 
     /**
      * Run one full cycle of the graph simplification algorithms
@@ -57,7 +57,7 @@ private:
 
 public:
     int getKmerSize() const{return kmerSize;}
-    BaseEdge* createEdge(SeqVertex* sourceVertex, SeqVertex* targetVertrx);
+    std::shared_ptr<BaseEdge> createEdge(std::shared_ptr<SeqVertex> sourceVertex, std::shared_ptr<SeqVertex> targetVertrx);
     SeqGraph(int kmer) : kmerSize(kmer), DirectedSpecifics<SeqVertex, BaseEdge>(){}
     SeqGraph(SeqGraph & seqGraph);
 
@@ -83,7 +83,7 @@ public:
 
     void simplifyGraph(int maxCycles);
 
-    SeqGraph* clone();
+    std::shared_ptr<SeqGraph> clone();
 
 };
 

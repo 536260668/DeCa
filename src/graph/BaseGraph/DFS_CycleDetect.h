@@ -15,8 +15,8 @@ template<class V, class E>
 class DFS_CycleDetect {
 public:
     bool detectCycles(){
-        ArraySet<V*> allVertex = graph.getVertexSet();
-        for(V* v : allVertex) {
+        ArraySet<std::shared_ptr<V>> allVertex = graph.getVertexSet();
+        for(std::shared_ptr<V> v : allVertex) {
             if(colorMap[v] == WHITE) {
                 if(hasCycle(v))
                     return true;
@@ -25,9 +25,9 @@ public:
         return false;
     }
 
-    bool hasCycle(V* start){
+    bool hasCycle(std::shared_ptr<V> start){
         colorMap[start] = GREY;
-        for(V* v : graph.getAllTargets(start)) {
+        for(std::shared_ptr<V> v : graph.getAllTargets(start)) {
             if(colorMap[v] == WHITE) {
                 if(hasCycle(v))
                     return true;
@@ -40,16 +40,16 @@ public:
     }
 
     DFS_CycleDetect(DirectedSpecifics<V, E> graph) : graph(graph) {
-        ArraySet<V*> allVertex = graph.getVertexSet();
-        for(V* v : allVertex) {
-            colorMap.insert(std::pair<V*, color>(v, WHITE));
+        ArraySet<std::shared_ptr<V>> allVertex = graph.getVertexSet();
+        for(std::shared_ptr<V> v : allVertex) {
+            colorMap.insert(std::pair<std::shared_ptr<V>, color>(v, WHITE));
         }
     }
 
 private:
     enum color{WHITE, GREY, BLACK};
     DirectedSpecifics<V, E> graph;
-    std::map<V*, color> colorMap;
+    std::map<std::shared_ptr<V>, color> colorMap;
 };
 
 

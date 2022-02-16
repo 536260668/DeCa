@@ -10,14 +10,14 @@
 
 class CommonSuffixSplitter {
 public:
-    static bool split(SeqGraph* graph, SeqVertex* v);
+    static bool split(std::shared_ptr<SeqGraph> graph, std::shared_ptr<SeqVertex> v);
 
 private:
-    static SeqVertex* commonSuffix(SeqGraph* graph, SeqVertex* v, ArraySet<SeqVertex*> toSplit);
-    static bool safeToSplit(SeqGraph* graph, SeqVertex* bot, ArraySet<SeqVertex*> toSplit);
-    static SeqVertex* commonSuffix(ArraySet<SeqVertex*> toSplit);
-    static bool wouldEliminateRefSource(SeqGraph* graph, SeqVertex* commonSuffix, ArraySet<SeqVertex*> toSplit);
-    static bool allVerticesAreTheCommonSuffix(SeqVertex* commonSuffix, ArraySet<SeqVertex*> toSplits);
+    static std::shared_ptr<SeqVertex> commonSuffix(std::shared_ptr<SeqGraph> graph, std::shared_ptr<SeqVertex> v, ArraySet<std::shared_ptr<SeqVertex>> toSplit);
+    static bool safeToSplit(std::shared_ptr<SeqGraph> graph, std::shared_ptr<SeqVertex> bot, ArraySet<std::shared_ptr<SeqVertex>> toSplit);
+    static std::shared_ptr<SeqVertex> commonSuffix(ArraySet<std::shared_ptr<SeqVertex>> toSplit);
+    static bool wouldEliminateRefSource(std::shared_ptr<SeqGraph> graph, std::shared_ptr<SeqVertex> commonSuffix, ArraySet<std::shared_ptr<SeqVertex>> toSplit);
+    static bool allVerticesAreTheCommonSuffix(std::shared_ptr<SeqVertex> commonSuffix, ArraySet<std::shared_ptr<SeqVertex>> toSplits);
 };
 
 

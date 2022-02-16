@@ -16,10 +16,10 @@ private:
     int length;
     std::string additionalInfo;
 
-    static int hashCode(uint8_t * a, int length);
+    static int hashCode(std::shared_ptr<uint8_t> a, int length);
 
 protected:
-    uint8_t* sequence;
+    std::shared_ptr<uint8_t> sequence;
 
 public:
     /**
@@ -30,7 +30,7 @@ public:
      *
      * @param sequence a non-null sequence of bases contained in this vertex
      */
-    BaseVertex(uint8_t* sequence, int length);
+    BaseVertex(std::shared_ptr<uint8_t> sequence, int length);
 
     virtual ~BaseVertex() = default;
 
@@ -58,7 +58,7 @@ public:
 
     friend  std::ostream & operator<<(std::ostream &os, const BaseVertex & baseVertex);
 
-    uint8_t * getSequence() const {return sequence;}
+    std::shared_ptr<uint8_t> getSequence() const {return sequence;}
 
     void setAdditionalInfo(const std::string &info);
 
@@ -66,9 +66,9 @@ public:
 
     bool hasAmbiguousSequence();
 
-    bool seqEquals(BaseVertex* other);
+    bool seqEquals(std::shared_ptr<BaseVertex> other);
 
-    virtual uint8_t * getAdditionalSequence(bool source) {return getSequence();}
+    virtual std::shared_ptr<uint8_t> getAdditionalSequence(bool source) {return getSequence();}
 
     virtual int getAdditionalSequenceLength(bool source) {return getLength();}
 };

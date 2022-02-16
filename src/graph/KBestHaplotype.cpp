@@ -5,11 +5,11 @@
 #include "KBestHaplotype.h"
 #include <cmath>
 
-KBestHaplotype::KBestHaplotype(SeqVertex *initialVertex, DirectedSpecifics<SeqVertex, BaseEdge> & graph) : Path<SeqVertex, BaseEdge>(initialVertex, graph){
+KBestHaplotype::KBestHaplotype(std::shared_ptr<SeqVertex> initialVertex, DirectedSpecifics<SeqVertex, BaseEdge> & graph) : Path<SeqVertex, BaseEdge>(initialVertex, graph){
     score = 0;
 }
 
-KBestHaplotype::KBestHaplotype(KBestHaplotype *p, BaseEdge *edge, int totalOutgoingMultiplicity) : Path<SeqVertex, BaseEdge>(*p, edge){
+KBestHaplotype::KBestHaplotype(std::shared_ptr<KBestHaplotype> p, std::shared_ptr<BaseEdge> edge, int totalOutgoingMultiplicity) : Path<SeqVertex, BaseEdge>(*p, edge){
     score = p->getScore() + std::log10(edge->getMultiplicity()) - std::log10(totalOutgoingMultiplicity);
 }
 

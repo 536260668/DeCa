@@ -30,12 +30,12 @@ private:
     ChainPruner<MultiDeBruijnVertex, MultiSampleEdge>* chainPruner;
     static const uint8_t DEFAULT_MIN_BASE_QUALITY_TO_USE = 10;
     static const int KMER_SIZE_ITERATION_INCREASE = 10;
-    std::shared_ptr<AssemblyResult> getAssemblyResult(std::shared_ptr<Haplotype>& refHaplotype, int kmerSize, ReadThreadingGraph* rtgraph);
-    std::shared_ptr<AssemblyResult> cleanupSeqGraph(SeqGraph* seqGraph);
-    std::vector<std::shared_ptr<Haplotype>> findBestPaths(const std::list<SeqGraph*>& graph, std::shared_ptr<Haplotype>& refHaplotype, SimpleInterval* refLoc, SimpleInterval* activeRegionWindow,
-                                          const std::map<SeqGraph*, std::shared_ptr<AssemblyResult>>& assemblyResultByGraph, std::shared_ptr<AssemblyResultSet>& assemblyResultSet) const;
-    std::vector<std::shared_ptr<Haplotype>> findBestPaths(const std::vector<SeqGraph *>& graphs, std::shared_ptr<Haplotype>& refHaplotype, SimpleInterval *refLoc,
-                  SimpleInterval *activeRegionWindow, const std::map<SeqGraph *, std::shared_ptr<AssemblyResult>>& assemblyResultByGraph, std::shared_ptr<AssemblyResultSet>& assemblyResultSet) const;
+    std::shared_ptr<AssemblyResult> getAssemblyResult(std::shared_ptr<Haplotype>& refHaplotype, int kmerSize, std::shared_ptr<ReadThreadingGraph> rtgraph);
+    std::shared_ptr<AssemblyResult> cleanupSeqGraph(std::shared_ptr<SeqGraph> seqGraph);
+    std::vector<std::shared_ptr<Haplotype>> findBestPaths(const std::list<std::shared_ptr<SeqGraph>>& graph, std::shared_ptr<Haplotype>& refHaplotype, SimpleInterval* refLoc, SimpleInterval* activeRegionWindow,
+                                          const std::map<std::shared_ptr<SeqGraph>, std::shared_ptr<AssemblyResult>>& assemblyResultByGraph, std::shared_ptr<AssemblyResultSet>& assemblyResultSet) const;
+    std::vector<std::shared_ptr<Haplotype>> findBestPaths(const std::vector<std::shared_ptr<SeqGraph>>& graphs, std::shared_ptr<Haplotype>& refHaplotype, SimpleInterval *refLoc,
+                  SimpleInterval *activeRegionWindow, const std::map<std::shared_ptr<SeqGraph>, std::shared_ptr<AssemblyResult>>& assemblyResultByGraph, std::shared_ptr<AssemblyResultSet>& assemblyResultSet) const;
     std::shared_ptr<AssemblyResult> createGraph(std::vector<std::shared_ptr<SAMRecord>> reads, std::shared_ptr<Haplotype>& refHaplotype, int kmerSize, bool allowLowComplexityGraphs, bool allowNonUniqueKmersInRef);
     static void addResult(std::vector<std::shared_ptr<AssemblyResult>> & results, std::shared_ptr<AssemblyResult> maybeNullResult);
     static int arrayMaxInt(std::vector<int> array);

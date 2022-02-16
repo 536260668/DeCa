@@ -5,8 +5,8 @@
 #include "SplitCommonSuffices.h"
 #include "CommonSuffixSplitter.h"
 
-bool SplitCommonSuffices::tryToTransform(SeqVertex *bottom) {
-    Mutect2Utils::validateArg(bottom, "null is not allowed there");
+bool SplitCommonSuffices::tryToTransform(std::shared_ptr<SeqVertex> bottom) {
+    Mutect2Utils::validateArg(bottom.get(), "null is not allowed there");
     if(alreadySplit.find(bottom) != alreadySplit.end()) {
         return false;
     } else {

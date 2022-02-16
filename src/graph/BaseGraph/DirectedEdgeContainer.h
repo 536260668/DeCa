@@ -11,32 +11,32 @@ template<class VV, class EE>
 class DirectedEdgeContainer {
 private:
     static const long serialVersionUID = 7494242245729767106L;
-    ArraySet<EE*> unmodifiableIncoming;
-    ArraySet<EE*> unmodifiableOutgoing;
+    ArraySet<std::shared_ptr<EE>> unmodifiableIncoming;
+    ArraySet<std::shared_ptr<EE>> unmodifiableOutgoing;
 
 public:
-    ArraySet<EE*> incoming;
-    ArraySet<EE*> outgoing;
+    ArraySet<std::shared_ptr<EE>> incoming;
+    ArraySet<std::shared_ptr<EE>> outgoing;
 
-    void addIncomingEdge(EE* e) {incoming.insert(e);}
+    void addIncomingEdge(std::shared_ptr<EE> e) {incoming.insert(e);}
 
-    void addOutgoingEdge(EE* e) {outgoing.insert(e);}
+    void addOutgoingEdge(std::shared_ptr<EE> e) {outgoing.insert(e);}
 
-    ArraySet<EE*>  getUnmodifiableIncomingEdges() {
+    ArraySet<std::shared_ptr<EE>>  getUnmodifiableIncomingEdges() {
         unmodifiableIncoming = incoming;
         return unmodifiableIncoming;
     }
 
-    ArraySet<EE*> getUnmodifiableOutgoingEdges() {
+    ArraySet<std::shared_ptr<EE>> getUnmodifiableOutgoingEdges() {
         unmodifiableOutgoing = outgoing;
         return unmodifiableOutgoing;
     }
 
-    void removeIncomingEdge(EE* e) {
+    void removeIncomingEdge(std::shared_ptr<EE> e) {
         incoming.erase(e);
     }
 
-    void removeOutgoingEdge(EE* e) {
+    void removeOutgoingEdge(std::shared_ptr<EE> e) {
         outgoing.erase(e);
     }
 };

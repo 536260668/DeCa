@@ -21,9 +21,9 @@ public:
 
     bool operator<(const SeqVertex & other) const;
 
-    SeqVertex* withoutSuffix(uint8_t* suffix, int length);
+    std::shared_ptr<SeqVertex> withoutSuffix(uint8_t* suffix, int length);
 
-    SeqVertex* withoutPrefixAndSuffix(uint8_t* prefix, int preLength, uint8_t* suffix, int sufLength);
+    std::shared_ptr<SeqVertex> withoutPrefixAndSuffix(uint8_t* prefix, int preLength, uint8_t* suffix, int sufLength);
 };
 
 

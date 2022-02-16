@@ -5,7 +5,7 @@
 #include "BaseVertex.h"
 #include "Mutect2Utils.h"
 
-int BaseVertex::hashCode(uint8_t *a, int length) {
+int BaseVertex::hashCode(std::shared_ptr<uint8_t> a, int length) {
     if(a == nullptr)
         return 0;
     int result = 1;
@@ -16,7 +16,7 @@ int BaseVertex::hashCode(uint8_t *a, int length) {
     return result;
 }
 
-BaseVertex::BaseVertex(uint8_t * const sequence, const int length) : sequence(sequence), length(length){
+BaseVertex::BaseVertex(std::shared_ptr<uint8_t> const sequence, const int length) : sequence(sequence), length(length){
     Mutect2Utils::validateArg(sequence != nullptr ||  length == 0, "Sequence cannot be null");
     cashedHashCode = hashCode(sequence, length);
 }
@@ -75,11 +75,11 @@ bool BaseVertex::hasAmbiguousSequence() {
     return false;
 }
 
-bool BaseVertex::seqEquals(BaseVertex *other) {
+bool BaseVertex::seqEquals(std::shared_ptr<BaseVertex> other) {
     if(length != other->getLength())
         return false;
 
-    uint8_t * otherSeq = other->getSequence();
+    std::shared_ptr<uint8_t> otherSeq = other->getSequence();
     for(int i = 0; i < length; i++){
         if(otherSeq[i] != sequence[i])
             return false;

@@ -5,16 +5,16 @@
 #include "MergeDiamonds.h"
 #include "SharedVertexSequenceSplitter.h"
 
-bool MergeDiamonds::tryToTransform(SeqVertex *top) {
+bool MergeDiamonds::tryToTransform(std::shared_ptr<SeqVertex> top) {
     Mutect2Utils::validateArg(top != nullptr, "Null is not allowed there");
-    SeqGraph* graph1 = getGraph();
-    ArraySet<SeqVertex*> middles = graph1->outgoingVerticesOf(top);
+    std::shared_ptr<SeqGraph> graph1 = getGraph();
+    ArraySet<std::shared_ptr<SeqVertex>> middles = graph1->outgoingVerticesOf(top);
     if(middles.size() <= 1) {
         return false;
     }
 
-    SeqVertex* bottom = nullptr;
-    for(SeqVertex* mi : middles) {
+    std::shared_ptr<SeqVertex> bottom = nullptr;
+    for(std::shared_ptr<SeqVertex> mi : middles) {
         if(graph1->outDegreeOf(mi) < 1) {
             return false;
         }
@@ -22,7 +22,7 @@ bool MergeDiamonds::tryToTransform(SeqVertex *top) {
             return false;
         }
 
-        for(SeqVertex* mt : graph1->outgoingVerticesOf(mi)) {
+        for(std::shared_ptr<SeqVertex> mt : graph1->outgoingVerticesOf(mi)) {
             if(bottom == nullptr) {
                 bottom = mt;
             } else if (bottom != mt) {

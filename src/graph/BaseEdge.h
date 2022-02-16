@@ -58,7 +58,7 @@ public:
      */
     BaseEdge add(BaseEdge &edge);
 
-    static BaseEdge* makeOREdge(std::vector<BaseEdge*> edges, int multiplicity);
+    static std::shared_ptr<BaseEdge> makeOREdge(std::vector<std::shared_ptr<BaseEdge>> edges, int multiplicity);
 };
 
 

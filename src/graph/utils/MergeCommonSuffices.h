@@ -9,10 +9,10 @@
 
 class MergeCommonSuffices : public VertexBasedTransformer{
 public:
-    MergeCommonSuffices(SeqGraph* graph) : VertexBasedTransformer(graph) {}
+    MergeCommonSuffices(std::shared_ptr<SeqGraph> graph) : VertexBasedTransformer(graph) {}
 
 protected:
-    bool tryToTransform(SeqVertex* bottom) override;
+    bool tryToTransform(std::shared_ptr<SeqVertex> bottom) override;
 };
 
 

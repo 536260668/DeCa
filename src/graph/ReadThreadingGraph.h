@@ -35,11 +35,11 @@ class ReadThreadingGraph : public DirectedSpecifics<MultiDeBruijnVertex, MultiSa
 protected:
     int kmerSize;
 
-    DanglingChainMergeHelper* generateCigarAgainstDownwardsReferencePath(MultiDeBruijnVertex* vertex, int pruneFactor, int minDanglingBranchLength, bool recoverAll);
+    DanglingChainMergeHelper* generateCigarAgainstDownwardsReferencePath(std::shared_ptr<MultiDeBruijnVertex> vertex, int pruneFactor, int minDanglingBranchLength, bool recoverAll);
 
-    DanglingChainMergeHelper* generateCigarAgainstUpwardsReferencePath(MultiDeBruijnVertex* vertex, int pruneFactor, int minDanglingBranchLength, bool recoverAll);
+    DanglingChainMergeHelper* generateCigarAgainstUpwardsReferencePath(std::shared_ptr<MultiDeBruijnVertex> vertex, int pruneFactor, int minDanglingBranchLength, bool recoverAll);
 
-    uint8_t * getBasesForPath(std::vector<MultiDeBruijnVertex*> path, int & length, bool expandSource);
+    uint8_t * getBasesForPath(std::vector<std::shared_ptr<MultiDeBruijnVertex>> path, int & length, bool expandSource);
 
 private:
     int numPruningSamples;
@@ -48,7 +48,7 @@ private:
 
     ArraySet<Kmer> nonUniqueKmers;
 
-    std::map<Kmer, MultiDeBruijnVertex*> uniqueKmers;
+    std::map<Kmer, std::shared_ptr<MultiDeBruijnVertex>> uniqueKmers;
 
     const uint8_t minBaseQualityToUseInAssembly;
 
@@ -106,7 +106,7 @@ private:
     * @param kmer the kmer we want to create a vertex for
     * @return the non-null created vertex
     */
-     MultiDeBruijnVertex* createVertex(Kmer & kmer);
+    std::shared_ptr<MultiDeBruijnVertex> createVertex(Kmer & kmer);
 
     /**
    * Workhorse routine of the assembler.  Given a sequence whose last vertex is anchored in the graph, extend
@@ -119,7 +119,7 @@ private:
    * @param isRef is this the reference sequence?
    * @return a non-null vertex connecting prevVertex to in the graph based on sequence
    */
-     MultiDeBruijnVertex* extendChainByOne(MultiDeBruijnVertex* prevVertex, uint8_t * sequence, int kmerStart, int count, bool isRef);
+    std::shared_ptr<MultiDeBruijnVertex> extendChainByOne(std::shared_ptr<MultiDeBruijnVertex> prevVertex, uint8_t * sequence, int kmerStart, int count, bool isRef);
 
      void threadSequence(SequenceForKmers & sequenceForKmers);
 
@@ -133,9 +133,9 @@ private:
 
      bool getUniqueKmerVertex(Kmer & kmer, bool allowRefSource);
 
-     MultiDeBruijnVertex* getOrCreateKmerVertex(uint8_t * sequence, int start);
+    std::shared_ptr<MultiDeBruijnVertex> getOrCreateKmerVertex(uint8_t * sequence, int start);
 
-     void increaseCountsInMatchedKmers(SequenceForKmers & seqForKmers, MultiDeBruijnVertex* vertex, uint8_t* originalKmer, int offset);
+     void increaseCountsInMatchedKmers(SequenceForKmers & seqForKmers, std::shared_ptr<MultiDeBruijnVertex> vertex, uint8_t* originalKmer, int offset);
 
     /**
     * Attempt to attach vertex with out-degree == 0 to the graph
@@ -146,18 +146,18 @@ private:
     * @param aligner
     * @return 1 if we successfully recovered the vertex and 0 otherwise
     */
-     int recoverDanglingTail(MultiDeBruijnVertex* v, int pruneFactor, int minDanglingBranchLength, bool recoverAll);
+     int recoverDanglingTail(std::shared_ptr<MultiDeBruijnVertex> v, int pruneFactor, int minDanglingBranchLength, bool recoverAll);
 
 
-    std::deque<MultiDeBruijnVertex*> findPathUpwardsToLowestCommonAncestor(MultiDeBruijnVertex* vertex, int pruneFactor, bool giveUpAtBranch);
+    std::deque<std::shared_ptr<MultiDeBruijnVertex>> findPathUpwardsToLowestCommonAncestor(std::shared_ptr<MultiDeBruijnVertex> vertex, int pruneFactor, bool giveUpAtBranch);
 
-    bool hasIncidentRefEdge(MultiDeBruijnVertex* v);
+    bool hasIncidentRefEdge(std::shared_ptr<MultiDeBruijnVertex> v);
 
-    MultiSampleEdge* getHeaviestIncomingEdge(MultiDeBruijnVertex* v);
+    std::shared_ptr<MultiSampleEdge> getHeaviestIncomingEdge(std::shared_ptr<MultiDeBruijnVertex> v);
 
-    MultiSampleEdge* getHeaviestOutgoingEdge(MultiDeBruijnVertex* v);
+    std::shared_ptr<MultiSampleEdge> getHeaviestOutgoingEdge(std::shared_ptr<MultiDeBruijnVertex> v);
 
-    std::vector<MultiDeBruijnVertex*> getReferencePath(MultiDeBruijnVertex* start, TraversalDirection direction, MultiSampleEdge* blacklistedEdge);
+    std::vector<std::shared_ptr<MultiDeBruijnVertex>> getReferencePath(std::shared_ptr<MultiDeBruijnVertex> start, TraversalDirection direction, std::shared_ptr<MultiSampleEdge> blacklistedEdge);
 
     /**
      * Attempt to attach vertex with in-degree == 0, or a vertex on its path, to the graph
@@ -169,9 +169,9 @@ private:
      * @param aligner
      * @return 1 if we successfully recovered a vertex and 0 otherwise
      */
-    int recoverDanglingHead(MultiDeBruijnVertex* v, int pruneFactor, int minDanglingBranchLength, bool recoverAll);
+    int recoverDanglingHead(std::shared_ptr<MultiDeBruijnVertex> v, int pruneFactor, int minDanglingBranchLength, bool recoverAll);
 
-    std::deque<MultiDeBruijnVertex*> findPathDownwardsToHighestCommonDescendantOfReference(MultiDeBruijnVertex* vertex, int pruneFactor, bool giveUpAtBranch);
+    std::deque<std::shared_ptr<MultiDeBruijnVertex>> findPathDownwardsToHighestCommonDescendantOfReference(std::shared_ptr<MultiDeBruijnVertex> vertex, int pruneFactor, bool giveUpAtBranch);
 
     int bestPrefixMatch(const uint8_t* path1, const uint8_t* path2, int maxIndex);
 
@@ -211,7 +211,7 @@ public:
      */
      void addRead(std::shared_ptr<SAMRecord> & read);
 
-     bool removeVertex(MultiDeBruijnVertex* V) override;
+     bool removeVertex(std::shared_ptr<MultiDeBruijnVertex> V) override;
 
      //void setPending();
 
@@ -244,9 +244,9 @@ public:
 
     int mergeDanglingHead(DanglingChainMergeHelper* danglingTailMergeResult);
 
-    MultiSampleEdge* createEdge(MultiDeBruijnVertex*, MultiDeBruijnVertex*) override;
+    std::shared_ptr<MultiSampleEdge> createEdge(std::shared_ptr<MultiDeBruijnVertex>, std::shared_ptr<MultiDeBruijnVertex>) override;
 
-    SeqGraph* toSequenceGraph();
+    std::shared_ptr<SeqGraph> toSequenceGraph();
 
     void addSequence(std::string seqName, uint8_t* sequence, int length, int count, bool isRef);
 

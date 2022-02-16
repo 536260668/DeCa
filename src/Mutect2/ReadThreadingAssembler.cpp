@@ -13,7 +13,7 @@
 
 
 std::shared_ptr<AssemblyResult>
-ReadThreadingAssembler::getAssemblyResult(std::shared_ptr<Haplotype>& refHaplotype, int kmerSize, ReadThreadingGraph *rtgraph) {
+ReadThreadingAssembler::getAssemblyResult(std::shared_ptr<Haplotype>& refHaplotype, int kmerSize, std::shared_ptr<ReadThreadingGraph> rtgraph) {
     if(recoverDanglingBranches){
         rtgraph->recoverDanglingTails(pruneFactor, minDanglingBranchLength, recoverAllDanglingBranches);
         rtgraph->recoverDanglingHeads(pruneFactor, minDanglingBranchLength, recoverAllDanglingBranches);
@@ -23,7 +23,7 @@ ReadThreadingAssembler::getAssemblyResult(std::shared_ptr<Haplotype>& refHaploty
         rtgraph->removePathsNotConnectedToRef();
     }
 
-    SeqGraph* initialSeqGraph = rtgraph->toSequenceGraph();
+    std::shared_ptr<SeqGraph> initialSeqGraph = rtgraph->toSequenceGraph();
     if(justReturnRawGraph) {
         return std::shared_ptr<AssemblyResult>(new AssemblyResult(ASSEMBLED_SOME_VARIATION, initialSeqGraph, nullptr));
     }
@@ -35,7 +35,7 @@ ReadThreadingAssembler::getAssemblyResult(std::shared_ptr<Haplotype>& refHaploty
     return ret;
 }
 
-std::shared_ptr<AssemblyResult> ReadThreadingAssembler::cleanupSeqGraph(SeqGraph *seqGraph) {
+std::shared_ptr<AssemblyResult> ReadThreadingAssembler::cleanupSeqGraph(std::shared_ptr<SeqGraph>seqGraph) {
     seqGraph->zipLinearChains();
     seqGraph->removeSingletonOrphanVertices();
     seqGraph->removeVerticesNotConnectedToRefRegardlessOfEdgeDirection();
@@ -46,29 +46,29 @@ std::shared_ptr<AssemblyResult> ReadThreadingAssembler::cleanupSeqGraph(SeqGraph
     seqGraph->removePathsNotConnectedToRef();
     seqGraph->simplifyGraph();
     if(seqGraph->getVertexSet().size() == 1) {
-        SeqVertex* complete = *(seqGraph->getVertexSet().begin());
-        SeqVertex* dummy = new SeqVertex(nullptr, 0);
+        std::shared_ptr<SeqVertex> complete = *(seqGraph->getVertexSet().begin());
+        std::shared_ptr<SeqVertex> dummy(new SeqVertex(nullptr, 0));
         seqGraph->addVertex(dummy);
-        seqGraph->addEdge(complete, dummy, new BaseEdge(true, 0));
+        seqGraph->addEdge(complete, dummy, std::shared_ptr<BaseEdge>(new BaseEdge(true, 0)));
     }
     return std::shared_ptr<AssemblyResult>(new AssemblyResult(ASSEMBLED_SOME_VARIATION, seqGraph, nullptr));
 }
 
 
 std::vector<std::shared_ptr<Haplotype>>
-ReadThreadingAssembler::findBestPaths(const std::list<SeqGraph *>& graphs, std::shared_ptr<Haplotype>& refHaplotype, SimpleInterval *refLoc,
+ReadThreadingAssembler::findBestPaths(const std::list<std::shared_ptr<SeqGraph>>& graphs, std::shared_ptr<Haplotype>& refHaplotype, SimpleInterval *refLoc,
                                       SimpleInterval *activeRegionWindow,
-                                      const std::map<SeqGraph *, std::shared_ptr<AssemblyResult>>& assemblyResultByGraph, std::shared_ptr<AssemblyResultSet>& assemblyResultSet) const {
+                                      const std::map<std::shared_ptr<SeqGraph>, std::shared_ptr<AssemblyResult>>& assemblyResultByGraph, std::shared_ptr<AssemblyResultSet>& assemblyResultSet) const {
     std::set<std::shared_ptr<Haplotype>, HaplotypeComp> returnHaplotypes;
     int activeRegionStart = refHaplotype->getAlignmentStartHapwrtRef();
     int failedCigars = 0;
 
-    for(SeqGraph* graph : graphs) {
-        SeqVertex* source = graph->getReferenceSourceVertex();
-        SeqVertex* sink = graph->getReferenceSinkVertex();
+    for(std::shared_ptr<SeqGraph> graph : graphs) {
+        std::shared_ptr<SeqVertex> source = graph->getReferenceSourceVertex();
+        std::shared_ptr<SeqVertex> sink = graph->getReferenceSinkVertex();
         Mutect2Utils::validateArg(source != nullptr && sink != nullptr, "Both source and sink cannot be null");
 
-        for(KBestHaplotype* kBestHaplotype : KBestHaplotypeFinder(graph, source, sink).findBestHaplotypes(numBestHaplotypesPerGraph)) {
+        for(std::shared_ptr<KBestHaplotype> kBestHaplotype : KBestHaplotypeFinder(graph, source, sink).findBestHaplotypes(numBestHaplotypesPerGraph)) {
             std::shared_ptr<Haplotype> h = kBestHaplotype->getHaplotype();
             if(returnHaplotypes.find(h) == returnHaplotypes.end()) {
                 if(kBestHaplotype->getIsReference()) {
@@ -109,7 +109,7 @@ std::shared_ptr<AssemblyResultSet> ReadThreadingAssembler::runLocalAssembly(Asse
     } else {
         correctedReads = assemblyRegion.getReads();
     }
-    std::vector<SeqGraph*> nonRefGraphs;
+    std::vector<std::shared_ptr<SeqGraph>> nonRefGraphs;
     std::shared_ptr<AssemblyResultSet> resultSet(new AssemblyResultSet());
     resultSet->setRegionForGenotyping(assemblyRegion);
     resultSet->setFullReferenceWithPadding(fullReferenceWithPadding, refLength);
@@ -117,11 +117,11 @@ std::shared_ptr<AssemblyResultSet> ReadThreadingAssembler::runLocalAssembly(Asse
     SimpleInterval activeRegionExtendedLocation = assemblyRegion.getExtendedSpan();
     refHaplotype->setGenomeLocation(&activeRegionExtendedLocation);
     resultSet->add(refHaplotype);
-    std::map<SeqGraph*, std::shared_ptr<AssemblyResult>> assemblyResultByGraph;
+    std::map<std::shared_ptr<SeqGraph>, std::shared_ptr<AssemblyResult>> assemblyResultByGraph;
     for(std::shared_ptr<AssemblyResult> result : assemble(correctedReads, refHaplotype)) {
         if(result->getStatus() == ASSEMBLED_SOME_VARIATION) {
             //TODO:do some QC on the graph
-            assemblyResultByGraph.insert(std::pair<SeqGraph*, std::shared_ptr<AssemblyResult>>(result->getGraph(), result));
+            assemblyResultByGraph.insert(std::pair<std::shared_ptr<SeqGraph>, std::shared_ptr<AssemblyResult>>(result->getGraph(), result));
             nonRefGraphs.emplace_back(result->getGraph());
         }
     }
@@ -158,7 +158,7 @@ ReadThreadingAssembler::createGraph(std::vector<std::shared_ptr<SAMRecord>> read
     if(!allowNonUniqueKmersInRef && !ReadThreadingGraph::determineNonUniqueKmers(tmp, kmerSize).empty()) {
         return nullptr;
     }
-    ReadThreadingGraph* rtgraph = new ReadThreadingGraph(kmerSize, debugGraphTransformations, minBaseQualityToUseInAssembly, numPruningSamples);
+    std::shared_ptr<ReadThreadingGraph> rtgraph(new ReadThreadingGraph(kmerSize, debugGraphTransformations, minBaseQualityToUseInAssembly, numPruningSamples));
     rtgraph->setThreadingStartOnlyAtExistingVertex(!recoverDanglingBranches);
     rtgraph->addSequence("ref", refHaplotype->getBases(), refHaplotype->getLength(), true);
 
@@ -197,20 +197,20 @@ int ReadThreadingAssembler::arrayMaxInt(std::vector<int> array) {
 }
 
 std::vector<std::shared_ptr<Haplotype>>
-ReadThreadingAssembler::findBestPaths(const std::vector<SeqGraph *> &graphs, std::shared_ptr<Haplotype>& refHaplotype,
+ReadThreadingAssembler::findBestPaths(const std::vector<std::shared_ptr<SeqGraph>> &graphs, std::shared_ptr<Haplotype>& refHaplotype,
                                       SimpleInterval *refLoc, SimpleInterval *activeRegionWindow,
-                                      const std::map<SeqGraph *, std::shared_ptr<AssemblyResult>> &assemblyResultByGraph,
+                                      const std::map<std::shared_ptr<SeqGraph>, std::shared_ptr<AssemblyResult>> &assemblyResultByGraph,
                                       std::shared_ptr<AssemblyResultSet> &assemblyResultSet) const {
     std::set<std::shared_ptr<Haplotype>, HaplotypeComp> returnHaplotypes;
     int activeRegionStart = refHaplotype->getAlignmentStartHapwrtRef();
     int failedCigars = 0;
 
-    for(SeqGraph* graph : graphs) {
-        SeqVertex* source = graph->getReferenceSourceVertex();
-        SeqVertex* sink = graph->getReferenceSinkVertex();
+    for(std::shared_ptr<SeqGraph> graph : graphs) {
+        std::shared_ptr<SeqVertex> source = graph->getReferenceSourceVertex();
+        std::shared_ptr<SeqVertex> sink = graph->getReferenceSinkVertex();
         Mutect2Utils::validateArg(source != nullptr && sink != nullptr, "Both source and sink cannot be null");
 
-        for(KBestHaplotype* kBestHaplotype : KBestHaplotypeFinder(graph, source, sink).findBestHaplotypes(numBestHaplotypesPerGraph)) {
+        for(std::shared_ptr<KBestHaplotype> kBestHaplotype : KBestHaplotypeFinder(graph, source, sink).findBestHaplotypes(numBestHaplotypesPerGraph)) {
             std::shared_ptr<Haplotype> h = kBestHaplotype->getHaplotype();
             if(returnHaplotypes.find(h) == returnHaplotypes.end()) {
                 if(kBestHaplotype->getIsReference()) {

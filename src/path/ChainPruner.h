@@ -27,10 +27,10 @@ public:
     }
 
     std::vector<Path<V, E>*> findAllChains(DirectedSpecifics<V,E> & graph) {
-        std::deque<V*> chainStarts;
-        std::set<V*> alreadySeen;
-        ArraySet<V*> vertexSet = graph.getVertexSet();
-        typename std::vector<V*>::iterator viter;
+        std::deque<std::shared_ptr<V>> chainStarts;
+        std::set<std::shared_ptr<V>> alreadySeen;
+        ArraySet<std::shared_ptr<V>> vertexSet = graph.getVertexSet();
+        typename std::vector<std::shared_ptr<V>>::iterator viter;
         for(viter = vertexSet.begin(); viter != vertexSet.end(); viter++) {
             if(graph.isSource(*viter)) {
                 chainStarts.push_front(*viter);
@@ -39,14 +39,14 @@ public:
         }
         std::vector<Path<V,E>*> chains;
         while(!chainStarts.empty()) {
-            V* chainStart = chainStarts.front();
+            std::shared_ptr<V> chainStart = chainStarts.front();
             chainStarts.pop_front();
-            ArraySet<E*> outEdges = graph.outgoingEdgesOf(chainStart);
-            typename std::vector<E*>::iterator eiter;
+            ArraySet<std::shared_ptr<E>> outEdges = graph.outgoingEdgesOf(chainStart);
+            typename std::vector<std::shared_ptr<E>>::iterator eiter;
             for(eiter = outEdges.begin(); eiter != outEdges.end(); eiter++) {
                 Path<V,E>* chain = findChain(*eiter, graph);
                 chains.template emplace_back(chain);
-                V* chainEnd = chain->getLastVertex();
+                std::shared_ptr<V> chainEnd = chain->getLastVertex();
                 if(alreadySeen.find(chainEnd) == alreadySeen.end()) {
                     chainStarts.template emplace_back(chainEnd);
                     alreadySeen.insert(chainEnd);
@@ -57,18 +57,18 @@ public:
     }
 
 private:
-    Path<V, E>* findChain(E* startEdge, DirectedSpecifics<V,E> & graph) {
-        std::vector<E*> edges;
+    Path<V, E>* findChain(std::shared_ptr<E> startEdge, DirectedSpecifics<V,E> & graph) {
+        std::vector<std::shared_ptr<E>> edges;
         edges.template emplace_back(startEdge);
-        V* firstVertex = graph.getEdgeSource(startEdge);
-        V* lastVertex = graph.getEdgeTarget(startEdge);
+        std::shared_ptr<V> firstVertex = graph.getEdgeSource(startEdge);
+        std::shared_ptr<V> lastVertex = graph.getEdgeTarget(startEdge);
 
         while (true) {
-            ArraySet<E*> outEdges = graph.outgoingEdgesOf(lastVertex);
+            ArraySet<std::shared_ptr<E>> outEdges = graph.outgoingEdgesOf(lastVertex);
             if(outEdges.size() != 1 || graph.inDegreeOf(lastVertex) > 1 || lastVertex == firstVertex) {
                 break;
             }
-            E* nextEdge = outEdges[0];
+            std::shared_ptr<E> nextEdge = outEdges[0];
             edges.template emplace_back(nextEdge);
             lastVertex = graph.getEdgeTarget(nextEdge);
         }

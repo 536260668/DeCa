@@ -4,7 +4,7 @@
 
 #include "MergeCommonSuffices.h"
 #include "SharedSequenceMerger.h"
-bool MergeCommonSuffices::tryToTransform(SeqVertex *bottom) {
-    Mutect2Utils::validateArg(bottom, "null is not allowed there");
+bool MergeCommonSuffices::tryToTransform(std::shared_ptr<SeqVertex> bottom) {
+    Mutect2Utils::validateArg(bottom.get(), "null is not allowed there");
     return SharedSequenceMerger::merge(getGraph(), bottom);
 }

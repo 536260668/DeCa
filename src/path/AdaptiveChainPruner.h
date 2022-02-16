@@ -41,7 +41,7 @@ protected:
             errorCount += (*siter)->getLastEdge()->getMultiplicity();
         }
         for(viter = chains.begin(); viter != chains.end(); viter++) {
-            for(typename std::vector<E*>::iterator iter = (*viter)->getEdges().begin(); iter != (*viter)->getEdges().end(); iter++) {
+            for(typename std::vector<std::shared_ptr<E>>::iterator iter = (*viter)->getEdges().begin(); iter != (*viter)->getEdges().end(); iter++) {
                 totalBases += (*iter)->getMultiplicity();
             }
         }
@@ -81,15 +81,15 @@ private:
     }
 
     double chainLogOdds(Path<V,E>* chain, DirectedSpecifics<V,E> & graph, double errorRate) {
-        typename std::vector<E*>::iterator eiter;
+        typename std::vector<std::shared_ptr<E>>::iterator eiter;
         for(eiter = chain->getEdges().begin(); eiter != chain->getEdges().end(); eiter++) {
             if((*eiter)->getIsRef())
                 return POSITIVE_INFINITY;
         }
         int leftTotalMultiplicity = 0;
         int rightTotalMultiplicity = 0;
-        ArraySet<E*> outgoing = graph.outgoingEdgesOf(chain->getFirstVertex());
-        ArraySet<E*> incoming = graph.outgoingEdgesOf(chain->getFirstVertex());
+        ArraySet<std::shared_ptr<E>> outgoing = graph.outgoingEdgesOf(chain->getFirstVertex());
+        ArraySet<std::shared_ptr<E>> incoming = graph.outgoingEdgesOf(chain->getFirstVertex());
         for(eiter = outgoing.begin(); eiter != outgoing.end(); eiter++) {
             leftTotalMultiplicity += (*eiter)->getMultiplicity();
         }
@@ -106,15 +106,15 @@ private:
     }
 
     bool isChainPossibleVariant(Path<V,E>* chain, DirectedSpecifics<V,E> & graph) {
-        typename std::vector<E*>::iterator eiter;
+        typename std::vector<std::shared_ptr<E>>::iterator eiter;
         for(eiter = chain->getEdges().begin(); eiter != chain->getEdges().end(); eiter++) {
             if((*eiter)->getIsRef())
                 return POSITIVE_INFINITY;
         }
         int leftTotalMultiplicity = 0;
         int rightTotalMultiplicity = 0;
-        ArraySet<E*> outgoing = graph.outgoingEdgesOf(chain->getFirstVertex());
-        ArraySet<E*> incoming = graph.outgoingEdgesOf(chain->getFirstVertex());
+        ArraySet<std::shared_ptr<E>> outgoing = graph.outgoingEdgesOf(chain->getFirstVertex());
+        ArraySet<std::shared_ptr<E>> incoming = graph.outgoingEdgesOf(chain->getFirstVertex());
         for(eiter = outgoing.begin(); eiter != outgoing.end(); eiter++) {
             leftTotalMultiplicity += (*eiter)->getMultiplicity();
         }
