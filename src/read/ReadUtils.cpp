@@ -321,7 +321,7 @@ bool ReadUtils::hasWellDefinedFragmentSize(std::shared_ptr<SAMRecord> & read) {
     if(read->isReverseStrand()) {
         return read->getEnd() > read->getMateStart();
     } else {
-        return read->getStart() <= read->getMappingQuality() + read->getFragmentLength();
+        return read->getStart() <= read->getMateStart() + read->getFragmentLength();
     }
 }
 
