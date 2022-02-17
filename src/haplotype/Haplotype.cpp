@@ -7,27 +7,27 @@
 #include "read/AlignmentUtils.h"
 #include "SimpleInterval.h"
 
-Haplotype::Haplotype(uint8_t *bases, int length, bool isRef) : Allele(copyArray(bases, length), length, isRef), eventMap(
+Haplotype::Haplotype(std::shared_ptr<uint8_t> bases, int length, bool isRef) : Allele(copyArray(bases, length), length, isRef), eventMap(
         nullptr){}
 
-uint8_t *Haplotype::copyArray(uint8_t *base, int length) {
-    uint8_t * res = new uint8_t[length+1]{0};
-    memcpy(res, base, length);
+std::shared_ptr<uint8_t> Haplotype::copyArray(std::shared_ptr<uint8_t> base, int length) {
+    std::shared_ptr<uint8_t> res{new uint8_t[length+1]{0}};
+    memcpy(res.get(), base.get(), length);
     return res;
 }
 
-Haplotype::Haplotype(uint8_t *bases, int length) : Allele(copyArray(bases, length), length, false){}
+Haplotype::Haplotype(std::shared_ptr<uint8_t>bases, int length) : Allele(copyArray(bases, length), length, false){}
 
 void Haplotype::setCigar(std::shared_ptr<Cigar> & cigar) {
     this->cigar = AlignmentUtils::consolidateCigar(cigar);
     Mutect2Utils::validateArg(this->cigar->getReadLength() == getLength(), "Read length is not equal to the read length of the cigar");
 }
 
-Haplotype::Haplotype(uint8_t *bases, bool isRef, int length, int alignmentStartHapwrtRef, std::shared_ptr<Cigar> & cigar) : Allele(copyArray(bases, length), length, false), alignmentStartHapwrtRef(alignmentStartHapwrtRef){
+Haplotype::Haplotype(std::shared_ptr<uint8_t>bases, bool isRef, int length, int alignmentStartHapwrtRef, std::shared_ptr<Cigar> & cigar) : Allele(copyArray(bases, length), length, false), alignmentStartHapwrtRef(alignmentStartHapwrtRef){
     setCigar(cigar);
 }
 
-Haplotype::Haplotype(uint8_t *bases, int length, Locatable *loc) : Allele(copyArray(bases, length), length, false), genomeLocation(loc){}
+Haplotype::Haplotype(std::shared_ptr<uint8_t> bases, int length, Locatable *loc) : Allele(copyArray(bases, length), length, false), genomeLocation(loc){}
 
 Haplotype *Haplotype::trim(Locatable* loc) {
     Mutect2Utils::validateArg(loc != nullptr, "Loc cannot be null");
@@ -38,7 +38,7 @@ Haplotype *Haplotype::trim(Locatable* loc) {
 
     int newStart = loc->getStart() - this->genomeLocation->getStart();
     int newStop = newStart + loc->getEnd() - loc->getStart();
-    uint8_t * newBases = AlignmentUtils::getBasesCoveringRefInterval(newStart, newStop, getBases(), getBasesLength(), 0, getCigar());
+    std::shared_ptr<uint8_t> newBases = AlignmentUtils::getBasesCoveringRefInterval(newStart, newStop, getBases(), getBasesLength(), 0, getCigar());
     std::shared_ptr<Cigar> newCigar = AlignmentUtils::trimCigarByReference(getCigar(), newStart, newStop);
 
     if(newBases == nullptr || AlignmentUtils::startsOrEndsWithInsertionOrDeletion(newCigar))
@@ -82,8 +82,8 @@ bool Haplotype::operator<(const Haplotype &other) const {
     else if(this->getLength() > other.getLength())
         return false;
     else {
-        uint8_t * bases = this->getBases();
-        uint8_t * otherBases = other.getBases();
+        uint8_t * bases = this->getBases().get();
+        uint8_t * otherBases = other.getBases().get();
         for(int i = 0; i < this->getLength(); i++) {
             if(bases[i] < otherBases[i])
                 return true;

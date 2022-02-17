@@ -9,9 +9,9 @@
 
 const SWParameters  CigarUtils::NEW_SW_PARAMETERS = SWParameters(200, -150, -260, -11);
 
-std::shared_ptr<Cigar> CigarUtils::calculateCigar(uint8_t *refSeq, int refLength, uint8_t *altSeq, int altLength) {
-    Mutect2Utils::validateArg(refSeq, "refSeq");
-    Mutect2Utils::validateArg(altSeq, "altSeq");
+std::shared_ptr<Cigar> CigarUtils::calculateCigar(std::shared_ptr<uint8_t[]> refSeq, int refLength, std::shared_ptr<uint8_t[]> altSeq, int altLength) {
+    Mutect2Utils::validateArg(refSeq.get(), "refSeq");
+    Mutect2Utils::validateArg(altSeq.get(), "altSeq");
     if(altLength == 0) {
         std::vector<CigarElement> elements;
         elements.emplace_back(CigarElement(refLength, D));
@@ -19,8 +19,10 @@ std::shared_ptr<Cigar> CigarUtils::calculateCigar(uint8_t *refSeq, int refLength
     }
     if(altLength == refLength) {
         int mismatchCount = 0;
+        uint8_t * alt = altSeq.get();
+        uint8_t * ref = refSeq.get();
         for (int n = 0; n < refLength && mismatchCount <= 2; n++) {
-            mismatchCount += (altSeq[n] == refSeq[n] ? 0 : 1);
+            mismatchCount += (alt[n] == ref[n] ? 0 : 1);
         }
         if(mismatchCount <= 2) {
             std::shared_ptr<Cigar> matching(new Cigar());
@@ -30,16 +32,16 @@ std::shared_ptr<Cigar> CigarUtils::calculateCigar(uint8_t *refSeq, int refLength
     }
     std::shared_ptr<Cigar> nonStandard;
     int paddedRefLength = refLength + 2*SW_PAD;
-    uint8_t * paddedRef = new uint8_t[paddedRefLength];
+    std::shared_ptr<uint8_t[]> paddedRef(new uint8_t[paddedRefLength]);
     int paddedPathLength = altLength + 2*SW_PAD;
-    uint8_t * paddedPath = new uint8_t[paddedPathLength];
+    std::shared_ptr<uint8_t[]> paddedPath(new uint8_t[paddedPathLength]);
     uint8_t tmp[10] = {'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N'};
-    memcpy(paddedRef, tmp, 10);
-    memcpy(paddedRef+10, refSeq, refLength);
-    memcpy(paddedRef+10+refLength, tmp, 10);
-    memcpy(paddedPath, tmp, 10);
-    memcpy(paddedPath+10, altSeq, altLength);
-    memcpy(paddedPath+10+altLength, tmp, 10);
+    memcpy(paddedRef.get(), tmp, 10);
+    memcpy(paddedRef.get()+10, refSeq.get(), refLength);
+    memcpy(paddedRef.get()+10+refLength, tmp, 10);
+    memcpy(paddedPath.get(), tmp, 10);
+    memcpy(paddedPath.get()+10, altSeq.get(), altLength);
+    memcpy(paddedPath.get()+10+altLength, tmp, 10);
     SWNativeAlignerWrapper wrapper = SWNativeAlignerWrapper();
     SmithWatermanAlignment* alignment = wrapper.align(paddedRef, paddedRefLength, paddedPath, paddedPathLength,
                                                       const_cast<SWParameters *>(&NEW_SW_PARAMETERS), SOFTCLIP);
@@ -69,11 +71,11 @@ bool CigarUtils::isSWFailure(SmithWatermanAlignment *alignment) {
 }
 
 std::shared_ptr<Cigar>
-CigarUtils::leftAlignCigarSequentially(std::shared_ptr<Cigar> & cigar, uint8_t *refSeq, int refLength, uint8_t *readSeq, int readLength,
+CigarUtils::leftAlignCigarSequentially(std::shared_ptr<Cigar> & cigar, std::shared_ptr<uint8_t[]> refSeq, int refLength, std::shared_ptr<uint8_t[]> readSeq, int readLength,
                                        int refIndex, int readIndex) {
     Mutect2Utils::validateArg(cigar.get(), "cigar null");
-    Mutect2Utils::validateArg(refSeq, "refSeq null");
-    Mutect2Utils::validateArg(readSeq, "readSeq null");
+    Mutect2Utils::validateArg(refSeq.get(), "refSeq null");
+    Mutect2Utils::validateArg(readSeq.get(), "readSeq null");
 
     std::shared_ptr<Cigar> cigarToReturn(new Cigar());
     std::shared_ptr<Cigar> cigarToAlign(new Cigar());
@@ -103,8 +105,8 @@ CigarUtils::leftAlignCigarSequentially(std::shared_ptr<Cigar> & cigar, uint8_t *
     return result;
 }
 
-bool CigarUtils::isGood(Cigar *c) {
-    Mutect2Utils::validateArg(c, "cigar is null");
+bool CigarUtils::isGood(std::shared_ptr<Cigar> c) {
+    Mutect2Utils::validateArg(c.get(), "cigar is null");
 
     if(!c->isValid("", -1).empty()) {
         return false;

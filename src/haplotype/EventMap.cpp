@@ -11,9 +11,9 @@
 #include "variantcontext/builder/VariantContextBuilder.h"
 #include <deque>
 
-const Allele* EventMap::SYMBOLIC_UNASSEMBLED_EVENT_ALLELE = Allele::create((uint8_t *) "<UNASSEMBLED_EVENT>", 19, false);
+const Allele* EventMap::SYMBOLIC_UNASSEMBLED_EVENT_ALLELE = Allele::create(std::shared_ptr<uint8_t[]> (new uint8_t[19]{'<','U','N','A','S','S','E','M','B','L','E','D','_','E','V','E','N','T','>'}), 19, false);
 
-EventMap::EventMap(std::shared_ptr<Haplotype> haplotype, uint8_t *ref, int refLength, Locatable *refLoc, std::string sourceNameToAdd,
+EventMap::EventMap(std::shared_ptr<Haplotype> haplotype, std::shared_ptr<uint8_t[]>ref, int refLength, Locatable *refLoc, std::string sourceNameToAdd,
                    int maxMnpDistance) : haplotype(std::move(haplotype)), ref(ref), refLength(refLength), refLoc(refLoc), sourceNameToAdd(std::move(sourceNameToAdd)){
     processCigarForInitialEvents(maxMnpDistance);
 }
@@ -21,7 +21,7 @@ EventMap::EventMap(std::shared_ptr<Haplotype> haplotype, uint8_t *ref, int refLe
 void EventMap::processCigarForInitialEvents(int maxMnpDistance) {
     ParamUtils::isPositiveOrZero(maxMnpDistance, "maxMnpDistance may not be negative.");
     std::shared_ptr<Cigar> cigar = haplotype->getCigar();
-    uint8_t * alignment = haplotype->getBases();
+    std::shared_ptr<uint8_t[]> alignment = haplotype->getBases();
     int alignmentLength = haplotype->getLength();
 
     int refPos = haplotype->getAlignmentStartHapwrtRef();
@@ -39,23 +39,21 @@ void EventMap::processCigarForInitialEvents(int maxMnpDistance) {
                 if(refPos > 0) {
                     std::vector<Allele*> insertionAlleles;
                     int insertionStart = refLoc->getStart() + refPos - 1;
-                    uint8_t refByte = ref[refPos - 1];
+                    uint8_t refByte = ref.get()[refPos - 1];
                     if(BaseUtils::isRegularBase(refByte)) {
                         insertionAlleles.emplace_back(Allele::create(refByte, true));
                     }
                     if(cigarIndex == 0 || cigarIndex == cigar->numCigarElements() - 1){
 
                     } else {
-                        uint8_t * insertionBases = new uint8_t[1];
-                        insertionBases[0] = ref[refPos - 1];
+                        std::shared_ptr<uint8_t[]> insertionBases{new uint8_t[1]};
+                        insertionBases.get()[0] = ref.get()[refPos - 1];
                         int toAddLength;
-                        uint8_t * toAdd = Mutect2Utils::copyOfRange(alignment, alignmentLength, alignmentPos, alignmentPos + elementLength, toAddLength);
+                        std::shared_ptr<uint8_t[]> toAdd = Mutect2Utils::copyOfRange(alignment, alignmentLength, alignmentPos, alignmentPos + elementLength, toAddLength);
                         int length = 1+toAddLength;
-                        uint8_t * tmp = new uint8_t[length];
-                        memcpy(tmp, insertionBases, 1);
-                        memcpy(tmp+1, toAdd, toAddLength);
-                        delete[] insertionBases;
-                        delete[] toAdd;
+                        std::shared_ptr<uint8_t[]> tmp{new uint8_t[length]};
+                        memcpy(tmp.get(), insertionBases.get(), 1);
+                        memcpy(tmp.get()+1, toAdd.get(), toAddLength);
                         insertionBases = tmp;
                         if(BaseUtils::isAllRegularBases(insertionBases, length)) {
                             insertionAlleles.emplace_back(Allele::create(insertionBases, length, false));
@@ -79,10 +77,10 @@ void EventMap::processCigarForInitialEvents(int maxMnpDistance) {
             {
                 if(refPos > 0) {
                     int deletionBasesLength;
-                    uint8_t * deletionBases = Mutect2Utils::copyOfRange(ref, refLength, refPos - 1, refPos + elementLength, deletionBasesLength);
+                    std::shared_ptr<uint8_t[]> deletionBases = Mutect2Utils::copyOfRange(ref, refLength, refPos - 1, refPos + elementLength, deletionBasesLength);
                     std::vector<Allele*> deletionAlleles;
                     int deletionStart = refLoc->getStart() + refPos - 1;
-                    uint8_t refByte = ref[refPos - 1];
+                    uint8_t refByte = ref.get()[refPos - 1];
                     if(BaseUtils::isRegularBase(refByte) && BaseUtils::isAllRegularBases(deletionBases, deletionBasesLength)) {
                         deletionAlleles.emplace_back(Allele::create(deletionBases, deletionBasesLength, true));
                         deletionAlleles.emplace_back(Allele::create(refByte, false));
@@ -99,8 +97,8 @@ void EventMap::processCigarForInitialEvents(int maxMnpDistance) {
             {
                 std::deque<int> mismatchOffsets;
                 for(int offset = 0; offset < elementLength; offset++) {
-                    uint8_t refByte = ref[refPos + offset];
-                    uint8_t altByte = alignment[alignmentPos + offset];
+                    uint8_t refByte = ref.get()[refPos + offset];
+                    uint8_t altByte = alignment.get()[alignmentPos + offset];
                     bool mismatch = refByte != altByte && BaseUtils::isRegularBase(refByte) && BaseUtils::isRegularBase(altByte);
                     if(mismatch) {
                         mismatchOffsets.push_back(offset);
@@ -115,7 +113,7 @@ void EventMap::processCigarForInitialEvents(int maxMnpDistance) {
                         mismatchOffsets.pop_front();
                     }
                     int length;
-                    uint8_t * bases = Mutect2Utils::copyOfRange(ref, refLength, refPos + start, refPos + end + 1, length);
+                    std::shared_ptr<uint8_t[]> bases = Mutect2Utils::copyOfRange(ref, refLength, refPos + start, refPos + end + 1, length);
                     Allele* refAllele = Allele::create(bases, length, true);
                     bases = Mutect2Utils::copyOfRange(alignment, alignmentLength, alignmentPos + start, alignmentPos + end + 1, length);
                     Allele* altAllele = Allele::create(bases, length, false);
@@ -161,14 +159,14 @@ std::shared_ptr<VariantContext> EventMap::makeBlock(std::shared_ptr<VariantConte
     if(vc1->isSNP()) {
         if(*(vc1->getReference()) == (*(vc2->getReference()))) {
             new_ref = vc1->getReference();
-            uint8_t * vc1Bases = vc1->getAlternateAllele(0)->getBases();
+            std::shared_ptr<uint8_t[]> vc1Bases = vc1->getAlternateAllele(0)->getBases();
             int vc1Length = vc1->getAlternateAllele(0)->getBasesLength();
-            uint8_t * vc2Bases = vc2->getAlternateAllele(0)->getBases();
+            std::shared_ptr<uint8_t[]> vc2Bases = vc2->getAlternateAllele(0)->getBases();
             int vc2Length = vc2->getAlternateAllele(0)->getBasesLength();
             int tmpLength = vc1Length + vc2Length - 1;
-            uint8_t * tmp = new uint8_t[tmpLength];
-            memcpy(tmp, vc1Bases, vc1Length);
-            memcpy(tmp+vc1Length, vc2Bases+1, vc2Length-1);
+            std::shared_ptr<uint8_t[]> tmp(new uint8_t[tmpLength]);
+            memcpy(tmp.get(), vc1Bases.get(), vc1Length);
+            memcpy(tmp.get()+vc1Length, vc2Bases.get()+1, vc2Length-1);
             new_alt = Allele::create(tmp, tmpLength, false);
         } else {
             new_ref = vc2->getReference();
@@ -191,7 +189,7 @@ bool EventMap::empty() {
     return variantMap.empty();
 }
 
-std::set<int> EventMap::buildEventMapsForHaplotypes(std::vector<std::shared_ptr<Haplotype>> & haplotypes, uint8_t *ref, int refLength,
+std::set<int> EventMap::buildEventMapsForHaplotypes(std::vector<std::shared_ptr<Haplotype>> & haplotypes, std::shared_ptr<uint8_t[]>ref, int refLength,
                                                     Locatable *refLoc, bool debug, int maxMnpDistance) {
     Mutect2Utils::validateArg(maxMnpDistance >= 0, "maxMnpDistance may not be negative.");
     std::set<int> startPosKeySet;

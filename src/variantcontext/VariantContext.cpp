@@ -290,7 +290,7 @@ Allele *VariantContext::getAlternateAllele(int i) {
 
 bool VariantContext::isSimpleIndel() {
     return getType() == VariantContext_INDEL && isBiallelic() && getReference()->getLength() > 0 && getAlternateAllele(0)->getLength() > 0
-    && getReference()->getBases()[0] == getAlternateAllele(0)->getBases()[0] && (getReference()->getLength() == 1 ||
+    && getReference()->getBases().get()[0] == getAlternateAllele(0)->getBases().get()[0] && (getReference()->getLength() == 1 ||
             getAlternateAllele(0)->getLength() == 1);
 }
 

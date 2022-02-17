@@ -129,11 +129,11 @@ void AssemblyRegion::addAll(std::vector<std::shared_ptr<SAMRecord>> &readsToAdd)
     }
 }
 
-uint8_t *AssemblyRegion::getAssemblyRegionReference(ReferenceCache *cache, int padding, int & length) {
+std::shared_ptr<uint8_t[]> AssemblyRegion::getAssemblyRegionReference(ReferenceCache *cache, int padding, int & length) {
     return getReference(cache, padding, extendedLoc, length);
 }
 
-uint8_t *AssemblyRegion::getReference(ReferenceCache *referenceReader, int padding, SimpleInterval &genomeLoc, int & length) {
+std::shared_ptr<uint8_t[]> AssemblyRegion::getReference(ReferenceCache *referenceReader, int padding, SimpleInterval &genomeLoc, int & length) {
     Mutect2Utils::validateArg(referenceReader, "referenceReader cannot be null");
     Mutect2Utils::validateArg(padding >= 0, "padding must be a positive integer but got");
     Mutect2Utils::validateArg(genomeLoc.size() > 0, "GenomeLoc must have size > 0 but got ");

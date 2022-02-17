@@ -11,7 +11,7 @@
 
 class StringUtils {
 public:
-    static void toUpperCase(uint8_t* & bytes, int length);
+    static void toUpperCase(std::shared_ptr<uint8_t[]> & bytes, int length);
     static double parseDouble(const std::string & str);
     static int parseInt(const std::string & str);
     static std::string doubleToString(double d);

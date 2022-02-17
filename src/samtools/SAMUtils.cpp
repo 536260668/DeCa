@@ -4,7 +4,7 @@
 
 #include "SAMUtils.h"
 
-int SAMUtils::getUnclippedStart(int alignmentStart, Cigar *cigar) {
+int SAMUtils::getUnclippedStart(int alignmentStart, std::shared_ptr<Cigar> cigar) {
     int unClippedStart = alignmentStart;
     for(CigarElement cig : cigar->getCigarElements()) {
         CigarOperator op = cig.getOperator();
@@ -16,7 +16,7 @@ int SAMUtils::getUnclippedStart(int alignmentStart, Cigar *cigar) {
     return unClippedStart;
 }
 
-int SAMUtils::getUnclippedEnd(int alignmentEnd, Cigar *cigar) {
+int SAMUtils::getUnclippedEnd(int alignmentEnd, std::shared_ptr<Cigar> cigar) {
     int unClippedEnd = alignmentEnd;
     std::vector<CigarElement> cigs = cigar->getCigarElements();
     for(int i = cigs.size() - 1; i >= 0; --i) {
@@ -46,14 +46,15 @@ short SAMUtils::makeBinaryTag(std::string &tag) {
     return a << 8 | b;
 }
 
-uint8_t *SAMUtils::fastqToPhred(std::string &fastq) {
+std::shared_ptr<uint8_t[]> SAMUtils::fastqToPhred(std::string &fastq) {
     if(fastq.empty()) {
         return nullptr;
     } else {
         int length = fastq.size();
-        uint8_t * scores = new uint8_t[length];
+        std::shared_ptr<uint8_t[]> scores(new uint8_t[length]);
+        uint8_t * scores_ = scores.get();
         for(int i = 0; i < length; ++i) {
-            scores[i] = (uint8_t)fastqToPhred(fastq[i]);
+            scores_[i] = (uint8_t)fastqToPhred(fastq[i]);
         }
         return scores;
     }
@@ -75,18 +76,18 @@ char SAMUtils::phredToFastq(int phredScore) {
     }
 }
 
-std::string SAMUtils::phredToFastq(uint8_t *buffer, int offset, int length) {
+std::string SAMUtils::phredToFastq(std::shared_ptr<uint8_t[]>buffer, int offset, int length) {
     char* chars = new char[length];
-
+    uint8_t * buffer_ = buffer.get();
     for(int i = 0; i < length; ++i) {
-        chars[i] = phredToFastq(buffer[offset + i] & 255);
+        chars[i] = phredToFastq(buffer_[offset + i] & 255);
     }
     std::string ret(chars);
     delete[] chars;
     return ret;
 }
 
-std::string SAMUtils::phredToFastq(uint8_t *buffer, int length) {
+std::string SAMUtils::phredToFastq(std::shared_ptr<uint8_t[]>buffer, int length) {
     if(buffer == nullptr)
         return "";
     else

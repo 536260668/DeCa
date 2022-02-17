@@ -31,7 +31,7 @@ protected:
             return result;
         }
 
-        DirectedSpecifics<V,E> graph = chains[0]->getGraph();
+        std::shared_ptr<DirectedSpecifics<V, E>> graph = chains[0]->getGraph();
         std::set<Path<V,E>*> probableErrorChains = likelyErrorChains(chains, graph, 0.001);
         int errorCount = 0;
         int totalBases = 0;
@@ -50,7 +50,7 @@ protected:
     }
 
 private:
-    std::set<Path<V,E>*> likelyErrorChains(std::vector<Path<V,E>*> & chains, DirectedSpecifics<V,E> & graph, double errorRate) {
+    std::set<Path<V,E>*> likelyErrorChains(std::vector<Path<V,E>*> & chains, std::shared_ptr<DirectedSpecifics<V, E>> graph, double errorRate) {
         std::map<Path<V,E>*, double> chainLogOddsmap;
         typename std::vector<Path<V,E>*>::iterator viter;
         for(viter = chains.begin(); viter != chains.end(); viter++) {
@@ -80,7 +80,7 @@ private:
         }
     }
 
-    double chainLogOdds(Path<V,E>* chain, DirectedSpecifics<V,E> & graph, double errorRate) {
+    double chainLogOdds(Path<V,E>* chain, std::shared_ptr<DirectedSpecifics<V, E>> graph, double errorRate) {
         typename std::vector<std::shared_ptr<E>>::iterator eiter;
         for(eiter = chain->getEdges().begin(); eiter != chain->getEdges().end(); eiter++) {
             if((*eiter)->getIsRef())
@@ -88,24 +88,24 @@ private:
         }
         int leftTotalMultiplicity = 0;
         int rightTotalMultiplicity = 0;
-        ArraySet<std::shared_ptr<E>> outgoing = graph.outgoingEdgesOf(chain->getFirstVertex());
-        ArraySet<std::shared_ptr<E>> incoming = graph.outgoingEdgesOf(chain->getFirstVertex());
+        ArraySet<std::shared_ptr<E>> outgoing = graph->outgoingEdgesOf(chain->getFirstVertex());
+        ArraySet<std::shared_ptr<E>> incoming = graph->incomingEdgesOf(chain->getLastVertex());
         for(eiter = outgoing.begin(); eiter != outgoing.end(); eiter++) {
             leftTotalMultiplicity += (*eiter)->getMultiplicity();
         }
-        for(eiter= outgoing.begin(); eiter != outgoing.end(); eiter++) {
+        for(eiter= incoming.begin(); eiter != incoming.end(); eiter++) {
             rightTotalMultiplicity += (*eiter)->getMultiplicity();
         }
         int leftMultiplicity = (chain->getEdges()[0])->getMultiplicity();
         int rightMultiplicity = chain->getLastEdge()->getMultiplicity();
 
-        double leftLogOdds = graph.isSource(chain->getFirstVertex()) ? 0.0 : Mutect2Utils::logLikelihoodRatio(leftTotalMultiplicity - leftMultiplicity, leftMultiplicity, errorRate);
-        double rightLogOdds = graph.isSink(chain->getLastVertex()) ? 0.0 : Mutect2Utils::logLikelihoodRatio(rightTotalMultiplicity - rightMultiplicity, rightMultiplicity, errorRate);
+        double leftLogOdds = graph->isSource(chain->getFirstVertex()) ? 0.0 : Mutect2Utils::logLikelihoodRatio(leftTotalMultiplicity - leftMultiplicity, leftMultiplicity, errorRate);
+        double rightLogOdds = graph->isSink(chain->getLastVertex()) ? 0.0 : Mutect2Utils::logLikelihoodRatio(rightTotalMultiplicity - rightMultiplicity, rightMultiplicity, errorRate);
 
         return std::max(leftLogOdds, rightLogOdds);
     }
 
-    bool isChainPossibleVariant(Path<V,E>* chain, DirectedSpecifics<V,E> & graph) {
+    bool isChainPossibleVariant(Path<V,E>* chain, std::shared_ptr<DirectedSpecifics<V, E>> graph) {
         typename std::vector<std::shared_ptr<E>>::iterator eiter;
         for(eiter = chain->getEdges().begin(); eiter != chain->getEdges().end(); eiter++) {
             if((*eiter)->getIsRef())
@@ -113,8 +113,8 @@ private:
         }
         int leftTotalMultiplicity = 0;
         int rightTotalMultiplicity = 0;
-        ArraySet<std::shared_ptr<E>> outgoing = graph.outgoingEdgesOf(chain->getFirstVertex());
-        ArraySet<std::shared_ptr<E>> incoming = graph.outgoingEdgesOf(chain->getFirstVertex());
+        ArraySet<std::shared_ptr<E>> outgoing = graph->outgoingEdgesOf(chain->getFirstVertex());
+        ArraySet<std::shared_ptr<E>> incoming = graph->outgoingEdgesOf(chain->getFirstVertex());
         for(eiter = outgoing.begin(); eiter != outgoing.end(); eiter++) {
             leftTotalMultiplicity += (*eiter)->getMultiplicity();
         }

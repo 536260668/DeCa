@@ -19,7 +19,7 @@
 
 typedef struct{
     std::string name;
-    uint8_t* sequence;
+    std::shared_ptr<uint8_t[]> sequence;
     int start;
     int stop;
     int count;
@@ -39,7 +39,7 @@ protected:
 
     DanglingChainMergeHelper* generateCigarAgainstUpwardsReferencePath(std::shared_ptr<MultiDeBruijnVertex> vertex, int pruneFactor, int minDanglingBranchLength, bool recoverAll);
 
-    uint8_t * getBasesForPath(std::vector<std::shared_ptr<MultiDeBruijnVertex>> path, int & length, bool expandSource);
+    std::shared_ptr<uint8_t[]> getBasesForPath(const std::vector<std::shared_ptr<MultiDeBruijnVertex>>& path, int & length, bool expandSource);
 
 private:
     int numPruningSamples;
@@ -79,7 +79,7 @@ private:
 
     std::map<std::string, std::vector<SequenceForKmers>> pending;
 
-    void addSequence(std::string seqName, std::string& sampleName, const uint8_t* sequence, int start, int stop, int count, bool isRef);
+    void addSequence(std::string seqName, std::string& sampleName, const std::shared_ptr<uint8_t[]>& sequence, int start, int stop, int count, bool isRef);
 
     /**
      * Get the collection of all sequences for kmers across all samples in no particular order
@@ -119,7 +119,7 @@ private:
    * @param isRef is this the reference sequence?
    * @return a non-null vertex connecting prevVertex to in the graph based on sequence
    */
-    std::shared_ptr<MultiDeBruijnVertex> extendChainByOne(std::shared_ptr<MultiDeBruijnVertex> prevVertex, uint8_t * sequence, int kmerStart, int count, bool isRef);
+    std::shared_ptr<MultiDeBruijnVertex> extendChainByOne(const std::shared_ptr<MultiDeBruijnVertex>& prevVertex, std::shared_ptr<uint8_t[]> sequence, int kmerStart, int count, bool isRef);
 
      void threadSequence(SequenceForKmers & sequenceForKmers);
 
@@ -133,9 +133,9 @@ private:
 
      bool getUniqueKmerVertex(Kmer & kmer, bool allowRefSource);
 
-    std::shared_ptr<MultiDeBruijnVertex> getOrCreateKmerVertex(uint8_t * sequence, int start);
+    std::shared_ptr<MultiDeBruijnVertex> getOrCreateKmerVertex(std::shared_ptr<uint8_t[]> sequence, int start);
 
-     void increaseCountsInMatchedKmers(SequenceForKmers & seqForKmers, std::shared_ptr<MultiDeBruijnVertex> vertex, uint8_t* originalKmer, int offset);
+     void increaseCountsInMatchedKmers(SequenceForKmers & seqForKmers, const std::shared_ptr<MultiDeBruijnVertex>& vertex, const std::shared_ptr<uint8_t[]>& originalKmer, int offset);
 
     /**
     * Attempt to attach vertex with out-degree == 0 to the graph
@@ -157,7 +157,7 @@ private:
 
     std::shared_ptr<MultiSampleEdge> getHeaviestOutgoingEdge(std::shared_ptr<MultiDeBruijnVertex> v);
 
-    std::vector<std::shared_ptr<MultiDeBruijnVertex>> getReferencePath(std::shared_ptr<MultiDeBruijnVertex> start, TraversalDirection direction, std::shared_ptr<MultiSampleEdge> blacklistedEdge);
+    std::vector<std::shared_ptr<MultiDeBruijnVertex>> getReferencePath(std::shared_ptr<MultiDeBruijnVertex> start, TraversalDirection direction, const std::shared_ptr<MultiSampleEdge>& blacklistedEdge);
 
     /**
      * Attempt to attach vertex with in-degree == 0, or a vertex on its path, to the graph
@@ -173,7 +173,7 @@ private:
 
     std::deque<std::shared_ptr<MultiDeBruijnVertex>> findPathDownwardsToHighestCommonDescendantOfReference(std::shared_ptr<MultiDeBruijnVertex> vertex, int pruneFactor, bool giveUpAtBranch);
 
-    int bestPrefixMatch(const uint8_t* path1, const uint8_t* path2, int maxIndex);
+    int bestPrefixMatch(const std::shared_ptr<uint8_t[]> path1, const std::shared_ptr<uint8_t[]> path2, int maxIndex);
 
     int getMaxMismatches(int lengthOfDanglingBranch) const;
 
@@ -240,7 +240,7 @@ public:
      */
     int mergeDanglingTail(DanglingChainMergeHelper* danglingTailMergeResult);
 
-    static int longestSuffixMatch(uint8_t* seq, int seqLength, uint8_t* kmer, int kmerLength, int seqStart);
+    static int longestSuffixMatch(std::shared_ptr<uint8_t[]> seq, int seqLength, std::shared_ptr<uint8_t[]> kmer, int kmerLength, int seqStart);
 
     int mergeDanglingHead(DanglingChainMergeHelper* danglingTailMergeResult);
 
@@ -248,9 +248,9 @@ public:
 
     std::shared_ptr<SeqGraph> toSequenceGraph();
 
-    void addSequence(std::string seqName, uint8_t* sequence, int length, int count, bool isRef);
+    void addSequence(std::string seqName, std::shared_ptr<uint8_t[]> sequence, int length, int count, bool isRef);
 
-    void addSequence(std::string seqName, uint8_t* sequence, int length, bool isRef);
+    void addSequence(std::string seqName, std::shared_ptr<uint8_t[]> sequence, int length, bool isRef);
 
     bool isLowComplexity();
 

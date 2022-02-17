@@ -5,6 +5,8 @@
 #ifndef MUTECT2CPP_MASTER_SAMBINARYTAGANDVALUE_H
 #define MUTECT2CPP_MASTER_SAMBINARYTAGANDVALUE_H
 
+#include <memory>
+
 enum Void_Type{
     Uint8_Type,
     Long_Type,
@@ -26,11 +28,12 @@ public:
     void* value;
     Void_Type type;
     int length;
-    SAMBinaryTagAndValue* next = nullptr;
+    std::shared_ptr<SAMBinaryTagAndValue> next = nullptr;
     SAMBinaryTagAndValue(short tag, void* value, Void_Type voidType, int length);
-    static SAMBinaryTagAndValue* remove(SAMBinaryTagAndValue* root, short tag);
-    static SAMBinaryTagAndValue* insert(SAMBinaryTagAndValue* root, SAMBinaryTagAndValue* attr);
-    SAMBinaryTagAndValue* find(short tag);
+    static std::shared_ptr<SAMBinaryTagAndValue> remove(std::shared_ptr<SAMBinaryTagAndValue> root, short tag);
+    static std::shared_ptr<SAMBinaryTagAndValue> insert(std::shared_ptr<SAMBinaryTagAndValue> root, std::shared_ptr<SAMBinaryTagAndValue> attr);
+    std::shared_ptr<SAMBinaryTagAndValue> find(short tag);
+    ~SAMBinaryTagAndValue();
 
 protected:
     static bool isAllowedAttributeValue(void* value, Void_Type type);

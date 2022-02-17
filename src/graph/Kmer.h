@@ -7,10 +7,12 @@
 
 
 #include <cstdint>
+#include <memory>
 
 class Kmer {
 private:
-    uint8_t  *bases;
+
+    std::shared_ptr<uint8_t[]> bases;
     int start;
     int length;
     int hash;
@@ -19,10 +21,10 @@ private:
      *  Compute the hashcode for a KMer.
      *  Equivalent to <code>new String(bases, start, length).hashCode()</code>
      */
-    static int hashCode(const uint8_t* bases, int start, int length);
+    static int hashCode(const std::shared_ptr<uint8_t[]> bases, int start, int length);
 
 public:
-    Kmer(uint8_t* kmer, int length);
+    Kmer(std::shared_ptr<uint8_t[]> kmer, int length);
 
     Kmer(Kmer const & kmer);
 
@@ -36,12 +38,12 @@ public:
      * @param start the start of the kmer in bases, must be >= 0 and < bases.length
      * @param length the length of the kmer.  Must be >= 0 and start + length < bases.length
      */
-    Kmer(uint8_t* kmer, int start, int length);
+    Kmer(std::shared_ptr<uint8_t[]> kmer, int start, int length);
 
     Kmer subKmer(int newStart, int newLength);
 
     //delete
-    uint8_t * getBases() const;
+    std::shared_ptr<uint8_t[]> getBases() const;
 
     /**
      * The length of this kmer
@@ -49,7 +51,7 @@ public:
      */
     int getLength() const {return length;}
 
-    int getDifferingPositions(Kmer other, int maxDistance, int * differingIndeces, uint8_t * differingBases);
+    int getDifferingPositions(Kmer other, int maxDistance, std::shared_ptr<int> differingIndeces, std::shared_ptr<uint8_t[]> differingBases);
 
     bool operator<(const Kmer & other) const;
 

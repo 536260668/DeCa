@@ -9,6 +9,7 @@
 #include "ReadUtils.h"
 #include <sstream>
 #include <iostream>
+#include <utility>
 
 const std::string SAMRecord::NO_ALIGNMENT_REFERENCE_NAME = "*";
 
@@ -168,37 +169,36 @@ void SAMRecord::setMappingQuality(int mappingQuality) {
     mMappingQuality = mappingQuality;
 }
 
-uint8_t *SAMRecord::getBases() {
+std::shared_ptr<uint8_t[]>SAMRecord::getBases() {
     if(mReadBases != nullptr){
-        uint8_t * ret = new uint8_t[baseLength+1]{0};
-        std::copy(mReadBases, mReadBases + baseLength, ret);
+        std::shared_ptr<uint8_t[]> ret(new uint8_t[baseLength+1]{0});
+        std::copy(mReadBases.get(), mReadBases.get() + baseLength, ret.get());
         return ret;
     } else {
         return nullptr;
     }
 }
 
-uint8_t *SAMRecord::getBasesNoCopy() {
+std::shared_ptr<uint8_t[]>SAMRecord::getBasesNoCopy() {
     return mReadBases;
 }
 
-void SAMRecord::setBases(uint8_t *bases, int length) {
-    delete[] mReadBases;
-    mReadBases = bases;
+void SAMRecord::setBases(std::shared_ptr<uint8_t[]>bases, int length) {
+    mReadBases = std::move(bases);
     baseLength = length;
 }
 
-uint8_t *SAMRecord::getBaseQualities() {
+std::shared_ptr<uint8_t[]>SAMRecord::getBaseQualities() {
     if(mBaseQualities != nullptr){
-        uint8_t * ret = new uint8_t[baseQualitiesLength+1]{0};
-        std::copy(mBaseQualities, mBaseQualities+baseQualitiesLength, ret);
+        std::shared_ptr<uint8_t[]> ret{new uint8_t[baseQualitiesLength+1]{0}};
+        std::copy(mBaseQualities.get(), mBaseQualities.get()+baseQualitiesLength, ret.get());
         return ret;
     } else {
         return nullptr;
     }
 }
 
-uint8_t *SAMRecord::getBaseQualitiesNoCopy() {
+std::shared_ptr<uint8_t[]>SAMRecord::getBaseQualitiesNoCopy() {
     return mBaseQualities;
 }
 
@@ -210,13 +210,12 @@ int SAMRecord::getBaseQualitiesLength() {
     return baseQualitiesLength;
 }
 
-void SAMRecord::setBaseQualities(uint8_t *baseQualities, int length) {
-    delete[] mBaseQualities;
-    mBaseQualities = baseQualities;
+void SAMRecord::setBaseQualities(std::shared_ptr<uint8_t[]>baseQualities, int length) {
+    mBaseQualities = std::move(baseQualities);
     baseQualitiesLength = length;
 }
 
-Cigar *SAMRecord::getCigar() {
+std::shared_ptr<Cigar> SAMRecord::getCigar() {
     //TODO:验证是否需要返回拷贝后的cigar
     return mCigar;
 }
@@ -229,11 +228,10 @@ CigarElement SAMRecord::getCigarElement(const int index) {
     return mCigar->getCigarElement(index);
 }
 
-void SAMRecord::setCigar(Cigar *cigar) {
+void SAMRecord::setCigar(std::shared_ptr<Cigar> cigar) {
     //TODO::实现AlignmentBlock
     isCalAdaptorBoundary = false;
-    delete mCigar;
-    mCigar = cigar;
+    mCigar = std::move(cigar);
     mAlignmentEnd = mAlignmentStart + mCigar->getReferenceLength() - 1;
 }
 
@@ -258,7 +256,7 @@ void SAMRecord::setIsProperlyPaired(bool isProperlyPaired) {
     setProperPairFlag(isProperlyPaired);
 }
 
-SAMRecord::SAMRecord(uint8_t *base, int baseLength, uint8_t *baseQualities, int baseQualitiesLength,
+SAMRecord::SAMRecord(std::shared_ptr<uint8_t[]>base, int baseLength, std::shared_ptr<uint8_t[]>baseQualities, int baseQualitiesLength,
                      std::string &name) : mReadBases(base), baseLength(baseLength), mBaseQualities(baseQualities),baseQualitiesLength(baseQualitiesLength), mReadName(name){}
 
 int SAMRecord::getStart() {
@@ -294,14 +292,14 @@ void SAMRecord::setAttribute(short tag, void *value, Void_Type type, int length,
             mAttributes = SAMBinaryTagAndValue::remove(mAttributes, tag);
         }
     } else {
-        SAMBinaryTagAndValue* tmp;
+        std::shared_ptr<SAMBinaryTagAndValue> tmp;
         if(!isUnsignedArray) {
-            tmp = new SAMBinaryTagAndValue(tag, value, type, length);
+            tmp = std::shared_ptr<SAMBinaryTagAndValue>(new SAMBinaryTagAndValue(tag, value, type, length));
         } else {
             if(type == Short_Array_Type || type == Int_Array_Type || type == Float_Array_Type || type == Uint8_t_Array_Type) {
                 throw std::invalid_argument("Attribute type cannot be encoded as an unsigned array.");
             } else {
-                tmp = new SAMBinaryTagAndValue(tag, value, type, length);
+                tmp = std::shared_ptr<SAMBinaryTagAndValue>(new SAMBinaryTagAndValue(tag, value, type, length));
             }
             if(mAttributes == nullptr) {
                 mAttributes == tmp;
@@ -317,7 +315,7 @@ void *SAMRecord::getAttribute(short tag) {
     if(mAttributes == nullptr) {
         return nullptr;
     } else {
-        SAMBinaryTagAndValue* tmp = mAttributes->find(tag);
+        std::shared_ptr<SAMBinaryTagAndValue> tmp = mAttributes->find(tag);
         return tmp != nullptr ? tmp->value : nullptr;
     }
 }
@@ -358,7 +356,7 @@ std::string SAMRecord::getAttributeAsString(std::string &attributeName) {
     if(mAttributes == nullptr) {
         return "";
     } else {
-        SAMBinaryTagAndValue* tmp = mAttributes->find(SAMUtils::makeBinaryTag(attributeName));
+        std::shared_ptr<SAMBinaryTagAndValue> tmp = mAttributes->find(SAMUtils::makeBinaryTag(attributeName));
         std::string ret;
         switch (tmp->type) {
             case Uint8_t_Array_Type:
@@ -495,7 +493,7 @@ SAMRecord::SAMRecord(bam1_t *read, SAMFileHeader* samFileHeader, bool load) {
         CigarOperator tmp_cigarOperator = CigarOperatorUtils::binaryToEnum((int) (res[i] & 0xf));
         nCigarElements.emplace_back(CigarElement(length, tmp_cigarOperator));
     }
-    mCigar = new Cigar(nCigarElements);
+    mCigar = std::shared_ptr<Cigar>(new Cigar(nCigarElements));
     mFlags = read->core.flag;
     mMappingQuality = read->core.qual;
     mAlignmentStart = read->core.pos;
@@ -507,35 +505,37 @@ SAMRecord::SAMRecord(bam1_t *read, SAMFileHeader* samFileHeader, bool load) {
     baseQualitiesLength = static_cast<int>(bam_cigar2qlen(n, res));
     if(load) {
         uint8_t * bases = bam_get_seq(read);
-        mReadBases = new uint8_t[baseLength+1]{0};
-        mBaseQualities = new uint8_t[baseLength+1]{0};
+        mReadBases = std::shared_ptr<uint8_t[]>(new uint8_t[baseLength+1]{0});
+        mBaseQualities = std::shared_ptr<uint8_t[]>(new uint8_t[baseLength+1]{0});
+        uint8_t * mReadBases_ = mReadBases.get();
+        uint8_t * mBaseQualities_ = mBaseQualities.get();
         for(int i = 0; i < baseLength; i++) {
             uint8_t tmp = bam_seqi(bases, i);
             switch(tmp) {
                 case 1 : {
-                    mReadBases[i] = 'A' ;
+                    mReadBases_[i] = 'A' ;
                     break;
                 }
                 case 2 : {
-                    mReadBases[i] = 'C';
+                    mReadBases_[i] = 'C';
                     break;
                 }
                 case 4 : {
-                    mReadBases[i] = 'G';
+                    mReadBases_[i] = 'G';
                     break;
                 }
                 case 8 : {
-                    mReadBases[i] = 'T';
+                    mReadBases_[i] = 'T';
                     break;
                 }
                 default : {
-                    mReadBases[i] = 'N';
+                    mReadBases_[i] = 'N';
                     break;
                 }
             }
         }
         uint8_t * qual = bam_get_qual(read);
-        memcpy(mBaseQualities, qual, baseQualitiesLength);
+        memcpy(mBaseQualities_, qual, baseQualitiesLength);
     } else {
         mReadBases = nullptr;
         mBaseQualities = nullptr;
@@ -546,8 +546,6 @@ SAMRecord::SAMRecord(bam1_t *read, SAMFileHeader* samFileHeader, bool load) {
 }
 
 SAMRecord::~SAMRecord() {
-    delete mCigar;
-    delete mAttributes;
     //delete[] mReadBases;
     //delete[] mBaseQualities;
     //std::cout << "finished" << std::endl;
@@ -567,20 +565,20 @@ mAlignmentStart(other.mAlignmentStart), mAlignmentEnd(other.mAlignmentEnd), mMat
 mReferenceName(other.mReferenceName), mMateReferenceName(other.mMateReferenceName), mReadName(other.mReadName), readGroup(other.readGroup){
     mAttributes = nullptr;
     if(other.mReadBases != nullptr){
-        mReadBases = new uint8_t[baseLength+1]{0};
-        memcpy(mReadBases, other.mReadBases, baseLength);
+        mReadBases = std::shared_ptr<uint8_t[]>(new uint8_t [baseLength+1]{0});
+        memcpy(mReadBases.get(), other.mReadBases.get(), baseLength);
     }
     else{
         mReadBases = nullptr;
     }
     if(other.mBaseQualities != nullptr) {
-        mBaseQualities = new uint8_t[baseQualitiesLength+1]{0};
-        memcpy(mBaseQualities, other.mBaseQualities, baseQualitiesLength);
+        mBaseQualities = std::shared_ptr<uint8_t[]>(new uint8_t[baseQualitiesLength+1]{0});
+        memcpy(mBaseQualities.get(), other.mBaseQualities.get(), baseQualitiesLength);
     }
     else{
         mBaseQualities = nullptr;
     }
-    mCigar = new Cigar(other.mCigar->getCigarElements());
+    mCigar = std::shared_ptr<Cigar>(new Cigar(other.mCigar->getCigarElements()));
 }
 
 SimpleInterval SAMRecord::getLoc() {

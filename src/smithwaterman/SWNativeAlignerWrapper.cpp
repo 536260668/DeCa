@@ -7,7 +7,7 @@
 #include "Mutect2Utils.h"
 #include "IntelSmithWaterman.h"
 
-SmithWatermanAlignment *SWNativeAlignerWrapper::align(uint8_t *reference, int refLength, uint8_t *alternate, int altLength, SWParameters *parameters,
+SmithWatermanAlignment *SWNativeAlignerWrapper::align(std::shared_ptr<uint8_t[]> reference, int refLength, std::shared_ptr<uint8_t[]> alternate, int altLength, SWParameters *parameters,
                                                       SWOverhangStrategy overhangStrategy) {
     Mutect2Utils::validateArg(parameters, "Null is not allowed there");
     //Mutect2Utils::validateArg(overhangStrategy, "Null is not allowed there");
@@ -23,7 +23,7 @@ SmithWatermanAlignment *SWNativeAlignerWrapper::align(uint8_t *reference, int re
         lce.emplace_back(CigarElement(altLength, M));
         alignmentResult = new SWNativeResultWrapper(new Cigar(lce), matchIndex);
     } else {
-        SWNativeAlignerResult* alignment = IntelSmithWaterman::align(reference, refLength, alternate, altLength, parameters,overhangStrategy);
+        SWNativeAlignerResult* alignment = IntelSmithWaterman::align(reference.get(), refLength, alternate.get(), altLength, parameters,overhangStrategy);
         alignmentResult = new SWNativeResultWrapper(*alignment);
         delete alignment;
     }

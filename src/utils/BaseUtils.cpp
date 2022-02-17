@@ -28,7 +28,8 @@ void BaseUtils::initial() {
     baseIndexMap['t'] = 3;
 }
 
-bool BaseUtils::isAllRegularBases(uint8_t *bases, const int length) {
+bool BaseUtils::isAllRegularBases(std::shared_ptr<uint8_t[]> bases_, const int length) {
+    uint8_t * bases = bases_.get();
     for(int i = 0; i < length; i++) {
         if(!isRegularBase(bases[i]))
             return false;

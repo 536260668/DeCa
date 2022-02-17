@@ -19,20 +19,20 @@ public:
     static std::shared_ptr<SAMRecord> emptyRead(std::shared_ptr<SAMRecord> & read);
     static void assertAttributeNameIsLegal(std::string& attributeName);
     static int getReadCoordinateForReferenceCoordinate(std::shared_ptr<SAMRecord> & read, int refCoord, ClippingTail tail);
-    static int getReadCoordinateForReferenceCoordinate(int alignmentStart, Cigar* cigar, int refCoord, ClippingTail tail, bool allowGoalNotReached);
-    static CigarElement* readStartsWithInsertion(Cigar* cigarForRead);
-    static CigarElement* readStartsWithInsertion(Cigar* cigarForRead, bool ignoreSoftClipOps);
+    static int getReadCoordinateForReferenceCoordinate(int alignmentStart, std::shared_ptr<Cigar> cigar, int refCoord, ClippingTail tail, bool allowGoalNotReached);
+    static CigarElement* readStartsWithInsertion(std::shared_ptr<Cigar> cigarForRead);
+    static CigarElement* readStartsWithInsertion(std::shared_ptr<Cigar> cigarForRead, bool ignoreSoftClipOps);
     static int getSoftStart(std::shared_ptr<SAMRecord> & read);
     static int getSoftEnd(std::shared_ptr<SAMRecord> & read);
     static bool hasBaseIndelQualities(std::shared_ptr<SAMRecord> & read);
     static std::string BQSR_BASE_INSERTION_QUALITIES;
     static std::string BQSR_BASE_DELETION_QUALITIES;
-    static uint8_t * getExistingBaseInsertionQualities(std::shared_ptr<SAMRecord> & read, int & length);
-    static uint8_t * getExistingBaseDeletionQualities(std::shared_ptr<SAMRecord> & read, int & length);
-    static uint8_t * getBaseInsertionQualities(std::shared_ptr<SAMRecord> & read, int & length);
-    static uint8_t * getBaseDeletionQualities(std::shared_ptr<SAMRecord> & read, int & length);
-    static void setInsertionBaseQualities(std::shared_ptr<SAMRecord> & read, uint8_t* quals, int length);
-    static void setDeletionBaseQualities(std::shared_ptr<SAMRecord> & read, uint8_t* quals, int length);
+    static std::shared_ptr<uint8_t[]> getExistingBaseInsertionQualities(std::shared_ptr<SAMRecord> & read, int & length);
+    static std::shared_ptr<uint8_t[]> getExistingBaseDeletionQualities(std::shared_ptr<SAMRecord> & read, int & length);
+    static std::shared_ptr<uint8_t[]> getBaseInsertionQualities(std::shared_ptr<SAMRecord> & read, int & length);
+    static std::shared_ptr<uint8_t[]> getBaseDeletionQualities(std::shared_ptr<SAMRecord> & read, int & length);
+    static void setInsertionBaseQualities(std::shared_ptr<SAMRecord> & read, std::shared_ptr<uint8_t[]> quals, int length);
+    static void setDeletionBaseQualities(std::shared_ptr<SAMRecord> & read, std::shared_ptr<uint8_t[]> quals, int length);
     static int getAssignedReferenceIndex(std::shared_ptr<SAMRecord> & read, SAMFileHeader* header);
     static int getSAMFlagsForRead(std::shared_ptr<SAMRecord> & read);
     static int getMateReferenceIndex(std::shared_ptr<SAMRecord> & read, SAMFileHeader* header);
@@ -44,7 +44,7 @@ public:
     static bool isInsideRead(std::shared_ptr<SAMRecord> & read, int referenceCoordinate);
 
 private:
-    static std::pair<int, bool> getReadCoordinateForReferenceCoordinate(int alignmentStart, Cigar* cigar, int refCoord, bool allowGoalNotReached);
+    static std::pair<int, bool> getReadCoordinateForReferenceCoordinate(int alignmentStart, std::shared_ptr<Cigar> cigar, int refCoord, bool allowGoalNotReached);
     static const int CLIPPING_GOAL_NOT_REACHED;
 };
 

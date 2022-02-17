@@ -15,10 +15,10 @@
 
 class SAMRecord{
 private:
-    uint8_t * mReadBases;
+    std::shared_ptr<uint8_t[]> mReadBases;
     int baseLength;
     uint8_t readGroup;
-    uint8_t * mBaseQualities;
+    std::shared_ptr<uint8_t[]> mBaseQualities;
     int baseQualitiesLength;
     std::string mReadName;
     std::string mReferenceName;
@@ -27,18 +27,18 @@ private:
     int mMappingQuality;
     int adaptorBoundary = -1;
     bool isCalAdaptorBoundary = false;
-    Cigar* mCigar;
+    std::shared_ptr<Cigar> mCigar;
     int mFlags;
     std::string mMateReferenceName;
     int mMateAlignmentStart;
     int mInferredInsertSize;
-    SAMBinaryTagAndValue* mAttributes;
+    std::shared_ptr< SAMBinaryTagAndValue> mAttributes;
     void setFlag(bool flag, int bit);
     void requireReadPaired();
     bool getMateUnmappedFlagUnchecked();
 
 public:
-    SAMRecord(uint8_t* base, int baseLength, uint8_t* baseQualities, int baseQualitiesLength, std::string &name);
+    SAMRecord(std::shared_ptr<uint8_t[]> base, int baseLength, std::shared_ptr<uint8_t[]> baseQualities, int baseQualitiesLength, std::string &name);
     SAMRecord(bam1_t * read, SAMFileHeader* samFileHeader, bool load = true);
     SAMRecord(const SAMRecord & other);
     ~SAMRecord();
@@ -72,20 +72,20 @@ public:
     void setFragmentLength(int fragmentLength);
     int getMappingQuality() const;
     void setMappingQuality(int mappingQuality);
-    uint8_t * getBases();
-    uint8_t * getBasesNoCopy();
-    uint8_t getBase(const int i) {return getBasesNoCopy()[i];}
+    std::shared_ptr<uint8_t[]> getBases();
+    std::shared_ptr<uint8_t[]> getBasesNoCopy();
+    uint8_t getBase(const int i) {return getBasesNoCopy().get()[i];}
     int getLength();
-    void setBases(uint8_t *bases, int length);
-    uint8_t * getBaseQualities();
-    uint8_t * getBaseQualitiesNoCopy();
+    void setBases(std::shared_ptr<uint8_t[]>bases, int length);
+    std::shared_ptr<uint8_t[]> getBaseQualities();
+    std::shared_ptr<uint8_t[]> getBaseQualitiesNoCopy();
     int getBaseQualitiesLength();
-    uint8_t getBaseQuality(const int i) {return getBaseQualitiesNoCopy()[i];}
-    void setBaseQualities(uint8_t* baseQualities, int length);
-    Cigar* getCigar();
+    uint8_t getBaseQuality(const int i) {return getBaseQualitiesNoCopy().get()[i];}
+    void setBaseQualities(std::shared_ptr<uint8_t[]> baseQualities, int length);
+    std::shared_ptr<Cigar> getCigar();
     std::vector<CigarElement>& getCigarElements();
     CigarElement getCigarElement(int index);
-    void setCigar(Cigar* cigar);
+    void setCigar(std::shared_ptr<Cigar> cigar);
     bool getProperPairFlag();
     bool getProperPairFlagUnchecked() const;
     bool isProperlyPaired();

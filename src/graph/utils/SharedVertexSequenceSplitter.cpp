@@ -7,10 +7,10 @@
 
 std::pair<std::shared_ptr<SeqVertex> , std::shared_ptr<SeqVertex>>
 SharedVertexSequenceSplitter::commonPrefixAndSuffixOfVertices(ArraySet<std::shared_ptr<SeqVertex>> middleVertices){
-    std::list<std::pair<uint8_t *, int>> kmers;
+    std::list<std::pair<std::shared_ptr<uint8_t[]>, int>> kmers;
     int min = INT32_MAX;
     for(std::shared_ptr<SeqVertex> v : middleVertices) {
-        std::pair<uint8_t*, int> tmp;
+        std::pair<std::shared_ptr<uint8_t[]>, int> tmp;
         tmp.first = v->getSequence();
         tmp.second = v->getLength();
         kmers.emplace_back(tmp);
@@ -20,12 +20,12 @@ SharedVertexSequenceSplitter::commonPrefixAndSuffixOfVertices(ArraySet<std::shar
     int prefixLen = GraphUtils::commonMaximumPrefixLength(kmers);
     int suffixLen = GraphUtils::commonMaximumSuffixLength(kmers, min - prefixLen);
 
-    uint8_t * kmer = kmers.begin()->first;
+    std::shared_ptr<uint8_t[]> kmer = kmers.begin()->first;
     int length = kmers.begin()->second;
     int prefixLength;
-    uint8_t * prefix = Mutect2Utils::copyOfRange(kmer, length, 0, prefixLen, prefixLength);
+    std::shared_ptr<uint8_t[]> prefix = Mutect2Utils::copyOfRange(kmer, length, 0, prefixLen, prefixLength);
     int suffixLength;
-    uint8_t * suffix = Mutect2Utils::copyOfRange(kmer, length, length - suffixLen, length, suffixLength);
+    std::shared_ptr<uint8_t[]> suffix = Mutect2Utils::copyOfRange(kmer, length, length - suffixLen, length, suffixLength);
     return std::pair<std::shared_ptr<SeqVertex>, std::shared_ptr<SeqVertex>>(new SeqVertex(prefix, prefixLength), new SeqVertex(suffix, suffixLength));
 }
 

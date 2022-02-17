@@ -6,7 +6,8 @@
 #include <sstream>
 #include <vector>
 
-void StringUtils::toUpperCase(uint8_t* & bytes, int length) {
+void StringUtils::toUpperCase(std::shared_ptr<uint8_t[]> & bytes_, int length) {
+    uint8_t * bytes = bytes_.get();
     for(int i = 0; i < length; ++i) {
         if (bytes[i] >= 97 && bytes[i] <= 122) {
             bytes[i] += -32;

@@ -50,7 +50,7 @@ void ReadErrorCorrector::addReadKmers(std::shared_ptr<SAMRecord> read) {
     if (DONT_CORRECT_IN_LONG_HOMOPOLYMERS && maxHomopolymerLengthInRegion > MAX_HOMOPOLYMER_THRESHOLD) {
         return;
     }
-    uint8_t * readBases = read->getBases();
+    std::shared_ptr<uint8_t[]> readBases = read->getBases();
     int baseLength = read->getLength();
     for (int offset = 0; offset <= baseLength-kmerLength; offset++ )  {
         countsByKMer->addKmer(new Kmer(readBases,offset,kmerLength),1);

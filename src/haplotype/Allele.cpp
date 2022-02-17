@@ -6,27 +6,27 @@
 #include "Allele.h"
 #include <stdexcept>
 #include "StringUtils.h"
-const uint8_t* Allele::EMPTY_ALLELE_BASES = new uint8_t[0];
+const std::shared_ptr<uint8_t[]> Allele::EMPTY_ALLELE_BASES(new uint8_t[0]);
 const std::string Allele::NO_CALL_STRING = ".";
 const std::string Allele::SPAN_DEL_STRING = "*";
 const std::string Allele::NON_REF_STRING = "<NON_REF>";
 const std::string Allele::UNSPECIFIED_ALTERNATE_ALLELE_STRING = "<*>";
-Allele Allele::REF_A(new uint8_t[1]{'A'}, 1, true);
-Allele Allele::ALT_A(new uint8_t[1]{'A'}, 1, false);
-Allele Allele::REF_C(new uint8_t[1]{'C'}, 1, true);
-Allele Allele::ALT_C(new uint8_t[1]{'C'}, 1, false);
-Allele Allele::REF_G(new uint8_t[1]{'G'}, 1, true);
-Allele Allele::ALT_G(new uint8_t[1]{'G'}, 1, false);
-Allele Allele::REF_T(new uint8_t[1]{'T'}, 1, true);
-Allele Allele::ALT_T(new uint8_t[1]{'T'}, 1, false);
-Allele Allele::REF_N(new uint8_t[1]{'N'}, 1, true);
-Allele Allele::ALT_N(new uint8_t[1]{'N'}, 1, false);
-Allele Allele::SPAN_DEL(new uint8_t[1]{'*'}, 1, false);
-Allele Allele::NO_CALL(new uint8_t[1]{'.'}, 1, false);
-Allele Allele::NON_REF_ALLELE(new uint8_t[9]{'<', 'N', 'O', 'N', '_', 'R', 'E', 'F', '>'}, 9, false);
-Allele Allele::UNSPECIFIED_ALTERNATE_ALLELE(new uint8_t[3]{'<', '*', '>'}, 3, false);
+Allele Allele::REF_A(std::shared_ptr<uint8_t[]>(new uint8_t[1]{'A'}), 1, true);
+Allele Allele::ALT_A(std::shared_ptr<uint8_t[]>(new uint8_t[1]{'A'}), 1, false);
+Allele Allele::REF_C(std::shared_ptr<uint8_t[]>(new uint8_t[1]{'C'}), 1, true);
+Allele Allele::ALT_C(std::shared_ptr<uint8_t[]>(new uint8_t[1]{'C'}), 1, false);
+Allele Allele::REF_G(std::shared_ptr<uint8_t[]>(new uint8_t[1]{'G'}), 1, true);
+Allele Allele::ALT_G(std::shared_ptr<uint8_t[]>(new uint8_t[1]{'G'}), 1, false);
+Allele Allele::REF_T(std::shared_ptr<uint8_t[]>(new uint8_t[1]{'T'}), 1, true);
+Allele Allele::ALT_T(std::shared_ptr<uint8_t[]>(new uint8_t[1]{'T'}), 1, false);
+Allele Allele::REF_N(std::shared_ptr<uint8_t[]>(new uint8_t[1]{'N'}), 1, true);
+Allele Allele::ALT_N(std::shared_ptr<uint8_t[]>(new uint8_t[1]{'N'}), 1, false);
+Allele Allele::SPAN_DEL(std::shared_ptr<uint8_t[]>(new uint8_t[1]{'*'}), 1, false);
+Allele Allele::NO_CALL(std::shared_ptr<uint8_t[]>(new uint8_t[1]{'.'}), 1, false);
+Allele Allele::NON_REF_ALLELE(std::shared_ptr<uint8_t[]>(new uint8_t[9]{'<', 'N', 'O', 'N', '_', 'R', 'E', 'F', '>'}), 9, false);
+Allele Allele::UNSPECIFIED_ALTERNATE_ALLELE(std::shared_ptr<uint8_t[]>(new uint8_t[3]{'<', '*', '>'}), 3, false);
 
-Allele::Allele(uint8_t *bases, int length, bool isRef) : isRef(false), bases(nullptr), length(0){
+Allele::Allele(std::shared_ptr<uint8_t[]>bases, int length, bool isRef) : isRef(false), bases(nullptr), length(0){
     this->isRef = false;
     this->isNoCall = false;
     this->isSymbolic = false;
@@ -34,7 +34,7 @@ Allele::Allele(uint8_t *bases, int length, bool isRef) : isRef(false), bases(nul
     if(wouldBeNullAllele(bases, length)) {
         throw std::invalid_argument("Null alleles are not supported");
     } else if(wouldBeNoCallAllele(bases, length)) {
-        this->bases = const_cast<uint8_t *>(EMPTY_ALLELE_BASES);
+        this->bases = EMPTY_ALLELE_BASES;
         this->length = length;
         this->isNoCall = true;
         if (isRef) {
@@ -59,28 +59,28 @@ Allele::Allele(uint8_t *bases, int length, bool isRef) : isRef(false), bases(nul
         }
 }
 
-bool Allele::wouldBeNullAllele(const uint8_t *bases, int length){
-    return length == 1 && bases[0] == 45 || length == 0;
+bool Allele::wouldBeNullAllele(const std::shared_ptr<uint8_t[]>bases, int length){
+    return length == 1 && bases.get()[0] == 45 || length == 0;
 }
 
-bool Allele::wouldBeNoCallAllele(const uint8_t *bases, int length) {
-    return length == 1 && bases[0] == 46;
+bool Allele::wouldBeNoCallAllele(const std::shared_ptr<uint8_t[]>bases, int length) {
+    return length == 1 && bases.get()[0] == 46;
 }
 
-bool Allele::wouldBeSymbolicAllele(const uint8_t *bases, int length) {
+bool Allele::wouldBeSymbolicAllele(const std::shared_ptr<uint8_t[]>bases, int length) {
     if(length <= 1) {
         return false;
     } else {
-        return bases[0] == 60 || bases[length - 1] == 62 || wouldBeBreakpoint(bases, length) || wouldBeSingleBreakend(bases, length);
+        return bases.get()[0] == 60 || bases.get()[length - 1] == 62 || wouldBeBreakpoint(bases, length) || wouldBeSingleBreakend(bases, length);
     }
 }
 
-bool Allele::wouldBeBreakpoint(const uint8_t *bases, int length) {
+bool Allele::wouldBeBreakpoint(const std::shared_ptr<uint8_t[]>bases, int length) {
     if (length <= 1) {
         return false;
     } else {
         for(int i = 0; i < length; ++i) {
-            uint8_t base = bases[i];
+            uint8_t base = bases.get()[i];
             if (base == 93 || base == 91) {
                 return true;
             }
@@ -89,27 +89,27 @@ bool Allele::wouldBeBreakpoint(const uint8_t *bases, int length) {
     }
 }
 
-bool Allele::wouldBeSingleBreakend(const uint8_t *bases, int length) {
+bool Allele::wouldBeSingleBreakend(const std::shared_ptr<uint8_t[]>bases, int length) {
     if (length <= 1) {
         return false;
     } else {
-        return bases[0] == 46 || bases[length - 1] == 46;
+        return bases.get()[0] == 46 || bases.get()[length - 1] == 46;
     }
 }
 
-bool Allele::acceptableAlleleBases(const uint8_t *bases, int length, bool isReferenceAllele) {
+bool Allele::acceptableAlleleBases(const std::shared_ptr<uint8_t[]>bases, int length, bool isReferenceAllele) {
     if (wouldBeNullAllele(bases, length)) {
         return false;
     } else if (!wouldBeNoCallAllele(bases, length) && !wouldBeSymbolicAllele(bases, length)) {
         if (wouldBeStarAllele(bases, length)) {
             return !isReferenceAllele;
         } else {
-            uint8_t* var2 = const_cast<uint8_t *>(bases);
+            std::shared_ptr<uint8_t[]> var2 = bases;
             int var3 = length;
             int var4 = 0;
 
             while(var4 < var3) {
-               uint8_t base = var2[var4];
+               uint8_t base = var2.get()[var4];
                 switch(base) {
                     case 65:
                     case 67:
@@ -135,19 +135,19 @@ bool Allele::acceptableAlleleBases(const uint8_t *bases, int length, bool isRefe
     }
 }
 
-bool Allele::wouldBeStarAllele(const uint8_t *bases, int length) {
-    return length == 1 && bases[0] == 42;
+bool Allele::wouldBeStarAllele(const std::shared_ptr<uint8_t[]>bases, int length) {
+    return length == 1 && bases.get()[0] == 42;
 }
 
 Allele::Allele(Allele &allele, bool ignoreRefState) : bases(allele.bases), isNoCall(allele.isNoCall), isSymbolic(allele.isSymbolic){
     this->isRef = !ignoreRefState && allele.isRef;
 }
 
-Allele *Allele::create(uint8_t *bases, int length, bool isRef) {
+Allele *Allele::create(std::shared_ptr<uint8_t[]> bases, int length, bool isRef) {
     if(bases == nullptr) {
         throw std::invalid_argument("create: the Allele base string cannot be null; use new Allele() or new Allele(\"\") to create a Null allele");
     } else if (length == 1) {
-        switch (bases[0]) {
+        switch (bases.get()[0]) {
             case 42:
                 if(isRef) {
                     throw std::invalid_argument("Cannot tag a spanning deletions allele as the reference allele");
@@ -184,9 +184,8 @@ Allele *Allele::create(uint8_t *bases, int length, bool isRef) {
 }
 
 Allele *Allele::create(uint8_t base, bool isRef) {
-    uint8_t * bases = new uint8_t[1]{base};
+    std::shared_ptr<uint8_t[]> bases(new uint8_t[1]{base});
     Allele* res = create(bases, 1, isRef);
-    delete[] bases;
     return res;
 }
 
@@ -194,13 +193,13 @@ Allele *Allele::create(uint8_t base) {
     return create(base, false);
 }
 
-Allele *Allele::extend(Allele *left, uint8_t *right, int length) {
+Allele *Allele::extend(Allele *left, std::shared_ptr<uint8_t[]>right, int length) {
     if(left->isSymbolic) {
         throw std::invalid_argument("Cannot extend a symbolic allele");
     } else {
-        uint8_t * bases = new uint8_t[left->length + length];
-        memcpy(bases, left->bases, left->length);
-        memcpy(bases+left->length, right, length);
+        std::shared_ptr<uint8_t[]> bases(new uint8_t[left->length + length]);
+        memcpy(bases.get(), left->bases.get(), left->length);
+        memcpy(bases.get()+left->length, right.get(), length);
         return create(bases, left->length+length, left->isRef);
     }
 }
@@ -214,10 +213,12 @@ bool Allele::operator<(const Allele &other) const {
         return true;
     if(isNoCall < other.getIsNoCall())
         return false;
+    uint8_t * bases_ = bases.get();
+    uint8_t * other_ = other.bases.get();
     for(int i = 0; i < length; i++) {
-        if(bases[i] < other.bases[i])
+        if(bases_[i] < other_[i])
             return true;
-        if(bases[i] > other.bases[i])
+        if(bases_[i] > other_[i])
             return false;
     }
     return true;
@@ -237,8 +238,10 @@ bool Allele::operator==(const Allele &other) const {
         return true;
     if(this->getLength() != other.getLength())
         return false;
+    uint8_t * bases_ = bases.get();
+    uint8_t * other_ = other.bases.get();
     for(int i = 0; i < length; i++) {
-        if(bases[i] != other.bases[i])
+        if(bases_[i] != other_[i])
             return false;
     }
     return true;
@@ -246,7 +249,7 @@ bool Allele::operator==(const Allele &other) const {
 
 std::string Allele::getBaseString() {
     char* tmp = new char[length+1]{0};
-    memcpy(tmp, bases, length);
+    memcpy(tmp, bases.get(), length);
     std::string ret = tmp;
     delete[] tmp;
     return ret;
@@ -264,8 +267,10 @@ bool Allele::equals(Allele &other, bool ignoreRefState) {
     else{
         if(length != other.length)
             return false;
+        uint8_t * bases_ = bases.get();
+        uint8_t * other_ = other.bases.get();
         for(int i = 0; i < length; i++) {
-            if(bases[i] != other.bases[i]) {
+            if(bases_[i] != other_[i]) {
                 return false;
             }
         }

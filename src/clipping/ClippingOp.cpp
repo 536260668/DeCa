@@ -10,26 +10,24 @@ ClippingOp::ClippingOp(int start, int stop) : start(start), stop(stop){
 }
 
 std::shared_ptr<SAMRecord> ClippingOp::applyHardClipBases(std::shared_ptr<SAMRecord> read, int start, int stop) {
-    Cigar* cigar = read->getCigar();
-    Cigar* tmp = nullptr;
-    CigarShift* cigarShift;
+    std::shared_ptr<Cigar> cigar = read->getCigar();
+    std::shared_ptr<Cigar> tmp = nullptr;
+    std::shared_ptr<ClippingOp::CigarShift> cigarShift;
     if(read->isUnmapped()) {
-        tmp = new Cigar();
-        cigarShift = new CigarShift(tmp, 0, 0);
+        tmp = std::shared_ptr<Cigar>(new Cigar());
+        cigarShift = std::shared_ptr<ClippingOp::CigarShift>(new CigarShift(tmp, 0, 0));
     } else {
         cigarShift = hardClipCigar(cigar, start, stop);
     }
     int newLength = read->getLength() - (stop - start + 1) - cigarShift->shiftFromStart - cigarShift->shiftFromEnd;
     if(newLength == 0) {
-        delete cigarShift->cigar;
-        delete cigarShift;
         return ReadUtils::emptyRead(read);
     }
-    uint8_t * newBases = new uint8_t[newLength]{0};
-    uint8_t * newQuals = new uint8_t[newLength]{0};
+    std::shared_ptr<uint8_t[]> newBases(new uint8_t[newLength]{0});
+    std::shared_ptr<uint8_t[]> newQuals(new uint8_t[newLength]{0});
     int copyStart = (start == 0) ? stop + 1 + cigarShift->shiftFromStart : cigarShift->shiftFromStart;
-    memcpy(newBases, read->getBasesNoCopy()+copyStart, newLength);
-    memcpy(newQuals, read->getBaseQualitiesNoCopy()+copyStart, newLength);
+    memcpy(newBases.get(), read->getBasesNoCopy().get()+copyStart, newLength);
+    memcpy(newQuals.get(), read->getBaseQualitiesNoCopy().get()+copyStart, newLength);
     std::shared_ptr<SAMRecord> hardClippedRead{new SAMRecord(*read)};
     hardClippedRead->setBaseQualities(newQuals, newLength);
     hardClippedRead->setBases(newBases, newLength);
@@ -38,23 +36,21 @@ std::shared_ptr<SAMRecord> ClippingOp::applyHardClipBases(std::shared_ptr<SAMRec
         hardClippedRead->setPosition(read->getContig(), read->getStart() + calculateAlignmentStartShift(cigar, cigarShift->cigar));
     }
     if(ReadUtils::hasBaseIndelQualities(read)) {
-        uint8_t * newBaseInsertionQuals = new uint8_t[newLength];
-        uint8_t * newBaseDeletionQuals = new uint8_t[newLength];
+        std::shared_ptr<uint8_t[]> newBaseInsertionQuals(new uint8_t[newLength]);
+        std::shared_ptr<uint8_t[]> newBaseDeletionQuals(new uint8_t[newLength]);
         int length;
-        uint8_t * new_base = ReadUtils::getBaseInsertionQualities(read, length);
-        memcpy(newBaseInsertionQuals, new_base+copyStart, newLength);
-        delete[] new_base;
+        std::shared_ptr<uint8_t[]> new_base = ReadUtils::getBaseInsertionQualities(read, length);
+        memcpy(newBaseInsertionQuals.get(), new_base.get()+copyStart, newLength);
         new_base = ReadUtils::getBaseDeletionQualities(read, length);
-        memcpy(newBaseDeletionQuals, new_base+copyStart, newLength);
-        delete[] new_base;
+        memcpy(newBaseDeletionQuals.get(), new_base.get()+copyStart, newLength);
         ReadUtils::setDeletionBaseQualities(hardClippedRead, newBaseDeletionQuals, newLength);
         ReadUtils::setInsertionBaseQualities(hardClippedRead, newBaseInsertionQuals, newLength);
     }
     return hardClippedRead;
 }
 
-ClippingOp::CigarShift *ClippingOp::hardClipCigar(Cigar *cigar, int start, int stop) {
-    Cigar* newCigar = new Cigar();
+std::shared_ptr<ClippingOp::CigarShift> ClippingOp::hardClipCigar(std::shared_ptr<Cigar> cigar, int start, int stop) {
+    std::shared_ptr<Cigar> newCigar(new Cigar());
     int index = 0;
     int totalHardClipCount = stop - start + 1;
     int alignmentShift = 0;
@@ -152,14 +148,14 @@ ClippingOp::CigarShift *ClippingOp::hardClipCigar(Cigar *cigar, int start, int s
 int ClippingOp::calculateHardClippingAlignmentShift(CigarElement &cigarElement, int clippedLength) {
     if(cigarElement.getOperator() == I) {
         return -clippedLength;
-    } else if (cigarElement.getOperator() == D || cigarElement.getOperator() == S) {
+    } else if (cigarElement.getOperator() == D || cigarElement.getOperator() == N) {
         return cigarElement.getLength();
     }
     return 0;
 }
 
-ClippingOp::CigarShift *ClippingOp::cleanHardClippedCigar(Cigar *cigar) {
-    Cigar* cleanCigar = new Cigar();
+std::shared_ptr<ClippingOp::CigarShift> ClippingOp::cleanHardClippedCigar(std::shared_ptr<Cigar> cigar) {
+    std::shared_ptr<Cigar> cleanCigar(new Cigar());
     int shiftFromStart = 0;
     int shiftFromEnd = 0;
     std::stack<CigarElement> cigarStack;
@@ -216,17 +212,16 @@ ClippingOp::CigarShift *ClippingOp::cleanHardClippedCigar(Cigar *cigar) {
             shiftFromStart = shift;
         }
     }
-    delete cigar;
-    return new CigarShift(cleanCigar, shiftFromStart, shiftFromEnd);
+    return std::shared_ptr<ClippingOp::CigarShift>(new CigarShift(cleanCigar, shiftFromStart, shiftFromEnd));
 }
 
-int ClippingOp::calculateAlignmentStartShift(Cigar *oldCigar, Cigar *newCigar) {
+int ClippingOp::calculateAlignmentStartShift(std::shared_ptr<Cigar> oldCigar, std::shared_ptr<Cigar> newCigar) {
     int newShift = calcHardSoftOffset(newCigar);
     int oldShift = calcHardSoftOffset(oldCigar);
     return newShift - oldShift;
 }
 
-int ClippingOp::calcHardSoftOffset(Cigar *cigar) {
+int ClippingOp::calcHardSoftOffset(std::shared_ptr<Cigar> cigar) {
     std::vector<CigarElement> elements = cigar->getCigarElements();
     int size = 0;
     int i = 0;
@@ -257,7 +252,7 @@ std::shared_ptr<SAMRecord> ClippingOp::apply(ClippingRepresentation algorithm, s
 
 std::shared_ptr<SAMRecord> ClippingOp::applyRevertSoftClippedBases(const std::shared_ptr<SAMRecord>& read) {
     std::shared_ptr<SAMRecord> unclipped(new SAMRecord(*read));
-    Cigar* unclippedCigar = new Cigar();
+    std::shared_ptr<Cigar> unclippedCigar(new Cigar());
     int matchesCount = 0;
     for(CigarElement element : read->getCigarElements()) {
         if(element.getOperator() == S || element.getOperator() == M) {
@@ -290,5 +285,5 @@ std::shared_ptr<SAMRecord> ClippingOp::applyRevertSoftClippedBases(const std::sh
     }
 }
 
-ClippingOp::CigarShift::CigarShift(Cigar *cigar, int shiftFromStart, int shiftFromEnd) : cigar(cigar), shiftFromStart(shiftFromStart), shiftFromEnd(shiftFromEnd){
+ClippingOp::CigarShift::CigarShift(std::shared_ptr<Cigar> cigar, int shiftFromStart, int shiftFromEnd) : cigar(cigar), shiftFromStart(shiftFromStart), shiftFromEnd(shiftFromEnd){
 }

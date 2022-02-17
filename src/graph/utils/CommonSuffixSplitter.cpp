@@ -80,13 +80,13 @@ bool CommonSuffixSplitter::safeToSplit(std::shared_ptr<SeqGraph> graph, std::sha
 }
 
 std::shared_ptr<SeqVertex> CommonSuffixSplitter::commonSuffix(ArraySet<std::shared_ptr<SeqVertex>> middleVertices) {
-    std::list<std::pair<uint8_t *, int>> kmers = GraphUtils::getKmers(middleVertices.getArraySet());
+    std::list<std::pair<std::shared_ptr<uint8_t[]>, int>> kmers = GraphUtils::getKmers(middleVertices.getArraySet());
     int min = GraphUtils::minKmerLength(kmers);
     int suffixLen = GraphUtils::commonMaximumSuffixLength(kmers, min);
-    uint8_t * kmer = kmers.begin()->first;
+    std::shared_ptr<uint8_t[]> kmer = kmers.begin()->first;
     int kmerLength = kmers.begin()->second;
     int suffixLength;
-    uint8_t * suffix = Mutect2Utils::copyOfRange(kmer, kmerLength, kmerLength - suffixLen, kmerLength, suffixLength);
+    std::shared_ptr<uint8_t[]> suffix = Mutect2Utils::copyOfRange(kmer, kmerLength, kmerLength - suffixLen, kmerLength, suffixLength);
     return std::shared_ptr<SeqVertex>(new SeqVertex(suffix, suffixLength));
 }
 

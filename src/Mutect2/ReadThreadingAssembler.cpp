@@ -92,29 +92,29 @@ ReadThreadingAssembler::findBestPaths(const std::list<std::shared_ptr<SeqGraph>>
     return {returnHaplotypes.begin(), returnHaplotypes.end()};
 }
 
-std::shared_ptr<AssemblyResultSet> ReadThreadingAssembler::runLocalAssembly(AssemblyRegion & assemblyRegion, std::shared_ptr<Haplotype> &refHaplotype,
-                                                            uint8_t *fullReferenceWithPadding, int refLength, SimpleInterval *refLoc,
+std::shared_ptr<AssemblyResultSet> ReadThreadingAssembler::runLocalAssembly(std::shared_ptr<AssemblyRegion> assemblyRegion, std::shared_ptr<Haplotype> &refHaplotype,
+                                                                            std::shared_ptr<uint8_t[]> fullReferenceWithPadding, int refLength, SimpleInterval *refLoc,
                                                             ReadErrorCorrector *readErrorCorrector) {
-    Mutect2Utils::validateArg(!assemblyRegion.getReads().empty(), "Assembly engine cannot be used with a null AssemblyRegion.");
+    Mutect2Utils::validateArg(!assemblyRegion->getReads().empty(), "Assembly engine cannot be used with a null AssemblyRegion.");
     Mutect2Utils::validateArg(refHaplotype.get(), "Active region must have an extended location.");
-    Mutect2Utils::validateArg(fullReferenceWithPadding, "fullReferenceWithPadding");
+    Mutect2Utils::validateArg(fullReferenceWithPadding.get(), "fullReferenceWithPadding");
     Mutect2Utils::validateArg(refLoc, "refLoc");
     Mutect2Utils::validateArg(refLength == refLoc->size(), "Reference bases and reference loc must be the same size.");
 
     std::vector<std::shared_ptr<SAMRecord>> correctedReads;
     if(readErrorCorrector != nullptr) {
         //TODO::readErrorCorrector
-        readErrorCorrector->addReadsToKmers(assemblyRegion.getReads());
-        correctedReads = assemblyRegion.getReads();
+        readErrorCorrector->addReadsToKmers(assemblyRegion->getReads());
+        correctedReads = assemblyRegion->getReads();
     } else {
-        correctedReads = assemblyRegion.getReads();
+        correctedReads = assemblyRegion->getReads();
     }
     std::vector<std::shared_ptr<SeqGraph>> nonRefGraphs;
     std::shared_ptr<AssemblyResultSet> resultSet(new AssemblyResultSet());
     resultSet->setRegionForGenotyping(assemblyRegion);
     resultSet->setFullReferenceWithPadding(fullReferenceWithPadding, refLength);
     resultSet->setPaddedReferenceLoc(refLoc);
-    SimpleInterval activeRegionExtendedLocation = assemblyRegion.getExtendedSpan();
+    SimpleInterval activeRegionExtendedLocation = assemblyRegion->getExtendedSpan();
     refHaplotype->setGenomeLocation(&activeRegionExtendedLocation);
     resultSet->add(refHaplotype);
     std::map<std::shared_ptr<SeqGraph>, std::shared_ptr<AssemblyResult>> assemblyResultByGraph;
@@ -168,7 +168,7 @@ ReadThreadingAssembler::createGraph(std::vector<std::shared_ptr<SAMRecord>> read
     //TODO:DELETE
     //rtgraph->setPending();
     rtgraph->buildGraphIfNecessary();
-    chainPruner->pruneLowWeightChains(*rtgraph);
+    chainPruner->pruneLowWeightChains(rtgraph);
     if(rtgraph->hasCycles()) {
         return nullptr;
     }

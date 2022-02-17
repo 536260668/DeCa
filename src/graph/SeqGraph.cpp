@@ -97,18 +97,17 @@ bool SeqGraph::mergeLinearChain(std::list<std::shared_ptr<SeqVertex>> &linearCha
 std::shared_ptr<SeqVertex> SeqGraph::mergeLinearChainVertices(std::list<std::shared_ptr<SeqVertex>> &vertices) {
     int length = 500;
     int start = 0;
-    uint8_t * tmp = new uint8_t[length];
+    std::shared_ptr<uint8_t[]> tmp(new uint8_t[length]);
     for(std::shared_ptr<SeqVertex> v : vertices) {
         int seqLength = v->getLength();
-        uint8_t * seq = v->getSequence();
+        std::shared_ptr<uint8_t[]> seq = v->getSequence();
         while(start + seqLength >= length) {
             length *= 2;
-            uint8_t * newtmp = new uint8_t[length];
-            memcpy(newtmp, tmp, start);
-            delete[] tmp;
+            std::shared_ptr<uint8_t[]> newtmp(new uint8_t[length]);
+            memcpy(newtmp.get(), tmp.get(), start);
             tmp = newtmp;
         }
-        memcpy(tmp+start, seq, seqLength);
+        memcpy(tmp.get()+start, seq.get(), seqLength);
         start += seqLength;
     }
     return std::shared_ptr<SeqVertex>(new SeqVertex(tmp, start));

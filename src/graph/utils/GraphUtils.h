@@ -13,13 +13,13 @@
 
 class GraphUtils {
 public:
-    static int minKmerLength(std::list<std::pair<uint8_t *, int>> & kmers);
+    static int minKmerLength(std::list<std::pair<std::shared_ptr<uint8_t[]>, int>> & kmers);
 
-    static int commonMaximumPrefixLength(std::list<std::pair<uint8_t *, int>> & kmers);
+    static int commonMaximumPrefixLength(std::list<std::pair<std::shared_ptr<uint8_t[]>, int>> & kmers);
 
-    static int commonMaximumSuffixLength(std::list<std::pair<uint8_t *, int>> & listOfBytes, int minLength);
+    static int commonMaximumSuffixLength(std::list<std::pair<std::shared_ptr<uint8_t[]>, int>> & listOfBytes, int minLength);
 
-    static std::list<std::pair<uint8_t *, int>> getKmers(std::vector<std::shared_ptr<SeqVertex>> vertices);
+    static std::list<std::pair<std::shared_ptr<uint8_t[]>, int>> getKmers(std::vector<std::shared_ptr<SeqVertex>> vertices);
 
     template<class T, class E>
             static bool graphEquals(DirectedSpecifics<T,E>* g1, DirectedSpecifics<T,E>* g2){

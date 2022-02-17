@@ -16,7 +16,7 @@ private:
 public:
     virtual void addVertex(std::shared_ptr<V> vertex) = 0;
 
-    virtual ArraySet<std::shared_ptr<V>> getVertexSet() = 0;
+    virtual ArraySet<std::shared_ptr<V>> & getVertexSet() = 0;
 
     virtual ArraySet<std::shared_ptr<E>> getAllEdges(std::shared_ptr<V> sourceVertex, std::shared_ptr<V> targetVertex) = 0;
 

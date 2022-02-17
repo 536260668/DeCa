@@ -22,17 +22,17 @@ private:
     std::shared_ptr<SAMRecord> applyRevertSoftClippedBases(const std::shared_ptr<SAMRecord>& read);
     class CigarShift {
     public:
-        CigarShift(Cigar* cigar, int shiftFromStart, int shiftFromEnd);
+        CigarShift(std::shared_ptr<Cigar> cigar, int shiftFromStart, int shiftFromEnd);
 
         int shiftFromStart;
         int shiftFromEnd;
-        Cigar* cigar;
+        std::shared_ptr<Cigar>  cigar;
     };
-    CigarShift* hardClipCigar(Cigar* cigar, int start, int stop);
+    std::shared_ptr<CigarShift> hardClipCigar(std::shared_ptr<Cigar>  cigar, int start, int stop);
     int calculateHardClippingAlignmentShift(CigarElement & cigarElement, int clippedLength);
-    CigarShift* cleanHardClippedCigar(Cigar* cigar);
-    static int calculateAlignmentStartShift(Cigar* oldCigar, Cigar* newCigar);
-    static int calcHardSoftOffset(Cigar* cigar);
+    std::shared_ptr<CigarShift> cleanHardClippedCigar(std::shared_ptr<Cigar> cigar);
+    static int calculateAlignmentStartShift(std::shared_ptr<Cigar> oldCigar, std::shared_ptr<Cigar> newCigar);
+    static int calcHardSoftOffset(std::shared_ptr<Cigar> cigar);
 };
 
 

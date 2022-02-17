@@ -20,9 +20,9 @@ public:
     * @param mergeIdenticalNodes should nodes with the same sequence be treated as equal?
     * @param sequence the kmer sequence
     */
-    MultiDeBruijnVertex(uint8_t* sequence, int length, bool mergeIdenticalNodes);
+    MultiDeBruijnVertex(std::shared_ptr<uint8_t[]> sequence, int length, bool mergeIdenticalNodes);
 
-    MultiDeBruijnVertex(uint8_t* sequence, int length);
+    MultiDeBruijnVertex(std::shared_ptr<uint8_t[]> sequence, int length);
 
     ~MultiDeBruijnVertex() override = default;
 
@@ -33,12 +33,12 @@ public:
     int getKmerSize() const {return getLength();}
 
     uint8_t getSuffix() const {
-        return  sequence[getKmerSize() - 1];
+        return  sequence.get()[getKmerSize() - 1];
     }
 
-    uint8_t * getAdditionalSequence(bool source) override;
+    std::shared_ptr<uint8_t[]> getAdditionalSequence(bool source) override;
 
-    uint8_t *getSuffixAsArray() const;
+    std::shared_ptr<uint8_t[]> getSuffixAsArray() const;
 
     int getAdditionalLength(bool source);
 

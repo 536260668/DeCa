@@ -7,6 +7,7 @@
 #include "utils/PeUtils.h"
 #include "samtools/SAMRecord.h"
 #include <cmath>
+#include <utility>
 #include "MathUtils.h"
 #include "QualityUtils.h"
 #include "NaturalLogUtils.h"
@@ -147,8 +148,14 @@ void Mutect2Engine::fillNextAssemblyRegionWithReads(std::shared_ptr<AssemblyRegi
 
 std::vector<std::shared_ptr<VariantContext>>
 Mutect2Engine::callRegion(std::shared_ptr<AssemblyRegion> originalAssemblyRegion, ReferenceContext &referenceContext) {
-    std::shared_ptr<AssemblyResultSet> untrimmedAssemblyResult = AssemblyBasedCallerUtils::assembleReads(*originalAssemblyRegion, MATC, header, refCache, assemblyEngine);
-    std::set<std::shared_ptr<VariantContext>, VariantContextComparator> & allVariationEvents = untrimmedAssemblyResult->getVariationEvents(1);
-    std::shared_ptr<AssemblyRegionTrimmer_Result> trimmingResult = trimmer.trim(originalAssemblyRegion, allVariationEvents);
-    return  {allVariationEvents.begin(), allVariationEvents.end()};
+    if(originalAssemblyRegion->getStart() == 14869) {
+        for(std::shared_ptr<SAMRecord> read : originalAssemblyRegion->getReads()) {
+            std::cout << read->getName() << " : " << read->getStart() + 1 << "~" << read->getEnd() + 1 << std::endl;
+        }
+    }
+    std::shared_ptr<AssemblyResultSet> untrimmedAssemblyResult = AssemblyBasedCallerUtils::assembleReads(std::move(originalAssemblyRegion), MATC, header, refCache, assemblyEngine);
+    return {};
+    //std::set<std::shared_ptr<VariantContext>, VariantContextComparator> & allVariationEvents = untrimmedAssemblyResult->getVariationEvents(1);
+    //std::shared_ptr<AssemblyRegionTrimmer_Result> trimmingResult = trimmer.trim(originalAssemblyRegion, allVariationEvents);
+    //return  {allVariationEvents.begin(), allVariationEvents.end()};
 }

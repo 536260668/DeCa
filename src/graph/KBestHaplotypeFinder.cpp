@@ -78,7 +78,7 @@ std::vector<std::shared_ptr<KBestHaplotype>> KBestHaplotypeFinder::findBestHaplo
     std::vector<std::shared_ptr<KBestHaplotype>> result;
     std::priority_queue<std::shared_ptr<KBestHaplotype>, std::vector<std::shared_ptr<KBestHaplotype>>, KBestHaplotypeComp> queue;
     for(std::shared_ptr<SeqVertex> source : sources) {
-        queue.push(std::shared_ptr<KBestHaplotype>(new KBestHaplotype(source, *graph)));
+        queue.push(std::shared_ptr<KBestHaplotype>(new KBestHaplotype(source, graph)));
     }
     std::map<std::shared_ptr<SeqVertex>, int> vertexCounts;
     for(std::shared_ptr<SeqVertex> v : graph->getVertexSet()) {

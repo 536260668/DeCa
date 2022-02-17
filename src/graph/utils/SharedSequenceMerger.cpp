@@ -37,14 +37,14 @@ bool SharedSequenceMerger::merge(std::shared_ptr<SeqGraph> graph, std::shared_pt
         return false;
     } else {
         std::list<std::shared_ptr<BaseEdge>> edgesToRemove;
-        uint8_t * prevSeq = (*prevs.begin())->getSequence();
+        std::shared_ptr<uint8_t[]> prevSeq = (*prevs.begin())->getSequence();
         int prevSeqLength = (*prevs.begin())->getLength();
-        uint8_t * vSeq = v->getSequence();
+        std::shared_ptr<uint8_t[]> vSeq = v->getSequence();
         int vSeqLength = v->getLength();
         int tmpLength = prevSeqLength + vSeqLength;
-        uint8_t * tmp = new uint8_t[tmpLength];
-        memcpy(tmp, prevSeq, prevSeqLength);
-        memcpy(tmp+prevSeqLength, vSeq, vSeqLength);
+        std::shared_ptr<uint8_t[]> tmp(new uint8_t[tmpLength]);
+        memcpy(tmp.get(), prevSeq.get(), prevSeqLength);
+        memcpy(tmp.get()+prevSeqLength, vSeq.get(), vSeqLength);
         std::shared_ptr<SeqVertex> newV(new SeqVertex(tmp, tmpLength));
         graph->addVertex(newV);
         for(std::shared_ptr<SeqVertex> prev : prevs) {

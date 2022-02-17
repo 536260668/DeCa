@@ -46,7 +46,7 @@ bool AlignmentUtils::needsConsolidation(const std::shared_ptr<Cigar>& c) {
     return false;
 }
 
-uint8_t *AlignmentUtils::getBasesCoveringRefInterval(int refStart, int refEnd, uint8_t *bases, int length, int basesStartOnRef,
+std::shared_ptr<uint8_t[]> AlignmentUtils::getBasesCoveringRefInterval(int refStart, int refEnd, std::shared_ptr<uint8_t[]>bases, int length, int basesStartOnRef,
                                                      const std::shared_ptr<Cigar>& basesToRefCigar) {
     if(refStart < 0 || refEnd < refStart) {
         throw std::invalid_argument("Bad start and/or stop");
@@ -99,8 +99,8 @@ uint8_t *AlignmentUtils::getBasesCoveringRefInterval(int refStart, int refEnd, u
     if(basesStart == -1 || basesStop == -1)
         throw std::invalid_argument("Never found start or stop");
 
-    uint8_t * ret = new uint8_t[basesStop - basesStart + 2];
-    memcpy(ret, bases + basesStart, basesStop - basesStart + 2);
+    std::shared_ptr<uint8_t[]> ret(new uint8_t[basesStop - basesStart + 2]);
+    memcpy(ret.get(), bases.get() + basesStart, basesStop - basesStart + 2);
     return ret;
 }
 
@@ -187,13 +187,13 @@ std::shared_ptr<Cigar> AlignmentUtils::trimCigarByBases(const std::shared_ptr<Ci
 }
 
 std::shared_ptr<Cigar>
-AlignmentUtils::leftAlignSingleIndel(std::shared_ptr<Cigar> cigar, uint8_t *refSeq, int refLength, uint8_t *readSeq, int readLength,
+AlignmentUtils::leftAlignSingleIndel(std::shared_ptr<Cigar> cigar, std::shared_ptr<uint8_t[]>refSeq, int refLength, std::shared_ptr<uint8_t[]>readSeq, int readLength,
                                      int refIndex, int readIndex, bool cleanupCigar) {
     return leftAlignSingleIndel(std::move(cigar), refSeq, refLength, readSeq, readLength, refIndex, readIndex, 0, false);
 }
 
 std::shared_ptr<Cigar>
-AlignmentUtils::leftAlignSingleIndel(std::shared_ptr<Cigar> cigar, uint8_t *refSeq, int refLength, uint8_t *readSeq, int readLength,
+AlignmentUtils::leftAlignSingleIndel(std::shared_ptr<Cigar> cigar, std::shared_ptr<uint8_t[]>refSeq, int refLength, std::shared_ptr<uint8_t[]>readSeq, int readLength,
                                      int refIndex, int readIndex, int leftmostAllowedAlignment, bool cleanupCigar1) {
     ensureLeftAlignmentHasGoodArguments(cigar, refSeq, readSeq, refIndex, readIndex);
 
@@ -214,7 +214,7 @@ AlignmentUtils::leftAlignSingleIndel(std::shared_ptr<Cigar> cigar, uint8_t *refS
 
     int indelLength = cigar->getCigarElement(indexOfIndel).getLength();
     int altStringLength = 0;
-    uint8_t * altString = createIndelString(cigar, indexOfIndel, refSeq, refLength, readSeq, readLength, refIndex, refIndex, altStringLength);
+    std::shared_ptr<uint8_t[]> altString = createIndelString(cigar, indexOfIndel, refSeq, refLength, readSeq, readLength, refIndex, refIndex, altStringLength);
     if(altString == nullptr)
         return cigar;
     std::shared_ptr<Cigar> newCigar(new Cigar(*cigar));
@@ -225,14 +225,16 @@ AlignmentUtils::leftAlignSingleIndel(std::shared_ptr<Cigar> cigar, uint8_t *refS
             break;
         }
         int newAltStringLength = 0;
-        uint8_t * newAltString = createIndelString(newCigar, indexOfIndel, refSeq, refLength, readSeq, readLength, refIndex, readIndex, newAltStringLength);
+        std::shared_ptr<uint8_t[]> newAltString = createIndelString(newCigar, indexOfIndel, refSeq, refLength, readSeq, readLength, refIndex, readIndex, newAltStringLength);
         bool reachedEndOfRead = cigarHasZeroSizeElement(newCigar);
         bool isEqual = true;
         if(altStringLength != newAltStringLength)
             isEqual = false;
         else {
+            uint8_t * alt = altString.get();
+            uint8_t * newAlt = newAltString.get();
             for(int j = 0; j < altStringLength; j++) {
-                if(altString[j] != newAltString[j]){
+                if(alt[j] != newAlt[j]){
                     isEqual = false;
                     break;
                 }
@@ -244,25 +246,23 @@ AlignmentUtils::leftAlignSingleIndel(std::shared_ptr<Cigar> cigar, uint8_t *refS
             if(reachedEndOfRead)
                 cigar = cleanupCigar1 ? cleanUpCigar(cigar) : cigar;
         }
-        delete[] newAltString;
         if(reachedEndOfRead)
             break;
     }
-    delete[] altString;
     return cigar;
 }
 
-void AlignmentUtils::ensureLeftAlignmentHasGoodArguments(const std::shared_ptr<Cigar>&cigar, uint8_t *refSeq, uint8_t *readSeq,
+void AlignmentUtils::ensureLeftAlignmentHasGoodArguments(const std::shared_ptr<Cigar>&cigar, std::shared_ptr<uint8_t[]>refSeq, std::shared_ptr<uint8_t[]>readSeq,
                                                           int refIndex, int readIndex) {
     Mutect2Utils::validateArg(cigar.get(), "ciagr");
-    Mutect2Utils::validateArg(refSeq, "refSeq");
-    Mutect2Utils::validateArg(readSeq, "readSeq");
+    Mutect2Utils::validateArg(refSeq.get(), "refSeq");
+    Mutect2Utils::validateArg(readSeq.get(), "readSeq");
     Mutect2Utils::validateArg(refIndex >= 0, "attempting to left align with a reference index less than 0");
     Mutect2Utils::validateArg(readIndex >= 0, "attempting to left align with a read index less than 0");
 }
 
-uint8_t *
-AlignmentUtils::createIndelString(const std::shared_ptr<Cigar>& cigar, int indexOfIndel, uint8_t *refSeq, int refLength, uint8_t *readSeq,
+std::shared_ptr<uint8_t[]>
+AlignmentUtils::createIndelString(const std::shared_ptr<Cigar>& cigar, int indexOfIndel, std::shared_ptr<uint8_t[]>refSeq, int refLength, std::shared_ptr<uint8_t[]>readSeq,
                                   int readLength, int refIndex, int readIndex, int & newLength) {
     CigarElement indel = cigar->getCigarElement(indexOfIndel);
     int indelLength = indel.getLength();
@@ -296,23 +296,23 @@ AlignmentUtils::createIndelString(const std::shared_ptr<Cigar>& cigar, int index
         indelLength -= (totalRefBases + indelLength - refLength);
 
     int altLength = refLength + (indelLength * (indel.getOperator() == D ? -1 : 1));
-    uint8_t * alt = new uint8_t[altLength];
+    std::shared_ptr<uint8_t[]> alt{new uint8_t[altLength]};
 
     if(refIndex > altLength || refIndex > refLength)
         return nullptr;
-    memcpy(alt, refSeq, refIndex);
+    memcpy(alt.get(), refSeq.get(), refIndex);
     int currentPos = refIndex;
 
     if(indel.getOperator() == D) {
         refIndex += indelLength;
     } else {
-        memcpy(alt+currentPos, readSeq+readIndex, indelLength);
+        memcpy(alt.get()+currentPos, readSeq.get()+readIndex, indelLength);
         currentPos += indelLength;
     }
 
     if(refLength - refIndex > altLength - currentPos)
         return nullptr;
-    memcpy(alt+currentPos, refSeq+refIndex, refLength-refIndex);
+    memcpy(alt.get()+currentPos, refSeq.get()+refIndex, refLength-refIndex);
     newLength = altLength;
     return alt;
 }

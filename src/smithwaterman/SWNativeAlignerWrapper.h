@@ -12,7 +12,7 @@
 
 class SWNativeAlignerWrapper : public SmithWatermanAligner{
 public:
-    SmithWatermanAlignment* align(uint8_t *ref, int refLength, uint8_t *alt, int altLength, SWParameters* parameters, SWOverhangStrategy overhangStrategy);
+    SmithWatermanAlignment* align(std::shared_ptr<uint8_t[]> ref, int refLength, std::shared_ptr<uint8_t[]> alt, int altLength, SWParameters* parameters, SWOverhangStrategy overhangStrategy);
 };
 
 

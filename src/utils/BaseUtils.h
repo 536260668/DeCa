@@ -7,6 +7,7 @@
 
 
 #include <cstdint>
+#include <memory>
 
 class BaseUtils {
 private:
@@ -16,7 +17,7 @@ public:
     void initial();
     static bool isRegularBase(uint8_t base);
     static int simpleBaseToBaseIndex(uint8_t base);
-    static bool isAllRegularBases(uint8_t *bases, int length);
+    static bool isAllRegularBases(std::shared_ptr<uint8_t[]> bases, int length);
 };
 
 

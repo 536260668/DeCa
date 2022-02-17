@@ -20,15 +20,15 @@ public:
      * @param paddedReferenceLoc the interval which includes padding and shows how big the reference haplotype should be
      * @return a non-null haplotype
      */
-    static std::shared_ptr<Haplotype> createReferenceHaplotype(AssemblyRegion & region, SimpleInterval &referencePadding, ReferenceCache & cache);
+    static std::shared_ptr<Haplotype> createReferenceHaplotype(std::shared_ptr<AssemblyRegion> region, SimpleInterval &referencePadding, ReferenceCache & cache);
 
-    static std::shared_ptr<AssemblyResultSet> assembleReads(AssemblyRegion& region, M2ArgumentCollection & argumentCollection, SAMFileHeader* header, ReferenceCache & cache, ReadThreadingAssembler& assemblyEngine);
+    static std::shared_ptr<AssemblyResultSet> assembleReads(std::shared_ptr<AssemblyRegion> region, M2ArgumentCollection & argumentCollection, SAMFileHeader* header, ReferenceCache & cache, ReadThreadingAssembler& assemblyEngine);
 
     static const int REFERENCE_PADDING_FOR_ASSEMBLY = 500;
 
-    static SimpleInterval getPaddedReferenceLoc(AssemblyRegion& region, int referencePadding, SAMFileHeader* header);
+    static SimpleInterval getPaddedReferenceLoc(std::shared_ptr<AssemblyRegion> region, int referencePadding, SAMFileHeader* header);
 
-    static void finalizeRegion(AssemblyRegion& region, bool errorCorrectReads, bool dontUseSoftClippedBases, uint8_t minTailQuality, SAMFileHeader* header, bool correctOverlappingBaseQualities);
+    static void finalizeRegion(const std::shared_ptr<AssemblyRegion>& region, bool errorCorrectReads, bool dontUseSoftClippedBases, uint8_t minTailQuality, SAMFileHeader* header, bool correctOverlappingBaseQualities);
 };
 
 

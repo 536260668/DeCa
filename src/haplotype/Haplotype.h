@@ -20,7 +20,7 @@ private:
     EventMap * eventMap;
     int alignmentStartHapwrtRef;
     double score;
-    static uint8_t * copyArray(uint8_t * base, int length);
+    static std::shared_ptr<uint8_t> copyArray(std::shared_ptr<uint8_t> base, int length);
 
 public:
     /**
@@ -29,14 +29,14 @@ public:
      * @param bases a non-null array of bases
      * @param isRef is this the reference haplotype?
      */
-    Haplotype(uint8_t *bases, int length, bool isRef);
+    Haplotype(std::shared_ptr<uint8_t> bases, int length, bool isRef);
 
     /**
      * Create a new non-ref haplotype
      *
      * @param bases a non-null array of bases
      */
-     Haplotype(uint8_t * bases, int length);
+     Haplotype(std::shared_ptr<uint8_t> bases, int length);
 
     /**
     * Create a new haplotype with bases
@@ -48,9 +48,9 @@ public:
     * @param alignmentStartHapwrtRef offset of this haplotype w.r.t. the reference
     * @param cigar the cigar that maps this haplotype to the reference sequence
     */
-    Haplotype(uint8_t* bases, bool isRef, int length, int alignmentStartHapwrtRef, std::shared_ptr<Cigar> & cigar);
+    Haplotype(std::shared_ptr<uint8_t> bases, bool isRef, int length, int alignmentStartHapwrtRef, std::shared_ptr<Cigar> & cigar);
 
-    Haplotype(uint8_t* bases, int length, Locatable* loc);
+    Haplotype(std::shared_ptr<uint8_t> bases, int length, Locatable* loc);
 
     /**
     * Set the cigar of this haplotype to cigar.

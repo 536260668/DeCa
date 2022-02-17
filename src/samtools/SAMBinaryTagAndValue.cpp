@@ -32,18 +32,16 @@ bool SAMBinaryTagAndValue::isAllowedAttributeValue(void* value, Void_Type voidTy
     }
 }
 
-SAMBinaryTagAndValue *SAMBinaryTagAndValue::remove(SAMBinaryTagAndValue* root,short tag) {
+std::shared_ptr<SAMBinaryTagAndValue> SAMBinaryTagAndValue::remove(std::shared_ptr<SAMBinaryTagAndValue> root,short tag) {
     if(root->tag == tag){
-        SAMBinaryTagAndValue* ret = root->next;
-        delete root;
+        std::shared_ptr<SAMBinaryTagAndValue> ret = root->next;
         return ret;
     }
-    SAMBinaryTagAndValue* iter = root;
+    std::shared_ptr<SAMBinaryTagAndValue> iter = root;
     while(iter->next != nullptr) {
         if(tag == iter->next->tag) {
-            SAMBinaryTagAndValue* tmp = iter->next;
+            std::shared_ptr<SAMBinaryTagAndValue> tmp = iter->next;
             iter->next = tmp->next;
-            delete tmp;
             break;
         } else {
             iter = iter->next;
@@ -52,7 +50,7 @@ SAMBinaryTagAndValue *SAMBinaryTagAndValue::remove(SAMBinaryTagAndValue* root,sh
     return root;
 }
 
-SAMBinaryTagAndValue *SAMBinaryTagAndValue::insert(SAMBinaryTagAndValue *root, SAMBinaryTagAndValue *attr) {
+std::shared_ptr<SAMBinaryTagAndValue> SAMBinaryTagAndValue::insert(std::shared_ptr<SAMBinaryTagAndValue> root, std::shared_ptr<SAMBinaryTagAndValue> attr) {
     if(attr == nullptr)
         return root;
     else if (attr->next != nullptr) {
@@ -61,11 +59,11 @@ SAMBinaryTagAndValue *SAMBinaryTagAndValue::insert(SAMBinaryTagAndValue *root, S
         attr->next = root;
         return attr;
     } else {
-        SAMBinaryTagAndValue* iter = root;
+        std::shared_ptr<SAMBinaryTagAndValue> iter = root;
         bool flag = false;
         while(iter->next != nullptr) {
             if(iter->next->tag > attr->tag) {
-                SAMBinaryTagAndValue* tmp = iter->next;
+                std::shared_ptr<SAMBinaryTagAndValue> tmp = iter->next;
                 iter->next = attr;
                 attr->next = tmp;
                 flag = true;
@@ -82,14 +80,20 @@ SAMBinaryTagAndValue *SAMBinaryTagAndValue::insert(SAMBinaryTagAndValue *root, S
     }
 }
 
-SAMBinaryTagAndValue *SAMBinaryTagAndValue::find(short tag) {
+std::shared_ptr<SAMBinaryTagAndValue> SAMBinaryTagAndValue::find(short tag) {
     SAMBinaryTagAndValue* iter = this;
+    std::shared_ptr<SAMBinaryTagAndValue> res = nullptr;
     while(iter != nullptr && iter->tag <= tag) {
         if(iter->tag == tag) {
-            return iter;
+            return res;
         } else {
-            iter = iter->next;
+            res = iter->next;
+            iter = iter->next.get();
         }
     }
     return nullptr;
+}
+
+SAMBinaryTagAndValue::~SAMBinaryTagAndValue() {
+    delete value;
 }

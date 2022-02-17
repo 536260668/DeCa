@@ -11,15 +11,15 @@
 
 class SAMUtils {
 public:
-    static int getUnclippedStart(int alignmentStart, Cigar* cigar);
-    static int getUnclippedEnd(int alignmentEnd, Cigar* cigar);
+    static int getUnclippedStart(int alignmentStart, std::shared_ptr<Cigar> cigar);
+    static int getUnclippedEnd(int alignmentEnd, std::shared_ptr<Cigar> cigar);
     static bool isValidUnsignedIntegerAttribute(long value);
     static short makeBinaryTag(std::string& tag);
-    static uint8_t * fastqToPhred(std::string& fastq);
+    static std::shared_ptr<uint8_t[]> fastqToPhred(std::string& fastq);
     static int fastqToPhred(char ch);
     static char phredToFastq(int phredScore);
-    static std::string phredToFastq(uint8_t* buffer, int offset, int length);
-    static std::string phredToFastq(uint8_t* buffer, int length);
+    static std::string phredToFastq(std::shared_ptr<uint8_t[]> buffer, int offset, int length);
+    static std::string phredToFastq(std::shared_ptr<uint8_t[]> buffer, int length);
 };
 
 

@@ -62,18 +62,20 @@ void ReferenceCache::setTid(int tid) {
     bases = fai_fetch64(fai, region.c_str(), &seq_len);
 }
 
-uint8_t *ReferenceCache::getSubsequenceAt(int tid, int start, int stop, int & length) {
+std::shared_ptr<uint8_t> ReferenceCache::getSubsequenceAt(int tid, int start, int stop, int & length) {
     if(tid == this->tid && start >= this->start && stop <= this->end) {
-        uint8_t * ret = new uint8_t[stop-start+1]{0};
-        std::copy(bases+start, bases+stop + 1, ret);
+        std::shared_ptr<uint8_t> ret(new uint8_t[stop-start+1]{0});
+        std::copy(bases+start, bases+stop + 1, ret.get());
         length = stop - start + 1;
         return ret;
     }
     else {
         std::string region = header->getSequenceDictionary().getSequences()[tid].getSequenceName() + ':' + std::to_string(start) + '-' + std::to_string(stop);
         hts_pos_t seq_len;
-        uint8_t * ret = reinterpret_cast<uint8_t *>(fai_fetch64(fai, region.c_str(), &seq_len));
+        uint8_t * ret = reinterpret_cast<uint8_t*>(fai_fetch64(fai, region.c_str(), &seq_len));
+        std::shared_ptr<uint8_t> toRet(new uint8_t[seq_len]);
+        std::copy(ret, ret + seq_len, toRet.get());
         length = seq_len;
-        return  ret;
+        return toRet;
     }
 }

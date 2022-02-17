@@ -60,11 +60,11 @@ void AssemblyResultSet::updateReferenceHaplotype(std::shared_ptr<Haplotype> &new
     }
 }
 
-void AssemblyResultSet::setRegionForGenotyping(AssemblyRegion & regionForGenotyping) {
-    this->regionForGenotyping = &regionForGenotyping;
+void AssemblyResultSet::setRegionForGenotyping(std::shared_ptr<AssemblyRegion> regionForGenotyping) {
+    this->regionForGenotyping = regionForGenotyping;
 }
 
-void AssemblyResultSet::setFullReferenceWithPadding(uint8_t *fullReferenceWithPadding, int length) {
+void AssemblyResultSet::setFullReferenceWithPadding(std::shared_ptr<uint8_t[]> fullReferenceWithPadding, int length) {
     this->fullReferenceWithPadding = fullReferenceWithPadding;
     this->fullReferenceWithPaddingLength = length;
 }

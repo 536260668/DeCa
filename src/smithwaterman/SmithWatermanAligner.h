@@ -16,7 +16,7 @@ public:
     static SWParameters ORIGINAL_DEFAULT;
     static SWParameters STANDARD_NGS;
 
-    virtual SmithWatermanAlignment* align(uint8_t *ref, int refLength, uint8_t *alt, int altLength, SWParameters* parameters, SWOverhangStrategy overhangStrategy) = 0;
+    virtual SmithWatermanAlignment* align(std::shared_ptr<uint8_t[]> ref, int refLength, std::shared_ptr<uint8_t[]> alt, int altLength, SWParameters* parameters, SWOverhangStrategy overhangStrategy) = 0;
 };
 
 

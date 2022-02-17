@@ -14,7 +14,8 @@ std::shared_ptr<SAMRecord> ReadUtils::emptyRead(std::shared_ptr<SAMRecord> & rea
     std::shared_ptr<SAMRecord> emptyRead(new SAMRecord(*read));
     emptyRead->setIsUnmapped();
     emptyRead->setMappingQuality(0);
-    emptyRead->setCigar(new Cigar());
+    std::shared_ptr<Cigar> newCigar(new Cigar());
+    emptyRead->setCigar(newCigar);
     emptyRead->setBases(nullptr, 0);
     emptyRead->setBaseQualities(nullptr, 0);
     emptyRead->clearAttributes();
@@ -33,7 +34,7 @@ void ReadUtils::assertAttributeNameIsLegal(std::string &attributeName) {
 }
 
 int
-ReadUtils::getReadCoordinateForReferenceCoordinate(int alignmentStart, Cigar *cigar, int refCoord, ClippingTail tail,
+ReadUtils::getReadCoordinateForReferenceCoordinate(int alignmentStart, std::shared_ptr<Cigar> cigar, int refCoord, ClippingTail tail,
                                                    bool allowGoalNotReached) {
     std::pair<int, bool> result = getReadCoordinateForReferenceCoordinate(alignmentStart, cigar, refCoord, allowGoalNotReached);
     int readCoord = result.first;
@@ -47,7 +48,7 @@ ReadUtils::getReadCoordinateForReferenceCoordinate(int alignmentStart, Cigar *ci
     return readCoord;
 }
 
-std::pair<int, bool> ReadUtils::getReadCoordinateForReferenceCoordinate(int alignmentStart, Cigar *cigar, int refCoord,
+std::pair<int, bool> ReadUtils::getReadCoordinateForReferenceCoordinate(int alignmentStart, std::shared_ptr<Cigar> cigar, int refCoord,
                                                                         bool allowGoalNotReached) {
     int readBases = 0;
     int refBases = 0;
@@ -134,7 +135,7 @@ std::pair<int, bool> ReadUtils::getReadCoordinateForReferenceCoordinate(int alig
     return {readBases, fallsInsideOrJustBeforeDeletionOrSkippedRegion};
 }
 
-CigarElement* ReadUtils::readStartsWithInsertion(Cigar *cigarForRead, bool ignoreSoftClipOps) {
+CigarElement* ReadUtils::readStartsWithInsertion(std::shared_ptr<Cigar> cigarForRead, bool ignoreSoftClipOps) {
     for(CigarElement cigarElement : cigarForRead->getCigarElements()) {
         if(cigarElement.getOperator() == I) {
             return &cigarElement;
@@ -145,7 +146,7 @@ CigarElement* ReadUtils::readStartsWithInsertion(Cigar *cigarForRead, bool ignor
     return nullptr;
 }
 
-CigarElement* ReadUtils::readStartsWithInsertion(Cigar *cigarForRead) {
+CigarElement* ReadUtils::readStartsWithInsertion(std::shared_ptr<Cigar> cigarForRead) {
     return readStartsWithInsertion(cigarForRead, true);
 }
 
@@ -197,41 +198,41 @@ bool ReadUtils::hasBaseIndelQualities(std::shared_ptr<SAMRecord> & read) {
     return read->getAttribute(SAMUtils::makeBinaryTag(BQSR_BASE_INSERTION_QUALITIES)) || read->getAttribute(SAMUtils::makeBinaryTag(BQSR_BASE_DELETION_QUALITIES));
 }
 
-uint8_t *ReadUtils::getExistingBaseInsertionQualities(std::shared_ptr<SAMRecord> & read, int &length) {
+std::shared_ptr<uint8_t[]> ReadUtils::getExistingBaseInsertionQualities(std::shared_ptr<SAMRecord> & read, int &length) {
     std::string str = read->getAttributeAsString(BQSR_BASE_INSERTION_QUALITIES);
     length = str.length();
     return SAMUtils::fastqToPhred(str);
 }
 
-uint8_t *ReadUtils::getExistingBaseDeletionQualities(std::shared_ptr<SAMRecord> & read, int &length) {
+std::shared_ptr<uint8_t[]> ReadUtils::getExistingBaseDeletionQualities(std::shared_ptr<SAMRecord> & read, int &length) {
     std::string str = read->getAttributeAsString(BQSR_BASE_DELETION_QUALITIES);
     length = str.length();
     return SAMUtils::fastqToPhred(str);
 }
 
-uint8_t *ReadUtils::getBaseInsertionQualities(std::shared_ptr<SAMRecord> & read, int &length) {
-    uint8_t * quals = getExistingBaseInsertionQualities(read, length);
+std::shared_ptr<uint8_t[]> ReadUtils::getBaseInsertionQualities(std::shared_ptr<SAMRecord> & read, int &length) {
+    std::shared_ptr<uint8_t[]> quals = getExistingBaseInsertionQualities(read, length);
     if(quals == nullptr) {
         length = read->getBaseQualitiesLength();
-        quals = new uint8_t[length]{45};
+        quals = std::shared_ptr<uint8_t[]>(new uint8_t[length]{45});
     }
     return quals;
 }
 
-uint8_t *ReadUtils::getBaseDeletionQualities(std::shared_ptr<SAMRecord> & read, int &length) {
-    uint8_t * quals = getExistingBaseDeletionQualities(read, length);
+std::shared_ptr<uint8_t[]> ReadUtils::getBaseDeletionQualities(std::shared_ptr<SAMRecord> & read, int &length) {
+    std::shared_ptr<uint8_t[]> quals = getExistingBaseDeletionQualities(read, length);
     if(quals == nullptr) {
         length = read->getBaseQualitiesLength();
-        quals = new uint8_t[length]{45};
+        quals = std::shared_ptr<uint8_t[]>(new uint8_t[length]{45});
     }
     return quals;
 }
 
-void ReadUtils::setInsertionBaseQualities(std::shared_ptr<SAMRecord> & read, uint8_t *quals, int length) {
+void ReadUtils::setInsertionBaseQualities(std::shared_ptr<SAMRecord> & read, std::shared_ptr<uint8_t[]> quals, int length) {
     read->setAttribute(BQSR_BASE_INSERTION_QUALITIES, quals == nullptr ? "" : SAMUtils::phredToFastq(quals, length));
 }
 
-void ReadUtils::setDeletionBaseQualities(std::shared_ptr<SAMRecord> & read, uint8_t *quals, int length) {
+void ReadUtils::setDeletionBaseQualities(std::shared_ptr<SAMRecord> & read, std::shared_ptr<uint8_t[]> quals, int length) {
     read->setAttribute(BQSR_BASE_DELETION_QUALITIES, quals  == nullptr ? "" : SAMUtils::phredToFastq(quals, length));
 }
 

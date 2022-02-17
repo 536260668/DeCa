@@ -12,7 +12,7 @@
 #include "VariantContext.h"
 //#include "ReadThreadingAssembler.h"
 
-class HaplotypeComp
+struct HaplotypeComp
 {
 public:
     bool operator()(const std::shared_ptr<Haplotype>& left, const std::shared_ptr<Haplotype>& right)
@@ -26,8 +26,8 @@ private:
     std::map<int, std::shared_ptr<AssemblyResult>> assemblyResultByKmerSize;
     std::set<std::shared_ptr<Haplotype>, HaplotypeComp> haplotypes;
     std::map<std::shared_ptr<Haplotype>, std::shared_ptr<AssemblyResult>> assemblyResultByHaplotype;
-    AssemblyRegion * regionForGenotyping;
-    uint8_t * fullReferenceWithPadding;
+    std::shared_ptr<AssemblyRegion> regionForGenotyping;
+    std::shared_ptr<uint8_t[]> fullReferenceWithPadding;
     int fullReferenceWithPaddingLength;
     SimpleInterval paddedReferenceLoc;
     bool variationPresent;
@@ -43,8 +43,8 @@ public:
     AssemblyResultSet() = default;
     bool add(std::shared_ptr<Haplotype> & h, std::shared_ptr<AssemblyResult> &ar);
     bool add(std::shared_ptr<Haplotype> & h);
-    void setRegionForGenotyping(AssemblyRegion & regionForGenotyping);
-    void setFullReferenceWithPadding(uint8_t* fullReferenceWithPadding, int length);
+    void setRegionForGenotyping(std::shared_ptr<AssemblyRegion> regionForGenotyping);
+    void setFullReferenceWithPadding(std::shared_ptr<uint8_t[]> fullReferenceWithPadding, int length);
     void setPaddedReferenceLoc(SimpleInterval* paddedReferenceLoc);
     std::set<std::shared_ptr<VariantContext>, VariantContextComparator> & getVariationEvents(int maxMnpDistance);
 

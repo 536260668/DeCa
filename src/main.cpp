@@ -207,7 +207,7 @@ int main(int argc, char *argv[])
             if(!activityProfile->isEmpty()){
                 bool forceConversion = pileup.getPosition() != activityProfile->getEnd() + 1;
                 vector<std::shared_ptr<AssemblyRegion>> * ReadyAssemblyRegions = activityProfile->popReadyAssemblyRegions(MTAC.assemblyRegionPadding, MTAC.minAssemblyRegionSize, MTAC.maxAssemblyRegionSize, forceConversion);
-                for(std::shared_ptr<AssemblyRegion> newRegion : *ReadyAssemblyRegions)
+                for(const std::shared_ptr<AssemblyRegion>& newRegion : *ReadyAssemblyRegions)
                 {
                     pendingRegions.emplace(newRegion);
                 }
@@ -225,9 +225,9 @@ int main(int argc, char *argv[])
 
             if(!pendingRegions.empty() && IntervalUtils::isAfter(pileup.getLocation(), pendingRegions.front()->getExtendedSpan(), header->getSequenceDictionary())) {
                 count++;
-                if(count > 10) {
-                    break;
-                }
+//                if(count > 10) {
+//                    break;
+//                }
                 std::shared_ptr<AssemblyRegion> nextRegion = pendingRegions.front();
                 pendingRegions.pop();
                 Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
@@ -241,7 +241,7 @@ int main(int argc, char *argv[])
             // gather AlignmentContext to AssemblyRegion
 
 
-        break;
+       // break;
     }
 
     //std::cout << "read_num : " << read_num << std::endl;

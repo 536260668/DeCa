@@ -66,7 +66,9 @@ double Mutect2Utils::logLikelihoodRatio(int refCount, int altCount, double error
     return logLikelihoodRatio(refCount, tmp, altCount);
 }
 
-int Mutect2Utils::lastIndexOf(const uint8_t *reference, int refLength, const uint8_t *query, int queryLength) {
+int Mutect2Utils::lastIndexOf(const std::shared_ptr<uint8_t[]> reference_, int refLength, const std::shared_ptr<uint8_t[]> query_, int queryLength) {
+    uint8_t * reference = reference_.get();
+    uint8_t * query = query_.get();
     for (int r = refLength - queryLength; r >= 0; r--) {
         int q = 0;
         while (q < queryLength && reference[r+q] == query[q]) {
@@ -80,13 +82,13 @@ int Mutect2Utils::lastIndexOf(const uint8_t *reference, int refLength, const uin
 }
 
 //需要delete
-uint8_t *Mutect2Utils::copyOfRange(uint8_t *original, int originalLength, int from, int to, int &length) {
+std::shared_ptr<uint8_t[]> Mutect2Utils::copyOfRange(std::shared_ptr<uint8_t[]>original, int originalLength, int from, int to, int &length) {
     int newLength = to - from;
     if(newLength < 0)
         throw std::invalid_argument("from > to");
-    uint8_t * copy = new uint8_t[newLength];
+    std::shared_ptr<uint8_t[]> copy(new uint8_t[newLength]);
     length = newLength;
-    memcpy(copy, original+from, std::min(originalLength - from, newLength));
+    memcpy(copy.get(), original.get()+from, std::min(originalLength - from, newLength));
     return copy;
 }
 
