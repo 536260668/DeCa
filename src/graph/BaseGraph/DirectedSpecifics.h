@@ -479,11 +479,19 @@ public:
         for(std::shared_ptr<V> v : VertexSet) {
             verticesToRemove.insert(v);
         }
-        for(std::shared_ptr<V> v : onPathFromRefSource) {
-            if(onPathFromRefSink.find(v) == onPathFromRefSink.end()) {
-                onPathFromRefSource.erase(v);
+        typename std::vector<std::shared_ptr<V>>::iterator iter = onPathFromRefSource.begin();
+        for(; iter != onPathFromRefSource.end();) {
+            if(onPathFromRefSink.find(*iter) == onPathFromRefSink.end()) {
+                onPathFromRefSource.erase(iter);
+            } else {
+                iter++;
             }
         }
+//        for(std::shared_ptr<V> v : onPathFromRefSource) {
+//            if(onPathFromRefSink.find(v) == onPathFromRefSink.end()) {
+//                onPathFromRefSource.erase(v);
+//            }
+//        }
         for(std::shared_ptr<V> v : onPathFromRefSource) {
             verticesToRemove.erase(v);
         }

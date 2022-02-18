@@ -95,7 +95,7 @@ ReadThreadingAssembler::findBestPaths(const std::list<std::shared_ptr<SeqGraph>>
 std::shared_ptr<AssemblyResultSet> ReadThreadingAssembler::runLocalAssembly(std::shared_ptr<AssemblyRegion> assemblyRegion, std::shared_ptr<Haplotype> &refHaplotype,
                                                                             std::shared_ptr<uint8_t[]> fullReferenceWithPadding, int refLength, SimpleInterval *refLoc,
                                                             ReadErrorCorrector *readErrorCorrector) {
-    Mutect2Utils::validateArg(!assemblyRegion->getReads().empty(), "Assembly engine cannot be used with a null AssemblyRegion.");
+    Mutect2Utils::validateArg(assemblyRegion.get(), "Assembly engine cannot be used with a null AssemblyRegion.");
     Mutect2Utils::validateArg(refHaplotype.get(), "Active region must have an extended location.");
     Mutect2Utils::validateArg(fullReferenceWithPadding.get(), "fullReferenceWithPadding");
     Mutect2Utils::validateArg(refLoc, "refLoc");
@@ -165,8 +165,7 @@ ReadThreadingAssembler::createGraph(std::vector<std::shared_ptr<SAMRecord>> read
     for(std::shared_ptr<SAMRecord> read : reads) {
         rtgraph->addRead(read);
     }
-    //TODO:DELETE
-    //rtgraph->setPending();
+
     rtgraph->buildGraphIfNecessary();
     chainPruner->pruneLowWeightChains(rtgraph);
     if(rtgraph->hasCycles()) {

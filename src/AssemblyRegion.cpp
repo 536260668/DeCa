@@ -141,3 +141,9 @@ std::shared_ptr<uint8_t[]> AssemblyRegion::getReference(ReferenceCache *referenc
     return referenceReader->getSubsequenceAt(header->getSequenceDictionary().getSequenceIndex(contig), std::max(0, genomeLoc.getStart() - padding),
                                              std::min(header->getSequenceDictionary().getSequence(contig).getSequenceLength(), genomeLoc.getEnd() + padding), length);
 }
+
+void AssemblyRegion::removeAll(const std::vector<std::shared_ptr<SAMRecord>>& readsToRemove) {
+    for(const std::shared_ptr<SAMRecord>& read : readsToRemove) {
+        reads.erase(std::find(reads.begin(), reads.end(), read));
+    }
+}

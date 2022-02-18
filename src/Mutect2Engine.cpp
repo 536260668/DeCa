@@ -141,21 +141,68 @@ bool Mutect2Engine::hasNormal() {
     return !normalSamples.empty();
 }
 
-void Mutect2Engine::fillNextAssemblyRegionWithReads(std::shared_ptr<AssemblyRegion> region, ReadCache &readCache) {
+void Mutect2Engine::fillNextAssemblyRegionWithReads(const std::shared_ptr<AssemblyRegion>& region, ReadCache &readCache) {
     std::vector<std::shared_ptr<SAMRecord>> toAdd = readCache.getReadsForRegion(*region);
     region->setRead(toAdd);
 }
 
 std::vector<std::shared_ptr<VariantContext>>
 Mutect2Engine::callRegion(std::shared_ptr<AssemblyRegion> originalAssemblyRegion, ReferenceContext &referenceContext) {
-    if(originalAssemblyRegion->getStart() == 14869) {
-        for(std::shared_ptr<SAMRecord> read : originalAssemblyRegion->getReads()) {
+    if(originalAssemblyRegion->getStart() == 1017765) {
+        for(const std::shared_ptr<SAMRecord>& read : originalAssemblyRegion->getReads()) {
             std::cout << read->getName() << " : " << read->getStart() + 1 << "~" << read->getEnd() + 1 << std::endl;
         }
     }
+    removeUnmarkedDuplicates(originalAssemblyRegion);
+    if(originalAssemblyRegion->getReads().size() == 0)
+        return {};
     std::shared_ptr<AssemblyResultSet> untrimmedAssemblyResult = AssemblyBasedCallerUtils::assembleReads(std::move(originalAssemblyRegion), MATC, header, refCache, assemblyEngine);
     return {};
     //std::set<std::shared_ptr<VariantContext>, VariantContextComparator> & allVariationEvents = untrimmedAssemblyResult->getVariationEvents(1);
     //std::shared_ptr<AssemblyRegionTrimmer_Result> trimmingResult = trimmer.trim(originalAssemblyRegion, allVariationEvents);
     //return  {allVariationEvents.begin(), allVariationEvents.end()};
+}
+
+void Mutect2Engine::removeUnmarkedDuplicates(const std::shared_ptr<AssemblyRegion>& assemblyRegion) {
+    std::map<std::pair<std::string, int> ,std::vector<std::shared_ptr<SAMRecord>>> possibleDuplicates;
+    for(const std::shared_ptr<SAMRecord>& read : assemblyRegion->getReads()) {
+        if(read->isPaired() && !read->mateIsUnmapped() &&
+                (read->getMateContig() != read->getContig() || (std::abs(read->getFragmentLength()) > HUGE_FRAGMENT_LENGTH))) {
+            std::string sampleName = read->getGroup() == 0 ? "normal" : "tumor";
+            std::pair<std::string, int> toAdd{sampleName, (read->isFirstOfPair() ? 1 : -1) * read->getUnclippedStart()};
+            if(possibleDuplicates.find(toAdd) != possibleDuplicates.end()) {
+                possibleDuplicates.find(toAdd)->second.emplace_back(read);
+            } else {
+                possibleDuplicates.insert({toAdd, {read}});
+            }
+        } else {
+            continue;
+        }
+    }
+
+    std::vector<std::shared_ptr<SAMRecord>> duplicates;
+
+    for(std::pair<std::pair<std::string, int> ,std::vector<std::shared_ptr<SAMRecord>>> group : possibleDuplicates) {
+        std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>> readsByContig;
+        for(const std::shared_ptr<SAMRecord>& read : group.second) {
+            if(readsByContig.find(read->getMateContig()) != readsByContig.end()) {
+                readsByContig.find(read->getMateContig())->second.emplace_back(read);
+            } else {
+                readsByContig.insert({read->getMateContig(), {read}});
+            }
+        }
+
+        for(std::pair<std::string, std::vector<std::shared_ptr<SAMRecord>>> contigReads : readsByContig) {
+            int skip = contigReads.second.size() > group.second.size() / 2 ? 1 : 0;
+            for(const std::shared_ptr<SAMRecord>& read : contigReads.second) {
+                if(skip > 0) {
+                    skip--;
+                    continue;
+                } else {
+                    duplicates.emplace_back(read);
+                }
+            }
+        }
+    }
+    assemblyRegion->removeAll(duplicates);
 }

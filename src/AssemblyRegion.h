@@ -249,7 +249,11 @@ public:
      */
     std::shared_ptr<uint8_t[]> getAssemblyRegionReference(ReferenceCache * cache, int padding, int & length);
 
-
+    /**
+     * Remove all of the reads in readsToRemove from this region
+     * @param readsToRemove the set of reads we want to remove
+     */
+    void removeAll(const std::vector<std::shared_ptr<SAMRecord>>& readsToRemove);
 };
 
 

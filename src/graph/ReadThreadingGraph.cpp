@@ -232,15 +232,15 @@ void ReadThreadingGraph::buildGraphIfNecessary() {
         return;
 
     //test
-    for(std::pair<std::string, std::vector<SequenceForKmers>> iter : pending) {
-        for(SequenceForKmers kmer : iter.second) {
-            uint8_t * sequence = kmer.sequence.get();
-            for(int i = 0; i < kmer.stop - kmer.start; i++) {
-                std::cout << sequence[i];
-            }
-            std::cout << std::endl;
-        }
-    }
+//    for(std::pair<std::string, std::vector<SequenceForKmers>> iter : pending) {
+//        for(SequenceForKmers kmer : iter.second) {
+//            uint8_t * sequence = kmer.sequence.get();
+//            for(int i = 0; i < kmer.stop - kmer.start; i++) {
+//                std::cout << sequence[i];
+//            }
+//            std::cout << std::endl;
+//        }
+//    }
 
     nonUniqueKmers = determineKmerSizeAndNonUniques(kmerSize, kmerSize);
 
