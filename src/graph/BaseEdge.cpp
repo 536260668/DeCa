@@ -29,7 +29,19 @@ BaseEdge BaseEdge::add(BaseEdge &edge) {
     return *this;
 }
 
-std::shared_ptr<BaseEdge> BaseEdge::makeOREdge(std::vector<std::shared_ptr<BaseEdge>> edges, int multiplicity) {
+std::shared_ptr<BaseEdge> BaseEdge::makeOREdge(const std::vector<std::shared_ptr<BaseEdge>>& edges, int multiplicity) {
+    Mutect2Utils::validateArg(!edges.empty(), "have no edge");
+    bool anyRef = false;
+    for(std::shared_ptr<BaseEdge> edge : edges) {
+        if(edge->getIsRef()) {
+            anyRef = true;
+            break;
+        }
+    }
+    return std::shared_ptr<BaseEdge>(new BaseEdge(anyRef, multiplicity));
+}
+
+std::shared_ptr<BaseEdge> BaseEdge::makeOREdge(const std::set<std::shared_ptr<BaseEdge>>& edges, int multiplicity) {
     Mutect2Utils::validateArg(!edges.empty(), "have no edge");
     bool anyRef = false;
     for(std::shared_ptr<BaseEdge> edge : edges) {

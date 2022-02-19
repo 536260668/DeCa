@@ -19,13 +19,13 @@ struct KBestHaplotypeComp{
 class KBestHaplotypeFinder {
 private:
     std::shared_ptr<SeqGraph> graph;
-    ArraySet<std::shared_ptr<SeqVertex>> sinks;
-    ArraySet<std::shared_ptr<SeqVertex>> sources;
-    static std::shared_ptr<SeqGraph> removeCyclesAndVerticesThatDontLeadToSinks(std::shared_ptr<SeqGraph> original, ArraySet<std::shared_ptr<SeqVertex>> & sources, ArraySet<std::shared_ptr<SeqVertex>> & sinks);
-    static bool findGuiltyVerticesAndEdgesToRemoveCycles(std::shared_ptr<SeqGraph> graph, std::shared_ptr<SeqVertex> currentVertex, ArraySet<std::shared_ptr<SeqVertex>>& sinks, std::set<std::shared_ptr<BaseEdge>> & edgesToRemove, std::set<std::shared_ptr<SeqVertex>> & verticesToRemove, std::set<std::shared_ptr<SeqVertex>> & parentVertices);
+    std::set<std::shared_ptr<SeqVertex>> sinks;
+    std::set<std::shared_ptr<SeqVertex>> sources;
+    static std::shared_ptr<SeqGraph> removeCyclesAndVerticesThatDontLeadToSinks(std::shared_ptr<SeqGraph> original, std::set<std::shared_ptr<SeqVertex>> & sources, std::set<std::shared_ptr<SeqVertex>> & sinks);
+    static bool findGuiltyVerticesAndEdgesToRemoveCycles(std::shared_ptr<SeqGraph> graph, std::shared_ptr<SeqVertex> currentVertex, std::set<std::shared_ptr<SeqVertex>>& sinks, std::set<std::shared_ptr<BaseEdge>> & edgesToRemove, std::set<std::shared_ptr<SeqVertex>> & verticesToRemove, std::set<std::shared_ptr<SeqVertex>> & parentVertices);
 
 public:
-    KBestHaplotypeFinder(std::shared_ptr<SeqGraph> graph, ArraySet<std::shared_ptr<SeqVertex>> & sources, ArraySet<std::shared_ptr<SeqVertex>> & sinks);
+    KBestHaplotypeFinder(std::shared_ptr<SeqGraph> graph, std::set<std::shared_ptr<SeqVertex>> & sources, std::set<std::shared_ptr<SeqVertex>> & sinks);
     KBestHaplotypeFinder(std::shared_ptr<SeqGraph> graph, std::shared_ptr<SeqVertex> source, std::shared_ptr<SeqVertex> sink);
     KBestHaplotypeFinder(std::shared_ptr<SeqGraph> graph);
     std::vector<std::shared_ptr<KBestHaplotype>> findBestHaplotypes(int maxNumberOfHaplotypes);

@@ -45,7 +45,17 @@ int GraphUtils::commonMaximumSuffixLength(std::list<std::pair<std::shared_ptr<ui
     return minLength;
 }
 
-std::list<std::pair<std::shared_ptr<uint8_t[]>, int>> GraphUtils::getKmers(std::vector<std::shared_ptr<SeqVertex>> vertices) {
+std::list<std::pair<std::shared_ptr<uint8_t[]>, int>> GraphUtils::getKmers(const std::vector<std::shared_ptr<SeqVertex>>& vertices) {
+    Mutect2Utils::validateArg(!vertices.empty(), "no vertex");
+    std::list<std::pair<std::shared_ptr<uint8_t[]>, int>> ret;
+    for(std::shared_ptr<SeqVertex> v : vertices) {
+        ret.emplace_back(std::pair<std::shared_ptr<uint8_t[]>, int>(v->getSequence(), v->getLength()));
+    }
+    return ret;
+}
+
+std::list<std::pair<std::shared_ptr<uint8_t[]>, int>>
+GraphUtils::getKmers(const std::set<std::shared_ptr<SeqVertex>>& vertices) {
     Mutect2Utils::validateArg(!vertices.empty(), "no vertex");
     std::list<std::pair<std::shared_ptr<uint8_t[]>, int>> ret;
     for(std::shared_ptr<SeqVertex> v : vertices) {

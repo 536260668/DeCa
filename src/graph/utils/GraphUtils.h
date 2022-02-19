@@ -19,16 +19,18 @@ public:
 
     static int commonMaximumSuffixLength(std::list<std::pair<std::shared_ptr<uint8_t[]>, int>> & listOfBytes, int minLength);
 
-    static std::list<std::pair<std::shared_ptr<uint8_t[]>, int>> getKmers(std::vector<std::shared_ptr<SeqVertex>> vertices);
+    static std::list<std::pair<std::shared_ptr<uint8_t[]>, int>> getKmers(const std::vector<std::shared_ptr<SeqVertex>>& vertices);
+
+    static std::list<std::pair<std::shared_ptr<uint8_t[]>, int>> getKmers(const std::set<std::shared_ptr<SeqVertex>>& vertices);
 
     template<class T, class E>
             static bool graphEquals(DirectedSpecifics<T,E>* g1, DirectedSpecifics<T,E>* g2){
         Mutect2Utils::validateArg(g1, "g1");
         Mutect2Utils::validateArg(g2, "g2");
-        ArraySet<std::shared_ptr<T>> vertices1 = g1->getVertexSet();
-        ArraySet<std::shared_ptr<T>> vertices2 = g2->getVertexSet();
-        ArraySet<std::shared_ptr<E>> edges1 = g1->getEdgeSet();
-        ArraySet<std::shared_ptr<E>> edges2 = g2->getEdgeSet();
+        std::set<std::shared_ptr<T>> vertices1 = g1->getVertexSet();
+        std::set<std::shared_ptr<T>> vertices2 = g2->getVertexSet();
+        std::set<std::shared_ptr<E>> edges1 = g1->getEdgeSet();
+        std::set<std::shared_ptr<E>> edges2 = g2->getEdgeSet();
         if(vertices1.size() != vertices2.size() || edges1.size() != edges2.size())
             return false;
         for(std::shared_ptr<BaseVertex> v1 : vertices1) {

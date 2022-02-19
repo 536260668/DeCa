@@ -6,7 +6,7 @@
 #include "GraphUtils.h"
 
 std::pair<std::shared_ptr<SeqVertex> , std::shared_ptr<SeqVertex>>
-SharedVertexSequenceSplitter::commonPrefixAndSuffixOfVertices(ArraySet<std::shared_ptr<SeqVertex>> middleVertices){
+SharedVertexSequenceSplitter::commonPrefixAndSuffixOfVertices(std::set<std::shared_ptr<SeqVertex>> middleVertices){
     std::list<std::pair<std::shared_ptr<uint8_t[]>, int>> kmers;
     int min = INT32_MAX;
     for(std::shared_ptr<SeqVertex> v : middleVertices) {
@@ -29,11 +29,11 @@ SharedVertexSequenceSplitter::commonPrefixAndSuffixOfVertices(ArraySet<std::shar
     return std::pair<std::shared_ptr<SeqVertex>, std::shared_ptr<SeqVertex>>(new SeqVertex(prefix, prefixLength), new SeqVertex(suffix, suffixLength));
 }
 
-SharedVertexSequenceSplitter::SharedVertexSequenceSplitter(std::shared_ptr<SeqGraph> graph, ArraySet<std::shared_ptr<SeqVertex>> toSplitsArg) : outer(graph), toSplits(toSplitsArg){
+SharedVertexSequenceSplitter::SharedVertexSequenceSplitter(std::shared_ptr<SeqGraph> graph, std::set<std::shared_ptr<SeqVertex>> toSplitsArg) : outer(graph), toSplits(toSplitsArg){
     Mutect2Utils::validateArg(graph.get(), "graph cannot be null");
     Mutect2Utils::validateArg(toSplitsArg.size() > 1, "Can only split at least 2 vertices");
     for(std::shared_ptr<SeqVertex> v : toSplitsArg) {
-        ArraySet<std::shared_ptr<SeqVertex>> allVertex = graph->getVertexSet();
+        std::set<std::shared_ptr<SeqVertex>>& allVertex = graph->getVertexSet();
         if(allVertex.find(v) == allVertex.end())
             throw std::invalid_argument("graph doesn't contain all of the vertices to split");
     }
@@ -93,7 +93,7 @@ std::shared_ptr<BaseEdge> SharedVertexSequenceSplitter::processEdgeToRemove(std:
 
 void SharedVertexSequenceSplitter::updateGraph(std::shared_ptr<SeqVertex> top, std::shared_ptr<SeqVertex> bot) {
     for(std::shared_ptr<SeqVertex> v : toSplits) {
-        ArraySet<std::shared_ptr<SeqVertex>> allVertex = outer->getVertexSet();
+        std::set<std::shared_ptr<SeqVertex>>& allVertex = outer->getVertexSet();
         if(allVertex.find(v) == allVertex.end())
             throw std::invalid_argument("graph doesn't contain all of the vertices to split");
     }
@@ -104,7 +104,7 @@ void SharedVertexSequenceSplitter::updateGraph(std::shared_ptr<SeqVertex> top, s
         throw std::invalid_argument("Cannot call updateGraph until split() has been called");
     }
 
-    outer->removeAllVertices(toSplits.getArraySet());
+    outer->removeAllVertices(toSplits);
     std::vector<std::shared_ptr<BaseEdge>> edgesToRemoveVector;
     for(std::shared_ptr<BaseEdge> baseEdge : edgesToRemove) {
         edgesToRemoveVector.emplace_back(baseEdge);
@@ -143,14 +143,14 @@ void SharedVertexSequenceSplitter::updateGraph(std::shared_ptr<SeqVertex> top, s
 void SharedVertexSequenceSplitter::addPrefixNodeAndEdges(std::shared_ptr<SeqVertex> top) {
     outer->addVertex(getPrefixV());
     if(top != nullptr) {
-        outer->addEdge(top, getPrefixV(), BaseEdge::makeOREdge(splitGraph->outgoingEdgesOf(getPrefixV()).getArraySet(), 1));
+        outer->addEdge(top, getPrefixV(), BaseEdge::makeOREdge(splitGraph->outgoingEdgesOf(getPrefixV()), 1));
     }
 }
 
 void SharedVertexSequenceSplitter::addSuffixNodeAndEdges(std::shared_ptr<SeqVertex> bot) {
     outer->addVertex(getSuffixV());
     if(bot != nullptr) {
-        outer->addEdge(getSuffixV(), bot, BaseEdge::makeOREdge(splitGraph->incomingEdgesOf(getSuffixV()).getArraySet(), 1));
+        outer->addEdge(getSuffixV(), bot, BaseEdge::makeOREdge(splitGraph->incomingEdgesOf(getSuffixV()), 1));
     }
 }
 

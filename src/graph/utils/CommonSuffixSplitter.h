@@ -7,17 +7,18 @@
 
 
 #include "SeqGraph.h"
+#include <set>
 
 class CommonSuffixSplitter {
 public:
     static bool split(std::shared_ptr<SeqGraph> graph, std::shared_ptr<SeqVertex> v);
 
 private:
-    static std::shared_ptr<SeqVertex> commonSuffix(std::shared_ptr<SeqGraph> graph, std::shared_ptr<SeqVertex> v, ArraySet<std::shared_ptr<SeqVertex>> toSplit);
-    static bool safeToSplit(std::shared_ptr<SeqGraph> graph, std::shared_ptr<SeqVertex> bot, ArraySet<std::shared_ptr<SeqVertex>> toSplit);
-    static std::shared_ptr<SeqVertex> commonSuffix(ArraySet<std::shared_ptr<SeqVertex>> toSplit);
-    static bool wouldEliminateRefSource(std::shared_ptr<SeqGraph> graph, std::shared_ptr<SeqVertex> commonSuffix, ArraySet<std::shared_ptr<SeqVertex>> toSplit);
-    static bool allVerticesAreTheCommonSuffix(std::shared_ptr<SeqVertex> commonSuffix, ArraySet<std::shared_ptr<SeqVertex>> toSplits);
+    static std::shared_ptr<SeqVertex> commonSuffix(std::shared_ptr<SeqGraph> graph, std::shared_ptr<SeqVertex> v, std::set<std::shared_ptr<SeqVertex>> toSplit);
+    static bool safeToSplit(std::shared_ptr<SeqGraph> graph, std::shared_ptr<SeqVertex> bot, std::set<std::shared_ptr<SeqVertex>> toSplit);
+    static std::shared_ptr<SeqVertex> commonSuffix(std::set<std::shared_ptr<SeqVertex>> toSplit);
+    static bool wouldEliminateRefSource(std::shared_ptr<SeqGraph> graph, std::shared_ptr<SeqVertex> commonSuffix, std::set<std::shared_ptr<SeqVertex>> toSplit);
+    static bool allVerticesAreTheCommonSuffix(std::shared_ptr<SeqVertex> commonSuffix, std::set<std::shared_ptr<SeqVertex>> toSplits);
 };
 
 

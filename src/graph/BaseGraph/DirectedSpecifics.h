@@ -48,15 +48,20 @@ private:
     static const long serialVersionUID = 8971725103718958232L;
 
     DirectedEdgeContainer<V, E> & getEdgeContainer(std::shared_ptr<V> vertex) {
-        Mutect2Utils::validateArg(VertexSet.find(vertex) != VertexSet.end(), "no such vertex in graph");
-        return vertexMapDirected.find(vertex)->second;
+        //Mutect2Utils::validateArg(VertexSet.find(vertex) != VertexSet.end(), "no such vertex in graph");
+        typename std::map<std::shared_ptr<V>, DirectedEdgeContainer<V, E>>::iterator miter = vertexMapDirected.find(vertex);
+        if(vertexMapDirected.find(vertex) == vertexMapDirected.end()) {
+            throw std::invalid_argument("no such vertex in graph");
+        }
+        //return vertexMapDirected.find(vertex)->second;
+        return miter->second;
     }
 
 
     bool allowingLoops;
     bool allowingMultipleEdges;
-    ArraySet<std::shared_ptr<V>> VertexSet;
-    ArraySet<std::shared_ptr<E>> EdgeSet;
+    std::set<std::shared_ptr<V>> VertexSet;
+    std::set<std::shared_ptr<E>> EdgeSet;
 
 protected:
     std::map<std::shared_ptr<V>, DirectedEdgeContainer<V, E>> vertexMapDirected;
@@ -75,16 +80,16 @@ public:
         VertexSet.insert(v);
     }
 
-    ArraySet<std::shared_ptr<V>> & getVertexSet()  {
+    std::set<std::shared_ptr<V>> & getVertexSet()  {
         return VertexSet;
     }
 
-    ArraySet<std::shared_ptr<E>> getAllEdges(std::shared_ptr<V> sourceVertex, std::shared_ptr<V> targetVertex)  {
-        ArraySet<std::shared_ptr<E>> edges;
+    std::set<std::shared_ptr<E>> getAllEdges(std::shared_ptr<V> sourceVertex, std::shared_ptr<V> targetVertex)  {
+        std::set<std::shared_ptr<E>> edges;
 
         if(VertexSet.find(sourceVertex) != VertexSet.end() && VertexSet.find(targetVertex) != VertexSet.end()) {
             DirectedEdgeContainer<V, E> ec = getEdgeContainer(sourceVertex);
-            typename std::vector<std::shared_ptr<E>>::iterator iter;
+            typename std::set<std::shared_ptr<E>>::iterator iter;
             for(iter = ec.outgoing.begin(); iter != ec.outgoing.end(); iter++){
                 if(getEdgeTarget(*iter) == targetVertex)
                     edges.insert(*iter);
@@ -93,11 +98,11 @@ public:
         return edges;
     }
 
-    ArraySet<std::shared_ptr<V>> getAllTargets(std::shared_ptr<V> sourceVertex) {
-        ArraySet<std::shared_ptr<V>> res;
+    std::set<std::shared_ptr<V>> getAllTargets(std::shared_ptr<V> sourceVertex) {
+        std::set<std::shared_ptr<V>> res;
         if(VertexSet.find(sourceVertex) != VertexSet.end()) {
             DirectedEdgeContainer<V, E> ec = getEdgeContainer(sourceVertex);
-            typename std::vector<std::shared_ptr<E>>::iterator iter;
+            typename std::set<std::shared_ptr<E>>::iterator iter;
             for(iter = ec.outgoing.begin(); iter != ec.outgoing.end(); iter++){
                 res.insert(getEdgeTarget(*iter));
             }
@@ -112,7 +117,7 @@ public:
     std::shared_ptr<E> getEdge(std::shared_ptr<V> sourceVertex, std::shared_ptr<V> targetVertex) {
         if(VertexSet.find(sourceVertex) != VertexSet.end() && VertexSet.find(targetVertex) != VertexSet.end()) {
             DirectedEdgeContainer<V, E> ec = getEdgeContainer(sourceVertex);
-            typename std::vector<std::shared_ptr<E>>::iterator iter;
+            typename std::set<std::shared_ptr<E>>::iterator iter;
             for(iter = ec.outgoing.begin(); iter != ec.outgoing.end(); iter++){
                 if(getEdgeTarget(*iter) == targetVertex)
                     return *iter;
@@ -121,7 +126,7 @@ public:
         return nullptr;
     }
 
-    void addEdgeToTouchingVertices(std::shared_ptr<E> e) {
+    void addEdgeToTouchingVertices(std::shared_ptr<E>& e) {
         std::shared_ptr<V> source = getEdgeSource(e);
         std::shared_ptr<V> target = getEdgeTarget(e);
 
@@ -133,23 +138,26 @@ public:
         return edgeMap.find(e)->second.getSource();
     }
 
-    ArraySet<std::shared_ptr<E>> edgesof(std::shared_ptr<V> vertex) {
-        ArraySet<std::shared_ptr<E>> res = getEdgeContainer(vertex).incoming;
-        ArraySet<std::shared_ptr<E>> tmp = getEdgeContainer(vertex).outgoing;
+    std::set<std::shared_ptr<E>> edgesof(std::shared_ptr<V> vertex) {
+        std::set<std::shared_ptr<E>> res = getEdgeContainer(vertex).incoming;
+        std::set<std::shared_ptr<E>> tmp = getEdgeContainer(vertex).outgoing;
 
-        typename std::vector<std::shared_ptr<E>>::iterator iter;
+        typename std::set<std::shared_ptr<E>>::iterator iter;
         for(iter = tmp.begin(); iter != tmp.end(); iter++) {
             res.insert(*iter);
         }
+        //TODO:
         if(allowingLoops) {
-            ArraySet<std::shared_ptr<E>> loops = getAllEdges(vertex, vertex);
-            for(iter = res.begin(); iter != res.end();) {
+            std::set<std::shared_ptr<E>> loops = getAllEdges(vertex, vertex);
+            std::set<std::shared_ptr<E>> toRemove;
+            for(iter = res.begin(); iter != res.end(); iter ++) {
                 if(loops.find(*iter) != loops.end()) {
                     loops.erase(iter);
-                    res.erase(iter);
+                    toRemove.insert(*iter);
                 }
-                else
-                    iter++;
+            }
+            for(std::shared_ptr<E> e : toRemove) {
+                res.erase(e);
             }
         }
         return res;
@@ -163,12 +171,12 @@ public:
         return getEdgeContainer(vector).outgoing.size();
     }
 
-    ArraySet<std::shared_ptr<E>> incomingEdgesOf(std::shared_ptr<V> vertex) {
+    std::set<std::shared_ptr<E>> incomingEdgesOf(std::shared_ptr<V> vertex) {
         return getEdgeContainer(vertex).getUnmodifiableIncomingEdges();
     }
 
 
-    ArraySet<std::shared_ptr<E>> outgoingEdgesOf(std::shared_ptr<V> vertex)  {
+    std::set<std::shared_ptr<E>> outgoingEdgesOf(std::shared_ptr<V> vertex)  {
         return getEdgeContainer(vertex).getUnmodifiableOutgoingEdges();
     }
 
@@ -288,7 +296,7 @@ public:
 
     virtual bool removeVertex(std::shared_ptr<V> v) {
         if(containsVertex(v)) {
-            ArraySet<std::shared_ptr<E>> touchingEdgesList = edgesof(v);
+            std::set<std::shared_ptr<E>> touchingEdgesList = edgesof(v);
             std::vector<std::shared_ptr<E>> edgesList;
             for(std::shared_ptr<E> e : touchingEdgesList)
                 edgesList.template emplace_back(e);
@@ -373,14 +381,14 @@ public:
 
     std::shared_ptr<E> incomingEdgeOf(std::shared_ptr<V> v) {
         Mutect2Utils::validateArg(v.get(), "Null is not allowed there");
-        ArraySet<std::shared_ptr<E>> edgesSet = incomingEdgesOf(v);
+        std::set<std::shared_ptr<E>> edgesSet = incomingEdgesOf(v);
         Mutect2Utils::validateArg(edgesSet.size() <= 1, "Cannot get a single incoming edge for a vertex with multiple incoming edges");
         return edgesSet.empty() ? nullptr : *edgesSet.begin();
     }
 
     std::shared_ptr<E> outgoingEdgeOf(std::shared_ptr<V> v) {
         Mutect2Utils::validateArg(v.get(), "Null is not allowed there");
-        ArraySet<std::shared_ptr<E>> edgesSet = outgoingEdgesOf(v);
+        std::set<std::shared_ptr<E>> edgesSet = outgoingEdgesOf(v);
         Mutect2Utils::validateArg(edgesSet.size() <= 1, "Cannot get a single incoming edge for a vertex with multiple incoming edges");
         return edgesSet.empty() ? nullptr : *edgesSet.begin();
     }
@@ -388,7 +396,7 @@ public:
     std::shared_ptr<V> getNextReferenceVertex(std::shared_ptr<V> v, bool allowNonRefPaths, std::shared_ptr<E> blacklistedEdge) {
         if(v == nullptr)
             return nullptr;
-        ArraySet<std::shared_ptr<E>> outgoingEdges = outgoingEdgesOf(v);
+        std::set<std::shared_ptr<E>> outgoingEdges = outgoingEdgesOf(v);
 
         if(outgoingEdges.empty())
             return nullptr;
@@ -416,7 +424,7 @@ public:
     std::shared_ptr<V> getPrevReferenceVertex(std::shared_ptr<V> v) {
         if(v == nullptr)
             return nullptr;
-        ArraySet<std::shared_ptr<E>> edges = incomingEdgesOf(v);
+        std::set<std::shared_ptr<E>> edges = incomingEdgesOf(v);
         std::vector<std::shared_ptr<V>> allVertexs;
         for(std::shared_ptr<E> edge : edges) {
             std::shared_ptr<V> v = getEdgeSource(edge);
@@ -464,28 +472,30 @@ public:
         if (getReferenceSourceVertex() == nullptr || getReferenceSinkVertex() == nullptr) {
             throw std::invalid_argument("Graph must have ref source and sink vertices");
         }
-        ArraySet<std::shared_ptr<V>> onPathFromRefSource;
+        std::set<std::shared_ptr<V>> onPathFromRefSource;
         BaseGraphIterator<V, E> sourceIter = BaseGraphIterator<V, E>(this, getReferenceSourceVertex(), false, true);
         while(sourceIter.hasNext()) {
             onPathFromRefSource.insert(sourceIter.next());
         }
-        ArraySet<std::shared_ptr<V>> onPathFromRefSink;
+        std::set<std::shared_ptr<V>> onPathFromRefSink;
         BaseGraphIterator<V, E> sinkIter = BaseGraphIterator<V, E>(this, getReferenceSinkVertex(), true, false);
         while(sinkIter.hasNext()) {
             onPathFromRefSink.insert(sinkIter.next());
         }
-        //ArraySet<std::shared_ptr<V>> allVertex = getVertexSet();
-        ArraySet<std::shared_ptr<V>> verticesToRemove;
+        //std::set<std::shared_ptr<V>> allVertex = getVertexSet();
+        std::set<std::shared_ptr<V>> verticesToRemove;
         for(std::shared_ptr<V> v : VertexSet) {
             verticesToRemove.insert(v);
         }
-        typename std::vector<std::shared_ptr<V>>::iterator iter = onPathFromRefSource.begin();
-        for(; iter != onPathFromRefSource.end();) {
+        typename std::set<std::shared_ptr<V>>::iterator iter = onPathFromRefSource.begin();
+        std::set<std::shared_ptr<V>> toRemove;
+        for(; iter != onPathFromRefSource.end(); iter++) {
             if(onPathFromRefSink.find(*iter) == onPathFromRefSink.end()) {
-                onPathFromRefSource.erase(iter);
-            } else {
-                iter++;
+                toRemove.insert(*iter);
             }
+        }
+        for(std::shared_ptr<V> v : toRemove) {
+            onPathFromRefSource.erase(v);
         }
 //        for(std::shared_ptr<V> v : onPathFromRefSource) {
 //            if(onPathFromRefSink.find(v) == onPathFromRefSink.end()) {
@@ -509,26 +519,26 @@ public:
             throw std::length_error("hould have eliminated all but the reference source");
     }
 
-    ArraySet<std::shared_ptr<V>> incomingVerticesOf(std::shared_ptr<V> v) {
+    std::set<std::shared_ptr<V>> incomingVerticesOf(std::shared_ptr<V> v) {
         Mutect2Utils::validateArg(v.get(), "Null is not allowed there.");
-        ArraySet<std::shared_ptr<V>> ret;
+        std::set<std::shared_ptr<V>> ret;
         for(std::shared_ptr<E> e : incomingEdgesOf(v)) {
             ret.insert(getEdgeSource(e));
         }
         return ret;
     }
 
-    ArraySet<std::shared_ptr<V>> outgoingVerticesOf(std::shared_ptr<V> v) {
+    std::set<std::shared_ptr<V>> outgoingVerticesOf(std::shared_ptr<V> v) {
         Mutect2Utils::validateArg(v.get(), "Null is not allowed there.");
-        ArraySet<std::shared_ptr<V>> ret;
+        std::set<std::shared_ptr<V>> ret;
         for(std::shared_ptr<E> e : outgoingEdgesOf(v)) {
             ret.insert(getEdgeTarget(e));
         }
         return ret;
     }
 
-    ArraySet<std::shared_ptr<V>> getSinks() {
-        ArraySet<std::shared_ptr<V>> ret;
+    std::set<std::shared_ptr<V>> getSinks() {
+        std::set<std::shared_ptr<V>> ret;
         for(std::shared_ptr<V> v : VertexSet) {
             if(isSink(v))
                 ret.insert(v);
@@ -536,8 +546,8 @@ public:
         return ret;
     }
 
-    ArraySet<std::shared_ptr<V>> getSources() {
-        ArraySet<std::shared_ptr<V>> ret;
+    std::set<std::shared_ptr<V>> getSources() {
+        std::set<std::shared_ptr<V>> ret;
         for(std::shared_ptr<V> v : VertexSet) {
             if(isSource(v))
                 ret.insert(v);
@@ -594,7 +604,7 @@ public:
                 VertexSet.erase(iter.next());
             }
         }
-        removeAllVertices(VertexSet.getArraySet());
+        removeAllVertices(VertexSet);
     }
 
     void addOrUpdateEdge(std::shared_ptr<V> source, std::shared_ptr<V> target, std::shared_ptr<E> e) {
@@ -610,11 +620,11 @@ public:
         }
     }
 
-    ArraySet<std::shared_ptr<E>> getEdgeSet() {
+    std::set<std::shared_ptr<E>> getEdgeSet() {
         return EdgeSet;
     }
 
-    bool containsAllVertices(ArraySet<std::shared_ptr<V>> & vertices) {
+    bool containsAllVertices(std::set<std::shared_ptr<V>> & vertices) {
         if(vertices.empty())
             throw std::invalid_argument("null vertex");
         for(std::shared_ptr<V> v : vertices) {

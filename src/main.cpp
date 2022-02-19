@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
     // TODO: add multi-thread mode here
     for(int k=0; k<nref; k++)
     {
-        std::string region = header->getSequenceDictionary().getSequences()[k].getSequenceName() + ":0-999999";
+        std::string region = header->getSequenceDictionary().getSequences()[k].getSequenceName() + ":0-1999999";
         ReadCache cache(data, input_bam, k, region);
         int currentPose = 0;
         int len = 0;
@@ -224,8 +224,8 @@ int main(int argc, char *argv[])
             activityProfile->add(profile);
 
             if(!pendingRegions.empty() && IntervalUtils::isAfter(pileup.getLocation(), pendingRegions.front()->getExtendedSpan(), header->getSequenceDictionary())) {
-                count++;
-//                if(count > 10) {
+//                count++;
+//                if(count > 200) {
 //                    break;
 //                }
                 std::shared_ptr<AssemblyRegion> nextRegion = pendingRegions.front();
@@ -241,7 +241,7 @@ int main(int argc, char *argv[])
             // gather AlignmentContext to AssemblyRegion
 
 
-       // break;
+        break;
     }
 
     //std::cout << "read_num : " << read_num << std::endl;

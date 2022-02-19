@@ -6,8 +6,8 @@
 #include "BaseGraph/DFS_CycleDetect.h"
 #include <queue>
 
-KBestHaplotypeFinder::KBestHaplotypeFinder(std::shared_ptr<SeqGraph> graph, ArraySet<std::shared_ptr<SeqVertex>> & sources,
-                                           ArraySet<std::shared_ptr<SeqVertex>> & sinks) : graph(graph){
+KBestHaplotypeFinder::KBestHaplotypeFinder(std::shared_ptr<SeqGraph> graph, std::set<std::shared_ptr<SeqVertex>> & sources,
+                                           std::set<std::shared_ptr<SeqVertex>> & sinks) : graph(graph){
     Mutect2Utils::validateArg(graph.get(), "graph cannot be null");
     Mutect2Utils::validateArg(!sources.empty(), "sources cannot be null");
     Mutect2Utils::validateArg(!sinks.empty(), "sinks cannot be null");
@@ -20,8 +20,8 @@ KBestHaplotypeFinder::KBestHaplotypeFinder(std::shared_ptr<SeqGraph> graph, Arra
 }
 
 std::shared_ptr<SeqGraph>
-KBestHaplotypeFinder::removeCyclesAndVerticesThatDontLeadToSinks(std::shared_ptr<SeqGraph> original, ArraySet<std::shared_ptr<SeqVertex>> &sources,
-                                                                 ArraySet<std::shared_ptr<SeqVertex>> &sinks) {
+KBestHaplotypeFinder::removeCyclesAndVerticesThatDontLeadToSinks(std::shared_ptr<SeqGraph> original, std::set<std::shared_ptr<SeqVertex>> &sources,
+                                                                 std::set<std::shared_ptr<SeqVertex>> &sinks) {
     std::set<std::shared_ptr<BaseEdge>> edgesToRemove;
     std::set<std::shared_ptr<SeqVertex>> vertexToRemove;
 
@@ -41,14 +41,14 @@ KBestHaplotypeFinder::removeCyclesAndVerticesThatDontLeadToSinks(std::shared_ptr
 }
 
 bool KBestHaplotypeFinder::findGuiltyVerticesAndEdgesToRemoveCycles(std::shared_ptr<SeqGraph> graph, std::shared_ptr<SeqVertex>currentVertex,
-                                                                    ArraySet<std::shared_ptr<SeqVertex>> &sinks,
+                                                                    std::set<std::shared_ptr<SeqVertex>> &sinks,
                                                                     std::set<std::shared_ptr<BaseEdge>> &edgesToRemove,
                                                                     std::set<std::shared_ptr<SeqVertex>> &verticesToRemove,
                                                                     std::set<std::shared_ptr<SeqVertex>> &parentVertices) {
     if(sinks.find(currentVertex) != sinks.end()) {
         return true;
     }
-    ArraySet<std::shared_ptr<BaseEdge>> outgoingEdges = graph->outgoingEdgesOf(currentVertex);
+    std::set<std::shared_ptr<BaseEdge>> outgoingEdges = graph->outgoingEdgesOf(currentVertex);
     parentVertices.insert(currentVertex);
 
     bool reachesSink = false;
@@ -91,7 +91,7 @@ std::vector<std::shared_ptr<KBestHaplotype>> KBestHaplotypeFinder::findBestHaplo
         if(sinks.find(vertexToExtend) != sinks.end()) {
             result.emplace_back(pathToExtend);
         } else {
-            ArraySet<std::shared_ptr<BaseEdge>> outgoingEdges = graph->outgoingEdgesOf(vertexToExtend);
+            std::set<std::shared_ptr<BaseEdge>> outgoingEdges = graph->outgoingEdgesOf(vertexToExtend);
             int totalOutgoingMultiplicity = 0;
             for(std::shared_ptr<BaseEdge> edge : outgoingEdges) {
                 totalOutgoingMultiplicity += edge->getMultiplicity();

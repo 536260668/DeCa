@@ -8,7 +8,7 @@
 bool MergeDiamonds::tryToTransform(std::shared_ptr<SeqVertex> top) {
     Mutect2Utils::validateArg(top != nullptr, "Null is not allowed there");
     std::shared_ptr<SeqGraph> graph1 = getGraph();
-    ArraySet<std::shared_ptr<SeqVertex>> middles = graph1->outgoingVerticesOf(top);
+    std::set<std::shared_ptr<SeqVertex>> middles = graph1->outgoingVerticesOf(top);
     if(middles.size() <= 1) {
         return false;
     }

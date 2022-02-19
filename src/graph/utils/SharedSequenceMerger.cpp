@@ -4,17 +4,17 @@
 
 #include "SharedSequenceMerger.h"
 
-bool SharedSequenceMerger::canMerge(std::shared_ptr<SeqGraph> graph, std::shared_ptr<SeqVertex> v, ArraySet<std::shared_ptr<SeqVertex>> incomingVertices) {
+bool SharedSequenceMerger::canMerge(const std::shared_ptr<SeqGraph>& graph, std::shared_ptr<SeqVertex> v, std::set<std::shared_ptr<SeqVertex>> incomingVertices) {
     if(incomingVertices.empty()) {
         return false;
     }
 
     std::shared_ptr<SeqVertex> first = *incomingVertices.begin();
-    for(std::shared_ptr<SeqVertex> prev : incomingVertices) {
+    for(const std::shared_ptr<SeqVertex>& prev : incomingVertices) {
         if(! prev->seqEquals(first)) {
             return false;
         }
-        ArraySet<std::shared_ptr<SeqVertex>> prevOuts = graph->outgoingVerticesOf(prev);
+        std::set<std::shared_ptr<SeqVertex>> prevOuts = graph->outgoingVerticesOf(prev);
         if(prevOuts.size() != 1){
             return false;
         }
@@ -30,9 +30,9 @@ bool SharedSequenceMerger::canMerge(std::shared_ptr<SeqGraph> graph, std::shared
 
 bool SharedSequenceMerger::merge(std::shared_ptr<SeqGraph> graph, std::shared_ptr<SeqVertex> v) {
     Mutect2Utils::validateArg(graph.get(), "graph cannot be null");
-    ArraySet<std::shared_ptr<SeqVertex>> allVertex = graph->getVertexSet();
+    std::set<std::shared_ptr<SeqVertex>> & allVertex = graph->getVertexSet();
     Mutect2Utils::validateArg(allVertex.find(v) != allVertex.end(), "graph doesn't contain vertex");
-    ArraySet<std::shared_ptr<SeqVertex>> prevs = graph->incomingVerticesOf(v);
+    std::set<std::shared_ptr<SeqVertex>> prevs = graph->incomingVerticesOf(v);
     if(!canMerge(graph, v, prevs)) {
         return false;
     } else {
@@ -56,7 +56,7 @@ bool SharedSequenceMerger::merge(std::shared_ptr<SeqGraph> graph, std::shared_pt
         for(std::shared_ptr<BaseEdge> e : graph->outgoingEdgesOf(v)) {
             graph->addEdge(newV, graph->getEdgeTarget(e), std::shared_ptr<BaseEdge>(new BaseEdge(e->getIsRef(), e->getMultiplicity())));
         }
-        graph->removeAllVertices(prevs.getArraySet());
+        graph->removeAllVertices(prevs);
         graph->removeVertex(v);
         graph->removeAllEdges(edgesToRemove);
         return true;

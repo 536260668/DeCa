@@ -106,7 +106,7 @@ void ReadCache::advanceLoad() {
     if(!normalReads.empty() && !tumorReads.empty())
         throw std::logic_error("error");
     start = end + 1;
-    end = start + 1000000 -1;
+    end = start + 2000000 -1;
 
     std::string region = data[0]->header->getSequenceDictionary().getSequences()[tid].getSequenceName() + ':' +
             std::to_string(start+1) + '-' + std::to_string(end);

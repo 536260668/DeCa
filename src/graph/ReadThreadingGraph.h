@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 #include <deque>
+#include <list>
 #include "Kmer.h"
 #include "BaseGraph/DirectedSpecifics.h"
 #include "DanglingChainMergeHelper.h"
@@ -46,7 +47,7 @@ private:
 
     Kmer refSource;
 
-    ArraySet<Kmer> nonUniqueKmers;
+    std::set<Kmer> nonUniqueKmers;
 
     std::map<Kmer, std::shared_ptr<MultiDeBruijnVertex>> uniqueKmers;
 
@@ -85,7 +86,7 @@ private:
      * Get the collection of all sequences for kmers across all samples in no particular order
      * @return non-null Collection
      */
-    std::vector<SequenceForKmers> getAllPendingSequences();
+    std::list<SequenceForKmers> getAllPendingSequences();
 
     /**
      * Compute the smallest kmer size >= minKmerSize and <= maxKmerSize that has no non-unique kmers
@@ -96,7 +97,7 @@ private:
      * @param maxKmerSize the maximum kmer size to consider
      * @return a non-null NonUniqueResult
      */
-     ArraySet<Kmer> determineKmerSizeAndNonUniques(int minKmerSize, int maxKmerSize);
+    std::set<Kmer> determineKmerSizeAndNonUniques(int minKmerSize, int maxKmerSize);
 
     /**
     * Create a new vertex for kmer.  Add it to the uniqueKmers map if appropriate.
@@ -173,7 +174,7 @@ private:
 
     std::deque<std::shared_ptr<MultiDeBruijnVertex>> findPathDownwardsToHighestCommonDescendantOfReference(std::shared_ptr<MultiDeBruijnVertex> vertex, int pruneFactor, bool giveUpAtBranch);
 
-    int bestPrefixMatch(const std::shared_ptr<uint8_t[]> path1, const std::shared_ptr<uint8_t[]> path2, int maxIndex);
+    int bestPrefixMatch(const std::shared_ptr<uint8_t[]>& path1, const std::shared_ptr<uint8_t[]> path2, int maxIndex);
 
     int getMaxMismatches(int lengthOfDanglingBranch) const;
 
