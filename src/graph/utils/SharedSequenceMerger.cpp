@@ -4,7 +4,7 @@
 
 #include "SharedSequenceMerger.h"
 
-bool SharedSequenceMerger::canMerge(const std::shared_ptr<SeqGraph>& graph, std::shared_ptr<SeqVertex> v, std::set<std::shared_ptr<SeqVertex>> incomingVertices) {
+bool SharedSequenceMerger::canMerge(const std::shared_ptr<SeqGraph>& graph, std::shared_ptr<SeqVertex> v, std::unordered_set<std::shared_ptr<SeqVertex>> incomingVertices) {
     if(incomingVertices.empty()) {
         return false;
     }
@@ -14,7 +14,7 @@ bool SharedSequenceMerger::canMerge(const std::shared_ptr<SeqGraph>& graph, std:
         if(! prev->seqEquals(first)) {
             return false;
         }
-        std::set<std::shared_ptr<SeqVertex>> prevOuts = graph->outgoingVerticesOf(prev);
+        std::unordered_set<std::shared_ptr<SeqVertex>> prevOuts = graph->outgoingVerticesOf(prev);
         if(prevOuts.size() != 1){
             return false;
         }
@@ -30,9 +30,9 @@ bool SharedSequenceMerger::canMerge(const std::shared_ptr<SeqGraph>& graph, std:
 
 bool SharedSequenceMerger::merge(std::shared_ptr<SeqGraph> graph, std::shared_ptr<SeqVertex> v) {
     Mutect2Utils::validateArg(graph.get(), "graph cannot be null");
-    std::set<std::shared_ptr<SeqVertex>> & allVertex = graph->getVertexSet();
+    std::unordered_set<std::shared_ptr<SeqVertex>> & allVertex = graph->getVertexSet();
     Mutect2Utils::validateArg(allVertex.find(v) != allVertex.end(), "graph doesn't contain vertex");
-    std::set<std::shared_ptr<SeqVertex>> prevs = graph->incomingVerticesOf(v);
+    std::unordered_set<std::shared_ptr<SeqVertex>> prevs = graph->incomingVerticesOf(v);
     if(!canMerge(graph, v, prevs)) {
         return false;
     } else {

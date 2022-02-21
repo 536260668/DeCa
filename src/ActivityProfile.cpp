@@ -131,6 +131,7 @@ optional<struct std::shared_ptr<AssemblyRegion>> ActivityProfile::popReadyAssemb
 
 
     SimpleInterval regionLoc = SimpleInterval(first.getLoc().getContig(), first.getLoc().getStart(), first.getLoc().getStart() + offsetOfNextRegionEnd);
+
     return optional<std::shared_ptr<AssemblyRegion>>( new AssemblyRegion(regionLoc, sub, isActiveRegion, assemblyRegionExtension, header));
 }
 

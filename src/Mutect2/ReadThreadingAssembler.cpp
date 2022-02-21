@@ -167,7 +167,14 @@ ReadThreadingAssembler::createGraph(std::vector<std::shared_ptr<SAMRecord>> read
     }
 
     rtgraph->buildGraphIfNecessary();
+//    if(rtgraph->getVertexSet().size() == 288 && rtgraph->getEdgeSet().size() == 289)
+//        std::cout << " hello";
+    std::ofstream outfile("/Users/bigdreamerxixi/data/1.txt", true);
+    outfile << rtgraph->getVertexSet().size() << ", "<<rtgraph->getEdgeSet().size() << std::endl;
+    outfile.close();
     chainPruner->pruneLowWeightChains(rtgraph);
+
+
     if(rtgraph->hasCycles()) {
         return nullptr;
     }

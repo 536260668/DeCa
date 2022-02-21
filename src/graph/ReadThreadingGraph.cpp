@@ -56,7 +56,7 @@ ReadThreadingGraph::addSequence(std::string seqName, std::string& sampleName, co
 }
 
 std::vector<Kmer> ReadThreadingGraph::determineNonUniqueKmers(SequenceForKmers &sequenceForKmers, const int kmerSize) {
-    std::set<Kmer> allKmers;
+    std::unordered_set<Kmer, hash_kmer, equal_kmer> allKmers;
     std::vector<Kmer> nonUniqueKmers;
     const int stopPosition = sequenceForKmers.stop - kmerSize;
     for(int i = 0; i <= stopPosition; i++) {
@@ -83,9 +83,9 @@ std::list<SequenceForKmers> ReadThreadingGraph::getAllPendingSequences(){
     return res;
 }
 
-std::set<Kmer> ReadThreadingGraph::determineKmerSizeAndNonUniques(const int minKmerSize, const int maxKmerSize) {
+std::unordered_set<Kmer, hash_kmer, equal_kmer> ReadThreadingGraph::determineKmerSizeAndNonUniques(const int minKmerSize, const int maxKmerSize) {
     std::list<SequenceForKmers> withNonUniques = getAllPendingSequences();
-    std::set<Kmer> nonUniqueKmers_m;
+    std::unordered_set<Kmer, hash_kmer, equal_kmer> nonUniqueKmers_m;
 
     for(int kmerSize_m = minKmerSize; kmerSize_m <= maxKmerSize; kmerSize_m++) {
         nonUniqueKmers_m.clear();
@@ -127,9 +127,9 @@ std::shared_ptr<MultiDeBruijnVertex> ReadThreadingGraph::createVertex(Kmer & kme
 std::shared_ptr<MultiDeBruijnVertex>
 ReadThreadingGraph::extendChainByOne(const std::shared_ptr<MultiDeBruijnVertex>& prevVertex, std::shared_ptr<uint8_t[]>sequence, const int kmerStart, const int count,
                                      const bool isRef) {
-    std::set<std::shared_ptr<MultiSampleEdge>> outgoingEdges = outgoingEdgesOf(prevVertex);
+    std::unordered_set<std::shared_ptr<MultiSampleEdge>> outgoingEdges = outgoingEdgesOf(prevVertex);
     int nextPos = kmerStart + kmerSize - 1;
-    std::set<std::shared_ptr<MultiSampleEdge>>::iterator iter;
+    std::unordered_set<std::shared_ptr<MultiSampleEdge>>::iterator iter;
     uint8_t * sequence_ = sequence.get();
     for(iter = outgoingEdges.begin(); iter != outgoingEdges.end(); iter++) {
         std::shared_ptr<MultiDeBruijnVertex> target = getEdgeTarget(*iter);
@@ -215,8 +215,8 @@ void ReadThreadingGraph::increaseCountsInMatchedKmers(SequenceForKmers & seqForK
     if(offset == -1)
         return;
 
-    std::set<std::shared_ptr<MultiSampleEdge>> incomingEdges = incomingEdgesOf(vertex);
-    for(std::set<std::shared_ptr<MultiSampleEdge>>::iterator iter = incomingEdges.begin(); iter != incomingEdges.end(); iter++) {
+    std::unordered_set<std::shared_ptr<MultiSampleEdge>> incomingEdges = incomingEdgesOf(vertex);
+    for(std::unordered_set<std::shared_ptr<MultiSampleEdge>>::iterator iter = incomingEdges.begin(); iter != incomingEdges.end(); iter++) {
         std::shared_ptr<MultiDeBruijnVertex> prev = getEdgeSource(*iter);
         uint8_t suffix = prev->getSuffix();
         uint8_t seqBase = originalKmer.get()[offset];
@@ -249,11 +249,46 @@ void ReadThreadingGraph::buildGraphIfNecessary() {
         for(std::vector<SequenceForKmers>::iterator viter = miter->second.begin(); viter != miter->second.end(); viter++) {
             threadSequence(*viter);
         }
-        std::map<std::shared_ptr<MultiSampleEdge>, IntrusiveEdge<MultiDeBruijnVertex>>::iterator eiter;
+        std::unordered_map<std::shared_ptr<MultiSampleEdge>, IntrusiveEdge<MultiDeBruijnVertex>>::iterator eiter;
         for(eiter = edgeMap.begin(); eiter != edgeMap.end(); eiter++) {
             (*eiter->first).flushSingleSampleMultiplicity();
         }
     }
+
+//    std::map<std::string, std::vector<SequenceForKmers>>::iterator miter = pending.begin();
+//
+//    for(std::vector<SequenceForKmers>::iterator viter = miter->second.begin(); viter != miter->second.end(); viter++) {
+//        threadSequence(*viter);
+//        std::cout << getVertexSet().size() << ", "<< getEdgeSet().size() << std::endl;
+//    }
+//    std::unordered_map<std::shared_ptr<MultiSampleEdge>, IntrusiveEdge<MultiDeBruijnVertex>>::iterator eiter;
+//    for(eiter = edgeMap.begin(); eiter != edgeMap.end(); eiter++) {
+//        (*eiter->first).flushSingleSampleMultiplicity();
+//    }
+//
+//    miter++;
+//    miter++;
+//
+//    if(miter != pending.end()) {
+//        for(std::vector<SequenceForKmers>::iterator viter = miter->second.begin(); viter != miter->second.end(); viter++) {
+//            threadSequence(*viter);
+//            std::cout << getVertexSet().size() << ", "<< getEdgeSet().size() << std::endl;
+//        }
+//        for(eiter = edgeMap.begin(); eiter != edgeMap.end(); eiter++) {
+//            (*eiter->first).flushSingleSampleMultiplicity();
+//        }
+//    }
+//
+//
+//    miter--;
+//
+//    for(std::vector<SequenceForKmers>::iterator viter = miter->second.begin(); viter != miter->second.end(); viter++) {
+//        threadSequence(*viter);
+//        std::cout << getVertexSet().size() << ", "<< getEdgeSet().size() << std::endl;
+//    }
+//    for(eiter = edgeMap.begin(); eiter != edgeMap.end(); eiter++) {
+//        (*eiter->first).flushSingleSampleMultiplicity();
+//    }
 
 
     pending.clear();
@@ -320,8 +355,8 @@ bool ReadThreadingGraph::removeVertex(std::shared_ptr<MultiDeBruijnVertex> V) {
 
 void ReadThreadingGraph::removeSingletonOrphanVertices() {
     std::vector<std::shared_ptr<MultiDeBruijnVertex>> toRemove;
-    std::set<std::shared_ptr<MultiDeBruijnVertex>> allvertex = getVertexSet();
-    typename std::set<std::shared_ptr<MultiDeBruijnVertex>>::iterator viter;
+    std::unordered_set<std::shared_ptr<MultiDeBruijnVertex>> allvertex = getVertexSet();
+    typename std::unordered_set<std::shared_ptr<MultiDeBruijnVertex>>::iterator viter;
     for(viter = allvertex.begin(); viter != allvertex.end(); viter++) {
         if(inDegreeOf(*viter) == 0 && outDegreeOf(*viter) == 0) {
             toRemove.emplace_back(*viter);
@@ -433,10 +468,10 @@ bool ReadThreadingGraph::hasIncidentRefEdge(std::shared_ptr<MultiDeBruijnVertex>
 }
 
 std::shared_ptr<MultiSampleEdge> ReadThreadingGraph::getHeaviestIncomingEdge(std::shared_ptr<MultiDeBruijnVertex> v) {
-    std::set<std::shared_ptr<MultiSampleEdge>> incomingEdges = incomingEdgesOf(v);
+    std::unordered_set<std::shared_ptr<MultiSampleEdge>> incomingEdges = incomingEdgesOf(v);
     std::shared_ptr<MultiSampleEdge> ret;
     ret = *incomingEdges.begin();
-    for(std::set<std::shared_ptr<MultiSampleEdge>>::iterator iter = incomingEdges.begin(); iter != incomingEdges.end(); iter++) {
+    for(std::unordered_set<std::shared_ptr<MultiSampleEdge>>::iterator iter = incomingEdges.begin(); iter != incomingEdges.end(); iter++) {
         if(ret->getPruningMultiplicity() < (*iter)->getPruningMultiplicity())
             ret = *iter;
     }
@@ -645,10 +680,10 @@ ReadThreadingGraph::findPathDownwardsToHighestCommonDescendantOfReference(std::s
 }
 
 std::shared_ptr<MultiSampleEdge> ReadThreadingGraph::getHeaviestOutgoingEdge(std::shared_ptr<MultiDeBruijnVertex> v) {
-    std::set<std::shared_ptr<MultiSampleEdge>> outgoing = outgoingEdgesOf(v);
+    std::unordered_set<std::shared_ptr<MultiSampleEdge>> outgoing = outgoingEdgesOf(v);
     std::shared_ptr<MultiSampleEdge> ret;
     ret = *outgoing.begin();
-    for(std::set<std::shared_ptr<MultiSampleEdge>>::iterator iter = outgoing.begin(); iter != outgoing.end(); iter++) {
+    for(std::unordered_set<std::shared_ptr<MultiSampleEdge>>::iterator iter = outgoing.begin(); iter != outgoing.end(); iter++) {
         if(ret->getPruningMultiplicity() < (*iter)->getPruningMultiplicity())
             ret = *iter;
     }
@@ -755,7 +790,7 @@ std::shared_ptr<SeqGraph> ReadThreadingGraph::toSequenceGraph() {
         seqGraph->addVertex(sv);
     }
 
-    std::map<std::shared_ptr<MultiSampleEdge>, IntrusiveEdge<MultiDeBruijnVertex>>::iterator eiter;
+    std::unordered_map<std::shared_ptr<MultiSampleEdge>, IntrusiveEdge<MultiDeBruijnVertex>>::iterator eiter;
     for(eiter = edgeMap.begin(); eiter != edgeMap.end(); eiter++) {
         std::shared_ptr<SeqVertex> seqInV = vertexMap.at(getEdgeSource(eiter->first));
         std::shared_ptr<SeqVertex> seqOutV = vertexMap.at(getEdgeTarget(eiter->first));

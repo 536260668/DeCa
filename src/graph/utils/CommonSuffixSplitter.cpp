@@ -9,9 +9,9 @@
 bool CommonSuffixSplitter::split(std::shared_ptr<SeqGraph> graph, std::shared_ptr<SeqVertex> v) {
     Mutect2Utils::validateArg(graph.get(), "graph cannot be null");
     Mutect2Utils::validateArg(v.get(), "v cannot be null");
-    std::set<std::shared_ptr<SeqVertex>>& allVertex = graph->getVertexSet();
+    std::unordered_set<std::shared_ptr<SeqVertex>>& allVertex = graph->getVertexSet();
     Mutect2Utils::validateArg(allVertex.find(v) != allVertex.end(), "graph doesn't contain vertex v ");
-    std::set<std::shared_ptr<SeqVertex>> toSplit= graph->incomingVerticesOf(v);
+    std::unordered_set<std::shared_ptr<SeqVertex>> toSplit= graph->incomingVerticesOf(v);
     std::shared_ptr<SeqVertex> suffixVTemplate = commonSuffix(graph, v, toSplit);
     if(suffixVTemplate == nullptr) {
         return false;
@@ -42,7 +42,7 @@ bool CommonSuffixSplitter::split(std::shared_ptr<SeqGraph> graph, std::shared_pt
     return true;
 }
 
-std::shared_ptr<SeqVertex> CommonSuffixSplitter::commonSuffix(std::shared_ptr<SeqGraph> graph, std::shared_ptr<SeqVertex> v, std::set<std::shared_ptr<SeqVertex>> toSplit) {
+std::shared_ptr<SeqVertex> CommonSuffixSplitter::commonSuffix(std::shared_ptr<SeqGraph> graph, std::shared_ptr<SeqVertex> v, std::unordered_set<std::shared_ptr<SeqVertex>> toSplit) {
     if(toSplit.size() < 2) {
         return nullptr;
     } else if (!safeToSplit(graph, v, toSplit)) {
@@ -60,15 +60,15 @@ std::shared_ptr<SeqVertex> CommonSuffixSplitter::commonSuffix(std::shared_ptr<Se
     }
 }
 
-bool CommonSuffixSplitter::safeToSplit(std::shared_ptr<SeqGraph> graph, std::shared_ptr<SeqVertex> bot, std::set<std::shared_ptr<SeqVertex>> toMerge) {
-    std::set<std::shared_ptr<SeqVertex>> outgoingVertices = graph->outgoingVerticesOf(bot);
+bool CommonSuffixSplitter::safeToSplit(std::shared_ptr<SeqGraph> graph, std::shared_ptr<SeqVertex> bot, std::unordered_set<std::shared_ptr<SeqVertex>> toMerge) {
+    std::unordered_set<std::shared_ptr<SeqVertex>> outgoingVertices = graph->outgoingVerticesOf(bot);
     std::unordered_set<std::shared_ptr<SeqVertex>> outgoingOfBot;
     for(const std::shared_ptr<SeqVertex>& v : outgoingVertices) {
         outgoingOfBot.insert(v);
     }
     for(const std::shared_ptr<SeqVertex>& m : toMerge) {
-        std::set<std::shared_ptr<BaseEdge>> outs = graph->outgoingEdgesOf(m);
-        std::set<std::shared_ptr<SeqVertex>> tmp = graph->outgoingVerticesOf(m);
+        std::unordered_set<std::shared_ptr<BaseEdge>> outs = graph->outgoingEdgesOf(m);
+        std::unordered_set<std::shared_ptr<SeqVertex>> tmp = graph->outgoingVerticesOf(m);
         if ( m == bot || outs.size() != 1 || tmp.find(bot) == tmp.end() ){
             return false;
         }
@@ -79,7 +79,7 @@ bool CommonSuffixSplitter::safeToSplit(std::shared_ptr<SeqGraph> graph, std::sha
     return true;
 }
 
-std::shared_ptr<SeqVertex> CommonSuffixSplitter::commonSuffix(std::set<std::shared_ptr<SeqVertex>> middleVertices) {
+std::shared_ptr<SeqVertex> CommonSuffixSplitter::commonSuffix(const std::unordered_set<std::shared_ptr<SeqVertex>>& middleVertices) {
     std::list<std::pair<std::shared_ptr<uint8_t[]>, int>> kmers = GraphUtils::getKmers(middleVertices);
     int min = GraphUtils::minKmerLength(kmers);
     int suffixLen = GraphUtils::commonMaximumSuffixLength(kmers, min);
@@ -91,7 +91,7 @@ std::shared_ptr<SeqVertex> CommonSuffixSplitter::commonSuffix(std::set<std::shar
 }
 
 bool
-CommonSuffixSplitter::wouldEliminateRefSource(std::shared_ptr<SeqGraph> graph, std::shared_ptr<SeqVertex>commonSuffix, std::set<std::shared_ptr<SeqVertex>> toSplits) {
+CommonSuffixSplitter::wouldEliminateRefSource(std::shared_ptr<SeqGraph> graph, std::shared_ptr<SeqVertex>commonSuffix, std::unordered_set<std::shared_ptr<SeqVertex>> toSplits) {
     for(std::shared_ptr<SeqVertex> toSplit : toSplits) {
         if(graph->isRefSource(toSplit)) {
             return toSplit->getLength() == commonSuffix->getLength();
@@ -100,7 +100,7 @@ CommonSuffixSplitter::wouldEliminateRefSource(std::shared_ptr<SeqGraph> graph, s
     return false;
 }
 
-bool CommonSuffixSplitter::allVerticesAreTheCommonSuffix(std::shared_ptr<SeqVertex> commonSuffix, std::set<std::shared_ptr<SeqVertex>> toSplits) {
+bool CommonSuffixSplitter::allVerticesAreTheCommonSuffix(std::shared_ptr<SeqVertex> commonSuffix, std::unordered_set<std::shared_ptr<SeqVertex>> toSplits) {
     for(std::shared_ptr<SeqVertex> toSplit : toSplits) {
         if(toSplit->getLength() != commonSuffix->getLength()) {
             return false;

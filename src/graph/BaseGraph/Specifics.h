@@ -5,7 +5,7 @@
 #ifndef MUTECT2CPP_MASTER_SPECIFICS_H
 #define MUTECT2CPP_MASTER_SPECIFICS_H
 
-#include "../set/ArraySet.h"
+#include <unordered_set>
 #include "Mutect2Utils.h"
 
 template<class V, class E>
@@ -16,9 +16,9 @@ private:
 public:
     virtual void addVertex(std::shared_ptr<V> vertex) = 0;
 
-    virtual std::set<std::shared_ptr<V>> & getVertexSet() = 0;
+    virtual std::unordered_set<std::shared_ptr<V>> & getVertexSet() = 0;
 
-    virtual std::set<std::shared_ptr<E>> getAllEdges(std::shared_ptr<V> sourceVertex, std::shared_ptr<V> targetVertex) = 0;
+    virtual std::unordered_set<std::shared_ptr<E>> getAllEdges(std::shared_ptr<V> sourceVertex, std::shared_ptr<V> targetVertex) = 0;
 
     virtual std::shared_ptr<E> getEdge(std::shared_ptr<V> sourceVertex, std::shared_ptr<V> targetVertex)  = 0;
 
@@ -27,15 +27,15 @@ public:
 
     virtual int degreeOf(std::shared_ptr<V> vertex)  = 0;
 
-    virtual std::set<std::shared_ptr<E>> edgesof(std::shared_ptr<V> vertex) = 0;
+    virtual std::unordered_set<std::shared_ptr<E>> edgesof(std::shared_ptr<V> vertex) = 0;
 
     virtual int inDegreeOf(std::shared_ptr<V> vertex)  = 0;
 
-    virtual std::set<std::shared_ptr<E>>  incomingEdgesOf(std::shared_ptr<V> vertex) = 0;
+    virtual std::unordered_set<std::shared_ptr<E>>  incomingEdgesOf(std::shared_ptr<V> vertex) = 0;
 
     virtual int outDegreeOf(std::shared_ptr<V> vertex)  = 0;
 
-    virtual std::set<std::shared_ptr<E>> outgoingEdgesOf(std::shared_ptr<V> vertex) = 0;
+    virtual std::unordered_set<std::shared_ptr<E>> outgoingEdgesOf(std::shared_ptr<V> vertex) = 0;
 
     virtual void removeEdgeFromTouchingVertices(std::shared_ptr<E> e) = 0;
 
@@ -50,8 +50,8 @@ public:
 
     virtual bool isRefSource(std::shared_ptr<V> v) {
         Mutect2Utils::validateArg(v.get(), "Attempting to pull sequence from a null vertex.");
-        std::set<std::shared_ptr<E>> incomingEdges = incomingEdgesOf(v);
-        std::set<std::shared_ptr<E>> outgoingEdges = outgoingEdgesOf(v);
+        std::unordered_set<std::shared_ptr<E>> incomingEdges = incomingEdgesOf(v);
+        std::unordered_set<std::shared_ptr<E>> outgoingEdges = outgoingEdgesOf(v);
         for(std::shared_ptr<E> e : incomingEdges) {
             if(e->getIsRef())
                 return false;
@@ -65,8 +65,8 @@ public:
     }
     virtual void removeSingletonOrphanVertices() {
         std::vector<std::shared_ptr<V>> toRemove;
-        std::set<std::shared_ptr<V>> allvertex = getVertexSet();
-        typename std::set<std::shared_ptr<V>>::iterator viter;
+        std::unordered_set<std::shared_ptr<V>> allvertex = getVertexSet();
+        typename std::unordered_set<std::shared_ptr<V>>::iterator viter;
         for(viter = allvertex.begin(); viter != allvertex.end(); viter++) {
             if(isSingletonOrphan(*viter)) {
                 toRemove.template emplace_back(*viter);

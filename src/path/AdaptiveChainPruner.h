@@ -25,18 +25,18 @@ public:
     }
 
 protected:
-    std::set<Path<V,E>*> chainsToRemove(std::vector<Path<V,E>*> chains) {
+    std::unordered_set<Path<V,E>*> chainsToRemove(std::vector<Path<V,E>*> chains) {
         if(chains.empty()){
-            std::set<Path<V,E>*> result;
+            std::unordered_set<Path<V,E>*> result;
             return result;
         }
 
         std::shared_ptr<DirectedSpecifics<V, E>> graph = chains[0]->getGraph();
-        std::set<Path<V,E>*> probableErrorChains = likelyErrorChains(chains, graph, 0.001);
+        std::unordered_set<Path<V,E>*> probableErrorChains = likelyErrorChains(chains, graph, 0.001);
         int errorCount = 0;
         int totalBases = 0;
         typename std::vector<Path<V,E>*>::iterator viter;
-        typename std::set<Path<V,E>*>::iterator siter;
+        typename std::unordered_set<Path<V,E>*>::iterator siter;
         for(siter = probableErrorChains.begin(); siter != probableErrorChains.end(); siter++) {
             errorCount += (*siter)->getLastEdge()->getMultiplicity();
         }
@@ -50,13 +50,13 @@ protected:
     }
 
 private:
-    std::set<Path<V,E>*> likelyErrorChains(std::vector<Path<V,E>*> & chains, std::shared_ptr<DirectedSpecifics<V, E>> graph, double errorRate) {
+    std::unordered_set<Path<V,E>*> likelyErrorChains(std::vector<Path<V,E>*> & chains, std::shared_ptr<DirectedSpecifics<V, E>> graph, double errorRate) {
         std::map<Path<V,E>*, double> chainLogOddsmap;
         typename std::vector<Path<V,E>*>::iterator viter;
         for(viter = chains.begin(); viter != chains.end(); viter++) {
             chainLogOddsmap.insert(std::pair<Path<V,E>* , double>(*viter, chainLogOdds(*viter, graph, errorRate)));
         }
-        std::set<Path<V,E>*> result;
+        std::unordered_set<Path<V,E>*> result;
         typename std::map<Path<V,E>*, double>::iterator miter;
         for(miter = chainLogOddsmap.begin(); miter != chainLogOddsmap.end(); miter++) {
             if(miter->second < 2.302585092994046) {
@@ -81,7 +81,7 @@ private:
     }
 
     double chainLogOdds(Path<V,E>* chain, std::shared_ptr<DirectedSpecifics<V, E>> graph, double errorRate) {
-        typename std::set<std::shared_ptr<E>>::iterator eiter;
+        typename std::unordered_set<std::shared_ptr<E>>::iterator eiter;
         typename std::vector<std::shared_ptr<E>>::iterator viter;
         for(viter = chain->getEdges().begin(); viter != chain->getEdges().end(); viter++) {
             if((*viter)->getIsRef())
@@ -89,8 +89,8 @@ private:
         }
         int leftTotalMultiplicity = 0;
         int rightTotalMultiplicity = 0;
-        std::set<std::shared_ptr<E>> outgoing = graph->outgoingEdgesOf(chain->getFirstVertex());
-        std::set<std::shared_ptr<E>> incoming = graph->incomingEdgesOf(chain->getLastVertex());
+        std::unordered_set<std::shared_ptr<E>> outgoing = graph->outgoingEdgesOf(chain->getFirstVertex());
+        std::unordered_set<std::shared_ptr<E>> incoming = graph->incomingEdgesOf(chain->getLastVertex());
         for(eiter = outgoing.begin(); eiter != outgoing.end(); eiter++) {
             leftTotalMultiplicity += (*eiter)->getMultiplicity();
         }
@@ -107,7 +107,7 @@ private:
     }
 
     bool isChainPossibleVariant(Path<V,E>* chain, std::shared_ptr<DirectedSpecifics<V, E>> graph) {
-        typename std::set<std::shared_ptr<E>>::iterator eiter;
+        typename std::unordered_set<std::shared_ptr<E>>::iterator eiter;
         typename std::vector<std::shared_ptr<E>>::iterator viter;
         for(viter = chain->getEdges().begin(); viter != chain->getEdges().end(); viter++) {
             if((*viter)->getIsRef())
@@ -115,8 +115,8 @@ private:
         }
         int leftTotalMultiplicity = 0;
         int rightTotalMultiplicity = 0;
-        std::set<std::shared_ptr<E>> outgoing = graph->outgoingEdgesOf(chain->getFirstVertex());
-        std::set<std::shared_ptr<E>> incoming = graph->outgoingEdgesOf(chain->getFirstVertex());
+        std::unordered_set<std::shared_ptr<E>> outgoing = graph->outgoingEdgesOf(chain->getFirstVertex());
+        std::unordered_set<std::shared_ptr<E>> incoming = graph->outgoingEdgesOf(chain->getFirstVertex());
         for(eiter = outgoing.begin(); eiter != outgoing.end(); eiter++) {
             leftTotalMultiplicity += (*eiter)->getMultiplicity();
         }

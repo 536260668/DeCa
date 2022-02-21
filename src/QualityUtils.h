@@ -11,7 +11,7 @@
 class QualityUtils {
 private:
     static double qualToErrorProbCache[255];
-    static void initial();
+
 
 public:
     const static char MIN_USABLE_Q_SCORE = 6;
@@ -51,6 +51,7 @@ public:
     static uint8_t boundQual(int qual, uint8_t maxQual);
     static double qualToErrorProb(double qual);
     static double qualToErrorProb(uint8_t qual);
+    static void initial();
 };
 
 

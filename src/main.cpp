@@ -185,6 +185,7 @@ int main(int argc, char *argv[])
     int nref = sam_hdr_nref(h);
 
     smithwaterman_initial();
+    QualityUtils::initial();
     Mutect2Engine m2Engine(MTAC, ref, header);
     queue<std::shared_ptr<AssemblyRegion>> pendingRegions;
     ActivityProfile * activityProfile = new BandPassActivityProfile(MTAC.maxProbPropagationDistance, MTAC.activeProbThreshold, BandPassActivityProfile::MAX_FILTER_SIZE, BandPassActivityProfile::DEFAULT_SIGMA,
@@ -212,7 +213,8 @@ int main(int argc, char *argv[])
                     pendingRegions.emplace(newRegion);
                 }
             }
-
+//            if(pileup.getPosition() == 1000001)
+//                std::cout << "hello";
             if(pileup.isEmpty()) {
                 ActivityProfileState state(contig.c_str(), pileup.getPosition(), 0.0);
                 activityProfile->add(state);
@@ -220,14 +222,15 @@ int main(int argc, char *argv[])
             }
             SimpleInterval pileupInterval = SimpleInterval(contig, (int)pileup.getPosition(), (int)pileup.getPosition());
             ReferenceContext pileupRefContext(refBases, pileupInterval);
+
             ActivityProfileState profile = m2Engine.isActive(pileup, pileupRefContext);
             activityProfile->add(profile);
 
             if(!pendingRegions.empty() && IntervalUtils::isAfter(pileup.getLocation(), pendingRegions.front()->getExtendedSpan(), header->getSequenceDictionary())) {
-//                count++;
-//                if(count > 200) {
-//                    break;
-//                }
+                count++;
+                if(count > 2000) {
+                    break;
+                }
                 std::shared_ptr<AssemblyRegion> nextRegion = pendingRegions.front();
                 pendingRegions.pop();
                 Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);

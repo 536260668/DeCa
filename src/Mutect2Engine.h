@@ -37,7 +37,7 @@ private:
 
     static char indelQual(int indelLength);
 
-    static bool isNextToUsefulSoftClip(PeUtils & pe, int pos);
+    static bool isNextToUsefulSoftClip(PeUtils & pe);
 
     /**
      * this implement the isActive() algorithm described in docs/mutect/mutect.pdf

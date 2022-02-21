@@ -13,7 +13,7 @@ private:
     std::shared_ptr<SeqGraph> outer;
     std::shared_ptr<SeqVertex> prefixV;
     std::shared_ptr<SeqVertex> suffixV;
-    std::set<std::shared_ptr<SeqVertex>> toSplits;
+    std::unordered_set<std::shared_ptr<SeqVertex>> toSplits;
     std::shared_ptr<SeqGraph> splitGraph = nullptr;
     std::list<std::shared_ptr<SeqVertex>> newMiddles;
     std::list<std::shared_ptr<BaseEdge>> edgesToRemove;
@@ -25,8 +25,8 @@ private:
     void addEdgesToBottomNode(std::shared_ptr<SeqVertex> botForConnect);
 
 public:
-    SharedVertexSequenceSplitter(std::shared_ptr<SeqGraph> graph, std::set<std::shared_ptr<SeqVertex>> toSplitsArg);
-    static std::pair<std::shared_ptr<SeqVertex>, std::shared_ptr<SeqVertex>> commonPrefixAndSuffixOfVertices(std::set<std::shared_ptr<SeqVertex>> middleVertices);
+    SharedVertexSequenceSplitter(std::shared_ptr<SeqGraph> graph, std::unordered_set<std::shared_ptr<SeqVertex>> toSplitsArg);
+    static std::pair<std::shared_ptr<SeqVertex>, std::shared_ptr<SeqVertex>> commonPrefixAndSuffixOfVertices(std::unordered_set<std::shared_ptr<SeqVertex>> middleVertices);
     bool meetsMinMergableSequenceForEitherPrefixOrSuffix(int minCommonSequence);
     bool meetsMinMergableSequenceForPrefix(int minCommonSequence);
     bool meetsMinMergableSequenceForSuffix(int minCommonSequence);

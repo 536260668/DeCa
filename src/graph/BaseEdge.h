@@ -6,7 +6,7 @@
 #define MUTECT2CPP_MASTER_BASEEDGE_H
 
 #include <string>
-#include <set>
+#include <unordered_set>
 
 class BaseEdge {
 private:
@@ -61,7 +61,7 @@ public:
 
     static std::shared_ptr<BaseEdge> makeOREdge(const std::vector<std::shared_ptr<BaseEdge>>& edges, int multiplicity);
 
-    static std::shared_ptr<BaseEdge> makeOREdge(const std::set<std::shared_ptr<BaseEdge>> &edges, int multiplicity);
+    static std::shared_ptr<BaseEdge> makeOREdge(const std::unordered_set<std::shared_ptr<BaseEdge>> &edges, int multiplicity);
 
 };
 

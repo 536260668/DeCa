@@ -11,6 +11,7 @@
 #include "AssemblyResultSet.h"
 #include "tools/haplotypecaller/ReadErrorCorrector.h"
 #include "path/ChainPruner.h"
+#include <fstream>
 
 class ReadThreadingAssembler {
 private:

@@ -8,6 +8,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <unordered_set>
 
 class Kmer {
 private:
@@ -56,6 +57,17 @@ public:
     bool operator<(const Kmer & other) const;
 
     bool operator==(const Kmer & other) const;
+
+    size_t getHash() const {return hash;};
+
+};
+
+struct equal_kmer {
+    bool operator()(const Kmer & kmer1, const Kmer & kmer2) const;
+};
+
+struct hash_kmer {
+    size_t operator()(const Kmer & kmer1) const;
 };
 
 

@@ -13,6 +13,7 @@
 #include <vector>
 #include <deque>
 #include <list>
+#include <unordered_set>
 #include "Kmer.h"
 #include "BaseGraph/DirectedSpecifics.h"
 #include "DanglingChainMergeHelper.h"
@@ -47,7 +48,7 @@ private:
 
     Kmer refSource;
 
-    std::set<Kmer> nonUniqueKmers;
+    std::unordered_set<Kmer, hash_kmer, equal_kmer> nonUniqueKmers;
 
     std::map<Kmer, std::shared_ptr<MultiDeBruijnVertex>> uniqueKmers;
 
@@ -97,7 +98,7 @@ private:
      * @param maxKmerSize the maximum kmer size to consider
      * @return a non-null NonUniqueResult
      */
-    std::set<Kmer> determineKmerSizeAndNonUniques(int minKmerSize, int maxKmerSize);
+    std::unordered_set<Kmer, hash_kmer, equal_kmer> determineKmerSizeAndNonUniques(int minKmerSize, int maxKmerSize);
 
     /**
     * Create a new vertex for kmer.  Add it to the uniqueKmers map if appropriate.
@@ -183,8 +184,8 @@ private:
     void resetToInitialState();
 
 public:
-    ReadThreadingGraph(uint8_t minBaseQualityToUseInAssembly, int kmerSize, bool alreadyBuilt, Kmer ref, int numPruningSamples) : minBaseQualityToUseInAssembly(minBaseQualityToUseInAssembly), kmerSize(kmerSize), alreadyBuilt(
-            false), refSource(ref), numPruningSamples(numPruningSamples){}
+    ReadThreadingGraph(uint8_t minBaseQualityToUseInAssembly, int kmerSize, bool alreadyBuilt, const Kmer& ref, int numPruningSamples) : minBaseQualityToUseInAssembly(minBaseQualityToUseInAssembly), kmerSize(kmerSize), alreadyBuilt(
+            false), refSource(ref), numPruningSamples(numPruningSamples), nonUniqueKmers(){}
 
     ReadThreadingGraph(int kmerSize, bool debugGraphTransformations, uint8_t minBaseQualityToUseInAssembly, int numPruningSamples);
 

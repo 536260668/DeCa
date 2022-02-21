@@ -103,3 +103,13 @@ bool Kmer::operator==(const Kmer &other) const {
             return false;
     return true;
 }
+
+bool equal_kmer::operator()(const Kmer &kmer1, const Kmer &kmer2) const {
+    return kmer1 == kmer2;
+}
+
+
+
+size_t hash_kmer::operator()(const Kmer &kmer1) const {
+    return size_t(kmer1.getHash());
+}

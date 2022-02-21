@@ -5,7 +5,7 @@
 #ifndef MUTECT2CPP_MASTER_DIRECTEDEDGECONTAINER_H
 #define MUTECT2CPP_MASTER_DIRECTEDEDGECONTAINER_H
 
-#include <set>
+#include <unordered_set>
 
 template<class VV, class EE>
 class DirectedEdgeContainer {
@@ -15,19 +15,19 @@ private:
 //    std::set<std::shared_ptr<EE>> unmodifiableOutgoing;
 
 public:
-    std::set<std::shared_ptr<EE>> incoming;
-    std::set<std::shared_ptr<EE>> outgoing;
+    std::unordered_set<std::shared_ptr<EE>> incoming;
+    std::unordered_set<std::shared_ptr<EE>> outgoing;
 
     void addIncomingEdge(std::shared_ptr<EE> e) {incoming.insert(e);}
 
     void addOutgoingEdge(std::shared_ptr<EE> e) {outgoing.insert(e);}
 
-    std::set<std::shared_ptr<EE>>  getUnmodifiableIncomingEdges() {
+    std::unordered_set<std::shared_ptr<EE>>  getUnmodifiableIncomingEdges() {
         //unmodifiableIncoming = incoming;
         return incoming;
     }
 
-    std::set<std::shared_ptr<EE>> getUnmodifiableOutgoingEdges() {
+    std::unordered_set<std::shared_ptr<EE>> getUnmodifiableOutgoingEdges() {
         //unmodifiableOutgoing = outgoing;
         return outgoing;
     }

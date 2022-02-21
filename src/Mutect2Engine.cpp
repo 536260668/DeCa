@@ -44,16 +44,13 @@ ActivityProfileState Mutect2Engine::isActive(AlignmentContext& context, Referenc
     // TODO: calculate the activeProb
 
     std::vector<char> tumorAltQuals = altQuals(tumorPileup, refBase, 40);
-//    if(pos == 13272) {
-//        std::cout << "hello";
-//    }
     double tumorLogOdds = logLikelihoodRatio(tumorPileup.size() - tumorAltQuals.size(), tumorAltQuals);
 
     if(tumorLogOdds < M2ArgumentCollection::getInitialLogOdds()) {
         return {refName.c_str(), pos, 0.0};
     } else if (hasNormal() && !MATC.genotypeGermlineSites) {
         ReadPileup normalPileup = context.makeNormalPileup();
-        std::vector<char> normalAltQuals = altQuals(tumorPileup, refBase, 40);
+        std::vector<char> normalAltQuals = altQuals(normalPileup, refBase, 40);
         int normalAltCount = normalAltQuals.size();
         double normalQualSum = 0.0;
         for (char i : normalAltQuals) {
@@ -76,20 +73,12 @@ std::vector<char> Mutect2Engine::altQuals(ReadPileup &pileup, char refBase, int 
 
     for(const std::shared_ptr<SAMRecord>& read : pileupElements)
     {
-//        if(pos == 13272) {
-//            for (int i = 0; i < 100; i++)
-//                std::cout << i << " : " << (int)bam_get_qual(read)[i] << std::endl;
-//            std::cout << bam_get_qual(read) << std::endl;
-//        }
         PeUtils pe(read.get(), pos);
-//        uint8_t base = pe.getBase();
-//        uint8_t qual = pe.getQual();
-//        SAMRecord tmp(read, header);
         int indelLength = getCurrentOrFollowingIndelLength(pe);
 
         if(indelLength > 0) {
             result.emplace_back(indelQual(indelLength));
-        } else if (isNextToUsefulSoftClip(pe, pos)) {
+        } else if (isNextToUsefulSoftClip(pe)) {
             result.emplace_back(indelQual(1));
         } else if (pe.getBase() != refBase && pe.getQual() > 6){
 
@@ -106,7 +95,8 @@ char Mutect2Engine::indelQual(int indelLength) {
     return (char) std::min(30 + (indelLength - 1) * 10, 127);
 }
 
-bool Mutect2Engine::isNextToUsefulSoftClip(PeUtils & pe, int pos) {
+bool Mutect2Engine::isNextToUsefulSoftClip(PeUtils & pe) {
+    int pos = pe.getOffset();
     return pe.getQual() > MINIMUM_BASE_QUALITY &&
             ((pe.isBeforeSoftClip() && pe.getBaseQuality(pos + 1) > MINIMUM_BASE_QUALITY)
             || (pe.isAfterSoftClip() && pe.getBaseQuality(pos - 1) > MINIMUM_BASE_QUALITY));
@@ -148,11 +138,11 @@ void Mutect2Engine::fillNextAssemblyRegionWithReads(const std::shared_ptr<Assemb
 
 std::vector<std::shared_ptr<VariantContext>>
 Mutect2Engine::callRegion(std::shared_ptr<AssemblyRegion> originalAssemblyRegion, ReferenceContext &referenceContext) {
-//    if(originalAssemblyRegion->getStart() == 1017765) {
-//        for(const std::shared_ptr<SAMRecord>& read : originalAssemblyRegion->getReads()) {
-//            std::cout << read->getName() << " : " << read->getStart() + 1 << "~" << read->getEnd() + 1 << std::endl;
-//        }
-//    }
+    if(originalAssemblyRegion->getStart() == 999804) {
+        for(const std::shared_ptr<SAMRecord>& read : originalAssemblyRegion->getReads()) {
+            std::cout << read->getName() << " : " << read->getStart() + 1 << "~" << read->getEnd() + 1 << std::endl;
+        }
+    }
     removeUnmarkedDuplicates(originalAssemblyRegion);
     if(originalAssemblyRegion->getReads().size() == 0)
         return {};

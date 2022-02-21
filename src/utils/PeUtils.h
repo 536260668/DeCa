@@ -21,12 +21,17 @@ public:
     bool isBeforeDeletionStart();
     bool isBeforeInsertion();
     bool isOnGenomeCigar(CigarOperator cigarOperator);
+    bool atEndOfCurrentCigar();
     int getLengthOfImmediatelyFollowingIndel();
     CigarElement & getCurrentCigarElement();
     CigarElement *getNearestOnGenomeCigarElement(int direction);
+    CigarElement *getNextOnGenomeCigarElement();
+    std::vector<CigarElement> getBetweenNextPosition();
     uint8_t getQual();
     uint8_t getBase();
     uint8_t getBaseQuality(int pos);
+
+    int getOffset() const {return offset;}
 
 private:
     int Cigar_offset;
@@ -36,7 +41,8 @@ private:
     std::vector<CigarElement> * nCigarElements;
     CigarElement currentCigarElement;
     SAMRecord *pe;
-    CigarElement *getNextIndelCigarElement();
+    CigarElement getNextIndelCigarElement();
+    std::vector<CigarElement> getBetween(int direction);
 };
 
 
