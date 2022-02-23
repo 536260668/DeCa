@@ -31,21 +31,21 @@ private:
     ChainPruner<MultiDeBruijnVertex, MultiSampleEdge>* chainPruner;
     static const uint8_t DEFAULT_MIN_BASE_QUALITY_TO_USE = 10;
     static const int KMER_SIZE_ITERATION_INCREASE = 10;
-    std::shared_ptr<AssemblyResult> getAssemblyResult(std::shared_ptr<Haplotype>& refHaplotype, int kmerSize, std::shared_ptr<ReadThreadingGraph> rtgraph);
-    std::shared_ptr<AssemblyResult> cleanupSeqGraph(std::shared_ptr<SeqGraph> seqGraph);
+    std::shared_ptr<AssemblyResult> getAssemblyResult(std::shared_ptr<Haplotype>& refHaplotype, int kmerSize, const std::shared_ptr<ReadThreadingGraph>& rtgraph);
+    std::shared_ptr<AssemblyResult> cleanupSeqGraph(const std::shared_ptr<SeqGraph>& seqGraph);
     std::vector<std::shared_ptr<Haplotype>> findBestPaths(const std::list<std::shared_ptr<SeqGraph>>& graph, std::shared_ptr<Haplotype>& refHaplotype, SimpleInterval* refLoc, SimpleInterval* activeRegionWindow,
                                           const std::map<std::shared_ptr<SeqGraph>, std::shared_ptr<AssemblyResult>>& assemblyResultByGraph, std::shared_ptr<AssemblyResultSet>& assemblyResultSet) const;
     std::vector<std::shared_ptr<Haplotype>> findBestPaths(const std::vector<std::shared_ptr<SeqGraph>>& graphs, std::shared_ptr<Haplotype>& refHaplotype, SimpleInterval *refLoc,
                   SimpleInterval *activeRegionWindow, const std::map<std::shared_ptr<SeqGraph>, std::shared_ptr<AssemblyResult>>& assemblyResultByGraph, std::shared_ptr<AssemblyResultSet>& assemblyResultSet) const;
-    std::shared_ptr<AssemblyResult> createGraph(std::vector<std::shared_ptr<SAMRecord>> reads, std::shared_ptr<Haplotype>& refHaplotype, int kmerSize, bool allowLowComplexityGraphs, bool allowNonUniqueKmersInRef);
-    static void addResult(std::vector<std::shared_ptr<AssemblyResult>> & results, std::shared_ptr<AssemblyResult> maybeNullResult);
-    static int arrayMaxInt(std::vector<int> array);
+    std::shared_ptr<AssemblyResult> createGraph(const std::vector<std::shared_ptr<SAMRecord>>& reads, std::shared_ptr<Haplotype>& refHaplotype, int kmerSize, bool allowLowComplexityGraphs, bool allowNonUniqueKmersInRef);
+    static void addResult(std::vector<std::shared_ptr<AssemblyResult>> & results, const std::shared_ptr<AssemblyResult>& maybeNullResult);
+    static int arrayMaxInt(const std::vector<int>& array);
 
 public:
     ReadThreadingAssembler(int pruneFactor, int numPruningSamples, int numBestHaplotypesPerGraph, bool dontIncreaseKmerSizesForCycles, bool allowNonUniqueKmersInRef, std::vector<int> kmerSizes);
     ReadThreadingAssembler(int maxAllowedPathsForReadThreadingAssembler, std::vector<int> kmerSizes, bool dontIncreaseKmerSizesForCycles, bool allowNonUniqueKmersInRef, int numPruningSamples,
                            int pruneFactor, bool useAdaptivePruning, double initialErrorRateForPruning, double pruningLogOddsThreshold, int maxUnprunedVariants);
-    std::shared_ptr<AssemblyResultSet> runLocalAssembly(std::shared_ptr<AssemblyRegion> assemblyRegion, std::shared_ptr<Haplotype>& refHaplotype, std::shared_ptr<uint8_t[]> fullReferenceWithPadding, int refLength, SimpleInterval* refLoc, ReadErrorCorrector* readErrorCorrector);
+    std::shared_ptr<AssemblyResultSet> runLocalAssembly(const std::shared_ptr<AssemblyRegion>& assemblyRegion, std::shared_ptr<Haplotype>& refHaplotype, const std::shared_ptr<uint8_t[]>& fullReferenceWithPadding, int refLength, SimpleInterval* refLoc, ReadErrorCorrector* readErrorCorrector);
     std::vector<std::shared_ptr<AssemblyResult>> assemble(std::vector<std::shared_ptr<SAMRecord>> & reads, std::shared_ptr<Haplotype> & refHaplotype);
     void setMinDanglingBranchLength(int minDanglingBranchLength);
     void setRecoverDanglingBranches(bool recoverAllDanglingBranches);

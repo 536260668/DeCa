@@ -7,7 +7,8 @@
 #include "ReadUtils.h"
 
 
-ReadCache::ReadCache(aux_t **data, std::vector<char*> & bam_name) : data(data), tid(0), bam_name(bam_name){
+ReadCache::ReadCache(aux_t **data, std::vector<char*> & bam_name, std::shared_ptr<ReferenceCache> & cache) : data(data), tid(0), bam_name(bam_name),
+                                                                    readTransformer(cache, data[0]->header, 5){
     bam1_t * b;
     b = bam_init1();
     std::string region = data[0]->header->getSequenceDictionary().getSequences()[0].getSequenceName();
@@ -20,6 +21,7 @@ ReadCache::ReadCache(aux_t **data, std::vector<char*> & bam_name) : data(data), 
         hts_itr_t* iter = sam_itr_querys(idx, data[i]->hdr, region.c_str());
         while((result = sam_itr_next(data[i]->fp, iter, b)) >= 0) {
             std::shared_ptr<SAMRecord> read(new SAMRecord(b, data[i]->header));
+            read = readTransformer.apply(read);
             if(ReadFilter::test(read, data[i]->header)) {
                 if(i == 0) {
                     read->setGroup(0);
@@ -41,7 +43,7 @@ ReadCache::ReadCache(aux_t **data, std::vector<char*> & bam_name) : data(data), 
     start = end = currentPose = 0;
 }
 
-ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, const std::string& region) : tid(tid), data(data), bam_name(bam_name){
+ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, const std::string& region, std::shared_ptr<ReferenceCache> & cache) : tid(tid), data(data), bam_name(bam_name), readTransformer(cache, data[0]->header, 5){
     bam1_t * b;
     b = bam_init1();
     for(int i = 0; i < bam_name.size(); i++){
@@ -52,6 +54,7 @@ ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, const
         hts_itr_t* iter = sam_itr_querys(idx, data[i]->hdr, region.c_str());
         while((result = sam_itr_next(data[i]->fp, iter, b)) >= 0) {
             std::shared_ptr<SAMRecord> read(new SAMRecord(b, data[i]->header));
+            read = readTransformer.apply(read);
             if(ReadFilter::test(read, data[i]->header)) {
                 if(i == 0) {
                     read->setGroup(0);

@@ -24,6 +24,7 @@
 #include "read/ReadCache.h"
 #include "MathUtils.h"
 #include "intel/smithwaterman/IntelSmithWaterman.h"
+#include "ReferenceCache.h"
 
 
 static int usage() {
@@ -195,11 +196,13 @@ int main(int argc, char *argv[])
     for(int k=0; k<nref; k++)
     {
         std::string region = header->getSequenceDictionary().getSequences()[k].getSequenceName() + ":0-1999999";
-        ReadCache cache(data, input_bam, k, region);
-        int currentPose = 0;
-        int len = 0;
         std::string contig = header->getSequenceDictionary().getSequences()[k].getSequenceName();
+        int len = 0;
         char* refBases = faidx_fetch_seq(refPoint, contig.c_str(), 0, header->getSequenceDictionary().getSequences()[k].getSequenceLength(), &len);
+        std::shared_ptr<ReferenceCache>  refCache = std::make_shared<ReferenceCache>(ref, data[0]->header);
+        ReadCache cache(data, input_bam, k, region, refCache);
+        int currentPose = 0;
+
         if(k != 0) {
             m2Engine.refCache.setTid(k);
         }

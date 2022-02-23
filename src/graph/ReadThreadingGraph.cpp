@@ -17,6 +17,14 @@ void ReadThreadingGraph::addRead(std::shared_ptr<SAMRecord> & read) {
     uint8_t * sequence = sequence_.get();
     uint8_t * qualities = qualities_.get();
 
+//    for(int i = 0; i < read->getLength(); i++) {
+//        std::cout << (char)sequence[i];
+//    }
+//    std::cout << std::endl;
+//
+//    if(sequence[0] == 'A' && sequence[1] == 'G' && sequence[2] == 'G' && sequence[3] == 'A')
+//        std::cout << "hello";
+
     int lastGood = -1;
     for(int end = 0; end <= read->getLength(); end++) {
         if (end == read->getLength() || !baseIsUsableForAssembly(sequence[end], qualities[end])) {
@@ -26,7 +34,7 @@ void ReadThreadingGraph::addRead(std::shared_ptr<SAMRecord> & read) {
             if(start != -1 && len >= kmerSize) {
                 std::string name = read->getName();
                 name += '_' + std::to_string(start) + '_' + std::to_string(end);
-                std::string sampleName = read->getGroup() == 0 ? "normal" : "tumor";
+                std::string sampleName = read->getGroup() == 0 ? "tumor" : "normal";
                 addSequence(name, sampleName, sequence_, start, end, 1, false);
             }
             lastGood = -1;
@@ -127,13 +135,15 @@ std::shared_ptr<MultiDeBruijnVertex> ReadThreadingGraph::createVertex(Kmer & kme
 std::shared_ptr<MultiDeBruijnVertex>
 ReadThreadingGraph::extendChainByOne(const std::shared_ptr<MultiDeBruijnVertex>& prevVertex, std::shared_ptr<uint8_t[]>sequence, const int kmerStart, const int count,
                                      const bool isRef) {
-    std::unordered_set<std::shared_ptr<MultiSampleEdge>> outgoingEdges = outgoingEdgesOf(prevVertex);
+    const std::unordered_set<std::shared_ptr<MultiSampleEdge>>& outgoingEdges = outgoingEdgesOf(prevVertex);
     int nextPos = kmerStart + kmerSize - 1;
     std::unordered_set<std::shared_ptr<MultiSampleEdge>>::iterator iter;
     uint8_t * sequence_ = sequence.get();
     for(iter = outgoingEdges.begin(); iter != outgoingEdges.end(); iter++) {
         std::shared_ptr<MultiDeBruijnVertex> target = getEdgeTarget(*iter);
         if(target->getSuffix() == sequence_[nextPos]) {
+//            if(target->getHashCode() == 884547439)
+//                std::cout << "hello";
             (*iter)->incMultiplicity(count);
             return target;
         }
@@ -214,6 +224,9 @@ void ReadThreadingGraph::increaseCountsInMatchedKmers(SequenceForKmers & seqForK
                                                       const std::shared_ptr<uint8_t[]>& originalKmer, int offset) {
     if(offset == -1)
         return;
+
+//    if(vertex->getHashCode() == 884547439)
+//        std::cout << "hello";
 
     std::unordered_set<std::shared_ptr<MultiSampleEdge>> incomingEdges = incomingEdgesOf(vertex);
     for(std::unordered_set<std::shared_ptr<MultiSampleEdge>>::iterator iter = incomingEdges.begin(); iter != incomingEdges.end(); iter++) {
@@ -340,7 +353,7 @@ void ReadThreadingGraph::setThreadingStartOnlyAtExistingVertex(bool value) {
 //    pending.insert(std::pair<std::string, std::vector<SequenceForKmers>>(key1491293244, v1));
 //}
 
-bool ReadThreadingGraph::removeVertex(std::shared_ptr<MultiDeBruijnVertex> V) {
+bool ReadThreadingGraph::removeVertex(const std::shared_ptr<MultiDeBruijnVertex> & V) {
     std::shared_ptr<uint8_t[]> sequence(new uint8_t[V->getLength()]);
     memcpy(sequence.get(), V->getSequence().get(), V->getLength());
     bool result = DirectedSpecifics::removeVertex(V);
@@ -355,7 +368,7 @@ bool ReadThreadingGraph::removeVertex(std::shared_ptr<MultiDeBruijnVertex> V) {
 
 void ReadThreadingGraph::removeSingletonOrphanVertices() {
     std::vector<std::shared_ptr<MultiDeBruijnVertex>> toRemove;
-    std::unordered_set<std::shared_ptr<MultiDeBruijnVertex>> allvertex = getVertexSet();
+    std::unordered_set<std::shared_ptr<MultiDeBruijnVertex>> & allvertex = getVertexSet();
     typename std::unordered_set<std::shared_ptr<MultiDeBruijnVertex>>::iterator viter;
     for(viter = allvertex.begin(); viter != allvertex.end(); viter++) {
         if(inDegreeOf(*viter) == 0 && outDegreeOf(*viter) == 0) {
@@ -375,7 +388,7 @@ void ReadThreadingGraph::recoverDanglingTails(int pruneFactor, int minDanglingBr
 
     int attempted = 0;
     int nRecovered = 0;
-    for ( std::shared_ptr<MultiDeBruijnVertex> v :  getVertexSet()) {
+    for ( const std::shared_ptr<MultiDeBruijnVertex> & v :  getVertexSet()) {
         if(outDegreeOf(v) == 0 && !isRefSink(v)) {
             attempted++;
             nRecovered += recoverDanglingTail(v, pruneFactor, minDanglingBranchLength, recoverAll);
@@ -593,14 +606,14 @@ void ReadThreadingGraph::recoverDanglingHeads(int pruneFactor, int minDanglingBr
     }
 
     std::vector<std::shared_ptr<MultiDeBruijnVertex>> danglingHeads;
-    for ( std::shared_ptr<MultiDeBruijnVertex> v :  getVertexSet()) {
+    for (const std::shared_ptr<MultiDeBruijnVertex> & v :  getVertexSet()) {
         if( DirectedSpecifics<MultiDeBruijnVertex, MultiSampleEdge>::inDegreeOf(v) == 0 && !isRefSource(v))
             danglingHeads.emplace_back(v);
     }
 
     int attempted = 0;
     int nRecovered = 0;
-    for ( std::shared_ptr<MultiDeBruijnVertex> v :  danglingHeads) {
+    for ( const std::shared_ptr<MultiDeBruijnVertex>& v :  danglingHeads) {
         if(outDegreeOf(v) == 0 && !isRefSink(v)) {
             attempted++;
             nRecovered += recoverDanglingHead(v, pruneFactor, minDanglingBranchLength, recoverAll);
@@ -608,7 +621,7 @@ void ReadThreadingGraph::recoverDanglingHeads(int pruneFactor, int minDanglingBr
     }
 }
 
-int ReadThreadingGraph::recoverDanglingHead(std::shared_ptr<MultiDeBruijnVertex>vertex, int pruneFactor, int minDanglingBranchLength,
+int ReadThreadingGraph::recoverDanglingHead(const std::shared_ptr<MultiDeBruijnVertex> & vertex, int pruneFactor, int minDanglingBranchLength,
                                             bool recoverAll) {
     if(inDegreeOf(vertex) != 0 ) {
         throw std::invalid_argument("Attempting to recover a dangling head but it has in-degree > 0");
@@ -782,7 +795,7 @@ std::shared_ptr<SeqGraph> ReadThreadingGraph::toSequenceGraph() {
     buildGraphIfNecessary();
     std::shared_ptr<SeqGraph> seqGraph(new SeqGraph(kmerSize));
     std::map<std::shared_ptr<MultiDeBruijnVertex>, std::shared_ptr<SeqVertex>> vertexMap;
-    for(std::shared_ptr<MultiDeBruijnVertex> dv : DirectedSpecifics<MultiDeBruijnVertex, MultiSampleEdge>::getVertexSet()) {
+    for(const std::shared_ptr<MultiDeBruijnVertex> & dv : DirectedSpecifics<MultiDeBruijnVertex, MultiSampleEdge>::getVertexSet()) {
         std::shared_ptr<SeqVertex> sv(new SeqVertex(dv->getAdditionalSequence(
                 DirectedSpecifics<MultiDeBruijnVertex, MultiSampleEdge>::isSource(dv)), dv->getAdditionalLength(DirectedSpecifics<MultiDeBruijnVertex, MultiSampleEdge>::isSource(dv))));
         sv->setAdditionalInfo(dv->getAdditionalInfo());

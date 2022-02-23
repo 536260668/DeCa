@@ -69,7 +69,8 @@ private:
                 newchains.template emplace_back(*viter);
         }
         std::sort(newchains.begin(), newchains.end(), [chainLogOddsmap](Path<V,E>* a, Path<V,E>* b)->bool{return chainLogOddsmap.at(a) > chainLogOddsmap.at(b);});
-        std::sort(newchains.begin(), newchains.end(), [](Path<V,E>* a, Path<V,E>* b)->bool{return a->length() < b->length();});
+        std::reverse(newchains.begin(), newchains.end());
+        std::sort(newchains.begin(), newchains.end(), [](Path<V,E>* a, Path<V,E>* b)->bool{return a->length() > b->length();});
         if(newchains.size() <= 100)
             return result;
         else {
@@ -89,6 +90,8 @@ private:
         }
         int leftTotalMultiplicity = 0;
         int rightTotalMultiplicity = 0;
+//        std::shared_ptr<V> first = chain->getFirstVertex();
+//        std::shared_ptr<V> last = chain->getLastVertex();
         std::unordered_set<std::shared_ptr<E>> outgoing = graph->outgoingEdgesOf(chain->getFirstVertex());
         std::unordered_set<std::shared_ptr<E>> incoming = graph->incomingEdgesOf(chain->getLastVertex());
         for(eiter = outgoing.begin(); eiter != outgoing.end(); eiter++) {
@@ -106,21 +109,17 @@ private:
         return std::max(leftLogOdds, rightLogOdds);
     }
 
-    bool isChainPossibleVariant(Path<V,E>* chain, std::shared_ptr<DirectedSpecifics<V, E>> graph) {
+    bool isChainPossibleVariant(Path<V,E>* chain, std::shared_ptr<DirectedSpecifics<V, E>> &graph) {
         typename std::unordered_set<std::shared_ptr<E>>::iterator eiter;
         typename std::vector<std::shared_ptr<E>>::iterator viter;
-        for(viter = chain->getEdges().begin(); viter != chain->getEdges().end(); viter++) {
-            if((*viter)->getIsRef())
-                return POSITIVE_INFINITY;
-        }
         int leftTotalMultiplicity = 0;
         int rightTotalMultiplicity = 0;
         std::unordered_set<std::shared_ptr<E>> outgoing = graph->outgoingEdgesOf(chain->getFirstVertex());
-        std::unordered_set<std::shared_ptr<E>> incoming = graph->outgoingEdgesOf(chain->getFirstVertex());
+        std::unordered_set<std::shared_ptr<E>> incoming = graph->incomingEdgesOf(chain->getLastVertex());
         for(eiter = outgoing.begin(); eiter != outgoing.end(); eiter++) {
             leftTotalMultiplicity += (*eiter)->getMultiplicity();
         }
-        for(eiter= outgoing.begin(); eiter != outgoing.end(); eiter++) {
+        for(eiter= incoming.begin(); eiter != incoming.end(); eiter++) {
             rightTotalMultiplicity += (*eiter)->getMultiplicity();
         }
         int leftMultiplicity = (chain->getEdges()[0])->getMultiplicity();

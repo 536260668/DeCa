@@ -21,19 +21,10 @@ AssemblyBasedCallerUtils::assembleReads(std::shared_ptr<AssemblyRegion> region, 
                                         SAMFileHeader *header, ReferenceCache &cache,
                                         ReadThreadingAssembler &assemblyEngine) {
     finalizeRegion(region, false, false, 9, header, false);
-//    std::ofstream outfile("/Users/bigdreamerxixi/data/1.txt", true);
-//    outfile << region->getStart()+1 << ", "<<region->getEnd()+1 << std::endl;
-//    outfile.close();
     int refLength = 0;
     std::shared_ptr<uint8_t[]> fullReferenceWithPadding = region->getAssemblyRegionReference(&cache, REFERENCE_PADDING_FOR_ASSEMBLY, refLength);
     SimpleInterval paddedReferenceLoc = getPaddedReferenceLoc(region, REFERENCE_PADDING_FOR_ASSEMBLY, header);
     std::shared_ptr<Haplotype> refHaplotype = createReferenceHaplotype(region, paddedReferenceLoc, cache);
-    std::ofstream outfile("/Users/bigdreamerxixi/data/1.txt", true);
-    for(int i = 0; i < refLength; i++) {
-        outfile << (char)fullReferenceWithPadding[i];
-    }
-    outfile << std::endl;
-    outfile.close();
     std::shared_ptr<AssemblyResultSet> assemblyResultSet = assemblyEngine.runLocalAssembly(region, refHaplotype, fullReferenceWithPadding, refLength, & paddedReferenceLoc,
                                                                           nullptr);
     return assemblyResultSet;

@@ -14,7 +14,7 @@ private:
     static const long serialVersionUID = 785196247314761183L;
 
 public:
-    virtual void addVertex(std::shared_ptr<V> vertex) = 0;
+    virtual void addVertex(const std::shared_ptr<V> & vertex) = 0;
 
     virtual std::unordered_set<std::shared_ptr<V>> & getVertexSet() = 0;
 
@@ -23,25 +23,25 @@ public:
     virtual std::shared_ptr<E> getEdge(std::shared_ptr<V> sourceVertex, std::shared_ptr<V> targetVertex)  = 0;
 
     //Adds the specified edge to the edge containers of its source and target vertices.
-    virtual void addEdgeToTouchingVertices(std::shared_ptr<E>& e) = 0;
+    virtual void addEdgeToTouchingVertices(const std::shared_ptr<E>& e) = 0;
 
     virtual int degreeOf(std::shared_ptr<V> vertex)  = 0;
 
-    virtual std::unordered_set<std::shared_ptr<E>> edgesof(std::shared_ptr<V> vertex) = 0;
+    virtual std::unordered_set<std::shared_ptr<E>> edgesof(const std::shared_ptr<V> & vertex) = 0;
 
     virtual int inDegreeOf(std::shared_ptr<V> vertex)  = 0;
 
-    virtual std::unordered_set<std::shared_ptr<E>>  incomingEdgesOf(std::shared_ptr<V> vertex) = 0;
+    virtual std::unordered_set<std::shared_ptr<E>> & incomingEdgesOf(std::shared_ptr<V> vertex) = 0;
 
     virtual int outDegreeOf(std::shared_ptr<V> vertex)  = 0;
 
-    virtual std::unordered_set<std::shared_ptr<E>> outgoingEdgesOf(std::shared_ptr<V> vertex) = 0;
+    virtual std::unordered_set<std::shared_ptr<E>> & outgoingEdgesOf(std::shared_ptr<V> vertex) = 0;
 
     virtual void removeEdgeFromTouchingVertices(std::shared_ptr<E> e) = 0;
 
-    virtual bool isSource(std::shared_ptr<V> v) = 0;
+    virtual bool isSource(const std::shared_ptr<V> & v) = 0;
 
-    virtual bool isSink(std::shared_ptr<V> v) = 0;
+    virtual bool isSink(const std::shared_ptr<V> & v) = 0;
 
     virtual bool isSingletonOrphan(std::shared_ptr<V> v) {
         Mutect2Utils::validateArg(v.get(), "v can not be null.");
@@ -75,9 +75,9 @@ public:
         removeAllVertices(toRemove);
     }
 
-    virtual bool removeAllVertices(std::vector<std::shared_ptr<V>> vertices) = 0;
+    virtual bool removeAllVertices(const std::vector<std::shared_ptr<V>> & vertices) = 0;
 
-    virtual bool removeAllEdges(std::vector<std::shared_ptr<E>> edges) = 0;
+    virtual bool removeAllEdges(std::vector<std::shared_ptr<E>> & edges) = 0;
 };
 
 

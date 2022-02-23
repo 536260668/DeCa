@@ -13,6 +13,7 @@
 #include "engine/AlignmentContext.h"
 #include "ReadFilter.h"
 #include "AssemblyRegion.h"
+#include "transfer/PalindromeArtifactClipReadTransformer.h"
 
 typedef struct {     // auxiliary data structure
     samFile *fp;     // the file handle
@@ -38,12 +39,13 @@ private:
     int end;
     hts_idx_t *idx;
     int currentPose;
+    PalindromeArtifactClipReadTransformer readTransformer;
     void advanceLoad();
 
 public:
 
-    ReadCache(aux_t** data, std::vector<char*> & bam_name);
-    ReadCache(aux_t** data, std::vector<char*> & bam_name, int tid, const std::string&);
+    ReadCache(aux_t** data, std::vector<char*> & bam_name, std::shared_ptr<ReferenceCache> & cache);
+    ReadCache(aux_t** data, std::vector<char*> & bam_name, int tid, const std::string&, std::shared_ptr<ReferenceCache> & cache);
     int getNextPos();
     bool hasNextPos();
     AlignmentContext getAlignmentContext();

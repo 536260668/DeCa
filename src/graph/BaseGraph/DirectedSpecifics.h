@@ -74,7 +74,7 @@ public:
 
     int degreeOf(std::shared_ptr<V> vertex) {throw std::invalid_argument("input argument");}
 
-    void addVertex(std::shared_ptr<V> v) {
+    void addVertex(const std::shared_ptr<V> & v) {
         if(v == nullptr) {throw std::invalid_argument("Null is not allowed here.");}
         if(containsVertex(v)) return;
         vertexMapDirected.insert(std::pair<std::shared_ptr<V>, DirectedEdgeContainer<V, E>>(v, DirectedEdgeContainer<V, E>()));
@@ -127,7 +127,7 @@ public:
         return nullptr;
     }
 
-    void addEdgeToTouchingVertices(std::shared_ptr<E>& e) {
+    void addEdgeToTouchingVertices(const std::shared_ptr<E>& e) {
         std::shared_ptr<V> source = getEdgeSource(e);
         std::shared_ptr<V> target = getEdgeTarget(e);
 
@@ -139,9 +139,9 @@ public:
         return edgeMap.find(e)->second.getSource();
     }
 
-    std::unordered_set<std::shared_ptr<E>> edgesof(std::shared_ptr<V> vertex) {
+    std::unordered_set<std::shared_ptr<E>> edgesof(const std::shared_ptr<V> & vertex) {
         std::unordered_set<std::shared_ptr<E>> res = getEdgeContainer(vertex).incoming;
-        std::unordered_set<std::shared_ptr<E>> tmp = getEdgeContainer(vertex).outgoing;
+        const std::unordered_set<std::shared_ptr<E>>& tmp = getEdgeContainer(vertex).outgoing;
 
         typename std::unordered_set<std::shared_ptr<E>>::iterator iter;
         for(iter = tmp.begin(); iter != tmp.end(); iter++) {
@@ -172,12 +172,12 @@ public:
         return getEdgeContainer(vector).outgoing.size();
     }
 
-    std::unordered_set<std::shared_ptr<E>> incomingEdgesOf(std::shared_ptr<V> vertex) {
+    std::unordered_set<std::shared_ptr<E>>& incomingEdgesOf(std::shared_ptr<V> vertex) {
         return getEdgeContainer(vertex).getUnmodifiableIncomingEdges();
     }
 
 
-    std::unordered_set<std::shared_ptr<E>> outgoingEdgesOf(std::shared_ptr<V> vertex)  {
+    std::unordered_set<std::shared_ptr<E>>& outgoingEdgesOf(std::shared_ptr<V> vertex)  {
         return getEdgeContainer(vertex).getUnmodifiableOutgoingEdges();
     }
 
@@ -189,7 +189,7 @@ public:
         getEdgeContainer(target).removeIncomingEdge(e);
     }
 
-    bool addEdge(std::shared_ptr<V> sourceVertex, std::shared_ptr<V> targetVertex, std::shared_ptr<E> e) {
+    bool addEdge(const std::shared_ptr<V> & sourceVertex, const std::shared_ptr<V> & targetVertex, const std::shared_ptr<E> & e) {
         if(edgeMap.find(e) != edgeMap.end())
             return false;
 
@@ -210,7 +210,7 @@ public:
         return true;
     }
 
-    bool assertVertexExist(std::shared_ptr<V> v) {
+    bool assertVertexExist(const std::shared_ptr<V> & v) {
         if(VertexSet.find(v) != VertexSet.end())
             return true;
         else
@@ -221,16 +221,16 @@ public:
         return VertexSet.find(v) != VertexSet.end();
     }
 
-    bool containsEdge(std::shared_ptr<E> e) {
+    bool containsEdge(const std::shared_ptr<E> & e) {
         return EdgeSet.find(e) != EdgeSet.end();
     }
 
-    bool isSource(std::shared_ptr<V> v) {
+    bool isSource(const std::shared_ptr<V> & v) {
         Mutect2Utils::validateArg(v.get(), "Attempting to test a null vertex.");
         return inDegreeOf(v) == 0;
     }
 
-    bool isSink(std::shared_ptr<V> v) {
+    bool isSink(const std::shared_ptr<V> & v) {
         Mutect2Utils::validateArg(v.get(), "Attempting to test a null vertex.");
         return outDegreeOf(v) == 0;
     }
@@ -243,7 +243,7 @@ public:
         return v->getAdditionalSequenceLength(isSource(v));
     }
 
-    bool removeEdge(std::shared_ptr<E> e) {
+    bool removeEdge(const std::shared_ptr<E> & e) {
         if(containsEdge(e)) {
             removeEdgeFromTouchingVertices(e);
             edgeMap.erase(e);
@@ -295,11 +295,10 @@ public:
         return std::shared_ptr<E>(new E());
     }
 
-    virtual bool removeVertex(std::shared_ptr<V> v) {
+    virtual bool removeVertex(const std::shared_ptr<V> & v) {
         if(containsVertex(v)) {
-            std::unordered_set<std::shared_ptr<E>> touchingEdgesList = edgesof(v);
             std::vector<std::shared_ptr<E>> edgesList;
-            for(std::shared_ptr<E> e : touchingEdgesList)
+            for(std::shared_ptr<E> e : edgesof(v))
                 edgesList.template emplace_back(e);
             removeAllEdges(edgesList);
             vertexMapDirected.erase(v);
@@ -310,7 +309,7 @@ public:
         }
     }
 
-    bool removeAllEdges(std::vector<std::shared_ptr<E>> edges) {
+    bool removeAllEdges(std::vector<std::shared_ptr<E>> & edges) {
         bool modified = false;
         for(auto e : edges) {
             modified |= removeEdge(e);
@@ -337,19 +336,19 @@ public:
         return modified;
     }
 
-    bool removeAllVertices(std::vector<std::shared_ptr<V>> vertices) {
+    bool removeAllVertices(const std::vector<std::shared_ptr<V>> & vertices) {
         bool modified = false;
 
-        for(std::shared_ptr<V> v : vertices) {
+        for(const std::shared_ptr<V> & v : vertices) {
             modified |= removeVertex(v);
         }
         return modified;
     }
 
-    bool removeAllVertices(std::list<std::shared_ptr<V>> vertices) {
+    bool removeAllVertices(const std::list<std::shared_ptr<V>> & vertices) {
         bool modified = false;
 
-        for(std::shared_ptr<V> v : vertices) {
+        for(const std::shared_ptr<V> & v : vertices) {
             modified |= removeVertex(v);
         }
         return modified;

@@ -36,3 +36,25 @@ bool BaseUtils::isAllRegularBases(std::shared_ptr<uint8_t[]> bases_, const int l
     }
     return true;
 }
+
+uint8_t BaseUtils::getComplement(const uint8_t base) {
+    switch(base) {
+        case 'a':
+        case 'A':
+            return 'T';
+        case 'c':
+        case 'C':
+            return 'G';
+        case 'g':
+        case 'G':
+            return 'C';
+        case 't':
+        case 'T':
+            return 'A';
+        case 'n':
+        case 'N':
+            return 'N';
+        default:
+            throw std::invalid_argument("base must be A, C, G or T.");
+    }
+}

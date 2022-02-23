@@ -19,7 +19,7 @@ std::shared_ptr<BaseEdge> SeqGraph::createEdge(std::shared_ptr<SeqVertex> source
 
 bool SeqGraph::zipLinearChains() {
     std::list<std::shared_ptr<SeqVertex>> zipStarts;
-    for(std::shared_ptr<SeqVertex> source : DirectedSpecifics<SeqVertex, BaseEdge>::getVertexSet()) {
+    for(const std::shared_ptr<SeqVertex>& source : DirectedSpecifics<SeqVertex, BaseEdge>::getVertexSet()) {
         if(isLinearChainStart(source)) {
             zipStarts.emplace_back(source);
         }
@@ -29,7 +29,7 @@ bool SeqGraph::zipLinearChains() {
         return false;
 
     bool mergedOne = false;
-    for(std::shared_ptr<SeqVertex> zipStart : zipStarts) {
+    for(const std::shared_ptr<SeqVertex>& zipStart : zipStarts) {
         std::list<std::shared_ptr<SeqVertex>> linearChain = traceLinearChain(zipStart);
 
         mergedOne |= mergeLinearChain(linearChain);
@@ -83,11 +83,11 @@ bool SeqGraph::mergeLinearChain(std::list<std::shared_ptr<SeqVertex>> &linearCha
     std::shared_ptr<SeqVertex> addedVertex = mergeLinearChainVertices(linearChain);
     DirectedSpecifics<SeqVertex, BaseEdge>::addVertex(addedVertex);
 
-    for(std::shared_ptr<BaseEdge> edge : DirectedSpecifics<SeqVertex, BaseEdge>::outgoingEdgesOf(last)) {
+    for(const std::shared_ptr<BaseEdge>& edge : DirectedSpecifics<SeqVertex, BaseEdge>::outgoingEdgesOf(last)) {
         addEdge(addedVertex, getEdgeTarget(edge), std::shared_ptr<BaseEdge>(new BaseEdge(edge->getIsRef(), edge->getMultiplicity())));
     }
 
-    for(std::shared_ptr<BaseEdge> edge : DirectedSpecifics<SeqVertex, BaseEdge>::incomingEdgesOf(first)) {
+    for(const std::shared_ptr<BaseEdge>& edge : DirectedSpecifics<SeqVertex, BaseEdge>::incomingEdgesOf(first)) {
         addEdge(getEdgeSource(edge), addedVertex, std::shared_ptr<BaseEdge>(new BaseEdge(edge->getIsRef(), edge->getMultiplicity())));
     }
     DirectedSpecifics<SeqVertex, BaseEdge>::removeAllVertices(linearChain);

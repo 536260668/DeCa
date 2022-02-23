@@ -22,12 +22,12 @@ public:
 
     void addOutgoingEdge(std::shared_ptr<EE> e) {outgoing.insert(e);}
 
-    std::unordered_set<std::shared_ptr<EE>>  getUnmodifiableIncomingEdges() {
+    std::unordered_set<std::shared_ptr<EE>>& getUnmodifiableIncomingEdges() {
         //unmodifiableIncoming = incoming;
         return incoming;
     }
 
-    std::unordered_set<std::shared_ptr<EE>> getUnmodifiableOutgoingEdges() {
+    std::unordered_set<std::shared_ptr<EE>>& getUnmodifiableOutgoingEdges() {
         //unmodifiableOutgoing = outgoing;
         return outgoing;
     }

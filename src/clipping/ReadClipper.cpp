@@ -27,7 +27,7 @@ ReadClipper::hardClipToRegion(std::shared_ptr<SAMRecord> read, int refStart, int
     }
 }
 
-ReadClipper::ReadClipper(std::shared_ptr<SAMRecord> & read) : read(read), wasClipped(false){
+ReadClipper::ReadClipper(const std::shared_ptr<SAMRecord> & read) : read(read), wasClipped(false){
 }
 
 std::shared_ptr<SAMRecord> ReadClipper::hardClipBothEndsByReferenceCoordinates(const int left, const int right) {
@@ -229,4 +229,8 @@ std::shared_ptr<SAMRecord> ReadClipper::hardClipAdaptorSequence() {
     }
 
     return read->isReverseStrand() ? hardClipByReferenceCoordinatesLeftTail(adaptorBoundary) : hardClipByReferenceCoordinatesRightTail(read, adaptorBoundary);
+}
+
+std::shared_ptr<SAMRecord> ReadClipper::clipRead(ClippingRepresentation algorithm) {
+    return clipRead(algorithm, true);
 }

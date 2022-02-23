@@ -171,7 +171,7 @@ private:
      * @param aligner
      * @return 1 if we successfully recovered a vertex and 0 otherwise
      */
-    int recoverDanglingHead(std::shared_ptr<MultiDeBruijnVertex> v, int pruneFactor, int minDanglingBranchLength, bool recoverAll);
+    int recoverDanglingHead(const std::shared_ptr<MultiDeBruijnVertex>& v, int pruneFactor, int minDanglingBranchLength, bool recoverAll);
 
     std::deque<std::shared_ptr<MultiDeBruijnVertex>> findPathDownwardsToHighestCommonDescendantOfReference(std::shared_ptr<MultiDeBruijnVertex> vertex, int pruneFactor, bool giveUpAtBranch);
 
@@ -213,7 +213,7 @@ public:
      */
      void addRead(std::shared_ptr<SAMRecord> & read);
 
-     bool removeVertex(std::shared_ptr<MultiDeBruijnVertex> V) override;
+     bool removeVertex(const std::shared_ptr<MultiDeBruijnVertex> & V) override;
 
      //void setPending();
 

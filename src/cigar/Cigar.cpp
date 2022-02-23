@@ -187,3 +187,11 @@ std::vector<std::logic_error> Cigar::isValid(std::string readName, long recordNu
     }
     return ret;
 }
+
+CigarElement Cigar::getFirstCigarElement() {
+    return isEmpty() ? CigarElement(0, M) : cigarElements.at(0);
+}
+
+CigarElement Cigar::getLastCigarElement() {
+    return isEmpty() ? CigarElement(0, M) : cigarElements.at(cigarElements.size() - 1);
+}

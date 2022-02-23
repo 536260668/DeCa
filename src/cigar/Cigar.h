@@ -33,6 +33,8 @@ public:
     bool isRightClipped();
     bool isClipped();
     std::vector<std::logic_error> isValid(std::string readName, long recordNumber);
+    CigarElement getFirstCigarElement();
+    CigarElement getLastCigarElement();
 };
 
 

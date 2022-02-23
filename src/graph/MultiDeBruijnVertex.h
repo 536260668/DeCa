@@ -42,7 +42,7 @@ public:
 
     int getAdditionalLength(bool source);
 
-    int getAdditionalSequenceLength(bool isSource);
+    int getAdditionalSequenceLength(bool isSource) override;
 };
 
 

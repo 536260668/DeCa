@@ -16,7 +16,7 @@ public:
     std::shared_ptr<SAMRecord> read;
     bool wasClipped;
     std::vector<ClippingOp> ops;
-    explicit ReadClipper(std::shared_ptr<SAMRecord> & read);
+    explicit ReadClipper(const std::shared_ptr<SAMRecord> & read);
     void addOp(const ClippingOp & op);
     static std::shared_ptr<SAMRecord>hardClipToRegion(std::shared_ptr<SAMRecord> read, int refStart, int refStop);
     static std::shared_ptr<SAMRecord> hardClipBothEndsByReferenceCoordinates(std::shared_ptr<SAMRecord> read, int left, int right);
@@ -26,6 +26,7 @@ public:
     static std::shared_ptr<SAMRecord> hardClipSoftClippedBases(std::shared_ptr<SAMRecord> read);
     static std::shared_ptr<SAMRecord> revertSoftClippedBases(std::shared_ptr<SAMRecord> read);
     static std::shared_ptr<SAMRecord> hardClipAdaptorSequence(std::shared_ptr<SAMRecord> read);
+    std::shared_ptr<SAMRecord> clipRead(ClippingRepresentation algorithm);
 
 private:
     static std::shared_ptr<SAMRecord> hardClipToRegion(std::shared_ptr<SAMRecord> read, int refStart, int refStop, int alignmentStart, int alignmentStop);
