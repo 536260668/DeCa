@@ -195,9 +195,10 @@ int main(int argc, char *argv[])
     // TODO: add multi-thread mode here
     for(int k=0; k<nref; k++)
     {
-        std::string region = header->getSequenceDictionary().getSequences()[k].getSequenceName() + ":0-1999999";
+        int k_len = header->getSequenceDictionary().getSequences()[k].getSequenceLength();
+        int len = k_len < 2000000 ? k_len : 2000000;
+        std::string region = header->getSequenceDictionary().getSequences()[k].getSequenceName() + ":0-" + to_string(len);
         std::string contig = header->getSequenceDictionary().getSequences()[k].getSequenceName();
-        int len = 0;
         char* refBases = faidx_fetch_seq(refPoint, contig.c_str(), 0, header->getSequenceDictionary().getSequences()[k].getSequenceLength(), &len);
         std::shared_ptr<ReferenceCache>  refCache = std::make_shared<ReferenceCache>(ref, data[0]->header);
         ReadCache cache(data, input_bam, k, region, refCache);
@@ -216,38 +217,39 @@ int main(int argc, char *argv[])
                     pendingRegions.emplace(newRegion);
                 }
             }
-//            if(pileup.getPosition() == 1000001)
-//                std::cout << "hello";
+            if(pileup.getPosition() == 10076)
+                std::cout << "hello";
             if(pileup.isEmpty()) {
-                ActivityProfileState state(contig.c_str(), pileup.getPosition(), 0.0);
+                std::shared_ptr<ActivityProfileState> state = std::make_shared<ActivityProfileState>(contig.c_str(), pileup.getPosition(), 0.0);
                 activityProfile->add(state);
                 continue;
             }
-            SimpleInterval pileupInterval = SimpleInterval(contig, (int)pileup.getPosition(), (int)pileup.getPosition());
+            std::shared_ptr<SimpleInterval> pileupInterval = std::make_shared<SimpleInterval>(contig, (int)pileup.getPosition(), (int)pileup.getPosition());
             ReferenceContext pileupRefContext(refBases, pileupInterval);
 
-            ActivityProfileState profile = m2Engine.isActive(pileup, pileupRefContext);
+            std::shared_ptr<ActivityProfileState> profile = m2Engine.isActive(pileup, pileupRefContext);
             activityProfile->add(profile);
 
             if(!pendingRegions.empty() && IntervalUtils::isAfter(pileup.getLocation(), pendingRegions.front()->getExtendedSpan(), header->getSequenceDictionary())) {
                 count++;
-                if(count > 2000) {
-                    break;
-                }
+
                 std::shared_ptr<AssemblyRegion> nextRegion = pendingRegions.front();
+                if(count % 2000  == 0) {
+                    std::cout << *nextRegion;
+                }
                 pendingRegions.pop();
                 Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
-                std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext);
-                if(variant.size() != 0)
-                    std::cout << variant.size();
+//                std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext);
+//                if(variant.size() != 0)
+//                    std::cout << variant.size();
             }
         }
 
 
             // gather AlignmentContext to AssemblyRegion
 
-
-        break;
+        activityProfile->clear();
+        //break;
     }
 
     //std::cout << "read_num : " << read_num << std::endl;

@@ -31,7 +31,7 @@ private:
     MutectReadThreadingAssemblerArgumentCollection assemblerArgs;
     AssemblyRegionTrimmer trimmer;
 
-    std::vector<char> altQuals(ReadPileup & pileup, char refBase, int pcrErrorQual);
+    std::shared_ptr<std::vector<char>> altQuals(ReadPileup & pileup, char refBase, int pcrErrorQual);
 
     static int getCurrentOrFollowingIndelLength(PeUtils & pe);
 
@@ -44,9 +44,9 @@ private:
      * the multiplicative factor is for the special case where we pass a singleton list
      * of alt quals and want to duplicate that alt qual over multiple reads
      */
-    static double logLikelihoodRatio(int refCount, std::vector<char> & altQuals);
+    static double logLikelihoodRatio(int refCount, const std::shared_ptr<std::vector<char>> & altQuals);
 
-    static double logLikelihoodRatio(int nRef, std::vector<char> & altQuals, int repeatFactor);
+    static double logLikelihoodRatio(int nRef, const std::shared_ptr<std::vector<char>> & altQuals, int repeatFactor);
 
     bool hasNormal();
 
@@ -64,7 +64,7 @@ public:
 
     Mutect2Engine(M2ArgumentCollection & MTAC, char* ref, SAMFileHeader*);
 
-    ActivityProfileState isActive(AlignmentContext& context, ReferenceContext & referenceContext);
+    std::shared_ptr<ActivityProfileState> isActive(AlignmentContext& context, ReferenceContext & referenceContext);
 
     static void fillNextAssemblyRegionWithReads(const std::shared_ptr<AssemblyRegion>& region, ReadCache & readCache);
 

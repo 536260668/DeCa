@@ -246,7 +246,7 @@ public:
 
     int mergeDanglingHead(DanglingChainMergeHelper* danglingTailMergeResult);
 
-    std::shared_ptr<MultiSampleEdge> createEdge(std::shared_ptr<MultiDeBruijnVertex>, std::shared_ptr<MultiDeBruijnVertex>) override;
+    std::shared_ptr<MultiSampleEdge> createEdge(const std::shared_ptr<MultiDeBruijnVertex>&, const std::shared_ptr<MultiDeBruijnVertex>&) override;
 
     std::shared_ptr<SeqGraph> toSequenceGraph();
 

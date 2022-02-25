@@ -28,10 +28,10 @@ private:
      *
      * @param stateToAdd
      */
-    void incorporateSingleState(ActivityProfileState & stateToAdd);
+    void incorporateSingleState(const std::shared_ptr<ActivityProfileState> & stateToAdd);
 
 protected:
-    vector<ActivityProfileState> stateList;
+    vector<std::shared_ptr<ActivityProfileState>> stateList;
     int maxProbPropagationDistance;
     double activeProbThreshold;
     SimpleInterval regionStartLoc;
@@ -42,7 +42,7 @@ protected:
 
     vector<std::shared_ptr<AssemblyRegion>> * regions;
 
-    optional<SimpleInterval> getLocForOffset(SimpleInterval relativeLoc, int offset);
+    optional<SimpleInterval> getLocForOffset(const SimpleInterval& relativeLoc, int offset);
 
     int findEndOfRegion(bool isActiveRegion, int minRegionSize, int maxRegionSize, bool forceConversion);
 
@@ -93,9 +93,9 @@ public:
      * Add the next ActivityProfileState to this profile
      * @param state a well-formed ActivityProfileState result to incorporate into this profile
      */
-    void add(ActivityProfileState & state);
+    void add(const std::shared_ptr<ActivityProfileState> & state);
 
-    virtual unique_ptr<vector<ActivityProfileState>> processState(ActivityProfileState & justAddedState);
+    virtual vector<std::shared_ptr<ActivityProfileState>> * processState(const std::shared_ptr<ActivityProfileState> & justAddedState);
 
     int getEnd();
 
@@ -121,6 +121,8 @@ public:
     optional<std::shared_ptr<AssemblyRegion>> popReadyAssemblyRegion(int assemblyRegionExtension, int minRegionSize, int maxRegionSize, bool forceConversion);
 
     virtual int getMaxProbPropagationDistance() = 0;
+
+    void clear();
 
 
 };

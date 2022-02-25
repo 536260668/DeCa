@@ -6,16 +6,18 @@
 #define MUTECT2CPP_MASTER_READPILEUP_H
 
 #include "samtools/SAMRecord.h"
+#include "pileRead.h"
+#include <list>
 
 class ReadPileup {
 private:
     int tid;
     int pos;
-    std::vector<std::shared_ptr<SAMRecord>> reads;
+    const std::list<pileRead*> &  reads;
 
 public:
-    ReadPileup(int tid, int pos, std::vector<std::shared_ptr<SAMRecord>>& reads);
-    std::vector<std::shared_ptr<SAMRecord>> getPileupElements();
+    ReadPileup(int tid, int pos, const std::list<pileRead*> & reads);
+    const std::list<pileRead*> & getPileupElements();
     int size() const {return reads.size();}
     int getPosition();
 };

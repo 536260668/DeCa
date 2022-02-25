@@ -6,6 +6,7 @@
 #define MUTECT2CPP_MASTER_SAMSEQUENCEDICTIONARY_H
 
 #include "SAMSequenceRecord.h"
+#include <unordered_map>
 #include <map>
 #include <vector>
 #include <list>
@@ -13,7 +14,7 @@
 class SAMSequenceDictionary {
 private:
     std::vector<SAMSequenceRecord> mSequences;
-    std::map<std::string, SAMSequenceRecord> mSequenceMap;
+    std::unordered_map<std::string, SAMSequenceRecord> mSequenceMap;
 
 public:
     SAMSequenceDictionary() = default;

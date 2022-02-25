@@ -20,7 +20,7 @@ PeUtils::PeUtils(SAMRecord *pe, int pos) : pos(pos), pe(pe), nCigarElements(&pe-
                 offset += length;
             }
             if(start > pos){
-                currentCigarElement = (*nCigarElements)[i];
+                currentCigarElement = &(*nCigarElements)[i];
                 Cigar_offset = i;
                 currentStart = (int)start - length;
                 offset -=length;
@@ -41,7 +41,7 @@ bool PeUtils::isBeforeSoftClip() {
 }
 
 bool PeUtils::isImmediatelyBefore(CigarOperator cigarOperator) {
-    if(pos == currentStart + currentCigarElement.getLength() - 1) {
+    if(pos == currentStart + currentCigarElement->getLength() - 1) {
         if(Cigar_offset < (*nCigarElements).size() - 1 && cigarOperator == (*nCigarElements)[Cigar_offset+1].getOperator())
             return true;
     }
@@ -49,10 +49,10 @@ bool PeUtils::isImmediatelyBefore(CigarOperator cigarOperator) {
 }
 
 bool PeUtils::isDeletion() {
-    return currentCigarElement.getOperator() == D;
+    return currentCigarElement->getOperator() == D;
 }
 
-CigarElement &PeUtils::getCurrentCigarElement() {
+CigarElement* PeUtils::getCurrentCigarElement() {
     return currentCigarElement;
 }
 
@@ -73,25 +73,27 @@ bool PeUtils::isOnGenomeCigar(CigarOperator cigarOperator) {
 }
 
 int PeUtils::getLengthOfImmediatelyFollowingIndel() {
-    CigarElement element = getNextIndelCigarElement();
-    return element.getLength();
+    CigarElement* element = getNextIndelCigarElement();
+    return element ? element->getLength() : 0;
 }
 
-CigarElement PeUtils::getNextIndelCigarElement() {
+CigarElement* PeUtils::getNextIndelCigarElement() {
     if(isBeforeDeletionStart()) {
         CigarElement* element = getNextOnGenomeCigarElement();
         Mutect2Utils::validateArg(element && element->getOperator() == D, "Immediately before deletion but the next cigar element isn't a deletion");
-        return *element;
+        return element;
     } else if(isBeforeInsertion()) {
-        std::vector<CigarElement> elements = getBetweenNextPosition();
-        Mutect2Utils::validateArg(!elements.empty() && elements[0].getOperator() == I, "Immediately before insertion but the next cigar element isn't an insertion");
-        return elements[0];
+        std::vector<CigarElement*>* elements = getBetweenNextPosition();
+        CigarElement* res = (*elements)[0];
+        Mutect2Utils::validateArg(!elements->empty() && res->getOperator() == I, "Immediately before insertion but the next cigar element isn't an insertion");
+        delete elements;
+        return res;
     } else
-        return {0, D};
+        return nullptr;
 }
 
 bool PeUtils::isBeforeDeletionStart() {
-    if(currentCigarElement.getOperator() != D && currentStart + currentCigarElement.getLength() - 1 == pos
+    if(currentCigarElement->getOperator() != D && currentStart + currentCigarElement->getLength() - 1 == pos
     && Cigar_offset < (*nCigarElements).size()-1 && (*nCigarElements)[Cigar_offset+1].getOperator() == D)
         return true;
     else
@@ -124,7 +126,7 @@ bool PeUtils::isAfterSoftClip() {
 }
 
 uint8_t PeUtils::getBase() {
-    Mutect2Utils::validateArg(pos <= pe->getEnd(), "pos is not in read");
+    //Mutect2Utils::validateArg(pos <= pe->getEnd(), "pos is not in read");
     return pe->getBase(offset);
 }
 
@@ -132,26 +134,26 @@ CigarElement *PeUtils::getNextOnGenomeCigarElement() {
     return getNearestOnGenomeCigarElement(1);
 }
 
-std::vector<CigarElement> PeUtils::getBetweenNextPosition() {
-    return atEndOfCurrentCigar() ? getBetween(1) : std::vector<CigarElement>();
+std::vector<CigarElement*>* PeUtils::getBetweenNextPosition() {
+    return atEndOfCurrentCigar() ? getBetween(1) : new std::vector<CigarElement*>();
 }
 
 bool PeUtils::atEndOfCurrentCigar() {
-    return pos - currentStart + 1 == currentCigarElement.getLength();
+    return pos - currentStart + 1 == currentCigarElement->getLength();
 }
 
-std::vector<CigarElement> PeUtils::getBetween(int direction) {
-    std::vector<CigarElement> elements;
+std::vector<CigarElement*>* PeUtils::getBetween(int direction) {
+    std::vector<CigarElement*>* elements = new std::vector<CigarElement*>();
     for(int i = Cigar_offset + 1; i < nCigarElements->size(); i += direction) {
         if((*nCigarElements)[i].getOperator() == M || (*nCigarElements)[i].getOperator() == EQ || (*nCigarElements)[i].getOperator() == X || (*nCigarElements)[i].getOperator() == D)
         {
             break;
         } else {
-            elements.emplace_back((*nCigarElements)[i]);
+            elements->emplace_back(&(*nCigarElements)[i]);
         }
     }
     if(direction < 0) {
-        std::reverse(elements.begin(), elements.end());
+        std::reverse(elements->begin(), elements->end());
     }
     return elements;
 }

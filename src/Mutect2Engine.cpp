@@ -25,7 +25,7 @@ Mutect2Engine::Mutect2Engine(M2ArgumentCollection & MTAC, char * ref, SAMFileHea
 
 
 
-ActivityProfileState Mutect2Engine::isActive(AlignmentContext& context, ReferenceContext& ref)
+std::shared_ptr<ActivityProfileState> Mutect2Engine::isActive(AlignmentContext& context, ReferenceContext& ref)
 {
     hts_pos_t pos = context.getPosition();
 //    if(pos == 13272)
@@ -43,48 +43,48 @@ ActivityProfileState Mutect2Engine::isActive(AlignmentContext& context, Referenc
     ReadPileup tumorPileup = context.makeTumorPileup();
     // TODO: calculate the activeProb
 
-    std::vector<char> tumorAltQuals = altQuals(tumorPileup, refBase, 40);
-    double tumorLogOdds = logLikelihoodRatio(tumorPileup.size() - tumorAltQuals.size(), tumorAltQuals);
+    std::shared_ptr<std::vector<char>> tumorAltQuals = altQuals(tumorPileup, refBase, 40);
+    double tumorLogOdds = logLikelihoodRatio(tumorPileup.size() - tumorAltQuals->size(), tumorAltQuals);
 
     if(tumorLogOdds < M2ArgumentCollection::getInitialLogOdds()) {
-        return {refName.c_str(), pos, 0.0};
+        return std::make_shared<ActivityProfileState>(refName.c_str(), pos, 0.0);
     } else if (hasNormal() && !MATC.genotypeGermlineSites) {
         ReadPileup normalPileup = context.makeNormalPileup();
-        std::vector<char> normalAltQuals = altQuals(normalPileup, refBase, 40);
-        int normalAltCount = normalAltQuals.size();
+        std::shared_ptr<std::vector<char>> normalAltQuals = altQuals(normalPileup, refBase, 40);
+        int normalAltCount = normalAltQuals->size();
         double normalQualSum = 0.0;
-        for (char i : normalAltQuals) {
+        for (char i : *normalAltQuals) {
             normalQualSum += i;
         }
         if(normalAltCount > normalPileup.size() * 0.3 && normalQualSum > 100) {
-            return {refName.c_str(), pos, 0.0};
+            return std::make_shared<ActivityProfileState>(refName.c_str(), pos, 0.0);
         }
     }
-    return {refName.c_str(), pos, 1.0};
+    return std::make_shared<ActivityProfileState>(refName.c_str(), pos, 1.0);
 }
 
 // TODO: finish this method 2021.11.1
-std::vector<char> Mutect2Engine::altQuals(ReadPileup &pileup, char refBase, int pcrErrorQual)
+std::shared_ptr<std::vector<char>> Mutect2Engine::altQuals(ReadPileup &pileup, char refBase, int pcrErrorQual)
 {
-    std::vector<char> result;
+    std::shared_ptr<std::vector<char>> result = std::make_shared<std::vector<char>>(std::vector<char>());
     hts_pos_t pos = pileup.getPosition();
 
-    std::vector<std::shared_ptr<SAMRecord>>  pileupElements = pileup.getPileupElements();
+    const std::list<pileRead*>& pileupElements = pileup.getPileupElements();
 
-    for(const std::shared_ptr<SAMRecord>& read : pileupElements)
+    for(const pileRead* read : pileupElements)
     {
-        PeUtils pe(read.get(), pos);
+        PeUtils pe(read->read.get(), pos);
         int indelLength = getCurrentOrFollowingIndelLength(pe);
 
         if(indelLength > 0) {
-            result.emplace_back(indelQual(indelLength));
+            result->emplace_back(indelQual(indelLength));
         } else if (isNextToUsefulSoftClip(pe)) {
-            result.emplace_back(indelQual(1));
+            result->emplace_back(indelQual(1));
         } else if (pe.getBase() != refBase && pe.getQual() > 6){
 
-            int mateStart = (!read->isProperlyPaired() || read->mateIsUnmapped()) ? INT32_MAX : read->getMateStart();
-            bool overlapsMate = mateStart <= pos && pos < mateStart + read->getLength();
-            result.emplace_back(overlapsMate ? std::min(static_cast<int>(pe.getQual()), pcrErrorQual/2) : pe.getQual());
+            int mateStart = (!read->read->isProperlyPaired() || read->read->mateIsUnmapped()) ? INT32_MAX : read->read->getMateStart();
+            bool overlapsMate = mateStart <= pos && pos < mateStart + read->read->getLength();
+            result->emplace_back(overlapsMate ? std::min(static_cast<int>(pe.getQual()), pcrErrorQual/2) : pe.getQual());
         }
     }
     return result;
@@ -106,18 +106,18 @@ int Mutect2Engine::getCurrentOrFollowingIndelLength(PeUtils & pe) {
     return pe.isDeletion() ? pe.getCurrentCigarElement().getLength() : pe.getLengthOfImmediatelyFollowingIndel();
 }
 
-double Mutect2Engine::logLikelihoodRatio(int refCount, std::vector<char> &altQuals) {
+double Mutect2Engine::logLikelihoodRatio(int refCount, const std::shared_ptr<std::vector<char>> &altQuals) {
     return logLikelihoodRatio(refCount, altQuals, 1);
 }
 
-double Mutect2Engine::logLikelihoodRatio(int nRef, std::vector<char> &altQuals, int repeatFactor) {
-    int nAlt = repeatFactor * altQuals.size();
+double Mutect2Engine::logLikelihoodRatio(int nRef, const std::shared_ptr<std::vector<char>> &altQuals, int repeatFactor) {
+    int nAlt = repeatFactor * altQuals->size();
     int n = nRef + nAlt;
 
     double fTildeRatio = std::exp(MathUtils::digamma(nRef + 1) - MathUtils::digamma(nAlt + 1));
     double betaEntropy = MathUtils::log10ToLog(-MathUtils::log10Factorial(n+1) + MathUtils::log10Factorial(nAlt) + MathUtils::log10Factorial(nRef));
     double readSum = 0;
-    for(char qual : altQuals) {
+    for(char qual : *altQuals) {
         double epsilon = QualityUtils::qualToErrorProb(static_cast<uint8_t>(qual));
         double zBarAlt = (1 - epsilon) / (1 - epsilon + epsilon * fTildeRatio);
         double logEpsilon = NaturalLogUtils::qualToLogErrorProb(static_cast<uint8_t>(qual));

@@ -4,14 +4,16 @@
 
 #include "ReferenceContext.h"
 
-ReferenceContext::ReferenceContext(char *dataSource, SimpleInterval &interval) : dataSource(dataSource), interval(interval){
+#include <utility>
+
+ReferenceContext::ReferenceContext(char *dataSource, std::shared_ptr<SimpleInterval>  interval) : dataSource(dataSource), interval(std::move(interval)){
 
 }
 
 uint8_t ReferenceContext::getBase() {
-    return dataSource[interval.getStart()];
+    return dataSource[interval->getStart()];
 }
 
-SimpleInterval &ReferenceContext::getInterval() {
+const std::shared_ptr<SimpleInterval> & ReferenceContext::getInterval() {
     return interval;
 }

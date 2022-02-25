@@ -39,7 +39,8 @@ public:
     static bool alignmentAgreesWithHeader(SAMFileHeader* header, std::shared_ptr<SAMRecord> & read);
     static int getReferenceIndex(std::shared_ptr<SAMRecord> & read, SAMFileHeader* header);
     static bool hasWellDefinedFragmentSize(std::shared_ptr<SAMRecord> & read);
-    static int getAdaptorBoundary(std::shared_ptr<SAMRecord> & read);
+    static bool hasWellDefinedFragmentSize(SAMRecord * read);
+    static int getAdaptorBoundary(SAMRecord * read);
     static bool isBaseInsideAdaptor(std::shared_ptr<SAMRecord> & read, long basePos);
     static bool isInsideRead(std::shared_ptr<SAMRecord> & read, int referenceCoordinate);
 

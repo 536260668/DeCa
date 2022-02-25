@@ -98,7 +98,9 @@ int SAMRecord::getMateStart() {
 }
 
 bool SAMRecord::mateIsUnmapped() {
-    Mutect2Utils::validateArg(isPaired(), "Cannot get mate information for an unpaired read");
+    if(!isPaired()) {
+        throw std::invalid_argument("Cannot get mate information for an unpaired read");
+    }
 
     return getMateUnmappedFlag() || mMateReferenceName.empty() || mMateReferenceName == NO_ALIGNMENT_REFERENCE_NAME
     || mMateAlignmentStart == NO_ALIGNMENT_START;
@@ -165,7 +167,9 @@ int SAMRecord::getMappingQuality() const {
 }
 
 void SAMRecord::setMappingQuality(int mappingQuality) {
-    Mutect2Utils::validateArg(mappingQuality >= 0 && mappingQuality <= 255, "mapping quality must be >= 0 and <= 255");
+    if(!(mappingQuality >= 0 && mappingQuality <= 255)) {
+        throw std::invalid_argument("mapping quality must be >= 0 and <= 255");
+    }
     mMappingQuality = mappingQuality;
 }
 
@@ -179,7 +183,7 @@ std::shared_ptr<uint8_t[]>SAMRecord::getBases() {
     }
 }
 
-std::shared_ptr<uint8_t[]>SAMRecord::getBasesNoCopy() {
+std::shared_ptr<uint8_t[]> & SAMRecord::getBasesNoCopy() {
     return mReadBases;
 }
 
@@ -198,7 +202,7 @@ std::shared_ptr<uint8_t[]>SAMRecord::getBaseQualities() {
     }
 }
 
-std::shared_ptr<uint8_t[]>SAMRecord::getBaseQualitiesNoCopy() {
+std::shared_ptr<uint8_t[]> & SAMRecord::getBaseQualitiesNoCopy() {
     return mBaseQualities;
 }
 
@@ -215,12 +219,12 @@ void SAMRecord::setBaseQualities(std::shared_ptr<uint8_t[]>baseQualities, int le
     baseQualitiesLength = length;
 }
 
-std::shared_ptr<Cigar> SAMRecord::getCigar() {
+const std::shared_ptr<Cigar> & SAMRecord::getCigar() {
     //TODO:验证是否需要返回拷贝后的cigar
     return mCigar;
 }
 
-std::vector<CigarElement>& SAMRecord::getCigarElements() {
+std::vector<CigarElement> & SAMRecord::getCigarElements() {
     return mCigar->getCigarElements();
 }
 
@@ -257,19 +261,19 @@ void SAMRecord::setIsProperlyPaired(bool isProperlyPaired) {
 }
 
 SAMRecord::SAMRecord(std::shared_ptr<uint8_t[]>base, int baseLength, std::shared_ptr<uint8_t[]>baseQualities, int baseQualitiesLength,
-                     std::string &name) : mReadBases(base), baseLength(baseLength), mBaseQualities(baseQualities),baseQualitiesLength(baseQualitiesLength), mReadName(name){}
+                     std::string &name) : mReadBases(std::move(base)), baseLength(baseLength), mBaseQualities(std::move(baseQualities)),baseQualitiesLength(baseQualitiesLength), mReadName(name){}
 
 int SAMRecord::getStart() {
-    if(isUnmapped()) {
-        return ReadConstants::UNSET_POSITION;
-    }
+//    if(isUnmapped()) {
+//        return ReadConstants::UNSET_POSITION;
+//    }
     return mAlignmentStart;
 }
 
 int SAMRecord::getEnd() {
-    if(isUnmapped()) {
-        return ReadConstants::UNSET_POSITION;
-    }
+//    if(isUnmapped()) {
+//        return ReadConstants::UNSET_POSITION;
+//    }
 
     return mAlignmentEnd;
 }
@@ -493,7 +497,7 @@ SAMRecord::SAMRecord(bam1_t *read, SAMFileHeader* samFileHeader, bool load) {
         CigarOperator tmp_cigarOperator = CigarOperatorUtils::binaryToEnum((int) (res[i] & 0xf));
         nCigarElements.emplace_back(CigarElement(length, tmp_cigarOperator));
     }
-    mCigar = std::shared_ptr<Cigar>(new Cigar(nCigarElements));
+    mCigar = std::make_shared<Cigar>(nCigarElements);
     mFlags = read->core.flag;
     mMappingQuality = read->core.qual;
     mAlignmentStart = read->core.pos;
@@ -554,8 +558,7 @@ SAMRecord::~SAMRecord() {
 int SAMRecord::getAdaptorBoundary() {
     if(isCalAdaptorBoundary)
         return adaptorBoundary;
-    std::shared_ptr<SAMRecord> ptr(new SAMRecord(*this));
-    adaptorBoundary = ReadUtils::getAdaptorBoundary(ptr);
+    adaptorBoundary = ReadUtils::getAdaptorBoundary(this);
     isCalAdaptorBoundary = true;
     return adaptorBoundary;
 }

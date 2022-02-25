@@ -28,7 +28,7 @@ private:
      * into this assembly region.  May be empty, which says that no supporting states were
      * provided when this region was created.
      */
-     std::vector<ActivityProfileState> supportingStates;
+     std::vector<std::shared_ptr<ActivityProfileState>> supportingStates;
 
     /**
     * The raw span of this assembly region, not including the region extension
@@ -96,7 +96,7 @@ private:
     std::shared_ptr<uint8_t[]> getReference(ReferenceCache* referenceReader, int padding, SimpleInterval & genomeLoc, int & length);
 
 public:
-    AssemblyRegion(SimpleInterval const &activeRegionLoc, std::vector<ActivityProfileState> supportingStates, bool isActive, int extension, SAMFileHeader * header);
+    AssemblyRegion(SimpleInterval const &activeRegionLoc, const std::vector<std::shared_ptr<ActivityProfileState>> & supportingStates, bool isActive, int extension, SAMFileHeader * header);
 
     /**
      * Simple interface to create an assembly region that isActive without any profile state
@@ -209,7 +209,7 @@ public:
      * provided when this region was created.
      * The returned list is unmodifiable.
      */
-     std::vector<ActivityProfileState> getSupportingStates() {return supportingStates;}
+    std::vector<std::shared_ptr<ActivityProfileState>> getSupportingStates() {return supportingStates;}
 
     /**
     * Is this region equal to other, excluding any reads in either region in the comparison

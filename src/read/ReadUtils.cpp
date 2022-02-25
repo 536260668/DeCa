@@ -300,9 +300,9 @@ bool ReadUtils::alignmentAgreesWithHeader(SAMFileHeader *header, std::shared_ptr
 }
 
 int ReadUtils::getReferenceIndex(std::shared_ptr<SAMRecord> & read, SAMFileHeader *header) {
-    if(read->isUnmapped()) {
-        return SAMRecord::NO_ALIGNMENT_REFERENCE_INDEX;
-    }
+//    if(read->isUnmapped()) {
+//        return SAMRecord::NO_ALIGNMENT_REFERENCE_INDEX;
+//    }
     return header->getSequenceIndex(read->getContig());
 }
 
@@ -326,7 +326,27 @@ bool ReadUtils::hasWellDefinedFragmentSize(std::shared_ptr<SAMRecord> & read) {
     }
 }
 
-int ReadUtils::getAdaptorBoundary(std::shared_ptr<SAMRecord> & read) {
+bool ReadUtils::hasWellDefinedFragmentSize(SAMRecord * read) {
+    if(read->getFragmentLength() == 0) {
+        return false;
+    }
+    if( ! read->isPaired()) {
+        return false;
+    }
+    if(read->isUnmapped() || read->mateIsUnmapped()) {
+        return false;
+    }
+    if(read->isReverseStrand() == read->mateIsReverseStrand()) {
+        return false;
+    }
+    if(read->isReverseStrand()) {
+        return read->getEnd() > read->getMateStart();
+    } else {
+        return read->getStart() <= read->getMateStart() + read->getFragmentLength();
+    }
+}
+
+int ReadUtils::getAdaptorBoundary(SAMRecord * read) {
     if(!hasWellDefinedFragmentSize(read)) {
         return INT32_MIN;
     } else if (read->isReverseStrand()) {

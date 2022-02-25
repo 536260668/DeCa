@@ -105,13 +105,13 @@ CigarUtils::leftAlignCigarSequentially(std::shared_ptr<Cigar> & cigar, std::shar
     return result;
 }
 
-bool CigarUtils::isGood(std::shared_ptr<Cigar> c) {
+bool CigarUtils::isGood(const std::shared_ptr<Cigar> & c) {
     Mutect2Utils::validateArg(c.get(), "cigar is null");
 
     if(!c->isValid("", -1).empty()) {
         return false;
     }
-    std::vector<CigarElement> elems = c->getCigarElements();
+    std::vector<CigarElement>& elems = c->getCigarElements();
     if(hasConsecutiveIndels(elems)) {
         return false;
     }

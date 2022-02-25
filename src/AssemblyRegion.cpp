@@ -8,8 +8,8 @@
 #include "clipping/ReadClipper.h"
 
 AssemblyRegion::AssemblyRegion(SimpleInterval const &activeRegionLoc,
-                               std::vector<ActivityProfileState> supportingStates, const bool isActive,
-                               const int extension, SAMFileHeader * header) : activeRegionLoc(activeRegionLoc), supportingStates(std::move(supportingStates)), isActive(isActive),
+                               const std::vector<std::shared_ptr<ActivityProfileState>> & supportingStates, const bool isActive,
+                               const int extension, SAMFileHeader * header) : activeRegionLoc(activeRegionLoc), supportingStates(supportingStates), isActive(isActive),
                                extension(extension), header(header){
 
     std::string contig = activeRegionLoc.getContig();
@@ -43,10 +43,10 @@ SimpleInterval *AssemblyRegion::trimIntervalToContig(std::string& contig, const 
 void AssemblyRegion::checkStates(SimpleInterval &activeRegion) {
     if(!supportingStates.empty()) {
         Mutect2Utils::validateArg(supportingStates.size() == activeRegionLoc.size(), "Supporting states wasn't empty but it doesn't have exactly one state per bp in the active region.");
-        std::vector<ActivityProfileState>::iterator pr;
+        std::vector<std::shared_ptr<ActivityProfileState>>::iterator pr;
         for(pr = supportingStates.begin(); pr != supportingStates.end() - 1; pr++) {
-            Mutect2Utils::validateArg((pr+1)->getLoc().getStart() == pr->getLoc().getStart() + 1 &&
-                                              (pr+1)->getLoc().getContig() == pr->getLoc().getContig(),
+            Mutect2Utils::validateArg((*(pr+1))->getLoc().getStart() == (*pr)->getLoc().getStart() + 1 &&
+                                              (*(pr+1))->getLoc().getContig() == (*pr)->getLoc().getContig(),
                                           "Supporting state has an invalid sequence");
         }
     }
@@ -91,7 +91,7 @@ AssemblyRegion *AssemblyRegion::trim(SimpleInterval *span, SimpleInterval *exten
     int requiredOnLeft = std::max(subActive->getStart() - extendedSpan->getStart(), 0);
     int requiredExtension = std::min(std::max(requiredOnLeft, requiredOnRight), getExtension());
 
-    AssemblyRegion* result = new AssemblyRegion(subActive, std::vector<ActivityProfileState>(), isActive, requiredExtension, header);
+    AssemblyRegion* result = new AssemblyRegion(subActive, std::vector<std::shared_ptr<ActivityProfileState>>(), isActive, requiredExtension, header);
     std::vector<std::shared_ptr<SAMRecord>>  myReads = getReads();
     SimpleInterval resultExtendedLoc = result->getExtendedSpan();
     int resultExtendedLocStart = resultExtendedLoc.getStart();

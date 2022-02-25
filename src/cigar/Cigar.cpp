@@ -53,7 +53,7 @@ int Cigar::getPaddedReferenceLength() {
     return length;
 }
 
-int Cigar::getReadLength(std::vector<CigarElement> & cigarElements) {
+int Cigar::getReadLength(const std::vector<CigarElement> & cigarElements) {
     int length = 0;
     for(CigarElement e : cigarElements) {
         if(CigarOperatorUtils::getConsumesReadBases(e.getOperator())) {

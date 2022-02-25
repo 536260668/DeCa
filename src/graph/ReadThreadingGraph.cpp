@@ -68,11 +68,10 @@ std::vector<Kmer> ReadThreadingGraph::determineNonUniqueKmers(SequenceForKmers &
     std::vector<Kmer> nonUniqueKmers;
     const int stopPosition = sequenceForKmers.stop - kmerSize;
     for(int i = 0; i <= stopPosition; i++) {
-        Kmer* kmer = new Kmer(sequenceForKmers.sequence, i, kmerSize);
-        if(!allKmers.insert(*kmer).second) {
-            nonUniqueKmers.push_back(*kmer);
+        Kmer kmer(sequenceForKmers.sequence, i, kmerSize);
+        if(!allKmers.insert(kmer).second) {
+            nonUniqueKmers.push_back(kmer);
         }
-        delete kmer;
     }
     return nonUniqueKmers;
 }
@@ -120,7 +119,7 @@ std::unordered_set<Kmer, hash_kmer, equal_kmer> ReadThreadingGraph::determineKme
 }
 
 std::shared_ptr<MultiDeBruijnVertex> ReadThreadingGraph::createVertex(Kmer & kmer) {
-    std::shared_ptr<MultiDeBruijnVertex> newVertex(new MultiDeBruijnVertex(kmer.getBases(), kmer.getLength(), false));
+    std::shared_ptr<MultiDeBruijnVertex> newVertex = std::make_shared<MultiDeBruijnVertex>(kmer.getBases(), kmer.getLength(), false);
     unsigned prevSize = getVertexSet().size();
     addVertex(newVertex);
     if(getVertexSet().size() != prevSize + 1)
@@ -325,33 +324,6 @@ void ReadThreadingGraph::buildGraphIfNecessary() {
 void ReadThreadingGraph::setThreadingStartOnlyAtExistingVertex(bool value) {
     startThreadingOnlyAtExistingVertex = value;
 }
-
-//void ReadThreadingGraph::setPending() {
-//    pending.clear();
-//    uint8_t* byte997137 = new uint8_t[99]{67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84};
-//    SequenceForKmers sequenceForKmers7135 = {.name = "HWI-ST729_110151799:2:41:9503:140222_0_99", .sequence = byte997137, .start = 0, .stop = 99, .count = 1, .isRef = false};
-//    std::vector<SequenceForKmers> v3;
-//    v3.emplace_back(sequenceForKmers7135);
-//    std::string key1491293244 = "H_LS-E2-A15C-01A-31D-A12B-09";
-//
-//    uint8_t* byte1007126 = new uint8_t[100]{67, 84, 65, 65, 67, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67};
-//    SequenceForKmers sequenceForKmers7123 = {.name = "HWI-ST729_110151799:3:66:3953:197183_0_100", .sequence = byte1007126, .start = 0, .stop = 100, .count = 1, .isRef = false};
-//    uint8_t* byte907131 = new uint8_t[90]{65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 67, 67, 65};
-//    SequenceForKmers sequenceForKmers7124 = {.name = "HWI-ST729_110151799:3:64:7208:158288_0_90", .sequence = byte907131, .start = 0, .stop = 90, .count = 1, .isRef = false};
-//    std::vector<SequenceForKmers> v2;
-//    v2.emplace_back(sequenceForKmers7123);
-//    v2.emplace_back(sequenceForKmers7124);
-//    std::string key1617703971 = "H_LS-E2-A15C-10A-01D-A12B-09";
-//
-//    uint8_t* byte2867095 = new uint8_t[286]{67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 65, 67, 67, 67, 84, 65, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67, 67, 84, 65, 65, 67, 67};
-//    SequenceForKmers sequenceForKmers7094 = {.name = "ref", .sequence = byte2867095, .start = 0, .stop = 286, .count = 1, .isRef = true};
-//    std::vector<SequenceForKmers> v1;
-//    v1.emplace_back(sequenceForKmers7094);
-//    std::string key769618002 = "XXX_UNNAMED_XXX";
-//    pending.insert(std::pair<std::string, std::vector<SequenceForKmers>>(key1617703971, v2));
-//    pending.insert(std::pair<std::string, std::vector<SequenceForKmers>>(key769618002, v3));
-//    pending.insert(std::pair<std::string, std::vector<SequenceForKmers>>(key1491293244, v1));
-//}
 
 bool ReadThreadingGraph::removeVertex(const std::shared_ptr<MultiDeBruijnVertex> & V) {
     std::shared_ptr<uint8_t[]> sequence(new uint8_t[V->getLength()]);
@@ -787,7 +759,7 @@ bool ReadThreadingGraph::extendDanglingPathAgainstReference(DanglingChainMergeHe
     return true;
 }
 
-std::shared_ptr<MultiSampleEdge> ReadThreadingGraph::createEdge(std::shared_ptr<MultiDeBruijnVertex>, std::shared_ptr<MultiDeBruijnVertex> ) {
+std::shared_ptr<MultiSampleEdge> ReadThreadingGraph::createEdge(const std::shared_ptr<MultiDeBruijnVertex>&, const std::shared_ptr<MultiDeBruijnVertex>& ) {
     return std::shared_ptr<MultiSampleEdge>(new MultiSampleEdge(false, 1, numPruningSamples));
 }
 

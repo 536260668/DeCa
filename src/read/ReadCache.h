@@ -14,6 +14,8 @@
 #include "ReadFilter.h"
 #include "AssemblyRegion.h"
 #include "transfer/PalindromeArtifactClipReadTransformer.h"
+#include "pileRead.h"
+
 
 typedef struct {     // auxiliary data structure
     samFile *fp;     // the file handle
@@ -24,14 +26,19 @@ typedef struct {     // auxiliary data structure
     SAMFileHeader * header;
 } aux_t;
 
+
+class AlignmentContext;
+
 class ReadCache {
 private:
-    std::queue<std::shared_ptr<SAMRecord>> tumorReads;
-    std::queue<std::shared_ptr<SAMRecord>> normalReads;
+    std::queue<pileRead*> tumorReads;
+    std::queue<pileRead*> normalReads;
     std::list<std::shared_ptr<SAMRecord>> tumorReadsForRegion;
     std::list<std::shared_ptr<SAMRecord>> normalReadsForRegion;
-    std::list<std::shared_ptr<SAMRecord>> tumorReadsForAlignment;
-    std::list<std::shared_ptr<SAMRecord>> normalReadsForAlignment;
+    std::list<pileRead*> tumorReadsForAlignment;
+    std::list<pileRead*> normalReadsForAlignment;
+    std::list<pileRead*> tumorCache;
+    std::list<pileRead*> normalCache;
     std::vector<char*> bam_name;
     aux_t ** data;
     int tid;
@@ -48,8 +55,11 @@ public:
     ReadCache(aux_t** data, std::vector<char*> & bam_name, int tid, const std::string&, std::shared_ptr<ReferenceCache> & cache);
     int getNextPos();
     bool hasNextPos();
+    void InsertPileToAlignment(pileRead* stopPos, std::list<pileRead*> &);
+    bool InsertPileToCache(pileRead* stopPos, std::list<pileRead*> & toAdd);
     AlignmentContext getAlignmentContext();
     std::vector<std::shared_ptr<SAMRecord>> getReadsForRegion(AssemblyRegion & region);
+    static pileRead * getpileRead(const std::shared_ptr<SAMRecord> & read);
     ~ReadCache();
 };
 

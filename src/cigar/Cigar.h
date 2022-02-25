@@ -27,7 +27,7 @@ public:
     int getReferenceLength();
     int getPaddedReferenceLength();
     int getReadLength();
-    static int getReadLength(std::vector<CigarElement> & cigarElements);
+    static int getReadLength(const std::vector<CigarElement> & cigarElements);
     static Cigar* fromCigarOperators(std::vector<CigarElement> & cigarElements);
     bool isLeftClipped();
     bool isRightClipped();

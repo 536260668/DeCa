@@ -14,7 +14,7 @@ public:
     static std::shared_ptr<Cigar> calculateCigar(std::shared_ptr<uint8_t[]> refSeq, int refLength, std::shared_ptr<uint8_t[]> altSeq, int altLength);
     static const SWParameters NEW_SW_PARAMETERS;
     static std::shared_ptr<Cigar> leftAlignCigarSequentially(std::shared_ptr<Cigar> & cigar, std::shared_ptr<uint8_t[]> refSeq, int refLength, std::shared_ptr<uint8_t[]> readSeq, int readLength, int refIndex, int readIndex);
-    static bool isGood(std::shared_ptr<Cigar> c);
+    static bool isGood(const std::shared_ptr<Cigar> & c);
     static bool containsNOperator(std::vector<CigarElement> cigarElements);
 
 private:
