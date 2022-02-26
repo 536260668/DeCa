@@ -19,7 +19,7 @@ bool ReadFilter::GoodCigarTest(std::shared_ptr<SAMRecord> & originalRead) {
 
 
 bool ReadFilter::NonZeroReferenceLengthAlignmentTest(std::shared_ptr<SAMRecord> & originalRead) {
-    for(CigarElement element : originalRead->getCigarElements()) {
+    for(const CigarElement& element : originalRead->getCigarElements()) {
         if(CigarOperatorUtils::getConsumesReferenceBases(element.getOperator()) && element.getLength() > 0) {
             return true;
         }

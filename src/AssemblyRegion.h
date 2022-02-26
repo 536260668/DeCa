@@ -96,7 +96,7 @@ private:
     std::shared_ptr<uint8_t[]> getReference(ReferenceCache* referenceReader, int padding, SimpleInterval & genomeLoc, int & length);
 
 public:
-    AssemblyRegion(SimpleInterval const &activeRegionLoc, const std::vector<std::shared_ptr<ActivityProfileState>> & supportingStates, bool isActive, int extension, SAMFileHeader * header);
+    AssemblyRegion(SimpleInterval const &activeRegionLoc, std::vector<std::shared_ptr<ActivityProfileState>>  supportingStates, bool isActive, int extension, SAMFileHeader * header);
 
     /**
      * Simple interface to create an assembly region that isActive without any profile state

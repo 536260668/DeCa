@@ -9,7 +9,8 @@ PeUtils::PeUtils(SAMRecord *pe, int pos) : pos(pos), pe(pe), nCigarElements(&pe-
     bool flag = false;
     offset = 0;
     int start = pe->getStart();
-    for(int i = 0; i < nCigarElements->size(); i++) {
+    int size = nCigarElements->size();
+    for(int i = 0; i < size; i++) {
         int length = (*nCigarElements)[i].getLength();
         CigarOperator tmp_cigarOperator = (*nCigarElements)[i].getOperator();
         if(!flag) {
@@ -80,12 +81,12 @@ int PeUtils::getLengthOfImmediatelyFollowingIndel() {
 CigarElement* PeUtils::getNextIndelCigarElement() {
     if(isBeforeDeletionStart()) {
         CigarElement* element = getNextOnGenomeCigarElement();
-        Mutect2Utils::validateArg(element && element->getOperator() == D, "Immediately before deletion but the next cigar element isn't a deletion");
+        //Mutect2Utils::validateArg(element && element->getOperator() == D, "Immediately before deletion but the next cigar element isn't a deletion");
         return element;
     } else if(isBeforeInsertion()) {
         std::vector<CigarElement*>* elements = getBetweenNextPosition();
         CigarElement* res = (*elements)[0];
-        Mutect2Utils::validateArg(!elements->empty() && res->getOperator() == I, "Immediately before insertion but the next cigar element isn't an insertion");
+        //Mutect2Utils::validateArg(!elements->empty() && res->getOperator() == I, "Immediately before insertion but the next cigar element isn't an insertion");
         delete elements;
         return res;
     } else

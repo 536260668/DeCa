@@ -74,13 +74,13 @@ public:
     void setMappingQuality(int mappingQuality);
     std::shared_ptr<uint8_t[]> getBases();
     std::shared_ptr<uint8_t[]> & getBasesNoCopy();
-    uint8_t getBase(const int i) {return getBasesNoCopy().get()[i];}
+    uint8_t getBase(const int i) {return mReadBases[i];}
     int getLength();
     void setBases(std::shared_ptr<uint8_t[]>bases, int length);
     std::shared_ptr<uint8_t[]> getBaseQualities();
     std::shared_ptr<uint8_t[]> & getBaseQualitiesNoCopy();
     int getBaseQualitiesLength();
-    uint8_t getBaseQuality(const int i) {return getBaseQualitiesNoCopy().get()[i];}
+    uint8_t getBaseQuality(const int i) {return mBaseQualities[i];}
     void setBaseQualities(std::shared_ptr<uint8_t[]> baseQualities, int length);
     const std::shared_ptr<Cigar> & getCigar();
     std::vector<CigarElement>& getCigarElements();

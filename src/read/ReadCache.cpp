@@ -11,7 +11,7 @@ ReadCache::ReadCache(aux_t **data, std::vector<char*> & bam_name, std::shared_pt
                                                                     readTransformer(cache, data[0]->header, 5){
     bam1_t * b;
     b = bam_init1();
-    std::string region = data[0]->header->getSequenceDictionary().getSequences()[0].getSequenceName();
+    std::string& region = data[0]->header->getSequenceDictionary().getSequences()[0].getSequenceName();
     for(int i = 0; i < bam_name.size(); i++){
         int result;
         int count = 0;
@@ -53,7 +53,7 @@ ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, const
             throw std::invalid_argument("random alignment retrieval only works for indexed BAM or CRAM files.");
         hts_itr_t* iter = sam_itr_querys(idx, data[i]->hdr, region.c_str());
         while((result = sam_itr_next(data[i]->fp, iter, b)) >= 0) {
-            std::shared_ptr<SAMRecord> read(new SAMRecord(b, data[i]->header));
+            std::shared_ptr<SAMRecord> read = std::make_shared<SAMRecord>(b, data[i]->header);
             read = readTransformer.apply(read);
             if(ReadFilter::test(read, data[i]->header)) {
                 if(i == 0) {
@@ -70,7 +70,7 @@ ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, const
     }
     bam_destroy1(b);
     hts_idx_destroy(idx);
-    int i = region.find_last_of(':') + 1;
+    unsigned i = region.find_last_of(':') + 1;
     start = end = 0;
     while(region[i] >= '0' && region[i] <= '9') {
         start = start * 10 + region[i] - '0';
@@ -227,7 +227,7 @@ AlignmentContext ReadCache::getAlignmentContext() {
 
 std::vector<std::shared_ptr<SAMRecord>> ReadCache::getReadsForRegion(AssemblyRegion & region) {
     std::vector<std::shared_ptr<SAMRecord>> ret;
-    SimpleInterval loc = region.getExtendedSpan();
+    SimpleInterval& loc = region.getExtendedSpan();
     std::list<std::shared_ptr<SAMRecord>>::iterator iter = tumorReadsForRegion.begin();
     while(iter != tumorReadsForRegion.end()) {
         SimpleInterval readLoc = (*iter)->getLoc();

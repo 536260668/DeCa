@@ -103,7 +103,7 @@ bool Mutect2Engine::isNextToUsefulSoftClip(PeUtils & pe) {
 }
 
 int Mutect2Engine::getCurrentOrFollowingIndelLength(PeUtils & pe) {
-    return pe.isDeletion() ? pe.getCurrentCigarElement().getLength() : pe.getLengthOfImmediatelyFollowingIndel();
+    return pe.isDeletion() ? pe.getCurrentCigarElement()->getLength() : pe.getLengthOfImmediatelyFollowingIndel();
 }
 
 double Mutect2Engine::logLikelihoodRatio(int refCount, const std::shared_ptr<std::vector<char>> &altQuals) {
@@ -148,10 +148,9 @@ Mutect2Engine::callRegion(std::shared_ptr<AssemblyRegion> originalAssemblyRegion
     if(originalAssemblyRegion->getReads().size() == 0)
         return {};
     std::shared_ptr<AssemblyResultSet> untrimmedAssemblyResult = AssemblyBasedCallerUtils::assembleReads(std::move(originalAssemblyRegion), MATC, header, refCache, assemblyEngine);
-    return {};
-    //std::set<std::shared_ptr<VariantContext>, VariantContextComparator> & allVariationEvents = untrimmedAssemblyResult->getVariationEvents(1);
-    //std::shared_ptr<AssemblyRegionTrimmer_Result> trimmingResult = trimmer.trim(originalAssemblyRegion, allVariationEvents);
-    //return  {allVariationEvents.begin(), allVariationEvents.end()};
+    std::set<std::shared_ptr<VariantContext>, VariantContextComparator> & allVariationEvents = untrimmedAssemblyResult->getVariationEvents(1);
+    std::shared_ptr<AssemblyRegionTrimmer_Result> trimmingResult = trimmer.trim(originalAssemblyRegion, allVariationEvents);
+    return  {allVariationEvents.begin(), allVariationEvents.end()};
 }
 
 void Mutect2Engine::removeUnmarkedDuplicates(const std::shared_ptr<AssemblyRegion>& assemblyRegion) {

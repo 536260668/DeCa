@@ -9,7 +9,7 @@
 
 const SWParameters  CigarUtils::NEW_SW_PARAMETERS = SWParameters(200, -150, -260, -11);
 
-std::shared_ptr<Cigar> CigarUtils::calculateCigar(std::shared_ptr<uint8_t[]> refSeq, int refLength, std::shared_ptr<uint8_t[]> altSeq, int altLength) {
+std::shared_ptr<Cigar> CigarUtils::calculateCigar(const std::shared_ptr<uint8_t[]>& refSeq, int refLength, const std::shared_ptr<uint8_t[]>& altSeq, int altLength) {
     Mutect2Utils::validateArg(refSeq.get(), "refSeq");
     Mutect2Utils::validateArg(altSeq.get(), "altSeq");
     if(altLength == 0) {
@@ -63,15 +63,16 @@ bool CigarUtils::isSWFailure(SmithWatermanAlignment *alignment) {
     if(alignment->getAlignmentOffset() > 0) {
         return true;
     }
-    for(CigarElement ce : alignment->getCigar()->getCigarElements()) {
+    for(const CigarElement & ce : alignment->getCigar()->getCigarElements()) {
         if(ce.getOperator() == S)
             return true;
     }
+    //std::any_of(alignment->getCigar()->getCigarElements().begin(), alignment->getCigar()->getCigarElements().end(), [] (CigarElement& ce) {ce.getOperator() == S; return true;});
     return false;
 }
 
 std::shared_ptr<Cigar>
-CigarUtils::leftAlignCigarSequentially(std::shared_ptr<Cigar> & cigar, std::shared_ptr<uint8_t[]> refSeq, int refLength, std::shared_ptr<uint8_t[]> readSeq, int readLength,
+CigarUtils::leftAlignCigarSequentially(std::shared_ptr<Cigar> & cigar, const std::shared_ptr<uint8_t[]>& refSeq, int refLength, const std::shared_ptr<uint8_t[]>& readSeq, int readLength,
                                        int refIndex, int readIndex) {
     Mutect2Utils::validateArg(cigar.get(), "cigar null");
     Mutect2Utils::validateArg(refSeq.get(), "refSeq null");
@@ -119,8 +120,10 @@ bool CigarUtils::isGood(const std::shared_ptr<Cigar> & c) {
         return false;
     }
     std::vector<CigarElement> elemsRev;
-    for(int i = elems.size() - 1; i >= 0; i--) {
-        elemsRev.emplace_back(elems[i]);
+    unsigned size = elems.size();
+    elemsRev.reserve(size);
+    for(unsigned i = 0; i < size; i++) {
+        elemsRev.emplace_back(elems[size -1 -i]);
     }
     return !startsWithDeletionIgnoringClips(elemsRev);
 }
@@ -138,7 +141,7 @@ bool CigarUtils::hasConsecutiveIndels(std::vector<CigarElement> &elems) {
     return false;
 }
 
-bool CigarUtils::startsWithDeletionIgnoringClips(std::vector<CigarElement> &elems) {
+bool CigarUtils::startsWithDeletionIgnoringClips(const std::vector<CigarElement> &elems) {
     bool isClip = true;
     CigarOperator op;
     int i = 0;

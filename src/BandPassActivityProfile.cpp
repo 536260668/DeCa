@@ -12,6 +12,10 @@ BandPassActivityProfile::BandPassActivityProfile(int maxProbPropagationDistance,
     std::vector<double> * fullKernel = makeKernel(maxFilterSize, sigma);
     filterSize = adaptiveFilterSize ? determineFilterSize(fullKernel, MIN_PROB_TO_KEEP_IN_FILTER) : maxFilterSize;
     gaussianKernel = makeKernel(filterSize, sigma);
+    negativeState = new std::vector<std::shared_ptr<ActivityProfileState>>();
+    negativeState->reserve(1);
+    activateState = new std::vector<std::shared_ptr<ActivityProfileState>>();
+    activateState->reserve(filterSize*2 + 1);
     delete fullKernel;
 }
 
@@ -46,7 +50,6 @@ int BandPassActivityProfile::determineFilterSize(std::vector<double> * kernel, d
 
 vector<std::shared_ptr<ActivityProfileState>> * BandPassActivityProfile::processState(const std::shared_ptr<ActivityProfileState> & justAddedState)
 {
-    vector<std::shared_ptr<ActivityProfileState>> * states = new vector<std::shared_ptr<ActivityProfileState>>();
 
     double activeProb = justAddedState->isActiveProb();
 
@@ -59,13 +62,15 @@ vector<std::shared_ptr<ActivityProfileState>> * BandPassActivityProfile::process
             {
                 double newProb = activeProb * gaussianKernel->operator[](i + filterSize);
                 const std::shared_ptr<ActivityProfileState> profile = std::make_shared<ActivityProfileState>(loc.value(), newProb);
-                states->emplace_back(profile);
+                activateState->emplace_back(profile);
+
             }
         }
+        return activateState;
     } else{
-        states->emplace_back(justAddedState);
+        negativeState->emplace_back(justAddedState);
+        return negativeState;
     }
-    return states;
 }
 
 int BandPassActivityProfile::getMaxProbPropagationDistance()

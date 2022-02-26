@@ -28,7 +28,7 @@ void AssemblyRegionTrimmer::checkUserArguments() {
     }
 }
 
-std::shared_ptr<AssemblyRegionTrimmer_Result> AssemblyRegionTrimmer::trim(std::shared_ptr<AssemblyRegion> originalRegion,
+std::shared_ptr<AssemblyRegionTrimmer_Result> AssemblyRegionTrimmer::trim(const std::shared_ptr<AssemblyRegion>& originalRegion,
                                                           std::set<std::shared_ptr<VariantContext>, VariantContextComparator> & allVariantsWithinExtendedRegion) {
     if(allVariantsWithinExtendedRegion.empty()) {
         return AssemblyRegionTrimmer_Result::noVariation(emitReferenceConfidence, originalRegion, assemblyArgs->snpPadding, usableExtension);

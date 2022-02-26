@@ -68,7 +68,7 @@ public:
     */
     int getOffset(Locatable *regionStartLoc);
 
-    SimpleInterval getLoc();
+    SimpleInterval& getLoc();
 
     friend std::ostream & operator<<(std::ostream & os, ActivityProfileState& activityProfileState);
 };

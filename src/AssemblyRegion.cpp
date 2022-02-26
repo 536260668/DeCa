@@ -4,12 +4,14 @@
 
 #include "assert.h"
 #include "AssemblyRegion.h"
+
+#include <utility>
 #include "IntervalUtils.h"
 #include "clipping/ReadClipper.h"
 
 AssemblyRegion::AssemblyRegion(SimpleInterval const &activeRegionLoc,
-                               const std::vector<std::shared_ptr<ActivityProfileState>> & supportingStates, const bool isActive,
-                               const int extension, SAMFileHeader * header) : activeRegionLoc(activeRegionLoc), supportingStates(supportingStates), isActive(isActive),
+                               std::vector<std::shared_ptr<ActivityProfileState>>  supportingStates, const bool isActive,
+                               const int extension, SAMFileHeader * header) : activeRegionLoc(activeRegionLoc), supportingStates(std::move(supportingStates)), isActive(isActive),
                                extension(extension), header(header){
 
     std::string contig = activeRegionLoc.getContig();
@@ -21,7 +23,7 @@ AssemblyRegion::AssemblyRegion(SimpleInterval const &activeRegionLoc,
 
     delete simpleInterval;
 
-    checkStates(this->activeRegionLoc);
+    //checkStates(this->activeRegionLoc);
 
 }
 

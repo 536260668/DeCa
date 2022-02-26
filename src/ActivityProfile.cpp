@@ -41,7 +41,7 @@ void ActivityProfile::add(const std::shared_ptr<ActivityProfileState> & state)
     for(const std::shared_ptr<ActivityProfileState> & processedState : *processedStates){
         incorporateSingleState(processedState);
     }
-    delete processedStates;
+    processedStates->clear();
 }
 
 vector<std::shared_ptr<ActivityProfileState>> * ActivityProfile::processState(const std::shared_ptr<ActivityProfileState> & justAddedState)
@@ -91,11 +91,11 @@ vector<std::shared_ptr<AssemblyRegion>> * ActivityProfile::popReadyAssemblyRegio
 
     while(true)
     {
-        optional<std::shared_ptr<AssemblyRegion>> ReadyAssemblyRegion = popReadyAssemblyRegion(assemblyRegionExtension, minRegionSize, maxRegionSize, forceConversion);
-        if(ReadyAssemblyRegion.has_value()){
+        std::shared_ptr<AssemblyRegion> ReadyAssemblyRegion = popReadyAssemblyRegion(assemblyRegionExtension, minRegionSize, maxRegionSize, forceConversion);
+        if(ReadyAssemblyRegion){
             // only active regions are added here
-            if(ReadyAssemblyRegion.value()->getIsActive())
-                regions->emplace_back(ReadyAssemblyRegion.value());
+            if(ReadyAssemblyRegion->getIsActive())
+                regions->emplace_back(ReadyAssemblyRegion);
             //cout << *ReadyAssemblyRegion.value();
         } else {
             return regions;
@@ -103,22 +103,28 @@ vector<std::shared_ptr<AssemblyRegion>> * ActivityProfile::popReadyAssemblyRegio
     }
 }
 
-optional<struct std::shared_ptr<AssemblyRegion>> ActivityProfile::popReadyAssemblyRegion(int assemblyRegionExtension, int minRegionSize, int maxRegionSize,
+std::shared_ptr<AssemblyRegion> ActivityProfile::popReadyAssemblyRegion(int assemblyRegionExtension, int minRegionSize, int maxRegionSize,
                                         bool forceConversion)
 {
     if(stateList.empty()){
-        return nullopt;
+        return nullptr;
     }
 
     std::shared_ptr<ActivityProfileState>& first = stateList[0];
     bool isActiveRegion = first->isActiveProb() > activeProbThreshold;
     int offsetOfNextRegionEnd = findEndOfRegion(isActiveRegion, minRegionSize, maxRegionSize, forceConversion);
     if(offsetOfNextRegionEnd == -1){
-        return nullopt;
+        return nullptr;
     }
 
-    vector<std::shared_ptr<ActivityProfileState>> sub = {stateList.begin(), stateList.begin() + offsetOfNextRegionEnd + 1};
-    stateList = {stateList.begin() + offsetOfNextRegionEnd + 1, stateList.end()};
+    vector<std::shared_ptr<ActivityProfileState>> sub;
+    sub.resize(offsetOfNextRegionEnd + 1);
+    std::copy(stateList.begin(), stateList.begin() + offsetOfNextRegionEnd + 1, sub.begin());
+    std::vector<std::shared_ptr<ActivityProfileState>> tmp;
+    tmp.resize(stateList.size() - offsetOfNextRegionEnd - 1);
+    std::copy(stateList.begin() + offsetOfNextRegionEnd + 1, stateList.end(), tmp.begin());
+    stateList.swap(tmp);
+    //stateList = {stateList.begin() + offsetOfNextRegionEnd + 1, stateList.end()};
 
     if(stateList.empty())
     {
@@ -133,7 +139,7 @@ optional<struct std::shared_ptr<AssemblyRegion>> ActivityProfile::popReadyAssemb
 
     SimpleInterval regionLoc = SimpleInterval(first->getLoc().getContig(), first->getLoc().getStart(), first->getLoc().getStart() + offsetOfNextRegionEnd);
 
-    return optional<std::shared_ptr<AssemblyRegion>>( new AssemblyRegion(regionLoc, sub, isActiveRegion, assemblyRegionExtension, header));
+    return std::make_shared<AssemblyRegion>(regionLoc, sub, isActiveRegion, assemblyRegionExtension, header);
 }
 
 int ActivityProfile::findEndOfRegion(bool isActiveRegion, int minRegionSize, int maxRegionSize, bool forceConversion)

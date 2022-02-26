@@ -40,7 +40,7 @@ int ActivityProfileState::getOffset(Locatable *regionStartLoc) {
     return loc.getStart() - regionStartLoc->getStart();
 }
 
-SimpleInterval ActivityProfileState::getLoc() {
+SimpleInterval& ActivityProfileState::getLoc() {
     return loc;
 }
 

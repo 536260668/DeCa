@@ -492,6 +492,7 @@ SAMRecord::SAMRecord(bam1_t *read, SAMFileHeader* samFileHeader, bool load) {
     uint32_t * res = bam_get_cigar(read);
     uint32_t n = read->core.n_cigar;
     std::vector<CigarElement> nCigarElements;
+    nCigarElements.reserve(n);
     for(int i = 0; i < n; i++) {
         int length = (int) (res[i] >> 4);
         CigarOperator tmp_cigarOperator = CigarOperatorUtils::binaryToEnum((int) (res[i] & 0xf));

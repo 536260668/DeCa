@@ -118,7 +118,7 @@ public:
      */
     vector<std::shared_ptr<AssemblyRegion>>* popReadyAssemblyRegions(int assemblyRegionExtension, int minRegionSize, int maxRegionSize, bool forceConversion);
 
-    optional<std::shared_ptr<AssemblyRegion>> popReadyAssemblyRegion(int assemblyRegionExtension, int minRegionSize, int maxRegionSize, bool forceConversion);
+    std::shared_ptr<AssemblyRegion> popReadyAssemblyRegion(int assemblyRegionExtension, int minRegionSize, int maxRegionSize, bool forceConversion);
 
     virtual int getMaxProbPropagationDistance() = 0;
 

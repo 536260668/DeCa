@@ -24,6 +24,9 @@ private:
 
     vector<double> * makeKernel(int filterSize, double sigma);
 
+    std::vector<std::shared_ptr<ActivityProfileState>> * activateState;
+    std::vector<std::shared_ptr<ActivityProfileState>> * negativeState;
+
     int determineFilterSize(vector<double> * kernel, double minProbToKeepInFilter);
 
 public:
