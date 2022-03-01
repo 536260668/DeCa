@@ -56,8 +56,8 @@ std::shared_ptr<AssemblyResult> ReadThreadingAssembler::cleanupSeqGraph(const st
 
 
 std::vector<std::shared_ptr<Haplotype>>
-ReadThreadingAssembler::findBestPaths(const std::list<std::shared_ptr<SeqGraph>>& graphs, std::shared_ptr<Haplotype>& refHaplotype, SimpleInterval *refLoc,
-                                      SimpleInterval *activeRegionWindow,
+ReadThreadingAssembler::findBestPaths(const std::list<std::shared_ptr<SeqGraph>>& graphs, std::shared_ptr<Haplotype>& refHaplotype, const std::shared_ptr<SimpleInterval> & refLoc,
+                                      const std::shared_ptr<SimpleInterval> &activeRegionWindow,
                                       const std::map<std::shared_ptr<SeqGraph>, std::shared_ptr<AssemblyResult>>& assemblyResultByGraph, std::shared_ptr<AssemblyResultSet>& assemblyResultSet) const {
     std::set<std::shared_ptr<Haplotype>, HaplotypeComp> returnHaplotypes;
     int activeRegionStart = refHaplotype->getAlignmentStartHapwrtRef();
@@ -93,12 +93,12 @@ ReadThreadingAssembler::findBestPaths(const std::list<std::shared_ptr<SeqGraph>>
 }
 
 std::shared_ptr<AssemblyResultSet> ReadThreadingAssembler::runLocalAssembly(const std::shared_ptr<AssemblyRegion>& assemblyRegion, std::shared_ptr<Haplotype> &refHaplotype,
-                                                                            const std::shared_ptr<uint8_t[]>& fullReferenceWithPadding, int refLength, SimpleInterval *refLoc,
+                                                                            const std::shared_ptr<uint8_t[]>& fullReferenceWithPadding, int refLength, const std::shared_ptr<SimpleInterval> &refLoc,
                                                             ReadErrorCorrector *readErrorCorrector) {
     Mutect2Utils::validateArg(assemblyRegion.get(), "Assembly engine cannot be used with a null AssemblyRegion.");
     Mutect2Utils::validateArg(refHaplotype.get(), "Active region must have an extended location.");
     Mutect2Utils::validateArg(fullReferenceWithPadding.get(), "fullReferenceWithPadding");
-    Mutect2Utils::validateArg(refLoc, "refLoc");
+    Mutect2Utils::validateArg(refLoc.get(), "refLoc");
     Mutect2Utils::validateArg(refLength == refLoc->size(), "Reference bases and reference loc must be the same size.");
 
     std::vector<std::shared_ptr<SAMRecord>> correctedReads;
@@ -114,8 +114,8 @@ std::shared_ptr<AssemblyResultSet> ReadThreadingAssembler::runLocalAssembly(cons
     resultSet->setRegionForGenotyping(assemblyRegion);
     resultSet->setFullReferenceWithPadding(fullReferenceWithPadding, refLength);
     resultSet->setPaddedReferenceLoc(refLoc);
-    SimpleInterval activeRegionExtendedLocation = assemblyRegion->getExtendedSpan();
-    refHaplotype->setGenomeLocation(&activeRegionExtendedLocation);
+    const std::shared_ptr<SimpleInterval> activeRegionExtendedLocation = assemblyRegion->getExtendedSpan();
+    refHaplotype->setGenomeLocation(activeRegionExtendedLocation);
     resultSet->add(refHaplotype);
     std::map<std::shared_ptr<SeqGraph>, std::shared_ptr<AssemblyResult>> assemblyResultByGraph;
     for(const std::shared_ptr<AssemblyResult>& result : assemble(correctedReads, refHaplotype)) {
@@ -125,7 +125,7 @@ std::shared_ptr<AssemblyResultSet> ReadThreadingAssembler::runLocalAssembly(cons
             nonRefGraphs.emplace_back(result->getGraph());
         }
     }
-    findBestPaths(nonRefGraphs, refHaplotype, refLoc, &activeRegionExtendedLocation, assemblyResultByGraph, resultSet);
+    findBestPaths(nonRefGraphs, refHaplotype, refLoc, activeRegionExtendedLocation, assemblyResultByGraph, resultSet);
     return resultSet;
 }
 
@@ -205,7 +205,7 @@ int ReadThreadingAssembler::arrayMaxInt(const std::vector<int>& array) {
 
 std::vector<std::shared_ptr<Haplotype>>
 ReadThreadingAssembler::findBestPaths(const std::vector<std::shared_ptr<SeqGraph>> &graphs, std::shared_ptr<Haplotype>& refHaplotype,
-                                      SimpleInterval *refLoc, SimpleInterval *activeRegionWindow,
+                                      const std::shared_ptr<SimpleInterval> &refLoc, const std::shared_ptr<SimpleInterval> &activeRegionWindow,
                                       const std::map<std::shared_ptr<SeqGraph>, std::shared_ptr<AssemblyResult>> &assemblyResultByGraph,
                                       std::shared_ptr<AssemblyResultSet> &assemblyResultSet) const {
     std::set<std::shared_ptr<Haplotype>, HaplotypeComp> returnHaplotypes;

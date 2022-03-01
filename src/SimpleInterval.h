@@ -115,7 +115,7 @@ public:
       * @return true if this interval overlaps other, otherwise false
       * @throws IllegalArgumentException if margin is negative
       */
-    bool overlapsWithMargin(Locatable *other, int margin) const;
+    bool overlapsWithMargin(const std::shared_ptr<Locatable> & other, int margin) const;
 
     /**
      * Determines whether this interval overlaps the provided locatable.
@@ -123,18 +123,18 @@ public:
      * @param other interval to check
      * @return true if this interval overlaps other, otherwise false
      */
-    bool overlaps(Locatable* other) override;
+    bool overlaps(const std::shared_ptr<Locatable> & other) override;
 
     /**
       * Returns the intersection of the two intervals. The intervals must overlap or IllegalArgumentException will be thrown.
      */
-    SimpleInterval* intersect(Locatable* other);
+    std::shared_ptr<SimpleInterval> intersect(const std::shared_ptr<Locatable> & other);
 
     /**
       * Returns a new SimpleInterval that represents the entire span of this and other.  Requires that
       * this and that SimpleInterval are contiguous.
       */
-    SimpleInterval* mergeWithContiguous(Locatable* other);
+    std::shared_ptr<SimpleInterval> mergeWithContiguous(const std::shared_ptr<Locatable> & other);
 
     /**
       * Returns a new SimpleInterval that represents the region between the endpoints of this and other.
@@ -144,7 +144,7 @@ public:
       * @param other the other interval with which to calculate the span
       * @return a new SimpleInterval that represents the region between the endpoints of this and other.
       */
-    SimpleInterval* spanWith(Locatable* other);
+    std::shared_ptr<SimpleInterval> spanWith(const std::shared_ptr<Locatable> & other);
 
     /**
       * Returns a new SimpleInterval that represents this interval as expanded by the specified amount in both
@@ -155,14 +155,14 @@ public:
       * @return a new SimpleInterval that represents this interval as expanded by the specified amount in both
       *         directions, bounded by the contig start/stop if necessary.
       */
-    SimpleInterval* expandWithinContig(int padding, int contigLength);
+    std::shared_ptr<SimpleInterval> expandWithinContig(int padding, int contigLength);
 
-    SimpleInterval* expandWithinContig(int padding, SAMSequenceDictionary* sequenceDictionary);
+    std::shared_ptr<SimpleInterval> expandWithinContig(int padding, SAMSequenceDictionary* sequenceDictionary);
 
     //TODO:SimpleInterval* expandWithinContig(int padding, SAMSequenceDictionary sequenceDictionary);
 
     friend std::ostream & operator<<(std::ostream &os, const SimpleInterval& simpleInterval);
 
-    SimpleInterval(Locatable *pLocatable);
+    SimpleInterval(const std::shared_ptr<Locatable> & pLocatable);
 };
 #endif //MUTECT2CPP_MASTER_SIMPLEINTERVAL_H

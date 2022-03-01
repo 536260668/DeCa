@@ -11,11 +11,12 @@
 #include "cigar/Cigar.h"
 #include "EventMap.h"
 
+
 class EventMap;
 
 class Haplotype : public Allele{
 private:
-    Locatable* genomeLocation;
+    std::shared_ptr<Locatable> genomeLocation;
     std::shared_ptr<Cigar> cigar;
     EventMap * eventMap;
     int alignmentStartHapwrtRef;
@@ -50,7 +51,7 @@ public:
     */
     Haplotype(std::shared_ptr<uint8_t> bases, bool isRef, int length, int alignmentStartHapwrtRef, std::shared_ptr<Cigar> & cigar);
 
-    Haplotype(std::shared_ptr<uint8_t> bases, int length, Locatable* loc);
+    Haplotype(std::shared_ptr<uint8_t> bases, int length, const std::shared_ptr<Locatable> & loc);
 
     /**
     * Set the cigar of this haplotype to cigar.
@@ -73,7 +74,7 @@ public:
     * @param loc a location completely contained within this Haplotype's location
     * @return a new Haplotype within only the bases spanning the provided location, or null for some reason the haplotype would be malformed if
     */
-     Haplotype* trim(Locatable* loc);
+     std::shared_ptr<Haplotype> trim(const std::shared_ptr<Locatable> & loc);
 
     /**
     * Get the cigar for this haplotype.  Note that the cigar is guaranteed to be consolidated
@@ -82,7 +83,7 @@ public:
     */
     std::shared_ptr<Cigar> getCigar();
 
-     void setGenomeLocation(Locatable* genomeLocation);
+     void setGenomeLocation(const std::shared_ptr<Locatable> & genomeLocation);
 
      void setScore(double score);
 
@@ -92,7 +93,7 @@ public:
 
     int getAlignmentStartHapwrtRef() const;
 
-     Locatable* getGenomeLocation() {return genomeLocation;}
+    const std::shared_ptr<Locatable> & getGenomeLocation() {return genomeLocation;}
 
      EventMap* getEventMap();
 

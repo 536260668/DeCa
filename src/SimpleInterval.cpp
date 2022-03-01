@@ -95,7 +95,7 @@ int SimpleInterval::hashCode() const{
     return result;
 }
 
-bool SimpleInterval::overlapsWithMargin(Locatable *other, const int margin) const {
+bool SimpleInterval::overlapsWithMargin(const std::shared_ptr<Locatable> & other, const int margin) const {
     Mutect2Utils::validateArg(margin >= 0, "Given margin is negative.");
     if( other == nullptr || other->getContig().empty())
         return false;
@@ -103,20 +103,20 @@ bool SimpleInterval::overlapsWithMargin(Locatable *other, const int margin) cons
         return (this->contig == other->getContig()) && this->start <= other->getEnd() + margin && other->getStart() - margin <= this->end;
 }
 
-bool SimpleInterval::overlaps(Locatable *other) {
+bool SimpleInterval::overlaps(const std::shared_ptr<Locatable> & other) {
     return overlapsWithMargin(other, 0);
 }
 
-SimpleInterval* SimpleInterval::intersect(Locatable *other) {
+std::shared_ptr<SimpleInterval> SimpleInterval::intersect(const std::shared_ptr<Locatable> & other) {
     Mutect2Utils::validateArg(overlaps(other), "SimpleInterval::intersect(): The two intervals need to overlap.");
-    SimpleInterval* ret = new SimpleInterval(getContig(), std::max(start, other->getStart()), std::min(end, other->getEnd()));
+    std::shared_ptr<SimpleInterval> ret = std::make_shared<SimpleInterval>(getContig(), std::max(start, other->getStart()), std::min(end, other->getEnd()));
     return ret;
 }
 
-SimpleInterval* SimpleInterval::mergeWithContiguous(Locatable* other){
+std::shared_ptr<SimpleInterval> SimpleInterval::mergeWithContiguous(const std::shared_ptr<Locatable> & other){
     Mutect2Utils::validateArg(other != nullptr, "Null object is not allowed here.");
-    Mutect2Utils::validateArg(contiguous(other), "The two intervals need to be contiguous.");
-    SimpleInterval* ret = new SimpleInterval(getContig(), std::min(start, other->getStart()), std::max(end, other->getEnd()));
+    Mutect2Utils::validateArg(contiguous(other.get()), "The two intervals need to be contiguous.");
+    std::shared_ptr<SimpleInterval> ret = std::make_shared<SimpleInterval>(getContig(), std::min(start, other->getStart()), std::max(end, other->getEnd()));
     return ret;
 }
 
@@ -125,14 +125,14 @@ bool SimpleInterval::contiguous(Locatable *other) {
     return contig == other->getContig() && start <= other->getEnd() + 1 && other->getStart() <= end + 1;
 }
 
-SimpleInterval* SimpleInterval::spanWith(Locatable *other) {
+std::shared_ptr<SimpleInterval> SimpleInterval::spanWith(const std::shared_ptr<Locatable> &other) {
     Mutect2Utils::validateArg(other != nullptr, "Null object is not allowed here.");
     Mutect2Utils::validateArg(contig == other->getContig(), "Cannot get span for intervals on different contigs.");
-    SimpleInterval* ret = new SimpleInterval(getContig(), std::min(start, other->getStart()), std::max(end, other->getEnd()));
+    std::shared_ptr<SimpleInterval> ret = std::make_shared<SimpleInterval>(getContig(), std::min(start, other->getStart()), std::max(end, other->getEnd()));
     return ret;
 }
 
-SimpleInterval* SimpleInterval::expandWithinContig(const int padding, const int contigLength) {
+std::shared_ptr<SimpleInterval> SimpleInterval::expandWithinContig(const int padding, const int contigLength) {
     if(padding < 0)
         throw std::invalid_argument("Padding must be >= 0.");
 
@@ -144,9 +144,9 @@ std::ostream & operator<<(std::ostream &os, const SimpleInterval& simpleInterval
     return os;
 }
 
-SimpleInterval::SimpleInterval(Locatable *pLocatable) : contig(pLocatable->getContig()), start(pLocatable->getStart()), end(pLocatable->getEnd()){}
+SimpleInterval::SimpleInterval(const std::shared_ptr<Locatable> & pLocatable) : contig(pLocatable->getContig()), start(pLocatable->getStart()), end(pLocatable->getEnd()){}
 
-SimpleInterval *SimpleInterval::expandWithinContig(int padding, SAMSequenceDictionary *sequenceDictionary) {
+std::shared_ptr<SimpleInterval> SimpleInterval::expandWithinContig(int padding, SAMSequenceDictionary *sequenceDictionary) {
     Mutect2Utils::validateArg(sequenceDictionary, "null is not allowed there");
     SAMSequenceRecord& contigRecord = sequenceDictionary->getSequence(contig);
     return expandWithinContig(padding, contigRecord.getSequenceLength());

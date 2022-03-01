@@ -227,16 +227,16 @@ AlignmentContext ReadCache::getAlignmentContext() {
 
 std::vector<std::shared_ptr<SAMRecord>> ReadCache::getReadsForRegion(AssemblyRegion & region) {
     std::vector<std::shared_ptr<SAMRecord>> ret;
-    SimpleInterval& loc = region.getExtendedSpan();
+    std::shared_ptr<SimpleInterval> loc = region.getExtendedSpan();
     std::list<std::shared_ptr<SAMRecord>>::iterator iter = tumorReadsForRegion.begin();
     while(iter != tumorReadsForRegion.end()) {
-        SimpleInterval readLoc = (*iter)->getLoc();
+        std::shared_ptr<SimpleInterval> readLoc = (*iter)->getLoc();
 
 
-        if((*iter)->getEndAfterFliter() < loc.getStart()) {
+        if((*iter)->getEndAfterFliter() < loc->getStart()) {
             tumorReadsForRegion.erase(iter++);
         } else {
-            if(loc.overlaps(&readLoc)) {
+            if(loc->overlaps(readLoc)) {
                 ret.emplace_back((*iter));
             }
             iter++;
@@ -245,13 +245,13 @@ std::vector<std::shared_ptr<SAMRecord>> ReadCache::getReadsForRegion(AssemblyReg
     }
     iter = normalReadsForRegion.begin();
     while(iter != normalReadsForRegion.end()) {
-        SimpleInterval readLoc = (*iter)->getLoc();
+        std::shared_ptr<SimpleInterval> readLoc = (*iter)->getLoc();
 
 
-        if((*iter)->getEndAfterFliter() < loc.getStart()) {
+        if((*iter)->getEndAfterFliter() < loc->getStart()) {
             normalReadsForRegion.erase(iter++);
         } else {
-            if(loc.overlaps(&readLoc)) {
+            if(loc->overlaps(readLoc)) {
                 ret.emplace_back((*iter));
             }
             iter++;

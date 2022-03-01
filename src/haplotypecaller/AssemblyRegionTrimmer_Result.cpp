@@ -4,44 +4,18 @@
 
 #include "AssemblyRegionTrimmer_Result.h"
 
+#include <utility>
+
 AssemblyRegionTrimmer_Result::AssemblyRegionTrimmer_Result(bool emitReferenceConfidence, bool needsTrimming,
-                                                           std::shared_ptr<AssemblyRegion> originalRegion, int padding, int extension,
+                                                           const std::shared_ptr<AssemblyRegion>& originalRegion, int padding, int extension,
                                                            std::vector<std::shared_ptr<VariantContext>> * overlappingEvents,
-                                                           std::pair<SimpleInterval* , SimpleInterval* > * nonVariantFlanks,
-                                                           SimpleInterval *extendedSpan, SimpleInterval *idealSpan,
-                                                           SimpleInterval *maximumSpan, SimpleInterval *callableSpan) : emitReferenceConfidence(emitReferenceConfidence), needsTrimming(needsTrimming), callableEvents(*overlappingEvents),padding(padding),
-                                                                                                                        usableExtension(extension)
+                                                           std::shared_ptr<std::pair<std::shared_ptr<SimpleInterval>, std::shared_ptr<SimpleInterval>>>  nonVariantFlanks,
+                                                           const std::shared_ptr<SimpleInterval>& extendedSpan, const std::shared_ptr<SimpleInterval>& idealSpan,
+                                                           const std::shared_ptr<SimpleInterval>& maximumSpan, const std::shared_ptr<SimpleInterval>& callableSpan) : emitReferenceConfidence(emitReferenceConfidence), needsTrimming(needsTrimming), callableEvents(*overlappingEvents),padding(padding),
+                                                                                                                        usableExtension(extension), nonVariantFlanks(std::move(nonVariantFlanks)), extendedSpan(extendedSpan), idealSpan(idealSpan), maximumSpan(maximumSpan), callableSpan(callableSpan),
+                                                                                                                        originalRegion(originalRegion)
                                                           {
     Mutect2Utils::validateArg(extendedSpan == nullptr || callableSpan == nullptr || extendedSpan->contains(callableSpan), "the extended callable span must include the callable span");
-    if(originalRegion != nullptr)
-        this->originalRegion = originalRegion;
-    else
-        this->originalRegion = nullptr;
-    if(nonVariantFlanks != nullptr){
-        this->nonVariantFlanks = new std::pair<SimpleInterval*, SimpleInterval*>();
-        if(nonVariantFlanks->first != nullptr)
-            this->nonVariantFlanks->first = new SimpleInterval(nonVariantFlanks->first);
-        if(nonVariantFlanks->second != nullptr)
-            this->nonVariantFlanks->second = new SimpleInterval(nonVariantFlanks->second);
-    }
-    else
-        this->nonVariantFlanks = nullptr;
-    if(extendedSpan != nullptr)
-        this->extendedSpan = new SimpleInterval(extendedSpan);
-    else
-        this->extendedSpan = nullptr;
-    if(idealSpan != nullptr)
-        this->idealSpan = new SimpleInterval(idealSpan);
-    else
-        this->idealSpan = nullptr;
-    if(maximumSpan != nullptr)
-        this->maximumSpan = new SimpleInterval(maximumSpan);
-    else
-        this->maximumSpan = nullptr;
-    if(callableSpan != nullptr)
-        this->callableSpan = new SimpleInterval(callableSpan);
-    else
-        this->callableSpan = nullptr;
 
 }
 
@@ -49,32 +23,25 @@ std::shared_ptr<AssemblyRegionTrimmer_Result>
 AssemblyRegionTrimmer_Result::noVariation(bool emitReferenceConfidence, std::shared_ptr<AssemblyRegion> targetRegion, int padding,
                                           int usableExtension) {
     std::vector<std::shared_ptr<VariantContext>> events;
-    std::pair<SimpleInterval* , SimpleInterval* > nonVariantFlanks = std::pair<SimpleInterval*, SimpleInterval*>(&targetRegion->getSpan(), nullptr);
+    std::shared_ptr<std::pair<std::shared_ptr<SimpleInterval>, std::shared_ptr<SimpleInterval>>> nonVariantFlanks = std::make_shared<std::pair<std::shared_ptr<SimpleInterval>, std::shared_ptr<SimpleInterval>>>(targetRegion->getSpan(), nullptr);
     std::shared_ptr<AssemblyRegionTrimmer_Result> result(new AssemblyRegionTrimmer_Result(emitReferenceConfidence, false, targetRegion, padding, usableExtension,
-                                                                            &events, &nonVariantFlanks,
+                                                                            &events, nonVariantFlanks,
                                                                             nullptr, nullptr, nullptr, nullptr));
     result->leftFlankRegion = targetRegion;
     return result;
 }
 
 std::shared_ptr<AssemblyRegionTrimmer_Result>
-AssemblyRegionTrimmer_Result::noTrimming(bool emitReferenceConfidence, std::shared_ptr<AssemblyRegion> targetRegion, int padding,
+AssemblyRegionTrimmer_Result::noTrimming(bool emitReferenceConfidence, const std::shared_ptr<AssemblyRegion>& targetRegion, int padding,
                                          int usableExtension, std::vector<std::shared_ptr<VariantContext>> *events) {
-    SimpleInterval& targetRegionLoc = targetRegion->getSpan();
-    std::pair<SimpleInterval* , SimpleInterval* > nonVariantFlanks = std::pair<SimpleInterval*, SimpleInterval*>(nullptr, nullptr);
-    std::shared_ptr<AssemblyRegionTrimmer_Result> result(new AssemblyRegionTrimmer_Result(emitReferenceConfidence, false, targetRegion, padding, usableExtension, events, &nonVariantFlanks, &targetRegionLoc, &targetRegionLoc, &targetRegionLoc, &targetRegionLoc));
+    std::shared_ptr<SimpleInterval> targetRegionLoc = targetRegion->getSpan();
+    std::shared_ptr<std::pair<std::shared_ptr<SimpleInterval>, std::shared_ptr<SimpleInterval>>> nonVariantFlanks = std::make_shared<std::pair<std::shared_ptr<SimpleInterval>, std::shared_ptr<SimpleInterval>>>(nullptr, nullptr);
+    std::shared_ptr<AssemblyRegionTrimmer_Result> result(new AssemblyRegionTrimmer_Result(emitReferenceConfidence, false, targetRegion, padding, usableExtension, events, nonVariantFlanks, targetRegionLoc, targetRegionLoc, targetRegionLoc, targetRegionLoc));
     result->callableRegion = targetRegion;
     return result;
 }
 
 AssemblyRegionTrimmer_Result::~AssemblyRegionTrimmer_Result() {
-    delete callableSpan;
-    delete maximumSpan;
-    delete extendedSpan;
-    delete idealSpan;
-    delete nonVariantFlanks->first;
-    delete nonVariantFlanks->second;
-    delete nonVariantFlanks;
 }
 
 bool AssemblyRegionTrimmer_Result::isVariationPresent() {
@@ -85,4 +52,8 @@ std::shared_ptr<AssemblyRegion> AssemblyRegionTrimmer_Result::getCallableRegion(
     if(callableRegion == nullptr && extendedSpan == nullptr) {
        // callableRegion = emitReferenceConfidence ? originalRegion
     }
+}
+
+bool AssemblyRegionTrimmer_Result::getNeedsTrimming() {
+    return needsTrimming;
 }

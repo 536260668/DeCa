@@ -43,7 +43,7 @@ add_subdirectory(./src/samtools)
 add_subdirectory(./src/param)
 add_subdirectory(./src/clipping)
 
-add_executable(Mutect2Cpp_master ${DIR_SRCS} src/engine/ReferenceContext.cpp src/engine/ReferenceContext.h src/engine/AlignmentContext.cpp src/engine/AlignmentContext.h src/transfer/PalindromeArtifactClipReadTransformer.cpp src/transfer/PalindromeArtifactClipReadTransformer.h src/pileRead.h)
+add_executable(Mutect2Cpp_master ${DIR_SRCS} src/engine/ReferenceContext.cpp src/engine/ReferenceContext.h src/engine/AlignmentContext.cpp src/engine/AlignmentContext.h src/transfer/PalindromeArtifactClipReadTransformer.cpp src/transfer/PalindromeArtifactClipReadTransformer.h src/pileRead.h src/collection/IndexedSet.h src/collection/IndexedAlleleList.h)
 
 
 # counterpart of gcc -L

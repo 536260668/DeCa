@@ -585,8 +585,8 @@ mReferenceName(other.mReferenceName), mMateReferenceName(other.mMateReferenceNam
     mCigar = std::shared_ptr<Cigar>(new Cigar(other.mCigar->getCigarElements()));
 }
 
-SimpleInterval SAMRecord::getLoc() {
-    return {mReferenceName, mAlignmentStart, mAlignmentEnd};
+std::shared_ptr<SimpleInterval> SAMRecord::getLoc() {
+    return std::make_shared<SimpleInterval>(mReferenceName, mAlignmentStart, mAlignmentEnd);
 }
 
 int SAMRecord::getEndAfterFliter() {

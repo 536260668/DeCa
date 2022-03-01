@@ -20,16 +20,16 @@ private:
     std::shared_ptr<Haplotype> haplotype;
     std::shared_ptr<uint8_t[]> ref;
     int refLength;
-    Locatable* refLoc;
+    const std::shared_ptr<Locatable> & refLoc;
     std::string sourceNameToAdd;
     std::map<int, std::shared_ptr<VariantContext>> variantMap;
 
 public:
     static const Allele* SYMBOLIC_UNASSEMBLED_EVENT_ALLELE;
-    EventMap(std::shared_ptr<Haplotype> haplotype, std::shared_ptr<uint8_t[]> ref, int refLength, Locatable* refLoc, std::string sourceNameToAdd, int maxMnpDistance);
+    EventMap(std::shared_ptr<Haplotype> haplotype, std::shared_ptr<uint8_t[]> ref, int refLength, const std::shared_ptr<Locatable> & refLoc, std::string sourceNameToAdd, int maxMnpDistance);
     void addVC(std::shared_ptr<VariantContext> vc, bool merge);
     bool empty();
-    static std::set<int> buildEventMapsForHaplotypes(std::vector<std::shared_ptr<Haplotype>> & haplotypes, std::shared_ptr<uint8_t[]> ref, int refLength, Locatable* refLoc, bool debug, int maxMnpDistance);
+    static std::set<int> buildEventMapsForHaplotypes(std::vector<std::shared_ptr<Haplotype>> & haplotypes, std::shared_ptr<uint8_t[]> ref, int refLength, const std::shared_ptr<Locatable> & refLoc, bool debug, int maxMnpDistance);
     std::set<int> getStartPositions();
     std::vector<std::shared_ptr<VariantContext>> getVariantContexts();
     static std::set<std::shared_ptr<VariantContext>, VariantContextComparator> getAllVariantContexts(std::vector<std::shared_ptr<Haplotype>> & haplotypes);

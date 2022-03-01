@@ -230,11 +230,11 @@ int main(int argc, char *argv[])
             std::shared_ptr<ActivityProfileState> profile = m2Engine.isActive(pileup, pileupRefContext);
             activityProfile->add(profile);
 
-            if(!pendingRegions.empty() && IntervalUtils::isAfter(pileup.getLocation(), pendingRegions.front()->getExtendedSpan(), header->getSequenceDictionary())) {
+            if(!pendingRegions.empty() && IntervalUtils::isAfter(pileup.getLocation(), *pendingRegions.front()->getExtendedSpan(), header->getSequenceDictionary())) {
                 count++;
 
                 std::shared_ptr<AssemblyRegion> nextRegion = pendingRegions.front();
-                if(count % 2000  == 0) {
+                if(count % 100  == 0) {
                     std::cout << *nextRegion;
                 }
                 pendingRegions.pop();

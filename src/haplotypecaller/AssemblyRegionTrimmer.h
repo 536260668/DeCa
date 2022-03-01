@@ -20,7 +20,7 @@ private:
 public:
     AssemblyRegionTrimmer(ReadThreadingAssemblerArgumentCollection* assemblyArgs, SAMSequenceDictionary* sequenceDictionary, bool isGGA, bool emitReferenceConfidence);
     std::shared_ptr<AssemblyRegionTrimmer_Result> trim(const std::shared_ptr<AssemblyRegion>& originalRegion, std::set<std::shared_ptr<VariantContext>, VariantContextComparator> & allVariantsWithinExtendedRegion);
-    std::pair<SimpleInterval*, SimpleInterval*> * nonVariantTargetRegions(std::shared_ptr<AssemblyRegion> targetRegion, SimpleInterval* variantSpan);
+    std::shared_ptr<std::pair<std::shared_ptr<SimpleInterval>, std::shared_ptr<SimpleInterval>>> nonVariantTargetRegions(std::shared_ptr<AssemblyRegion> targetRegion, std::shared_ptr<SimpleInterval> variantSpan);
 };
 
 

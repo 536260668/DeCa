@@ -26,7 +26,7 @@ public:
      * @param contigLength length of the contig
      * @return a valid interval over contig, or null if a meaningful interval cannot be created
      */
-    static SimpleInterval* trimIntervalToContig(std::string contig, int start, int stop, int contigLength);
+    static std::shared_ptr<SimpleInterval> trimIntervalToContig(const std::string & contig, int start, int stop, int contigLength);
 
     /**
     * Tests whether the first Locatable starts after the end of the second Locatable

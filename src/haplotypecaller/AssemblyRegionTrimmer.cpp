@@ -34,15 +34,15 @@ std::shared_ptr<AssemblyRegionTrimmer_Result> AssemblyRegionTrimmer::trim(const 
         return AssemblyRegionTrimmer_Result::noVariation(emitReferenceConfidence, originalRegion, assemblyArgs->snpPadding, usableExtension);
     }
     std::vector<std::shared_ptr<VariantContext>> withinActiveRegion;
-    SimpleInterval & originalRegionRange = originalRegion->getSpan();
+    std::shared_ptr<SimpleInterval> originalRegionRange = originalRegion->getSpan();
     bool foundNonSnp = false;
-    SimpleInterval variantSpan;
+    std::shared_ptr<SimpleInterval> variantSpan;
     bool flag = false;
-    for(std::shared_ptr<VariantContext> vc : allVariantsWithinExtendedRegion) {
-        SimpleInterval vcLoc(vc->getContig(), vc->getStart(), vc->getEnd());
-        if(originalRegionRange.overlaps(&vcLoc)) {
+    for(const std::shared_ptr<VariantContext>& vc : allVariantsWithinExtendedRegion) {
+        std::shared_ptr<SimpleInterval> vcLoc = std::make_shared<SimpleInterval>(vc->getContig(), vc->getStart(), vc->getEnd());
+        if(originalRegionRange->overlaps(vcLoc)) {
             foundNonSnp = foundNonSnp || !vc->isSNP();
-            variantSpan = !flag ? vcLoc : variantSpan.spanWith(&vcLoc);
+            variantSpan = !flag ? vcLoc : variantSpan->spanWith(vcLoc);
             if(!flag){
                 flag = true;
             }
@@ -50,46 +50,39 @@ std::shared_ptr<AssemblyRegionTrimmer_Result> AssemblyRegionTrimmer::trim(const 
         }
     }
     int padding = foundNonSnp ? assemblyArgs->indelPadding : assemblyArgs->snpPadding;
-    if(variantSpan == SimpleInterval()) {
+    if(*variantSpan == SimpleInterval()) {
         return AssemblyRegionTrimmer_Result::noVariation(emitReferenceConfidence, originalRegion, padding, usableExtension);
     }
 
     if(assemblyArgs->dontTrimActiveRegions) {
         return AssemblyRegionTrimmer_Result::noTrimming(emitReferenceConfidence, originalRegion, padding, usableExtension, &withinActiveRegion);
     }
-    SimpleInterval* maximumSpan = originalRegionRange.expandWithinContig(usableExtension, sequenceDictionary);
-    SimpleInterval* idealSpan = variantSpan.expandWithinContig(padding, sequenceDictionary);
-    SimpleInterval* finalSpan = maximumSpan->intersect(idealSpan)->mergeWithContiguous(&variantSpan);
-    SimpleInterval* callableSpan = emitReferenceConfidence ? variantSpan.intersect(&originalRegionRange) : &variantSpan;
-    std::pair<SimpleInterval *, SimpleInterval *> * nonVariantRegions = nonVariantTargetRegions(originalRegion, callableSpan);
-    std::shared_ptr<AssemblyRegionTrimmer_Result> ret(new AssemblyRegionTrimmer_Result(emitReferenceConfidence, true, originalRegion, padding, usableExtension, &withinActiveRegion, nonVariantRegions, finalSpan, idealSpan, maximumSpan, &variantSpan));
-    delete maximumSpan;
-    delete idealSpan;
-    delete finalSpan;
-    if(emitReferenceConfidence)
-        delete callableSpan;
-    delete nonVariantRegions->first;
-    delete nonVariantRegions->second;
-    delete nonVariantRegions;
+    std::shared_ptr<SimpleInterval> maximumSpan = originalRegionRange->expandWithinContig(usableExtension, sequenceDictionary);
+    std::shared_ptr<SimpleInterval> idealSpan = variantSpan->expandWithinContig(padding, sequenceDictionary);
+    std::shared_ptr<SimpleInterval> finalSpan = maximumSpan->intersect(idealSpan)->mergeWithContiguous(variantSpan);
+    std::shared_ptr<SimpleInterval> callableSpan = emitReferenceConfidence ? variantSpan->intersect(originalRegionRange) : variantSpan;
+    std::shared_ptr<std::pair<std::shared_ptr<SimpleInterval>, std::shared_ptr<SimpleInterval>>>  nonVariantRegions = nonVariantTargetRegions(originalRegion, callableSpan);
+    std::shared_ptr<AssemblyRegionTrimmer_Result> ret = std::make_shared<AssemblyRegionTrimmer_Result>(emitReferenceConfidence, true, originalRegion, padding, usableExtension, &withinActiveRegion, nonVariantRegions, finalSpan, idealSpan, maximumSpan, variantSpan);
+
     return ret;
 }
 
-std::pair<SimpleInterval *, SimpleInterval *> *
-AssemblyRegionTrimmer::nonVariantTargetRegions(std::shared_ptr<AssemblyRegion> targetRegion, SimpleInterval *variantSpan) {
-    SimpleInterval targetRegionRange = targetRegion->getSpan();
+std::shared_ptr<std::pair<std::shared_ptr<SimpleInterval>, std::shared_ptr<SimpleInterval>>>
+AssemblyRegionTrimmer::nonVariantTargetRegions(std::shared_ptr<AssemblyRegion> targetRegion, std::shared_ptr<SimpleInterval> variantSpan) {
+    std::shared_ptr<SimpleInterval> targetRegionRange = targetRegion->getSpan();
     int finalStart = variantSpan->getStart();
     int finalStop = variantSpan->getEnd();
-    int targetStart = targetRegionRange.getStart();
-    int targetStop = targetRegionRange.getEnd();
+    int targetStart = targetRegionRange->getStart();
+    int targetStop = targetRegionRange->getEnd();
     bool preTrimmingRequired = targetStart < finalStart;
     bool postTrimmingRequired = targetStop > finalStop;
     if(preTrimmingRequired) {
-        std::string contig = targetRegionRange.getContig();
-        return postTrimmingRequired ? new std::pair<SimpleInterval*, SimpleInterval*>(new SimpleInterval(contig, targetStart, finalStart-1), new SimpleInterval(contig, finalStop+1, targetStop)) :
-                new std::pair<SimpleInterval*, SimpleInterval*>(new SimpleInterval(contig, targetStart, finalStart-1), nullptr);
+        std::string contig = targetRegionRange->getContig();
+        return postTrimmingRequired ? std::make_shared<std::pair<std::shared_ptr<SimpleInterval>, std::shared_ptr<SimpleInterval>>>(std::make_shared<SimpleInterval>(contig, targetStart, finalStart-1), std::make_shared<SimpleInterval>(contig, finalStop+1, targetStop)) :
+               std::make_shared<std::pair<std::shared_ptr<SimpleInterval>, std::shared_ptr<SimpleInterval>>>(std::make_shared<SimpleInterval>(contig, targetStart, finalStart-1), nullptr);
     } else if (postTrimmingRequired) {
-        return new std::pair<SimpleInterval*, SimpleInterval*>(nullptr, new SimpleInterval(targetRegionRange.getContig(), finalStop+1, targetStop));
+        return std::make_shared<std::pair<std::shared_ptr<SimpleInterval>, std::shared_ptr<SimpleInterval>>>(nullptr, std::make_shared<SimpleInterval>(targetRegionRange->getContig(), finalStop+1, targetStop));
     } else {
-        return new std::pair<SimpleInterval*, SimpleInterval*>(nullptr, nullptr);
+        return std::make_shared<std::pair<std::shared_ptr<SimpleInterval>, std::shared_ptr<SimpleInterval>>>(nullptr, nullptr);
     }
 }

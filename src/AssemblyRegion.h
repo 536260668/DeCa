@@ -33,12 +33,12 @@ private:
     /**
     * The raw span of this assembly region, not including the region extension
     */
-    SimpleInterval activeRegionLoc;
+    std::shared_ptr<SimpleInterval> activeRegionLoc;
 
     /**
      * The span of this assembly region on the genome, including the region extension
      */
-     SimpleInterval extendedLoc;
+     std::shared_ptr<SimpleInterval> extendedLoc;
 
     /**
     * The extension, in bp, of this region. The extension is >= 0 bp in size, and indicates how much padding was
@@ -59,7 +59,7 @@ private:
     * Must be at least as large as extendedLoc, but may be larger when reads
     * partially overlap this region.
     */
-    SimpleInterval spanIncludingReads;
+    std::shared_ptr<SimpleInterval> spanIncludingReads;
 
     /**
      * Indicates whether the region has been finalized
@@ -78,7 +78,7 @@ private:
     * @param stop our stop as an arbitrary integer (may be negative, etc)
     * @return a valid genome loc over contig, or null if a meaningful genome loc cannot be created
     */
-    SimpleInterval* trimIntervalToContig(std::string& contig, int start, int stop);
+    std::shared_ptr<SimpleInterval> trimIntervalToContig(std::string& contig, int start, int stop);
 
     void checkStates(SimpleInterval& activeRegion);
 
@@ -93,7 +93,7 @@ private:
      * @param genomeLoc a non-null genome loc indicating the base span of the bp we'd like to get the reference for
      * @return a non-null array of bytes holding the reference bases in referenceReader
      */
-    std::shared_ptr<uint8_t[]> getReference(ReferenceCache* referenceReader, int padding, SimpleInterval & genomeLoc, int & length);
+    std::shared_ptr<uint8_t[]> getReference(ReferenceCache* referenceReader, int padding, const std::shared_ptr<SimpleInterval> & genomeLoc, int & length);
 
 public:
     AssemblyRegion(SimpleInterval const &activeRegionLoc, std::vector<std::shared_ptr<ActivityProfileState>>  supportingStates, bool isActive, int extension, SAMFileHeader * header);
@@ -104,11 +104,11 @@ public:
     AssemblyRegion(SimpleInterval const &activeRegionLoc, int extension);
     virtual ~AssemblyRegion();
 
-    std::string getContig() const override {return activeRegionLoc.getContig();}
+    std::string getContig() const override {return activeRegionLoc->getContig();}
 
-    int getStart() const override {return activeRegionLoc.getStart();}
+    int getStart() const override {return activeRegionLoc->getStart();}
 
-    int getEnd() const override {return activeRegionLoc.getEnd();}
+    int getEnd() const override {return activeRegionLoc->getEnd();}
 
     friend std::ostream & operator<<(std::ostream & os, AssemblyRegion & assemblyRegion);
 
@@ -132,13 +132,13 @@ public:
      * Get the span of this assembly region including the extension value
      * @return a non-null SimpleInterval
      */
-    SimpleInterval& getExtendedSpan() {return extendedLoc;}
+    std::shared_ptr<SimpleInterval> getExtendedSpan() {return extendedLoc;}
 
     /**
      * Get the raw span of this assembly region (excluding the extension)
      * @return a non-null SimpleInterval
      */
-     SimpleInterval& getSpan() {return activeRegionLoc;}
+    std::shared_ptr<SimpleInterval> getSpan() {return activeRegionLoc;}
 
     /**
     * Get an unmodifiable copy of the list of reads currently in this assembly region.
@@ -175,7 +175,7 @@ public:
     * @param extensionSize the extensionSize size we want for the newly trimmed active region
     * @return a non-null, empty assembly region
     */
-    AssemblyRegion* trim(SimpleInterval* span, SimpleInterval* extendedSpan);
+    std::shared_ptr<AssemblyRegion> trim(std::shared_ptr<SimpleInterval> span, std::shared_ptr<SimpleInterval> extendedSpan);
 
     /**
      * Get the extension applied to this region
@@ -201,7 +201,7 @@ public:
     * Must be at least as large as extendedLoc, but may be larger when reads
     * partially overlap this region.
     */
-    SimpleInterval getReadSpanLoc() const {return spanIncludingReads;}
+    std::shared_ptr<SimpleInterval> getReadSpanLoc() const {return spanIncludingReads;}
 
     /**
      * An ordered list (by genomic coordinate) of the ActivityProfileStates that went

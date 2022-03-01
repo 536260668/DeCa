@@ -15,10 +15,10 @@ public:
     virtual int getEnd() const = 0;
 
     virtual int getLengthOnReference();
-    virtual bool contains(Locatable* other);
-    virtual bool contigsMatch(Locatable* other);
-    virtual bool withinDistanceOf(Locatable* other, int distance);
-    virtual bool overlaps(Locatable* other);
+    virtual bool contains(const std::shared_ptr<Locatable> & other);
+    virtual bool contigsMatch(const std::shared_ptr<Locatable> & other);
+    virtual bool withinDistanceOf(const std::shared_ptr<Locatable> & other, int distance);
+    virtual bool overlaps(const std::shared_ptr<Locatable> & other);
 };
 
 

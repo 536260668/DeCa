@@ -117,7 +117,7 @@ public:
     bool isSupplementaryAlignment() const;
     int getAdaptorBoundary();
     int getEndAfterFliter();
-    SimpleInterval getLoc();
+    std::shared_ptr<SimpleInterval> getLoc();
     void setGroup(uint8_t i) {readGroup = i;}
     uint8_t getGroup() {return readGroup;}
 

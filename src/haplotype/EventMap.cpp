@@ -13,8 +13,8 @@
 
 const Allele* EventMap::SYMBOLIC_UNASSEMBLED_EVENT_ALLELE = Allele::create(std::shared_ptr<uint8_t[]> (new uint8_t[19]{'<','U','N','A','S','S','E','M','B','L','E','D','_','E','V','E','N','T','>'}), 19, false);
 
-EventMap::EventMap(std::shared_ptr<Haplotype> haplotype, std::shared_ptr<uint8_t[]>ref, int refLength, Locatable *refLoc, std::string sourceNameToAdd,
-                   int maxMnpDistance) : haplotype(std::move(haplotype)), ref(ref), refLength(refLength), refLoc(refLoc), sourceNameToAdd(std::move(sourceNameToAdd)){
+EventMap::EventMap(std::shared_ptr<Haplotype> haplotype, std::shared_ptr<uint8_t[]>ref, int refLength, const std::shared_ptr<Locatable> & refLoc, std::string sourceNameToAdd,
+                   int maxMnpDistance) : haplotype(std::move(haplotype)), ref(std::move(ref)), refLength(refLength), refLoc(refLoc), sourceNameToAdd(std::move(sourceNameToAdd)){
     processCigarForInitialEvents(maxMnpDistance);
 }
 
@@ -190,7 +190,7 @@ bool EventMap::empty() {
 }
 
 std::set<int> EventMap::buildEventMapsForHaplotypes(std::vector<std::shared_ptr<Haplotype>> & haplotypes, std::shared_ptr<uint8_t[]>ref, int refLength,
-                                                    Locatable *refLoc, bool debug, int maxMnpDistance) {
+                                                    const std::shared_ptr<Locatable> & refLoc, bool debug, int maxMnpDistance) {
     Mutect2Utils::validateArg(maxMnpDistance >= 0, "maxMnpDistance may not be negative.");
     std::set<int> startPosKeySet;
     int hapNumber = 0;

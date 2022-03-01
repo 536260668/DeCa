@@ -5,7 +5,7 @@
 #include "IntervalUtils.h"
 #include "Mutect2Utils.h"
 
-SimpleInterval* IntervalUtils::trimIntervalToContig(const std::string contig, const int start, const int stop, const int contigLength) {
+std::shared_ptr<SimpleInterval> IntervalUtils::trimIntervalToContig(const std::string & contig, const int start, const int stop, const int contigLength) {
     if(contig.empty())
         throw std::invalid_argument("Null object is not allowed here.");
     if(contigLength < 1)
@@ -18,7 +18,7 @@ SimpleInterval* IntervalUtils::trimIntervalToContig(const std::string contig, co
         // there's no meaningful way to create this interval, as the start and stop are off the contig
         return nullptr;
     } else {
-        return new SimpleInterval(contig, boundedStart, boundedStop);
+        return std::make_shared<SimpleInterval>(contig, boundedStart, boundedStop);
     }
 }
 

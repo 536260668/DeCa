@@ -15,9 +15,33 @@
 struct HaplotypeComp
 {
 public:
-    bool operator()(const std::shared_ptr<Haplotype>& left, const std::shared_ptr<Haplotype>& right)
+    bool operator()(const std::shared_ptr<Haplotype>& left, const std::shared_ptr<Haplotype>& right) const
     {
         return (*left) < (*right);
+    }
+};
+
+struct hash_Haplotype {
+    size_t operator()(const std::shared_ptr<Haplotype> & haplotype) const{
+        int size = haplotype->getBasesLength();
+        if(size == 0)
+            return 0;
+        size_t res = 1;
+        uint8_t * bases = haplotype->getBases().get();
+        for(int i = 0; i < size; i++) {
+            res = 31 * res + bases[i];
+        }
+    }
+};
+
+struct equal_Haplotype {
+    bool operator()(const std::shared_ptr<Haplotype> & left, const std::shared_ptr<Haplotype> & right) const {
+        if(left->getLength() != right->getLength())
+            return false;
+        int size = left->getLength();
+        for(int i = 0; i < size; i ++) {
+
+        }
     }
 };
 
@@ -29,27 +53,52 @@ private:
     std::shared_ptr<AssemblyRegion> regionForGenotyping;
     std::shared_ptr<uint8_t[]> fullReferenceWithPadding;
     int fullReferenceWithPaddingLength;
-    SimpleInterval paddedReferenceLoc;
+    std::shared_ptr<SimpleInterval> paddedReferenceLoc;
     bool variationPresent;
     std::shared_ptr<Haplotype>  refHaplotype;
     bool wasTrimmed = false;
     int lastMaxMnpDistanceUsed = -1;
     std::set<int> kmerSizes;
     std::set<std::shared_ptr<VariantContext>, VariantContextComparator> variationEvents;
-    bool add(std::shared_ptr<AssemblyResult> &ar);
-    void updateReferenceHaplotype(std::shared_ptr<Haplotype> & newHaplotype);
+    bool add(const std::shared_ptr<AssemblyResult> &ar);
+    void updateReferenceHaplotype(const std::shared_ptr<Haplotype> & newHaplotype);
+    std::shared_ptr<std::unordered_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype>> calculateOriginalByTrimmedHaplotypes(const std::shared_ptr<AssemblyRegion> & trimmedAssemblyRegion);
+    static std::shared_ptr<std::unordered_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype>> trimDownHaplotypes(const std::shared_ptr<AssemblyRegion> & trimmedAssemblyRegion, const std::shared_ptr<std::vector<std::shared_ptr<Haplotype>>> & haplotypeList);
+    static std::shared_ptr<std::unordered_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype>> mapOriginalToTrimmed(const std::shared_ptr<std::unordered_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype>> & originalByTrimmedHaplotypes,
+                                                                                                                                                             const std::vector<std::shared_ptr<Haplotype>> & trimmedHaplotypes);
 
 public:
     AssemblyResultSet() = default;
-    bool add(std::shared_ptr<Haplotype> & h, std::shared_ptr<AssemblyResult> &ar);
-    bool add(std::shared_ptr<Haplotype> & h);
+    bool add(const std::shared_ptr<Haplotype> & h, const std::shared_ptr<AssemblyResult> &ar);
+    bool add(const std::shared_ptr<Haplotype> & h);
     void setRegionForGenotyping(std::shared_ptr<AssemblyRegion> regionForGenotyping);
     void setFullReferenceWithPadding(std::shared_ptr<uint8_t[]> fullReferenceWithPadding, int length);
-    void setPaddedReferenceLoc(SimpleInterval* paddedReferenceLoc);
+    void setPaddedReferenceLoc(const std::shared_ptr<SimpleInterval> & paddedReferenceLoc);
     std::set<std::shared_ptr<VariantContext>, VariantContextComparator> & getVariationEvents(int maxMnpDistance);
 
     void regenerateVariationEvents(int distance);
-    std::vector<std::shared_ptr<Haplotype>> getHaplotypeList();
+    std::shared_ptr<std::vector<std::shared_ptr<Haplotype>>> getHaplotypeList();
+    bool isisVariationPresent();
+
+    /**
+     * Trims an assembly result set down based on a new set of trimmed haplotypes.
+     *
+     * @param trimmedAssemblyRegion the trimmed down active region.
+     *
+     * @throws NullPointerException if any argument in {@code null} or
+     *      if there are {@code null} entries in {@code originalByTrimmedHaplotypes} for trimmed haplotype keys.
+     * @throws IllegalArgumentException if there is no reference haplotype amongst the trimmed ones.
+     *
+     * @return never {@code null}, a new trimmed assembly result set.
+     */
+    std::shared_ptr<AssemblyResultSet> trimTo(const std::shared_ptr<AssemblyRegion> & trimmedAssemblyRegion);
+
+    /**
+     * Returns the current region for genotyping.
+     *
+     * @return might be {@code null}.
+     */
+    std::shared_ptr<AssemblyRegion> getRegionForGenotyping();
 };
 
 

@@ -27,9 +27,9 @@ Haplotype::Haplotype(std::shared_ptr<uint8_t>bases, bool isRef, int length, int 
     setCigar(cigar);
 }
 
-Haplotype::Haplotype(std::shared_ptr<uint8_t> bases, int length, Locatable *loc) : Allele(copyArray(bases, length), length, false), genomeLocation(loc){}
+Haplotype::Haplotype(std::shared_ptr<uint8_t> bases, int length, const std::shared_ptr<Locatable> & loc) : Allele(copyArray(bases, length), length, false), genomeLocation(loc){}
 
-Haplotype *Haplotype::trim(Locatable* loc) {
+std::shared_ptr<Haplotype> Haplotype::trim(const std::shared_ptr<Locatable> & loc) {
     Mutect2Utils::validateArg(loc != nullptr, "Loc cannot be null");
     Mutect2Utils::validateArg(genomeLocation != nullptr, "Cannot trim a Haplotype without containing GenomeLoc");
     SimpleInterval interval = SimpleInterval(genomeLocation);
@@ -44,7 +44,7 @@ Haplotype *Haplotype::trim(Locatable* loc) {
     if(newBases == nullptr || AlignmentUtils::startsOrEndsWithInsertionOrDeletion(newCigar))
         return nullptr;
 
-    Haplotype* ret = new Haplotype(newBases, getIsReference());
+    std::shared_ptr<Haplotype> ret  = std::make_shared<Haplotype>(newBases, getIsReference());
     ret->setCigar(newCigar);
     ret->setGenomeLocation(loc);
     ret->setScore(score);
@@ -56,7 +56,7 @@ std::shared_ptr<Cigar> Haplotype::getCigar() {
     return cigar;
 }
 
-void Haplotype::setGenomeLocation(Locatable *genomeLocation) {
+void Haplotype::setGenomeLocation(const std::shared_ptr<Locatable> & genomeLocation) {
     this->genomeLocation = genomeLocation;
 }
 
