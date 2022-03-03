@@ -6,6 +6,7 @@
 #define MUTECT2CPP_MASTER_SMITHWATERMANALIGNER_H
 
 #include <cstdint>
+#include <memory>
 #include "SWParameters.h"
 #include "SmithWatermanAlignment.h"
 

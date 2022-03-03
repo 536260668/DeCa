@@ -5,6 +5,7 @@
 #include "AlignmentUtils.h"
 
 #include <utility>
+#include <cstring>
 #include "Mutect2Utils.h"
 
 std::shared_ptr<Cigar> AlignmentUtils::consolidateCigar(std::shared_ptr<Cigar> c) {

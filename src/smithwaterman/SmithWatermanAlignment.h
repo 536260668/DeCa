@@ -5,6 +5,7 @@
 #ifndef MUTECT2CPP_MASTER_SMITHWATERMANALIGNMENT_H
 #define MUTECT2CPP_MASTER_SMITHWATERMANALIGNMENT_H
 
+#include <memory>
 #include "cigar/Cigar.h"
 
 class SmithWatermanAlignment {

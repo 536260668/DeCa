@@ -9,6 +9,7 @@
 #include <cfloat>
 #include <vector>
 #include <set>
+#include <memory>
 
 static double POSITIVE_INFINITY = DBL_MAX;
 

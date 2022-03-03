@@ -7,6 +7,7 @@
 
 #include "CigarElement.h"
 #include <vector>
+#include <stdexcept>
 
 class Cigar {
 private:

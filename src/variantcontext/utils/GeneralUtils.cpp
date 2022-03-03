@@ -26,7 +26,7 @@ double *GeneralUtils::normalizeFromLog10(double *array, int length, bool takeLog
             double x = normalized[i] / sum;
             if (takeLog10OfOutput) {
                 x = std::log10(x);
-                if (x < -1000000.0 ||isinf(x)) {
+                if (x < -1000000.0 || std::isinf(x)) {
                     x = array[i] - maxValue;
                 }
             }

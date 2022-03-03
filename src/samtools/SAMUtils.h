@@ -8,6 +8,7 @@
 
 #include "Cigar.h"
 #include <string>
+#include <memory>
 
 class SAMUtils {
 public:

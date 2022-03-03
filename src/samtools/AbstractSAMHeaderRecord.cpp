@@ -2,6 +2,7 @@
 // Created by 梦想家xixi on 2021/12/22.
 //
 
+#include <stdexcept>
 #include "AbstractSAMHeaderRecord.h"
 
 AbstractSAMHeaderRecord::~AbstractSAMHeaderRecord() = default;

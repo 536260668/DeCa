@@ -5,7 +5,7 @@
 #ifndef MUTECT2CPP_MASTER_ALIGNMENTUTILS_H
 #define MUTECT2CPP_MASTER_ALIGNMENTUTILS_H
 
-
+#include <memory>
 #include "cigar/Cigar.h"
 
 class AlignmentUtils {

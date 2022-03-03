@@ -103,8 +103,8 @@ public:
         std::unordered_set<std::shared_ptr<V>> res;
         if(VertexSet.find(sourceVertex) != VertexSet.end()) {
             const DirectedEdgeContainer<V, E> & ec = getEdgeContainer(sourceVertex);
-            typename std::unordered_set<std::shared_ptr<E>>::iterator iter;
-            for(iter = ec.outgoing.begin(); iter != ec.outgoing.end(); iter++){
+
+            for(auto iter = ec.outgoing.begin(); iter != ec.outgoing.end(); iter++){
                 res.insert(getEdgeTarget(*iter));
             }
         }
@@ -118,8 +118,8 @@ public:
     std::shared_ptr<E> getEdge(const std::shared_ptr<V> &sourceVertex,const std::shared_ptr<V> & targetVertex) {
         if(VertexSet.find(sourceVertex) != VertexSet.end() && VertexSet.find(targetVertex) != VertexSet.end()) {
             const DirectedEdgeContainer<V, E> & ec = getEdgeContainer(sourceVertex);
-            typename std::unordered_set<std::shared_ptr<E>>::iterator iter;
-            for(iter = ec.outgoing.begin(); iter != ec.outgoing.end(); iter++){
+            //typename std::unordered_set<std::shared_ptr<E>>::iterator iter;
+            for(auto iter = ec.outgoing.begin(); iter != ec.outgoing.end(); iter++){
                 if(getEdgeTarget(*iter) == targetVertex)
                     return *iter;
             }

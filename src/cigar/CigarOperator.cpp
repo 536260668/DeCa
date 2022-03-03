@@ -2,6 +2,7 @@
 // Created by 梦想家xixi on 2021/11/8.
 //
 
+#include <stdexcept>
 #include "CigarOperator.h"
 
 std::map<CigarOperator, CigarOperatorUtils> CigarOperatorUtils::cigarMap;

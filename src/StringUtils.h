@@ -8,6 +8,8 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
+#include <memory>
 
 class StringUtils {
 public:

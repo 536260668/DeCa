@@ -5,6 +5,8 @@
 #include "Genotype.h"
 #include "Mutect2Utils.h"
 #include <utility>
+#include <stdexcept>
+#include <c++/7/algorithm>
 #include "StringUtils.h"
 
 const std::string Genotype::PRIMARY_KEYS[6] = {"FT", "GT", "GQ", "DP", "AD", "PL"};

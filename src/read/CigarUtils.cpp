@@ -2,6 +2,8 @@
 // Created by 梦想家xixi on 2021/11/25.
 //
 
+#include <cstring>
+#include <c++/7/algorithm>
 #include "CigarUtils.h"
 #include "Mutect2Utils.h"
 #include "SWNativeAlignerWrapper.h"

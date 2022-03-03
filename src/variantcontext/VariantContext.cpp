@@ -2,6 +2,8 @@
 // Created by lhh on 11/11/21.
 //
 
+#include <stdexcept>
+#include <cassert>
 #include "VariantContext.h"
 
 VariantContext::VariantContext(std::string &source,

@@ -5,6 +5,7 @@
 #include "SeqGraph.h"
 #include <list>
 #include <climits>
+#include <cstring>
 #include "utils/MergeCommonSuffices.h"
 #include "utils/MergeDiamonds.h"
 #include "utils/MergeTails.h"

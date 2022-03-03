@@ -7,6 +7,8 @@
 
 #include <string>
 #include <unordered_set>
+#include <memory>
+#include <vector>
 
 class BaseEdge {
 private:

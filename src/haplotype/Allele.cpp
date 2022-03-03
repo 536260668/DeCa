@@ -3,6 +3,7 @@
 //
 
 #include <cstring>
+#include <memory>
 #include "Allele.h"
 #include <stdexcept>
 #include "StringUtils.h"
