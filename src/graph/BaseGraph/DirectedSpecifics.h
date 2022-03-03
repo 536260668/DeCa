@@ -139,26 +139,38 @@ public:
         return edgeMap.find(e)->second.getSource();
     }
 
-    std::unordered_set<std::shared_ptr<E>> edgesof(const std::shared_ptr<V> & vertex) {
-        std::unordered_set<std::shared_ptr<E>> res = getEdgeContainer(vertex).incoming;
-        const std::unordered_set<std::shared_ptr<E>>& tmp = getEdgeContainer(vertex).outgoing;
+    std::unordered_set<std::shared_ptr<E>> * edgesof(const std::shared_ptr<V> & vertex) {
+        const std::unordered_set<std::shared_ptr<E>>& incoming = getEdgeContainer(vertex).incoming;
+        const std::unordered_set<std::shared_ptr<E>>& outgoing = getEdgeContainer(vertex).outgoing;
+
+        std::unordered_set<std::shared_ptr<E>> * res = new std::unordered_set<std::shared_ptr<E>>();
+
+        res->reserve(incoming.size() + outgoing.size());
+
 
         typename std::unordered_set<std::shared_ptr<E>>::iterator iter;
-        for(iter = tmp.begin(); iter != tmp.end(); iter++) {
-            res.insert(*iter);
+//        for(iter = tmp.begin(); iter != tmp.end(); iter++) {
+//            res.insert(*iter);
+//        }
+
+        for(const std::shared_ptr<E> & e : incoming) {
+            res->insert(e);
+        }
+        for(const std::shared_ptr<E> & e : outgoing) {
+            res->insert(e);
         }
         //TODO:
         if(allowingLoops) {
             std::unordered_set<std::shared_ptr<E>> loops = getAllEdges(vertex, vertex);
             std::unordered_set<std::shared_ptr<E>> toRemove;
-            for(iter = res.begin(); iter != res.end(); iter ++) {
+            for(iter = res->begin(); iter != res->end(); iter ++) {
                 if(loops.find(*iter) != loops.end()) {
                     loops.erase(iter);
                     toRemove.insert(*iter);
                 }
             }
             for(std::shared_ptr<E> e : toRemove) {
-                res.erase(e);
+                res->erase(e);
             }
         }
         return res;
@@ -226,12 +238,14 @@ public:
     }
 
     bool isSource(const std::shared_ptr<V> & v) {
-        Mutect2Utils::validateArg(v.get(), "Attempting to test a null vertex.");
+        if(v.get() == nullptr)
+            throw std::invalid_argument("Attempting to test a null vertex.");
         return inDegreeOf(v) == 0;
     }
 
     bool isSink(const std::shared_ptr<V> & v) {
-        Mutect2Utils::validateArg(v.get(), "Attempting to test a null vertex.");
+        if(v.get() == nullptr)
+            throw std::invalid_argument("Attempting to test a null vertex.");
         return outDegreeOf(v) == 0;
     }
 
@@ -298,11 +312,13 @@ public:
     virtual bool removeVertex(const std::shared_ptr<V> & v) {
         if(containsVertex(v)) {
             std::vector<std::shared_ptr<E>> edgesList;
-            for(std::shared_ptr<E> e : edgesof(v))
+            std::unordered_set<std::shared_ptr<E>> * edges = edgesof(v);
+            for(const std::shared_ptr<E> & e : *edges)
                 edgesList.template emplace_back(e);
             removeAllEdges(edgesList);
             vertexMapDirected.erase(v);
             VertexSet.erase(v);
+            delete edges;
             return true;
         } else {
             return false;
@@ -364,7 +380,8 @@ public:
     }
 
     bool isRefSink(const std::shared_ptr<V> & v) {
-        Mutect2Utils::validateArg(v.get() != nullptr, "Attempting to pull sequence from a null vertex.");
+        if(v.get() == nullptr)
+            throw std::invalid_argument("Attempting to test a null vertex.");
 
         for(std::shared_ptr<E> e : outgoingEdgesOf(v)){
             if(e->getIsRef())
@@ -380,16 +397,22 @@ public:
     }
 
     std::shared_ptr<E> incomingEdgeOf(const std::shared_ptr<V> & v) {
-        Mutect2Utils::validateArg(v.get(), "Null is not allowed there");
-        std::unordered_set<std::shared_ptr<E>> edgesSet = incomingEdgesOf(v);
-        Mutect2Utils::validateArg(edgesSet.size() <= 1, "Cannot get a single incoming edge for a vertex with multiple incoming edges");
+        if(v.get() == nullptr)
+            throw std::invalid_argument("Attempting to test a null vertex.");
+        std::unordered_set<std::shared_ptr<E>>& edgesSet = incomingEdgesOf(v);
+        if(edgesSet.size() > 1) {
+            throw std::invalid_argument("Cannot get a single incoming edge for a vertex with multiple incoming edges");
+        }
         return edgesSet.empty() ? nullptr : *edgesSet.begin();
     }
 
     std::shared_ptr<E> outgoingEdgeOf(const std::shared_ptr<V> & v) {
-        Mutect2Utils::validateArg(v.get(), "Null is not allowed there");
-        std::unordered_set<std::shared_ptr<E>> edgesSet = outgoingEdgesOf(v);
-        Mutect2Utils::validateArg(edgesSet.size() <= 1, "Cannot get a single incoming edge for a vertex with multiple incoming edges");
+        if(v.get() == nullptr)
+            throw std::invalid_argument("Attempting to test a null vertex.");
+        std::unordered_set<std::shared_ptr<E>>& edgesSet = outgoingEdgesOf(v);
+        if(edgesSet.size() > 1) {
+            throw std::invalid_argument("Cannot get a single incoming edge for a vertex with multiple incoming edges");
+        }
         return edgesSet.empty() ? nullptr : *edgesSet.begin();
     }
 
@@ -435,12 +458,15 @@ public:
     }
 
     bool isReferenceNode(const std::shared_ptr<V> & v) {
-        Mutect2Utils::validateArg(v.get() != nullptr, "Attempting to test a null vertex.");
-        for(std::shared_ptr<E> edge : edgesof(v)) {
+        if(v.get() == nullptr)
+            throw std::invalid_argument("Attempting to test a null vertex.");
+        std::unordered_set<std::shared_ptr<E>> * edges = edgesof(v);
+        for(std::shared_ptr<E> edge : *edges) {
             if(edge->getIsRef()) {
                 return true;
             }
         }
+        delete edges;
         return VertexSet.size() == 1;
     }
 
@@ -520,7 +546,8 @@ public:
     }
 
     std::unordered_set<std::shared_ptr<V>> incomingVerticesOf(const std::shared_ptr<V> & v) {
-        Mutect2Utils::validateArg(v.get(), "Null is not allowed there.");
+        if(v.get() == nullptr)
+            throw std::invalid_argument("Attempting to test a null vertex.");
         std::unordered_set<std::shared_ptr<V>> ret;
         for(std::shared_ptr<E> e : incomingEdgesOf(v)) {
             ret.insert(getEdgeSource(e));
@@ -529,7 +556,8 @@ public:
     }
 
     std::unordered_set<std::shared_ptr<V>> outgoingVerticesOf(const std::shared_ptr<V> & v) {
-        Mutect2Utils::validateArg(v.get(), "Null is not allowed there.");
+        if(v.get() == nullptr)
+            throw std::invalid_argument("Attempting to test a null vertex.");
         std::unordered_set<std::shared_ptr<V>> ret;
         for(std::shared_ptr<E> e : outgoingEdgesOf(v)) {
             ret.insert(getEdgeTarget(e));
@@ -608,9 +636,12 @@ public:
     }
 
     void addOrUpdateEdge(const std::shared_ptr<V> & source, const std::shared_ptr<V> & target, const std::shared_ptr<E> & e) {
-        Mutect2Utils::validateArg(source.get(), "source");
-        Mutect2Utils::validateArg(target.get(), "target");
-        Mutect2Utils::validateArg(e.get(), "edge");
+        if(source.get() == nullptr)
+            throw std::invalid_argument("source");
+        if(target.get() == nullptr)
+            throw std::invalid_argument("target");
+        if(e.get() == nullptr)
+            throw std::invalid_argument("e");
 
         std::shared_ptr<E> prev = getEdge(source, target);
         if(prev != nullptr) {

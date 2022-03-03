@@ -42,7 +42,7 @@ public:
      * Band pass the probabilities in the ActivityProfile, producing a new profile that's band pass filtered
      * @return a new double[] that's the band-pass filtered version of this profile
      */
-    vector<std::shared_ptr<ActivityProfileState>> * processState(const std::shared_ptr<ActivityProfileState> & justAddedState);
+    vector<std::shared_ptr<ActivityProfileState>> * processState(const std::shared_ptr<ActivityProfileState> & justAddedState) override;
 
     int getMaxProbPropagationDistance() override;
 };

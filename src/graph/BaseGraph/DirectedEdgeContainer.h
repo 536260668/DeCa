@@ -18,9 +18,9 @@ public:
     std::unordered_set<std::shared_ptr<EE>> incoming;
     std::unordered_set<std::shared_ptr<EE>> outgoing;
 
-    void addIncomingEdge(std::shared_ptr<EE> e) {incoming.insert(e);}
+    void addIncomingEdge(const std::shared_ptr<EE> & e) {incoming.insert(e);}
 
-    void addOutgoingEdge(std::shared_ptr<EE> e) {outgoing.insert(e);}
+    void addOutgoingEdge(const std::shared_ptr<EE> & e) {outgoing.insert(e);}
 
     std::unordered_set<std::shared_ptr<EE>>& getUnmodifiableIncomingEdges() {
         //unmodifiableIncoming = incoming;
@@ -32,11 +32,11 @@ public:
         return outgoing;
     }
 
-    void removeIncomingEdge(std::shared_ptr<EE> e) {
+    void removeIncomingEdge(const std::shared_ptr<EE> & e) {
         incoming.erase(e);
     }
 
-    void removeOutgoingEdge(std::shared_ptr<EE> e) {
+    void removeOutgoingEdge(const std::shared_ptr<EE> & e) {
         outgoing.erase(e);
     }
 };

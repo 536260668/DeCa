@@ -13,6 +13,7 @@ IntelSmithWaterman::align(uint8_t *refArray, int refLength, uint8_t *altArray, i
     uint8_t * cigar = new uint8_t[cigarLength]{0};
     int offset = SmithWaterman_align(refArray, refLength, altArray, altLength, cigar, cigarLength, parameters->getMatchValue(), parameters->getMismatchPenalty(),parameters->getGapOpenPenalty(), parameters->getGapExtendPenalty(), intStrategy);
     std::string ret = std::string((char*)cigar);
+    delete[] cigar;
     return new SWNativeAlignerResult(trim(ret), offset);
 }
 

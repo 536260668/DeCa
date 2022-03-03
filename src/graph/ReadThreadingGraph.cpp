@@ -63,14 +63,16 @@ ReadThreadingGraph::addSequence(std::string seqName, std::string& sampleName, co
     iter->second.push_back(SequenceForKmers{std::move(seqName), sequence, start, stop, count, isRef});
 }
 
-std::vector<Kmer> ReadThreadingGraph::determineNonUniqueKmers(SequenceForKmers &sequenceForKmers, const int kmerSize) {
-    std::unordered_set<Kmer, hash_kmer, equal_kmer> allKmers;
-    std::vector<Kmer> nonUniqueKmers;
+std::vector<std::shared_ptr<Kmer>>* ReadThreadingGraph::determineNonUniqueKmers(const SequenceForKmers &sequenceForKmers, const int kmerSize) {
+    std::unordered_set<std::shared_ptr<Kmer>, hash_kmer, equal_kmer> allKmers;
+    std::vector<std::shared_ptr<Kmer>> * nonUniqueKmers = new std::vector<std::shared_ptr<Kmer>>();
     const int stopPosition = sequenceForKmers.stop - kmerSize;
+    allKmers.reserve(stopPosition);
+    nonUniqueKmers->reserve(stopPosition);
     for(int i = 0; i <= stopPosition; i++) {
-        Kmer kmer(sequenceForKmers.sequence, i, kmerSize);
+        std::shared_ptr<Kmer> kmer = std::make_shared<Kmer>(sequenceForKmers.sequence, i, kmerSize);
         if(!allKmers.insert(kmer).second) {
-            nonUniqueKmers.push_back(kmer);
+            nonUniqueKmers->push_back(kmer);
         }
     }
     return nonUniqueKmers;
@@ -90,49 +92,50 @@ std::list<SequenceForKmers> ReadThreadingGraph::getAllPendingSequences(){
     return res;
 }
 
-std::unordered_set<Kmer, hash_kmer, equal_kmer> ReadThreadingGraph::determineKmerSizeAndNonUniques(const int minKmerSize, const int maxKmerSize) {
+void ReadThreadingGraph::determineKmerSizeAndNonUniques(const int minKmerSize, const int maxKmerSize) {
     std::list<SequenceForKmers> withNonUniques = getAllPendingSequences();
-    std::unordered_set<Kmer, hash_kmer, equal_kmer> nonUniqueKmers_m;
+    //std::unordered_set<std::shared_ptr<Kmer>, hash_kmer, equal_kmer> nonUniqueKmers_m;
 
     for(int kmerSize_m = minKmerSize; kmerSize_m <= maxKmerSize; kmerSize_m++) {
-        nonUniqueKmers_m.clear();
+        nonUniqueKmers.clear();
         std::list<SequenceForKmers>::iterator viter;
         for(viter = withNonUniques.begin(); viter != withNonUniques.end();)
         {
-            std::vector<Kmer> nonUniquesFromSeq = determineNonUniqueKmers(*viter, kmerSize_m);
-            if(nonUniquesFromSeq.empty()) {
+            std::vector<std::shared_ptr<Kmer>> * nonUniquesFromSeq = determineNonUniqueKmers(*viter, kmerSize_m);
+            if(nonUniquesFromSeq->empty()) {
                 withNonUniques.erase(viter++);
             }
             else {
-                for(auto & iter : nonUniquesFromSeq) {
-                    nonUniqueKmers_m.insert(iter);
+                for(const std::shared_ptr<Kmer> & iter : *nonUniquesFromSeq) {
+                    nonUniqueKmers.insert(iter);
                 }
                 viter++;
             }
+            delete nonUniquesFromSeq;
         }
 
-        if(nonUniqueKmers_m.empty())
+        if(nonUniqueKmers.empty())
             break;
     }
 
-    return nonUniqueKmers_m;
+    //return nonUniqueKmers_m;
 }
 
-std::shared_ptr<MultiDeBruijnVertex> ReadThreadingGraph::createVertex(Kmer & kmer) {
-    std::shared_ptr<MultiDeBruijnVertex> newVertex = std::make_shared<MultiDeBruijnVertex>(kmer.getBases(), kmer.getLength(), false);
+std::shared_ptr<MultiDeBruijnVertex> ReadThreadingGraph::createVertex(const std::shared_ptr<Kmer> & kmer) {
+    std::shared_ptr<MultiDeBruijnVertex> newVertex = std::make_shared<MultiDeBruijnVertex>(kmer->getBases(), kmer->getLength(), false);
     unsigned prevSize = getVertexSet().size();
     addVertex(newVertex);
     if(getVertexSet().size() != prevSize + 1)
         throw std::invalid_argument("Adding vertex to graph didn't increase the graph size");
 
     if(nonUniqueKmers.find(kmer) == nonUniqueKmers.end() && uniqueKmers.find(kmer) == uniqueKmers.end())
-        uniqueKmers.insert(std::pair<Kmer, std::shared_ptr<MultiDeBruijnVertex>>(kmer, newVertex));
+        uniqueKmers.insert({kmer, newVertex});
 
     return newVertex;
 }
 
 std::shared_ptr<MultiDeBruijnVertex>
-ReadThreadingGraph::extendChainByOne(const std::shared_ptr<MultiDeBruijnVertex>& prevVertex, std::shared_ptr<uint8_t[]>sequence, const int kmerStart, const int count,
+ReadThreadingGraph::extendChainByOne(const std::shared_ptr<MultiDeBruijnVertex>& prevVertex, const std::shared_ptr<uint8_t[]>&sequence, const int kmerStart, const int count,
                                      const bool isRef) {
     const std::unordered_set<std::shared_ptr<MultiSampleEdge>>& outgoingEdges = outgoingEdgesOf(prevVertex);
     int nextPos = kmerStart + kmerSize - 1;
@@ -148,19 +151,17 @@ ReadThreadingGraph::extendChainByOne(const std::shared_ptr<MultiDeBruijnVertex>&
         }
     }
 
-    Kmer *kmer = new Kmer(sequence, kmerStart, kmerSize);
-    if(!isRef && *kmer == refSource) {
-        std::shared_ptr<MultiDeBruijnVertex> nextVertex = createVertex(*kmer);
+    std::shared_ptr<Kmer> kmer = std::make_shared<Kmer>(sequence, kmerStart, kmerSize);
+    if(!isRef && *kmer == *refSource) {
+        std::shared_ptr<MultiDeBruijnVertex> nextVertex = createVertex(kmer);
         addEdge(prevVertex, nextVertex, std::shared_ptr<MultiSampleEdge>(new MultiSampleEdge(isRef, count, numPruningSamples)));
-        delete kmer;
         return nextVertex;
     }
     else {
-        if(isRef && getUniqueKmerVertex(*kmer, false))
+        if(isRef && getUniqueKmerVertex(kmer, false))
             throw std::invalid_argument("Found a unique vertex to merge into the reference graph");
-        std::shared_ptr<MultiDeBruijnVertex> nextVertex = getUniqueKmerVertex(*kmer, false) ? uniqueKmers.find(*kmer)->second : createVertex(*kmer);
+        std::shared_ptr<MultiDeBruijnVertex> nextVertex = getUniqueKmerVertex(kmer, false) ? uniqueKmers.find(kmer)->second : createVertex(kmer);
         addEdge(prevVertex, nextVertex, std::shared_ptr<MultiSampleEdge>(new MultiSampleEdge(isRef, count, numPruningSamples)));
-        delete kmer;
         return nextVertex;
     }
 
@@ -178,10 +179,10 @@ void ReadThreadingGraph::threadSequence(SequenceForKmers & sequenceForKmers) {
     }
 
     if(sequenceForKmers.isRef) {
-        if(refSource.getBases() != nullptr)
+        if(refSource->getBases() != nullptr)
             throw std::invalid_argument("Found two refSources! prev:");
 
-        refSource = Kmer(sequenceForKmers.sequence, sequenceForKmers.start, kmerSize);
+        refSource = std::make_shared<Kmer>(sequenceForKmers.sequence, sequenceForKmers.start, kmerSize);
     }
 
     std::shared_ptr<MultiDeBruijnVertex> vertex = startingVertex;
@@ -190,12 +191,12 @@ void ReadThreadingGraph::threadSequence(SequenceForKmers & sequenceForKmers) {
     }
 }
 
-int ReadThreadingGraph::findStart(SequenceForKmers seqForKmers) {
+int ReadThreadingGraph::findStart(const SequenceForKmers& seqForKmers) {
     if(seqForKmers.isRef)
         return 0;
 
     for(int i = seqForKmers.start; i < seqForKmers.stop - kmerSize; i++) {
-        Kmer kmer1(seqForKmers.sequence, i, kmerSize);
+        std::shared_ptr<Kmer> kmer1 = std::make_shared<Kmer>(seqForKmers.sequence, i, kmerSize);
         if((startThreadingOnlyAtExistingVertex ? uniqueKmers.find(kmer1) != uniqueKmers.end() : nonUniqueKmers.find(kmer1) == nonUniqueKmers.end()))
             return i;
     }
@@ -203,7 +204,7 @@ int ReadThreadingGraph::findStart(SequenceForKmers seqForKmers) {
     return -1;
 }
 
-bool ReadThreadingGraph::getUniqueKmerVertex(Kmer & kmer, const bool allowRefSource) {
+bool ReadThreadingGraph::getUniqueKmerVertex(const std::shared_ptr<Kmer> & kmer, const bool allowRefSource) {
     if(!allowRefSource && kmer == refSource)
         return false;
     else {
@@ -215,7 +216,7 @@ bool ReadThreadingGraph::getUniqueKmerVertex(Kmer & kmer, const bool allowRefSou
 }
 
 std::shared_ptr<MultiDeBruijnVertex> ReadThreadingGraph::getOrCreateKmerVertex(std::shared_ptr<uint8_t[]>sequence, const int start) {
-    Kmer kmer(std::move(sequence), start, kmerSize);
+    std::shared_ptr<Kmer> kmer = std::make_shared<Kmer>(std::move(sequence), start, kmerSize);
     return getUniqueKmerVertex(kmer, true) ? uniqueKmers.find(kmer)->second : createVertex(kmer);
 }
 
@@ -254,7 +255,7 @@ void ReadThreadingGraph::buildGraphIfNecessary() {
 //        }
 //    }
 
-    nonUniqueKmers = determineKmerSizeAndNonUniques(kmerSize, kmerSize);
+    determineKmerSizeAndNonUniques(kmerSize, kmerSize);
 
 
     for(std::map<std::string, std::vector<SequenceForKmers>>::iterator miter = pending.begin(); miter != pending.end(); miter++){
@@ -315,7 +316,7 @@ void ReadThreadingGraph::buildGraphIfNecessary() {
 //        std::cout << std::endl;
 //    }
 
-    for(std::map<Kmer, std::shared_ptr<MultiDeBruijnVertex>>::iterator kiter = uniqueKmers.begin(); kiter != uniqueKmers.end(); kiter++) {
+    for(auto kiter = uniqueKmers.begin(); kiter != uniqueKmers.end(); kiter++) {
         kiter->second->setAdditionalInfo(kiter->second->getAdditionalInfo() + '+');
     }
 
@@ -331,7 +332,7 @@ bool ReadThreadingGraph::removeVertex(const std::shared_ptr<MultiDeBruijnVertex>
     bool result = DirectedSpecifics::removeVertex(V);
 
     if(result) {
-        Kmer kmer(sequence, 0 ,kmerSize);
+        const std::shared_ptr<Kmer> kmer = std::make_shared<Kmer>(sequence, 0 ,kmerSize);
         uniqueKmers.erase(kmer);
     }
 
@@ -368,7 +369,7 @@ void ReadThreadingGraph::recoverDanglingTails(int pruneFactor, int minDanglingBr
     }
 }
 
-int ReadThreadingGraph::recoverDanglingTail(std::shared_ptr<MultiDeBruijnVertex> vertex, int pruneFactor, int minDanglingBranchLength,
+int ReadThreadingGraph::recoverDanglingTail(const std::shared_ptr<MultiDeBruijnVertex>& vertex, int pruneFactor, int minDanglingBranchLength,
                                             bool recoverAll) {
     if(outDegreeOf(vertex) != 0 ) {
         throw std::invalid_argument("Attempting to recover a dangling tail but it has out-degree > 0");
@@ -379,7 +380,9 @@ int ReadThreadingGraph::recoverDanglingTail(std::shared_ptr<MultiDeBruijnVertex>
     if(danglingTailMergeResult == nullptr || !cigarIsOkayToMerge(danglingTailMergeResult->cigar, false, true)) {
         return 0;
     }
-    return mergeDanglingTail(danglingTailMergeResult);
+    int res = mergeDanglingTail(danglingTailMergeResult);
+    delete danglingTailMergeResult;
+    return res;
 }
 
 DanglingChainMergeHelper*
@@ -402,7 +405,9 @@ ReadThreadingGraph::generateCigarAgainstDownwardsReferencePath(std::shared_ptr<M
     std::shared_ptr<uint8_t[]> altBases = getBasesForPath(newaltPath, altLength, false);
     SWNativeAlignerWrapper wrapper = SWNativeAlignerWrapper();
     SmithWatermanAlignment* alignment = wrapper.align(refBases, refLength, altBases, altLength, &SmithWatermanAligner::STANDARD_NGS, LEADING_INDEL);
-    return new DanglingChainMergeHelper(newaltPath, refPath, altBases, altLength, refBases, refLength, AlignmentUtils::removeTrailingDeletions(alignment->getCigar()));
+    DanglingChainMergeHelper* res = new DanglingChainMergeHelper(newaltPath, refPath, altBases, altLength, refBases, refLength, AlignmentUtils::removeTrailingDeletions(alignment->getCigar()));
+    delete alignment;
+    return res;
 }
 
 
@@ -497,9 +502,10 @@ std::shared_ptr<uint8_t[]>ReadThreadingGraph::getBasesForPath(const std::vector<
             start += seqLength;
         } else {
             while(start + 1 > tmpLength) {
+                int oldLength = tmpLength;
                 tmpLength *= 2;
                 std::shared_ptr<uint8_t[]> newtmp(new uint8_t[tmpLength]);
-                memcpy(newtmp.get(), tmp.get(), tmpLength);
+                memcpy(newtmp.get(), tmp.get(), oldLength);
                 tmp = newtmp;
             }
             tmp.get()[start] = v->getSuffix();
@@ -786,7 +792,7 @@ std::shared_ptr<SeqGraph> ReadThreadingGraph::toSequenceGraph() {
 
 ReadThreadingGraph::ReadThreadingGraph(int kmerSize, bool debugGraphTransformations,
                                        uint8_t minBaseQualityToUseInAssembly, int numPruningSamples) : kmerSize(kmerSize), minBaseQualityToUseInAssembly(minBaseQualityToUseInAssembly), debugGraphTransformations(debugGraphTransformations),
-                                                                                                       refSource(Kmer(nullptr, 0)), numPruningSamples(numPruningSamples){
+                                                                                                       refSource(std::make_shared<Kmer>(nullptr, 0)), numPruningSamples(numPruningSamples){
     Mutect2Utils::validateArg(kmerSize > 0, "bad minkKmerSize");
     resetToInitialState();
 }

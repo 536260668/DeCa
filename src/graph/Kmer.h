@@ -22,7 +22,7 @@ private:
      *  Compute the hashcode for a KMer.
      *  Equivalent to <code>new String(bases, start, length).hashCode()</code>
      */
-    static int hashCode(const std::shared_ptr<uint8_t[]> bases, int start, int length);
+    static int hashCode(const std::shared_ptr<uint8_t[]>& bases, int start, int length);
 
 public:
     Kmer(std::shared_ptr<uint8_t[]> kmer, int length);
@@ -63,11 +63,11 @@ public:
 };
 
 struct equal_kmer {
-    bool operator()(const Kmer & kmer1, const Kmer & kmer2) const;
+    bool operator()(const std::shared_ptr<Kmer> & kmer1, const std::shared_ptr<Kmer> & kmer2) const;
 };
 
 struct hash_kmer {
-    size_t operator()(const Kmer & kmer1) const;
+    size_t operator()(const std::shared_ptr<Kmer> & kmer1) const;
 };
 
 

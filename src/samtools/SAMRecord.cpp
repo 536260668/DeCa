@@ -306,7 +306,7 @@ void SAMRecord::setAttribute(short tag, void *value, Void_Type type, int length,
                 tmp = std::shared_ptr<SAMBinaryTagAndValue>(new SAMBinaryTagAndValue(tag, value, type, length));
             }
             if(mAttributes == nullptr) {
-                mAttributes == tmp;
+                mAttributes = tmp;
             } else {
                 mAttributes = SAMBinaryTagAndValue::insert(mAttributes, tmp);
             }

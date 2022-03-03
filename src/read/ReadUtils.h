@@ -20,8 +20,8 @@ public:
     static void assertAttributeNameIsLegal(std::string& attributeName);
     static int getReadCoordinateForReferenceCoordinate(std::shared_ptr<SAMRecord> & read, int refCoord, ClippingTail tail);
     static int getReadCoordinateForReferenceCoordinate(int alignmentStart, std::shared_ptr<Cigar> cigar, int refCoord, ClippingTail tail, bool allowGoalNotReached);
-    static CigarElement* readStartsWithInsertion(std::shared_ptr<Cigar> cigarForRead);
-    static CigarElement* readStartsWithInsertion(std::shared_ptr<Cigar> cigarForRead, bool ignoreSoftClipOps);
+    static CigarElement* readStartsWithInsertion(const std::shared_ptr<Cigar>& cigarForRead);
+    static CigarElement* readStartsWithInsertion(const std::shared_ptr<Cigar>& cigarForRead, bool ignoreSoftClipOps);
     static int getSoftStart(std::shared_ptr<SAMRecord> & read);
     static int getSoftEnd(std::shared_ptr<SAMRecord> & read);
     static bool hasBaseIndelQualities(std::shared_ptr<SAMRecord> & read);

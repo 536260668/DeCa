@@ -221,5 +221,5 @@ void Mutect2Engine::removeReadStubs(const std::shared_ptr<AssemblyRegion> & asse
 
 std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>>
 Mutect2Engine::splitReadsBySample(const std::vector<std::shared_ptr<SAMRecord>> & reads) {
-    return AssemblyBasedCallerUtils::;
+    return AssemblyBasedCallerUtils::splitReadsBySample(reads);
 }

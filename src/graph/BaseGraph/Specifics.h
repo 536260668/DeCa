@@ -27,7 +27,7 @@ public:
 
     virtual int degreeOf(const std::shared_ptr<V> &vertex)  = 0;
 
-    virtual std::unordered_set<std::shared_ptr<E>> edgesof(const std::shared_ptr<V> & vertex) = 0;
+    virtual std::unordered_set<std::shared_ptr<E>> * edgesof(const std::shared_ptr<V> & vertex) = 0;
 
     virtual int inDegreeOf(const std::shared_ptr<V> & vertex)  = 0;
 

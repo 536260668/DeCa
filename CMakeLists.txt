@@ -2,11 +2,13 @@ cmake_minimum_required(VERSION 3.20)
 project(Mutect2Cpp_master)
 
 set(CMAKE_CXX_STANDARD 17)
-SET(CMAKE_BUILD_TYPE "DEBUG")
+SET(CMAKE_BUILD_TYPE "Release")
 #
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O3")
+#set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O3")
 
-set(CMAKE_C_FLAGS_Release "${CMAKE_C_FLAGS_Release} -O3")
+#set(CMAKE_C_FLAGS_Release "${CMAKE_C_FLAGS_Release} -O3")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -O3 -fno-omit-frame-pointer -g")
 
 # counterpart of gcc -I
 include_directories(../htslib)

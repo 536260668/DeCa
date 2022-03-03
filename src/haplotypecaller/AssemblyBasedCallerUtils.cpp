@@ -32,8 +32,8 @@ AssemblyBasedCallerUtils::assembleReads(const std::shared_ptr<AssemblyRegion>& r
 
 std::shared_ptr<SimpleInterval>
 AssemblyBasedCallerUtils::getPaddedReferenceLoc(const std::shared_ptr<AssemblyRegion>& region, int referencePadding, SAMFileHeader *header) {
-    int padLeft = std::max(region->getExtendedSpan()->getStart() - referencePadding, 1);
-    int padRight = std::min(region->getExtendedSpan()->getEnd() + referencePadding, header->getSequenceDictionary().getSequence(region->getExtendedSpan()->getContig()).getSequenceLength());
+    int padLeft = std::max(region->getExtendedSpan()->getStart() - referencePadding, 0);
+    int padRight = std::min(region->getExtendedSpan()->getEnd() + referencePadding, header->getSequenceDictionary().getSequence(region->getExtendedSpan()->getContig()).getSequenceLength() - 1);
     return std::make_shared<SimpleInterval>(region->getExtendedSpan()->getContig(), padLeft, padRight);
 }
 

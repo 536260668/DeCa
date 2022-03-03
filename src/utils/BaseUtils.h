@@ -19,6 +19,7 @@ public:
     static int simpleBaseToBaseIndex(uint8_t base);
     static bool isAllRegularBases(std::shared_ptr<uint8_t[]> bases, int length);
     static uint8_t getComplement(const uint8_t base);
+    static uint8_t getUpper(const uint8_t base);
 };
 
 

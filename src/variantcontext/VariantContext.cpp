@@ -193,7 +193,7 @@ bool VariantContext::hasAllele(Allele *allele) {
 }
 
 bool VariantContext::hasAllele(Allele *allele, bool ignoreRefState) {
-    hasAllele(allele, ignoreRefState, true);
+    return hasAllele(allele, ignoreRefState, true);
 }
 
 bool VariantContext::hasAllele(Allele *allele, bool ignoreRefState, bool considerRefAllele) {

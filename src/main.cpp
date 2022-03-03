@@ -189,14 +189,16 @@ int main(int argc, char *argv[])
     QualityUtils::initial();
     Mutect2Engine m2Engine(MTAC, ref, header);
     queue<std::shared_ptr<AssemblyRegion>> pendingRegions;
-    ActivityProfile * activityProfile = new BandPassActivityProfile(MTAC.maxProbPropagationDistance, MTAC.activeProbThreshold, BandPassActivityProfile::MAX_FILTER_SIZE, BandPassActivityProfile::DEFAULT_SIGMA,
-                                                                    true , header);
+    ActivityProfile * activityProfile = new BandPassActivityProfile(MTAC.maxProbPropagationDistance, MTAC.activeProbThreshold, BandPassActivityProfile::MAX_FILTER_SIZE, BandPassActivityProfile::DEFAULT_SIGMA,true , header);
+//    for(int k = 0; k < nref; k++) {
+//        std::cout << header->getSequenceDictionary().getSequences()[k].getSequenceName() << std::endl;
+//    }
     int count = 0;
     // TODO: add multi-thread mode here
     for(int k=0; k<nref; k++)
     {
         int k_len = header->getSequenceDictionary().getSequences()[k].getSequenceLength();
-        int len = k_len < 2000000 ? k_len : 2000000;
+        int len = k_len < 1000000 ? k_len : 1000000;
         std::string region = header->getSequenceDictionary().getSequences()[k].getSequenceName() + ":0-" + to_string(len);
         std::string contig = header->getSequenceDictionary().getSequences()[k].getSequenceName();
         char* refBases = faidx_fetch_seq(refPoint, contig.c_str(), 0, header->getSequenceDictionary().getSequences()[k].getSequenceLength(), &len);
@@ -204,9 +206,7 @@ int main(int argc, char *argv[])
         ReadCache cache(data, input_bam, k, region, refCache);
         int currentPose = 0;
 
-        if(k != 0) {
-            m2Engine.refCache.setTid(k);
-        }
+        m2Engine.refCache.setTid(k);
         while(cache.hasNextPos()) {
             AlignmentContext pileup = cache.getAlignmentContext();
             if(!activityProfile->isEmpty()){
@@ -217,8 +217,8 @@ int main(int argc, char *argv[])
                     pendingRegions.emplace(newRegion);
                 }
             }
-            if(pileup.getPosition() == 10076)
-                std::cout << "hello";
+//            if(pileup.getPosition() == 10076)
+//                std::cout << "hello";
             if(pileup.isEmpty()) {
                 std::shared_ptr<ActivityProfileState> state = std::make_shared<ActivityProfileState>(contig.c_str(), pileup.getPosition(), 0.0);
                 activityProfile->add(state);
@@ -234,14 +234,16 @@ int main(int argc, char *argv[])
                 count++;
 
                 std::shared_ptr<AssemblyRegion> nextRegion = pendingRegions.front();
-                if(count % 100  == 0) {
+
+                if(count % 2000 == 0) {
                     std::cout << *nextRegion;
+                    std::cout << k << std::endl;
                 }
                 pendingRegions.pop();
                 Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
-                std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext);
-                if(variant.size() != 0)
-                    std::cout << variant.size();
+                //std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext);
+                //if(variant.size() != 0)
+                  //  std::cout << variant.size();
             }
         }
 

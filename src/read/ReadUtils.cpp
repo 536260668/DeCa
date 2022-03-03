@@ -135,8 +135,8 @@ std::pair<int, bool> ReadUtils::getReadCoordinateForReferenceCoordinate(int alig
     return {readBases, fallsInsideOrJustBeforeDeletionOrSkippedRegion};
 }
 
-CigarElement* ReadUtils::readStartsWithInsertion(std::shared_ptr<Cigar> cigarForRead, bool ignoreSoftClipOps) {
-    for(CigarElement cigarElement : cigarForRead->getCigarElements()) {
+CigarElement* ReadUtils::readStartsWithInsertion(const std::shared_ptr<Cigar>& cigarForRead, bool ignoreSoftClipOps) {
+    for(CigarElement& cigarElement : cigarForRead->getCigarElements()) {
         if(cigarElement.getOperator() == I) {
             return &cigarElement;
         } else if (cigarElement.getOperator() != H && (!ignoreSoftClipOps || cigarElement.getOperator() != S)) {
@@ -146,7 +146,7 @@ CigarElement* ReadUtils::readStartsWithInsertion(std::shared_ptr<Cigar> cigarFor
     return nullptr;
 }
 
-CigarElement* ReadUtils::readStartsWithInsertion(std::shared_ptr<Cigar> cigarForRead) {
+CigarElement* ReadUtils::readStartsWithInsertion(const std::shared_ptr<Cigar>& cigarForRead) {
     return readStartsWithInsertion(cigarForRead, true);
 }
 

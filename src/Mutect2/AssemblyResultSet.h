@@ -31,6 +31,7 @@ struct hash_Haplotype {
         for(int i = 0; i < size; i++) {
             res = 31 * res + bases[i];
         }
+        return res;
     }
 };
 
@@ -39,9 +40,13 @@ struct equal_Haplotype {
         if(left->getLength() != right->getLength())
             return false;
         int size = left->getLength();
+        uint8_t * left_bases = left->getBases().get();
+        uint8_t * right_bases = right->getBases().get();
         for(int i = 0; i < size; i ++) {
-
+            if(left_bases[i] != right_bases[i])
+                return false;
         }
+        return true;
     }
 };
 

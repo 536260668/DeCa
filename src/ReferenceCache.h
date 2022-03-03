@@ -15,6 +15,7 @@ private:
     int tid;
     hts_pos_t start;
     hts_pos_t end;
+    hts_pos_t len;
     SAMFileHeader* header;
     faidx_t * fai;
 

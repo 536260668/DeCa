@@ -12,8 +12,7 @@ ReferenceCache::ReferenceCache(char * refName, SAMFileHeader* header) : tid(0), 
     start = 0;
     end = std::min(999999, header->getSequenceDictionary().getSequences()[tid].getSequenceLength());
     std::string region = header->getSequenceDictionary().getSequences()[tid].getSequenceName() + ':' + std::to_string(start + 1) + '-' + std::to_string(end + 1);
-    hts_pos_t seq_len;
-    bases = fai_fetch64(fai, region.c_str(), &seq_len);
+    bases = fai_fetch64(fai, region.c_str(), &len);
 }
 
 ReferenceCache::~ReferenceCache()
@@ -46,20 +45,21 @@ char ReferenceCache::getBase(hts_pos_t pos)
 
 void ReferenceCache::advanceLoad() {
     start = end + 1;
-    end = std::min(start + 999999, static_cast<hts_pos_t>(header->getSequenceDictionary().getSequences()[tid].getSequenceLength()));
+    end = std::min(start + 999999, static_cast<hts_pos_t>(header->getSequenceDictionary().getSequences()[tid].getSequenceLength()-1));
     std::string region = header->getSequenceDictionary().getSequences()[tid].getSequenceName() + ':' + std::to_string(start + 1) + '-' + std::to_string(end + 1);
     hts_pos_t seq_len;
     clear();
-    bases = fai_fetch64(fai, region.c_str(), &seq_len);
+    bases = fai_fetch64(fai, region.c_str(), &len);
 }
 
 void ReferenceCache::setTid(int tid) {
+    this -> tid = tid;
     start = 0;
-    end = std::max(99999, header->getSequenceDictionary().getSequences()[tid].getSequenceLength());
-    std::string region = header->getSequenceDictionary().getSequences()[tid].getSequenceName() + ':' + std::to_string(start) + '-' + std::to_string(end);
-    hts_pos_t seq_len;
+    end = std::min(99999, header->getSequenceDictionary().getSequences()[tid].getSequenceLength()-1);
+    std::string region = header->getSequenceDictionary().getSequences()[tid].getSequenceName() + ':' + std::to_string(start+1) + '-' + std::to_string(end+1);
     clear();
-    bases = fai_fetch64(fai, region.c_str(), &seq_len);
+    bases = fai_fetch64(fai, region.c_str(), &len);
+
 }
 
 std::shared_ptr<uint8_t> ReferenceCache::getSubsequenceAt(int tid, int start, int stop, int & length) {

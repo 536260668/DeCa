@@ -58,3 +58,25 @@ uint8_t BaseUtils::getComplement(const uint8_t base) {
             throw std::invalid_argument("base must be A, C, G or T.");
     }
 }
+
+uint8_t BaseUtils::getUpper(const uint8_t base) {
+    switch(base) {
+        case 'a':
+        case 'A':
+            return 'A';
+        case 'c':
+        case 'C':
+            return 'C';
+        case 'g':
+        case 'G':
+            return 'G';
+        case 't':
+        case 'T':
+            return 'T';
+        case 'n':
+        case 'N':
+            return 'N';
+        default:
+            throw std::invalid_argument("base must be A, C, G or T.");
+    }
+}

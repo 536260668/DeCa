@@ -1,2 +1,2 @@
 aux_source_directory(. DIR_LIB_SRCS)
-add_library(HaplotypeCallerFunctions ${DIR_LIB_SRCS} ReferenceConfidenceModel.cpp ReferenceConfidenceModel.h)
+add_library(HaplotypeCallerFunctions ${DIR_LIB_SRCS} ReferenceConfidenceModel.cpp ReferenceConfidenceModel.h PairHMMLikelihoodCalculationEngine.cpp PairHMMLikelihoodCalculationEngine.h)

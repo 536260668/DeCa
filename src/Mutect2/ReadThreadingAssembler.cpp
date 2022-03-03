@@ -155,9 +155,11 @@ ReadThreadingAssembler::createGraph(const std::vector<std::shared_ptr<SAMRecord>
         return std::shared_ptr<AssemblyResult>(new AssemblyResult(FAILED, nullptr, nullptr));
     }
     SequenceForKmers tmp = {"ref", refHaplotype->getBases(), 0, refHaplotype->getLength(), 1, true};
-    if(!allowNonUniqueKmersInRef && !ReadThreadingGraph::determineNonUniqueKmers(tmp, kmerSize).empty()) {
+    std::vector<std::shared_ptr<Kmer>>* res =ReadThreadingGraph::determineNonUniqueKmers(tmp, kmerSize);
+    if(!allowNonUniqueKmersInRef && !ReadThreadingGraph::determineNonUniqueKmers(tmp, kmerSize)->empty()) {
         return nullptr;
     }
+    delete res;
     std::shared_ptr<ReadThreadingGraph> rtgraph(new ReadThreadingGraph(kmerSize, debugGraphTransformations, minBaseQualityToUseInAssembly, numPruningSamples));
     rtgraph->setThreadingStartOnlyAtExistingVertex(!recoverDanglingBranches);
     rtgraph->addSequence("ref", refHaplotype->getBases(), refHaplotype->getLength(), true);

@@ -43,7 +43,7 @@ protected:
 
 class VariantContextComparator {
 public:
-    bool operator() (std::shared_ptr<VariantContext> a1, std::shared_ptr<VariantContext> a2) {
+    bool operator() (const std::shared_ptr<VariantContext> &a1, const std::shared_ptr<VariantContext> &a2) const{
         return a1->getStart() < a2->getStart();
     }
 };

@@ -97,8 +97,8 @@ void EventMap::processCigarForInitialEvents(int maxMnpDistance) {
             {
                 std::deque<int> mismatchOffsets;
                 for(int offset = 0; offset < elementLength; offset++) {
-                    uint8_t refByte = ref.get()[refPos + offset];
-                    uint8_t altByte = alignment.get()[alignmentPos + offset];
+                    uint8_t refByte = BaseUtils::getUpper(ref.get()[refPos + offset]);
+                    uint8_t altByte = BaseUtils::getUpper(alignment.get()[alignmentPos + offset]);
                     bool mismatch = refByte != altByte && BaseUtils::isRegularBase(refByte) && BaseUtils::isRegularBase(altByte);
                     if(mismatch) {
                         mismatchOffsets.push_back(offset);

@@ -8,7 +8,7 @@
 #include "samtools/SAMRecord.h"
 #include "MultiDeBruijnVertex.h"
 #include "MultiSampleEdge.h"
-#include <map>
+#include <unordered_map>
 #include <string>
 #include <vector>
 #include <deque>
@@ -46,11 +46,11 @@ protected:
 private:
     int numPruningSamples;
 
-    Kmer refSource;
+    std::shared_ptr<Kmer> refSource;
 
-    std::unordered_set<Kmer, hash_kmer, equal_kmer> nonUniqueKmers;
+    std::unordered_set<std::shared_ptr<Kmer>, hash_kmer, equal_kmer> nonUniqueKmers;
 
-    std::map<Kmer, std::shared_ptr<MultiDeBruijnVertex>> uniqueKmers;
+    std::unordered_map<std::shared_ptr<Kmer>, std::shared_ptr<MultiDeBruijnVertex>, hash_kmer, equal_kmer> uniqueKmers;
 
     const uint8_t minBaseQualityToUseInAssembly;
 
@@ -98,7 +98,7 @@ private:
      * @param maxKmerSize the maximum kmer size to consider
      * @return a non-null NonUniqueResult
      */
-    std::unordered_set<Kmer, hash_kmer, equal_kmer> determineKmerSizeAndNonUniques(int minKmerSize, int maxKmerSize);
+    void determineKmerSizeAndNonUniques(int minKmerSize, int maxKmerSize);
 
     /**
     * Create a new vertex for kmer.  Add it to the uniqueKmers map if appropriate.
@@ -108,7 +108,7 @@ private:
     * @param kmer the kmer we want to create a vertex for
     * @return the non-null created vertex
     */
-    std::shared_ptr<MultiDeBruijnVertex> createVertex(Kmer & kmer);
+    std::shared_ptr<MultiDeBruijnVertex> createVertex(const std::shared_ptr<Kmer> & kmer);
 
     /**
    * Workhorse routine of the assembler.  Given a sequence whose last vertex is anchored in the graph, extend
@@ -121,7 +121,7 @@ private:
    * @param isRef is this the reference sequence?
    * @return a non-null vertex connecting prevVertex to in the graph based on sequence
    */
-    std::shared_ptr<MultiDeBruijnVertex> extendChainByOne(const std::shared_ptr<MultiDeBruijnVertex>& prevVertex, std::shared_ptr<uint8_t[]> sequence, int kmerStart, int count, bool isRef);
+    std::shared_ptr<MultiDeBruijnVertex> extendChainByOne(const std::shared_ptr<MultiDeBruijnVertex>& prevVertex, const std::shared_ptr<uint8_t[]>& sequence, int kmerStart, int count, bool isRef);
 
      void threadSequence(SequenceForKmers & sequenceForKmers);
 
@@ -131,9 +131,9 @@ private:
     * @param seqForKmers the sequence we want to thread into the graph
     * @return the position of the starting vertex in seqForKmer, or -1 if it cannot find one
     */
-     int findStart(SequenceForKmers seqForKmers);
+     int findStart(const SequenceForKmers& seqForKmers);
 
-     bool getUniqueKmerVertex(Kmer & kmer, bool allowRefSource);
+     bool getUniqueKmerVertex(const std::shared_ptr<Kmer> & kmer, bool allowRefSource);
 
     std::shared_ptr<MultiDeBruijnVertex> getOrCreateKmerVertex(std::shared_ptr<uint8_t[]> sequence, int start);
 
@@ -148,7 +148,7 @@ private:
     * @param aligner
     * @return 1 if we successfully recovered the vertex and 0 otherwise
     */
-     int recoverDanglingTail(std::shared_ptr<MultiDeBruijnVertex> v, int pruneFactor, int minDanglingBranchLength, bool recoverAll);
+     int recoverDanglingTail(const std::shared_ptr<MultiDeBruijnVertex>& v, int pruneFactor, int minDanglingBranchLength, bool recoverAll);
 
 
     std::deque<std::shared_ptr<MultiDeBruijnVertex>> findPathUpwardsToLowestCommonAncestor(std::shared_ptr<MultiDeBruijnVertex> vertex, int pruneFactor, bool giveUpAtBranch);
@@ -184,12 +184,12 @@ private:
     void resetToInitialState();
 
 public:
-    ReadThreadingGraph(uint8_t minBaseQualityToUseInAssembly, int kmerSize, bool alreadyBuilt, const Kmer& ref, int numPruningSamples) : minBaseQualityToUseInAssembly(minBaseQualityToUseInAssembly), kmerSize(kmerSize), alreadyBuilt(
+    ReadThreadingGraph(uint8_t minBaseQualityToUseInAssembly, int kmerSize, bool alreadyBuilt, const std::shared_ptr<Kmer>& ref, int numPruningSamples) : minBaseQualityToUseInAssembly(minBaseQualityToUseInAssembly), kmerSize(kmerSize), alreadyBuilt(
             false), refSource(ref), numPruningSamples(numPruningSamples), nonUniqueKmers(){}
 
     ReadThreadingGraph(int kmerSize, bool debugGraphTransformations, uint8_t minBaseQualityToUseInAssembly, int numPruningSamples);
 
-    static std::vector<Kmer> determineNonUniqueKmers(SequenceForKmers &sequenceForKmers, int kmerSize);
+    static std::vector<std::shared_ptr<Kmer>> * determineNonUniqueKmers(const SequenceForKmers &sequenceForKmers, int kmerSize);
 
     /**
      * Build the read threaded assembly graph if it hasn't already been constructed from the sequences that have

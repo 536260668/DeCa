@@ -6,14 +6,15 @@
 #include "Mutect2Utils.h"
 #include <iostream>
 #include <cstring>
+#include <utility>
 
-Kmer::Kmer(std::shared_ptr<uint8_t[]> kmer, const int length)  : bases(kmer), start(0), length(length){
+Kmer::Kmer(std::shared_ptr<uint8_t[]> kmer, const int length)  : bases(std::move(kmer)), start(0), length(length){
     Mutect2Utils::validateArg(start >= 0, "start must be >= 0");
     Mutect2Utils::validateArg(length >= 0, "length must be >= 0");
     this->hash = hashCode(bases, start, length);
 }
 
-Kmer::Kmer(std::shared_ptr<uint8_t[]>kmer, const int start, const int length) : bases(kmer), start(start), length(length){
+Kmer::Kmer(std::shared_ptr<uint8_t[]>kmer, const int start, const int length) : bases(std::move(kmer)), start(start), length(length){
     Mutect2Utils::validateArg(start >= 0, "start must be >= 0");
     Mutect2Utils::validateArg(length >= 0, "length must be >= 0");
     this->hash = hashCode(bases, start, length);
@@ -25,7 +26,7 @@ Kmer::Kmer(const Kmer &kmer) : bases(kmer.bases), start(kmer.start), length(kmer
     this->hash = hashCode(bases, start, length);
 }
 
-int Kmer::hashCode(const std::shared_ptr<uint8_t[]> bases, const int start, const int length) {
+int Kmer::hashCode(const std::shared_ptr<uint8_t[]>& bases, const int start, const int length) {
     if(length == 0) {
         return 0;
     }
@@ -104,12 +105,12 @@ bool Kmer::operator==(const Kmer &other) const {
     return true;
 }
 
-bool equal_kmer::operator()(const Kmer &kmer1, const Kmer &kmer2) const {
-    return kmer1 == kmer2;
+bool equal_kmer::operator()(const std::shared_ptr<Kmer> &kmer1, const std::shared_ptr<Kmer> &kmer2) const {
+    return *kmer1 == *kmer2;
 }
 
 
 
-size_t hash_kmer::operator()(const Kmer &kmer1) const {
-    return size_t(kmer1.getHash());
+size_t hash_kmer::operator()(const std::shared_ptr<Kmer> &kmer1) const {
+    return size_t(kmer1->getHash());
 }

@@ -65,7 +65,7 @@ static uint32_t D_MAX_SEQ_LEN = MAX_SEQ_LEN;
 void inline smithWatermanBackTrack(SeqPair *p, int32_t match, int32_t mismatch, int32_t open, int32_t extend, int32_t* E_,int32_t tid)
 {
     uint32_t seq1[D_MAX_SEQ_LEN];
-    uint32_t seq1Rev[D_MAX_SEQ_LEN];
+    uint32_t seq1Rev[D_MAX_SEQ_LEN+16];
     uint32_t seq2[D_MAX_SEQ_LEN];
     int32_t nrow = p->len1;
     int32_t ncol = p->len2;
@@ -195,8 +195,9 @@ void inline smithWatermanBackTrack(SeqPair *p, int32_t match, int32_t mismatch, 
             int32_t hTopInd  = hLeftInd + 1;
             int32_t hCurInd = cur + (diagInd >> 1);
             int32_t seq2Ind = j - 1;
-            VEC_INT_TYPE bt_vec_0;
+
             VEC_INT_TYPE bt_vec_1 = VEC_SET_ZERO();
+            VEC_INT_TYPE bt_vec_0;
             MAIN_CODE(bt_vec_0)
             VEC_INT_TYPE bt_vec_2 = VEC_PERMUTE2x128_EVEN(bt_vec_0, bt_vec_1);
             VEC_INT_TYPE bt_vec_3 = VEC_PERMUTE2x128_ODD(bt_vec_0, bt_vec_1);

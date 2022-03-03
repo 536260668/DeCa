@@ -1,2 +1,2 @@
 aux_source_directory(. DIR_LIB_SRCS)
-add_library(UtilsFunctions ${DIR_LIB_SRCS} PeUtils.cpp PeUtils.h ReadPileup.cpp ReadPileup.h)
+add_library(UtilsFunctions ${DIR_LIB_SRCS} PeUtils.cpp PeUtils.h ReadPileup.cpp ReadPileup.h pairhmm/VectorLoglessPairHMM.cpp pairhmm/VectorLoglessPairHMM.h pairhmm/HaplotypeDataHolder.h pairhmm/HaplotypeDataHolder.cpp)
