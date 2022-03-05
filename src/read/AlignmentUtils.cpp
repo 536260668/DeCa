@@ -18,7 +18,7 @@ std::shared_ptr<Cigar> AlignmentUtils::consolidateCigar(std::shared_ptr<Cigar> c
     int sumLength = 0;
     CigarElement* lastElement = nullptr;
 
-    for(CigarElement cur : c->getCigarElements()) {
+    for(CigarElement & cur : c->getCigarElements()) {
         if( cur.getLength() == 0)
             continue;
 

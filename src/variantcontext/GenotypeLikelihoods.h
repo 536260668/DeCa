@@ -34,7 +34,7 @@ private:
     static double* parsePLsIntoLikelihoods(std::string likelihoodsAsString_PLs, int & length);
     static double maxPL(double* GLs, int length);
     static std::string convertLikelihoodsToPLString(double* GLs, int length);
-    double getLog10GQ(std::vector<Allele*> &genotypeAlleles, std::vector<Allele*> &contextAlleles);
+    double getLog10GQ(const std::vector<std::shared_ptr<Allele>> &genotypeAlleles, std::vector<Allele*> &contextAlleles);
     static GenotypeLikelihoodsAllelePair** calculateDiploidPLcache(int altAlleles, int & length);
     static int calcNumLikelihoods(int numAlleles, int ploidy);
     static void calculatePLIndexToAlleleIndices(int altAlleles, int ploidy, std::vector<std::vector<int>> &anyploidPLIndexToAlleleIndices, const std::vector<int>& genotype);

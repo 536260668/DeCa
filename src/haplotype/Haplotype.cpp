@@ -7,27 +7,27 @@
 #include "read/AlignmentUtils.h"
 #include "SimpleInterval.h"
 
-Haplotype::Haplotype(std::shared_ptr<uint8_t> bases, int length, bool isRef) : Allele(copyArray(bases, length), length, isRef), eventMap(
+Haplotype::Haplotype(std::shared_ptr<uint8_t[]> bases, int length, bool isRef) : Allele(copyArray(bases, length), length, isRef), eventMap(
         nullptr){}
 
-std::shared_ptr<uint8_t> Haplotype::copyArray(std::shared_ptr<uint8_t> base, int length) {
+std::shared_ptr<uint8_t[]> Haplotype::copyArray(std::shared_ptr<uint8_t[]> base, int length) {
     std::shared_ptr<uint8_t> res{new uint8_t[length+1]{0}};
     memcpy(res.get(), base.get(), length);
     return res;
 }
 
-Haplotype::Haplotype(std::shared_ptr<uint8_t>bases, int length) : Allele(copyArray(bases, length), length, false){}
+Haplotype::Haplotype(std::shared_ptr<uint8_t[]>bases, int length) : Allele(copyArray(bases, length), length, false){}
 
 void Haplotype::setCigar(std::shared_ptr<Cigar> & cigar) {
     this->cigar = AlignmentUtils::consolidateCigar(cigar);
     Mutect2Utils::validateArg(this->cigar->getReadLength() == getLength(), "Read length is not equal to the read length of the cigar");
 }
 
-Haplotype::Haplotype(std::shared_ptr<uint8_t>bases, bool isRef, int length, int alignmentStartHapwrtRef, std::shared_ptr<Cigar> & cigar) : Allele(copyArray(bases, length), length, false), alignmentStartHapwrtRef(alignmentStartHapwrtRef){
+Haplotype::Haplotype(std::shared_ptr<uint8_t[]>bases, bool isRef, int length, int alignmentStartHapwrtRef, std::shared_ptr<Cigar> & cigar) : Allele(copyArray(bases, length), length, false), alignmentStartHapwrtRef(alignmentStartHapwrtRef){
     setCigar(cigar);
 }
 
-Haplotype::Haplotype(std::shared_ptr<uint8_t> bases, int length, const std::shared_ptr<Locatable> & loc) : Allele(copyArray(bases, length), length, false), genomeLocation(loc){}
+Haplotype::Haplotype(std::shared_ptr<uint8_t[]> bases, int length, const std::shared_ptr<Locatable> & loc) : Allele(copyArray(bases, length), length, false), genomeLocation(loc){}
 
 std::shared_ptr<Haplotype> Haplotype::trim(const std::shared_ptr<Locatable> & loc) {
     Mutect2Utils::validateArg(loc != nullptr, "Loc cannot be null");
@@ -68,11 +68,11 @@ int Haplotype::getAlignmentStartHapwrtRef() const{
     return alignmentStartHapwrtRef;
 }
 
-EventMap *Haplotype::getEventMap() {
+std::shared_ptr<EventMap> Haplotype::getEventMap() {
     return eventMap;
 }
 
-void Haplotype::setEventMap(EventMap *eventMap) {
+void Haplotype::setEventMap(const std::shared_ptr<EventMap> &eventMap) {
     this->eventMap = eventMap;
 }
 

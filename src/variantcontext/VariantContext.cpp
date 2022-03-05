@@ -11,7 +11,7 @@ VariantContext::VariantContext(std::string &source,
                                std::string &contig,
                                long start,
                                long stop,
-                               std::vector<Allele*> *alleles,
+                               const std::shared_ptr<std::vector<std::shared_ptr<Allele>>> & alleles,
                                GenoTypesContext* genotypes,
                                double log10PError,
                                std::set<std::string>* filters, std::map<std::string, void*> *attributes,
@@ -35,7 +35,7 @@ VariantContext::VariantContext(std::string &source,
         this->genotypes = &GenoTypesContext::NO_GENOTYPES;
     }
 
-    for(Allele* allele : *alleles) {
+    for(const std::shared_ptr<Allele> & allele : *alleles) {
         if(allele->getIsReference()) {
             this->REF = allele;
         } else if(alleles->size() == 2) {
@@ -49,10 +49,10 @@ VariantContext::VariantContext(std::string &source,
     }
 }
 
-std::vector<Allele *> VariantContext::makeAlleles(std::vector<Allele *> &_alleles) {
-    std::vector<Allele*> alleleList;
+std::vector<std::shared_ptr<Allele>> VariantContext::makeAlleles(std::vector<std::shared_ptr<Allele>> &_alleles) {
+    std::vector<std::shared_ptr<Allele>> alleleList;
     bool sawRef = false;
-    for(Allele* allele : _alleles) {
+    for(const std::shared_ptr<Allele>& allele : _alleles) {
         int i = 0;
         for(int alleleListSize = _alleles.size(); i < alleleListSize; ++i) {
             if(i < alleleList.size() && alleleList.at(i) != nullptr && (*allele).equals(*alleleList.at(i), true)) {
@@ -130,11 +130,11 @@ bool VariantContext::hasSymbolicAlleles() {
     return hasSymbolicAlleles(getAlleles());
 }
 
-std::vector<Allele *> & VariantContext::getAlleles() {
+std::vector<std::shared_ptr<Allele>> & VariantContext::getAlleles() {
     return alleles;
 }
 
-bool VariantContext::hasSymbolicAlleles(std::vector<Allele *> & alleles) {
+bool VariantContext::hasSymbolicAlleles(const std::vector<std::shared_ptr<Allele>> & alleles) {
     int i = 0;
 
     for(int size = (int)alleles.size(); i < size; i++) {
@@ -146,7 +146,7 @@ bool VariantContext::hasSymbolicAlleles(std::vector<Allele *> & alleles) {
     return false;
 }
 
-Allele *VariantContext::getReference() {
+std::shared_ptr<Allele> VariantContext::getReference() {
     if(REF == nullptr) {
         throw std::invalid_argument("BUG: no reference allele found");
     } else {
@@ -156,7 +156,7 @@ Allele *VariantContext::getReference() {
 
 void VariantContext::validateAlleles() {
     bool alreadySeenRef = false;
-    for(Allele* allele : alleles) {
+    for(const std::shared_ptr<Allele> & allele : alleles) {
         if(allele->getIsReference()) {
             if(alreadySeenRef) {
                 throw std::invalid_argument("BUG: Received two reference tagged alleles in VariantContext");
@@ -179,8 +179,8 @@ void VariantContext::validateGenotypes() {
         for(int i = 0; i < genotypes->getSize(); ++i) {
             Genotype* genotype = genotypes->get(i);
             if(genotype->isAvailable()) {
-                std::vector<Allele*> new_alleles = genotype->getAlleles();
-                for(Allele* allele : new_alleles) {
+                std::vector<std::shared_ptr<Allele>> new_alleles = genotype->getAlleles();
+                for(std::shared_ptr<Allele> allele : new_alleles) {
                     if(!hasAllele(allele) && allele->getIsCalled()) {
                         throw std::invalid_argument("Allele in genotype not in the variant context");
                     }
@@ -190,19 +190,19 @@ void VariantContext::validateGenotypes() {
     }
 }
 
-bool VariantContext::hasAllele(Allele *allele) {
+bool VariantContext::hasAllele(const std::shared_ptr<Allele> & allele) {
     return hasAllele(allele, false, true);
 }
 
-bool VariantContext::hasAllele(Allele *allele, bool ignoreRefState) {
+bool VariantContext::hasAllele(const std::shared_ptr<Allele> &allele, bool ignoreRefState) {
     return hasAllele(allele, ignoreRefState, true);
 }
 
-bool VariantContext::hasAllele(Allele *allele, bool ignoreRefState, bool considerRefAllele) {
+bool VariantContext::hasAllele(const std::shared_ptr<Allele> &allele, bool ignoreRefState, bool considerRefAllele) {
     if((!considerRefAllele || !((*allele) == (*REF))) && !((*allele) == (*ALT))) {
-        std::vector<Allele*> allelesToConsider = considerRefAllele ? getAlleles() : getAlternateAlleles();
+        std::vector<std::shared_ptr<Allele>> allelesToConsider = considerRefAllele ? getAlleles() : getAlternateAlleles();
         int i = 0;
-        for(Allele* allele1 : allelesToConsider) {
+        for(const std::shared_ptr<Allele> & allele1 : allelesToConsider) {
             if(allele1->equals(*allele, ignoreRefState)) {
                 return true;
             }
@@ -214,7 +214,7 @@ bool VariantContext::hasAllele(Allele *allele, bool ignoreRefState, bool conside
 }
 
 //TODO:验证写法是否正确
-std::vector<Allele *> VariantContext::getAlternateAlleles() {
+std::vector<std::shared_ptr<Allele>> VariantContext::getAlternateAlleles() {
     return {alleles.begin()++, alleles.end()};
 }
 
@@ -257,7 +257,7 @@ void VariantContext::determineType() {
 
 void VariantContext::determinePolymorphicType() {
     type = VariantContext_NULL;
-    for(Allele* allele : alleles) {
+    for(const std::shared_ptr<Allele>& allele : alleles) {
         if(allele != REF) {
             VariantContextType biallelicType = typeOfBiallelicVariant(REF, allele);
             if(type == VariantContext_NULL) {
@@ -270,7 +270,7 @@ void VariantContext::determinePolymorphicType() {
     }
 }
 
-VariantContextType VariantContext::typeOfBiallelicVariant(Allele *ref, Allele *allele) {
+VariantContextType VariantContext::typeOfBiallelicVariant(const std::shared_ptr<Allele> & ref, const std::shared_ptr<Allele> &allele) {
     if(ref->getIsSymbolic()) {
         throw std::invalid_argument("Unexpected error: encountered a record with a symbolic reference allele");
     } else if (allele->getIsSymbolic()) {
@@ -286,7 +286,7 @@ bool VariantContext::isSimpleDeletion() {
     return isSimpleIndel() && getAlternateAllele(0)->getLength() == 1;
 }
 
-Allele *VariantContext::getAlternateAllele(int i) {
+std::shared_ptr<Allele> VariantContext::getAlternateAllele(int i) {
     return alleles.at(i+1);
 }
 

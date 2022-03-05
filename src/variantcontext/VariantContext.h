@@ -35,20 +35,20 @@ private:
     hts_pos_t start;
     hts_pos_t stop;
     std::string ID;
-    Allele* REF;
-    Allele* ALT;
+    std::shared_ptr<Allele> REF;
+    std::shared_ptr<Allele> ALT;
     CommonInfo commonInfo;
     bool fullyDecoded;
     /** A set of the alleles segregating in this context */
 
     void validateStop();
     bool validate(const std::set<Validation>& validationToPerform);
-    static std::vector<Allele*> makeAlleles(std::vector<Allele*> & alleles);
+    static std::vector<std::shared_ptr<Allele>> makeAlleles(std::vector<std::shared_ptr<Allele>> & alleles);
     void validateAlleles();
     void validateGenotypes();
     void determineType();
     void determinePolymorphicType();
-    static VariantContextType typeOfBiallelicVariant(Allele* ref, Allele* allele);
+    static VariantContextType typeOfBiallelicVariant(const std::shared_ptr<Allele> & ref, const std::shared_ptr<Allele> & allele);
 
 public:
     /**
@@ -81,15 +81,15 @@ public:
     VariantContextType getType();
 
     bool hasSymbolicAlleles();
-    std::vector<Allele*>  & getAlleles();
-    static bool hasSymbolicAlleles(std::vector<Allele*> & alleles);
-    Allele* getReference();
+    std::vector<std::shared_ptr<Allele>>  & getAlleles();
+    static bool hasSymbolicAlleles(const std::vector<std::shared_ptr<Allele>> & alleles);
+    std::shared_ptr<Allele> getReference();
 
-    bool hasAllele(Allele* allele);
-    bool hasAllele(Allele* allele, bool ignoreRefState);
-    bool hasAllele(Allele* allele, bool ignoreRefState, bool considerRefAllele);
-    std::vector<Allele*> getAlternateAlleles();
-    Allele* getAlternateAllele(int i);
+    bool hasAllele(const std::shared_ptr<Allele>& allele);
+    bool hasAllele(const std::shared_ptr<Allele>& allele, bool ignoreRefState);
+    bool hasAllele(const std::shared_ptr<Allele>& allele, bool ignoreRefState, bool considerRefAllele);
+    std::vector<std::shared_ptr<Allele>> getAlternateAlleles();
+    std::shared_ptr<Allele> getAlternateAllele(int i);
     std::map<std::string, void*> & getAttributes();
     std::string & getContig();
     std::set<std::string>  * getFiltersMaybeNull();
@@ -104,7 +104,7 @@ public:
                    std::string &contig,
                    long start,
                    long stop,
-                   std::vector<Allele*> *alleles,
+                   const std::shared_ptr<std::vector<std::shared_ptr<Allele>>> & alleles,
                    GenoTypesContext* genotypes,
                    double log10PError,
                    std::set<std::string>* filters, std::map<std::string, void*>* attributes,
@@ -113,7 +113,7 @@ public:
     );
 protected:
     VariantContextType type;
-    std::vector<Allele*>  alleles;
+    std::vector<std::shared_ptr<Allele>>  alleles;
     GenoTypesContext* genotypes;
 
 

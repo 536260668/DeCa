@@ -6,7 +6,7 @@
 #include "Mutect2Utils.h"
 #include <utility>
 #include <stdexcept>
-#include <c++/7/algorithm>
+#include <algorithm>
 #include "StringUtils.h"
 
 const std::string Genotype::PRIMARY_KEYS[6] = {"FT", "GT", "GQ", "DP", "AD", "PL"};
@@ -20,9 +20,9 @@ Genotype::Genotype(std::string sampleName, const std::string& filters) {
     this->filters = !filters.empty() ? filters : "";
 }
 
-int Genotype::countAllele(Allele *allele) {
+int Genotype::countAllele(const std::shared_ptr<Allele> &allele) {
     int c = 0;
-    for(Allele* var : getAlleles()) {
+    for(const std::shared_ptr<Allele> & var : getAlleles()) {
         if((*var) == (*allele))
             ++c;
     }
@@ -37,15 +37,15 @@ GenotypeType Genotype::getType() {
 }
 
 GenotypeType Genotype::determineType() {
-    std::vector<Allele*> alleles = getAlleles();
+    std::vector<std::shared_ptr<Allele>> alleles = getAlleles();
     if(alleles.empty()) {
         return UNAVAILABLE;
     } else {
         bool sawNoCall = false;
         bool sawMultipleAlleles = false;
-        Allele* firstCallAllele = nullptr;
+        std::shared_ptr<Allele> firstCallAllele = nullptr;
 
-        for(Allele* allele : alleles) {
+        for(const std::shared_ptr<Allele> & allele : alleles) {
             if(allele->getIsNoCall()) {
                 sawNoCall = true;
             } else if (firstCallAllele == nullptr) {
@@ -121,12 +121,12 @@ std::string Genotype::getGenotypeString(bool ignoreRefState) {
             std::vector<std::string> lists = getAlleleStrings();
             return StringUtils::join(separator, lists);
         } else {
-            std::vector<Allele*> alleles = getAlleles();
+            std::vector<std::shared_ptr<Allele>> alleles = getAlleles();
             if(!isPhased()) {
-                std::sort(alleles.begin(), alleles.end(), [&](Allele* a1, Allele*a2)->bool {return (*a1) < (*a2);});
+                std::sort(alleles.begin(), alleles.end(), [&](const std::shared_ptr<Allele> & a1, const std::shared_ptr<Allele> & a2)->bool {return (*a1) < (*a2);});
             }
             std::vector<std::string> lists(alleles.size());
-            for(Allele* allele : alleles) {
+            for(const std::shared_ptr<Allele>& allele : alleles) {
                 lists.emplace_back(allele->getBaseString());
             }
             return StringUtils::join(separator, lists);
@@ -136,7 +136,7 @@ std::string Genotype::getGenotypeString(bool ignoreRefState) {
 
 std::vector<std::string> Genotype::getAlleleStrings() {
     std::vector<std::string> al(getPloidy());
-    for(Allele* allele : getAlleles()) {
+    for(const std::shared_ptr<Allele>& allele : getAlleles()) {
         al.emplace_back(allele->getBaseString());
     }
     return al;
@@ -150,11 +150,11 @@ bool Genotype::sameGenotype(Genotype *other, bool ignorePhase) {
     if(getPloidy() != other->getPloidy()) {
         return false;
     } else {
-        std::vector<Allele*> thisAlleles = getAlleles();
-        std::vector<Allele*> otherAlleles = other->getAlleles();
+        std::vector<std::shared_ptr<Allele>> thisAlleles = getAlleles();
+        std::vector<std::shared_ptr<Allele>> otherAlleles = other->getAlleles();
         if(ignorePhase) {
-            std::set<Allele*> treeThisAlleles(thisAlleles.begin(), thisAlleles.end());
-            std::set<Allele*> treeOtherAlleles(otherAlleles.begin(), otherAlleles.end());
+            std::set<std::shared_ptr<Allele>> treeThisAlleles(thisAlleles.begin(), thisAlleles.end());
+            std::set<std::shared_ptr<Allele>> treeOtherAlleles(otherAlleles.begin(), otherAlleles.end());
             return Mutect2Utils::isSetEquals(treeOtherAlleles, treeThisAlleles);
         }
         return Mutect2Utils::isVectorEquals(thisAlleles, otherAlleles);
@@ -181,8 +181,8 @@ void *Genotype::getExtendedAttribute(const std::string & key) {
 //需要delete
 void *Genotype::getAnyAttribute(const std::string& key) {
     if(key == "GT") {
-        std::vector<Allele*> ret = getAlleles();
-        return (new std::vector<Allele*>(ret.begin(), ret.end()));
+        std::vector<std::shared_ptr<Allele>> ret = getAlleles();
+        return (new std::vector<std::shared_ptr<Allele>>(ret.begin(), ret.end()));
     } else if (key == "GQ") {
         int* ret = new int(getGQ());
         return ret;

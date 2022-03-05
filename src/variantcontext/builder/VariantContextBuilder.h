@@ -18,7 +18,7 @@ private:
     std::string contig;
     long start = -1;
     long stop = -1;
-    std::vector<Allele*> * alleles;
+    std::shared_ptr<std::vector<std::shared_ptr<Allele>>> alleles;
     std::string ID = ".";
     GenoTypesContext* genotypes;
     double log10PError;
@@ -28,7 +28,7 @@ private:
     std::set<Validation> toValidate;
 
 public:
-    VariantContextBuilder(std::string & source, std::string & contig, long start, long stop, std::vector<Allele*> * alleles);
+    VariantContextBuilder(std::string & source, std::string & contig, long start, long stop, const std::shared_ptr<std::vector<std::shared_ptr<Allele>>> &  alleles);
 
     VariantContextBuilder(std::shared_ptr<VariantContext> & parent);
 
@@ -38,7 +38,7 @@ public:
 
     void setStop(long stop);
 
-    void setAlleles(std::vector<Allele*> * alleles);
+    void setAlleles(const std::shared_ptr<std::vector<std::shared_ptr<Allele>>> & alleles);
 };
 
 

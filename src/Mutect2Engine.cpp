@@ -138,27 +138,27 @@ void Mutect2Engine::fillNextAssemblyRegionWithReads(const std::shared_ptr<Assemb
 
 std::vector<std::shared_ptr<VariantContext>>
 Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion>& originalAssemblyRegion, ReferenceContext &referenceContext) {
-//    if(originalAssemblyRegion->getStart() == 805561) {
+//    if(originalAssemblyRegion->getStart() == 1976817) {
 //        for(const std::shared_ptr<SAMRecord>& read : originalAssemblyRegion->getReads()) {
 //            std::cout << read->getName() << " : " << read->getStart() + 1 << "~" << read->getEnd() + 1 << std::endl;
 //        }
-//    std::cout << "hello" << std::endl;
+//        std::cout << "hello" << std::endl;
 //    }
     removeUnmarkedDuplicates(originalAssemblyRegion);
     if(originalAssemblyRegion->getReads().empty())
         return {};
     std::shared_ptr<AssemblyResultSet> untrimmedAssemblyResult = AssemblyBasedCallerUtils::assembleReads(std::move(originalAssemblyRegion), MATC, header, refCache, assemblyEngine);
     std::set<std::shared_ptr<VariantContext>, VariantContextComparator> & allVariationEvents = untrimmedAssemblyResult->getVariationEvents(1);
-    std::shared_ptr<AssemblyRegionTrimmer_Result> trimmingResult = trimmer.trim(originalAssemblyRegion, allVariationEvents);
-    if(!trimmingResult->isVariationPresent()) {
-        return {};
-    }
-    std::shared_ptr<AssemblyResultSet> assemblyResult = trimmingResult->getNeedsTrimming() ? untrimmedAssemblyResult->trimTo(trimmingResult->getCallableRegion()) : untrimmedAssemblyResult;
-    if(!assemblyResult->isisVariationPresent()) {
-        return {};
-    }
-    std::shared_ptr<AssemblyRegion> regionForGenotyping = assemblyResult->getRegionForGenotyping();
-    removeReadStubs(regionForGenotyping);
+//    std::shared_ptr<AssemblyRegionTrimmer_Result> trimmingResult = trimmer.trim(originalAssemblyRegion, allVariationEvents);
+//    if(!trimmingResult->isVariationPresent()) {
+//        return {};
+//    }
+//    std::shared_ptr<AssemblyResultSet> assemblyResult = trimmingResult->getNeedsTrimming() ? untrimmedAssemblyResult->trimTo(trimmingResult->getCallableRegion()) : untrimmedAssemblyResult;
+//    if(!assemblyResult->isisVariationPresent()) {
+//        return {};
+//    }
+//    std::shared_ptr<AssemblyRegion> regionForGenotyping = assemblyResult->getRegionForGenotyping();
+//    removeReadStubs(regionForGenotyping);
 
     return  {allVariationEvents.begin(), allVariationEvents.end()};
 }

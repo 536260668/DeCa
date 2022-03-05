@@ -31,7 +31,7 @@ ReadThreadingAssembler::getAssemblyResult(std::shared_ptr<Haplotype>& refHaploty
 
     std::shared_ptr<AssemblyResult> cleaned = cleanupSeqGraph(initialSeqGraph);
     Status status = cleaned->getStatus();
-    std::shared_ptr<AssemblyResult> ret(new AssemblyResult(status, cleaned->getGraph(), rtgraph));
+    std::shared_ptr<AssemblyResult> ret = std::make_shared<AssemblyResult>(status, cleaned->getGraph(), rtgraph);
     return ret;
 }
 
@@ -189,7 +189,7 @@ ReadThreadingAssembler::createGraph(const std::vector<std::shared_ptr<SAMRecord>
     return getAssemblyResult(refHaplotype, kmerSize, rtgraph);
 }
 
-void ReadThreadingAssembler::addResult(std::vector<std::shared_ptr<AssemblyResult>> &results, const std::shared_ptr<AssemblyResult>& maybeNullResult) {
+void ReadThreadingAssembler::addResult(std::vector<std::shared_ptr<AssemblyResult>> &results, std::shared_ptr<AssemblyResult> maybeNullResult) {
     if(maybeNullResult != nullptr) {
         results.emplace_back(maybeNullResult);
     }

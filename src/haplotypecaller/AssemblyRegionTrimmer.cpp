@@ -50,7 +50,7 @@ std::shared_ptr<AssemblyRegionTrimmer_Result> AssemblyRegionTrimmer::trim(const 
         }
     }
     int padding = foundNonSnp ? assemblyArgs->indelPadding : assemblyArgs->snpPadding;
-    if(*variantSpan == SimpleInterval()) {
+    if(variantSpan == nullptr) {
         return AssemblyRegionTrimmer_Result::noVariation(emitReferenceConfidence, originalRegion, padding, usableExtension);
     }
 

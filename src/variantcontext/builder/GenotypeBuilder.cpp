@@ -6,7 +6,7 @@
 
 #include <utility>
 
-Genotype *GenotypeBuilder::create(std::string sampleName, std::vector<Allele *> alleles) {
+Genotype *GenotypeBuilder::create(std::string sampleName, std::vector<std::shared_ptr<Allele>> alleles) {
     return GenotypeBuilder(std::move(sampleName), std::move(alleles)).make();
 }
 
@@ -14,7 +14,7 @@ Genotype *GenotypeBuilder::make() {
     return new FastGenotype(sampleName, alleles, isPhased, GQ, DP, AD, ADLength, PL, PLLength, filters, extendedAttributes);
 }
 
-Genotype *GenotypeBuilder::create(std::string sampleName, std::vector<Allele *> alleles,
+Genotype *GenotypeBuilder::create(std::string sampleName, std::vector<std::shared_ptr<Allele>> alleles,
                                   const std::map<std::string, void *>& attributes) {
     return GenotypeBuilder(std::move(sampleName), std::move(alleles)).attributes(attributes).make();
 }
@@ -26,7 +26,7 @@ GenotypeBuilder GenotypeBuilder::attributes(const std::map<std::string, void *>&
     return *this;
 }
 
-Genotype *GenotypeBuilder::create(const std::string& sampleName, const std::vector<Allele *>& alleles, double *gls, int length) {
+Genotype *GenotypeBuilder::create(const std::string& sampleName, const std::vector<std::shared_ptr<Allele>>& alleles, double *gls, int length) {
     return GenotypeBuilder(sampleName, alleles).buildPL(gls, length).make();
 }
 

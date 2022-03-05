@@ -237,11 +237,11 @@ int main(int argc, char *argv[])
 
                 if(count % 2000 == 0) {
                     std::cout << *nextRegion;
-                    std::cout << k << std::endl;
+                    break;
                 }
                 pendingRegions.pop();
                 Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
-                //std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext);
+                std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext);
                 //if(variant.size() != 0)
                   //  std::cout << variant.size();
             }
@@ -251,7 +251,7 @@ int main(int argc, char *argv[])
             // gather AlignmentContext to AssemblyRegion
 
         activityProfile->clear();
-        //break;
+        break;
     }
 
     //std::cout << "read_num : " << read_num << std::endl;

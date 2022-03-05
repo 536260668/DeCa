@@ -187,7 +187,7 @@ double GenotypeLikelihoods::getLog10GQ(GenotypeType genotypeType) {
     return getGQLog10FromLikelihoods(genotypeType - 1, asVector, length);
 }
 
-double GenotypeLikelihoods::getLog10GQ(std::vector<Allele *> &genotypeAlleles, std::vector<Allele *> &contextAlleles) {
+double GenotypeLikelihoods::getLog10GQ(const std::vector<std::shared_ptr<Allele>> &genotypeAlleles, std::vector<Allele *> &contextAlleles) {
     int allele1Index = 0;
     int allele2Index = 0;
     int i = 0;
@@ -215,7 +215,7 @@ int GenotypeLikelihoods::calculatePLindex(int allele1Index, int allele2Index) {
 }
 
 double GenotypeLikelihoods::getLog10GQ(Genotype *genotype, std::vector<Allele *> &contextAlleles) {
-    std::vector<Allele *> genotypes = genotype->getAlleles();
+    std::vector<std::shared_ptr<Allele>> genotypes = genotype->getAlleles();
     return getLog10GQ(genotypes, contextAlleles);
 }
 

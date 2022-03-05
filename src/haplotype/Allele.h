@@ -24,20 +24,20 @@ private:
     std::shared_ptr<uint8_t[]> bases;
     int length;
 
-    static Allele REF_A;
-    static Allele ALT_A;
-    static Allele REF_C;
-    static Allele ALT_C;
-    static Allele REF_G;
-    static Allele ALT_G;
-    static Allele REF_T;
-    static Allele ALT_T;
-    static Allele REF_N;
-    static Allele ALT_N;
-    static Allele SPAN_DEL;
-    static Allele NO_CALL;
-    static Allele NON_REF_ALLELE;
-    static Allele UNSPECIFIED_ALTERNATE_ALLELE;
+    static std::shared_ptr<Allele> REF_A;
+    static std::shared_ptr<Allele> ALT_A;
+    static std::shared_ptr<Allele> REF_C;
+    static std::shared_ptr<Allele> ALT_C;
+    static std::shared_ptr<Allele> REF_G;
+    static std::shared_ptr<Allele> ALT_G;
+    static std::shared_ptr<Allele> REF_T;
+    static std::shared_ptr<Allele> ALT_T;
+    static std::shared_ptr<Allele> REF_N;
+    static std::shared_ptr<Allele> ALT_N;
+    static std::shared_ptr<Allele> SPAN_DEL;
+    static std::shared_ptr<Allele> NO_CALL;
+    static std::shared_ptr<Allele> NON_REF_ALLELE;
+    static std::shared_ptr<Allele> UNSPECIFIED_ALTERNATE_ALLELE;
     static Allele SV_SIMPLE_DEL;
     static Allele SV_SIMPLE_INS;
     static Allele SV_SIMPLE_INV;
@@ -50,17 +50,17 @@ public:
     static const std::string SPAN_DEL_STRING;
     static const std::string NON_REF_STRING;
     static const std::string UNSPECIFIED_ALTERNATE_ALLELE_STRING;
-    static bool wouldBeNullAllele(const std::shared_ptr<uint8_t[]> bases, int length);
-    static bool wouldBeNoCallAllele(const std::shared_ptr<uint8_t[]> bases, int length);
-    static bool wouldBeSymbolicAllele(const std::shared_ptr<uint8_t[]> bases, int length);
-    static bool wouldBeBreakpoint(const std::shared_ptr<uint8_t[]> bases, int length);
-    static bool wouldBeSingleBreakend(const std::shared_ptr<uint8_t[]> bases, int length);
-    static bool wouldBeStarAllele(const std::shared_ptr<uint8_t[]> bases, int length);
-    static bool acceptableAlleleBases(const std::shared_ptr<uint8_t[]> bases, int length, bool isReferenceAllele);
-    static Allele* create(std::shared_ptr<uint8_t[]> bases, int length, bool isRef);
-    static Allele* create(uint8_t base, bool isRef);
-    static Allele* create(uint8_t base);
-    static Allele* extend(Allele * left, std::shared_ptr<uint8_t[]> right, int length);
+    static bool wouldBeNullAllele(const std::shared_ptr<uint8_t[]> & bases, int length);
+    static bool wouldBeNoCallAllele(const std::shared_ptr<uint8_t[]> & bases, int length);
+    static bool wouldBeSymbolicAllele(const std::shared_ptr<uint8_t[]> & bases, int length);
+    static bool wouldBeBreakpoint(const std::shared_ptr<uint8_t[]> & bases, int length);
+    static bool wouldBeSingleBreakend(const std::shared_ptr<uint8_t[]> & bases, int length);
+    static bool wouldBeStarAllele(const std::shared_ptr<uint8_t[]> & bases, int length);
+    static bool acceptableAlleleBases(const std::shared_ptr<uint8_t[]> & bases, int length, bool isReferenceAllele);
+    static std::shared_ptr<Allele> create(std::shared_ptr<uint8_t[]> bases, int length, bool isRef);
+    static std::shared_ptr<Allele> create(uint8_t base, bool isRef);
+    static std::shared_ptr<Allele> create(uint8_t base);
+    static std::shared_ptr<Allele> extend(const std::shared_ptr<Allele> & left, const std::shared_ptr<uint8_t[]> & right, int length);
     bool getIsNoCall() const  {return isNoCall;}
     bool getIsCalled() const {return !isNoCall;}
     bool getIsReference() const {return isRef;}
@@ -75,10 +75,11 @@ public:
     int getLength() const;
     int getBasesLength() const {return length;}
     std::string getBaseString();
-
-protected:
     Allele(std::shared_ptr<uint8_t[]> bases, int length, bool isRef);
     Allele(Allele &  allele, bool ignoreRefState);
+
+protected:
+
 };
 
 

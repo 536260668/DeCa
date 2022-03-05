@@ -64,6 +64,7 @@ public:
         return getVertexSet().size() == 1;
     }
     virtual void removeSingletonOrphanVertices() {
+
         std::vector<std::shared_ptr<V>> toRemove;
         std::unordered_set<std::shared_ptr<V>>& allvertex = getVertexSet();
         typename std::unordered_set<std::shared_ptr<V>>::iterator viter;

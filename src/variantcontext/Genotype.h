@@ -21,8 +21,8 @@ public:
     const static std::string PHASED_ALLELE_SEPARATOR;
     const static std::string UNPHASED_ALLELE_SEPARATOR;
 
-    virtual std::vector<Allele*> & getAlleles() = 0;
-    virtual Allele* getAllele(int var1) = 0;
+    virtual std::vector<std::shared_ptr<Allele>> & getAlleles() = 0;
+    virtual std::shared_ptr<Allele> getAllele(int var1) = 0;
     virtual bool isPhased() = 0;
     int getPloidy() {return getAlleles().size();}
     virtual int getDP() = 0;
@@ -31,7 +31,7 @@ public:
     virtual int* getPL(int &length) = 0;
 
     std::string getSampleName() const {return sampleName;}
-    int countAllele(Allele* allele);
+    int countAllele(const std::shared_ptr<Allele>& allele);
     bool hasPL();
     bool hasAD();
     bool hasGQ() {return this->getGQ() != -1;}

@@ -625,14 +625,15 @@ public:
     }
 
     void removeVerticesNotConnectedToRefRegardlessOfEdgeDirection() {
+        std::unordered_set<std::shared_ptr<V>> toRemove = VertexSet;
         std::shared_ptr<V> refV = getReferenceSourceVertex();
         if(refV != nullptr) {
             BaseGraphIterator<V, E> iter = BaseGraphIterator<V, E>(this, refV, true, true);
             while(iter.hasNext()) {
-                VertexSet.erase(iter.next());
+                toRemove.erase(iter.next());
             }
         }
-        removeAllVertices(VertexSet);
+        removeAllVertices(toRemove);
     }
 
     void addOrUpdateEdge(const std::shared_ptr<V> & source, const std::shared_ptr<V> & target, const std::shared_ptr<E> & e) {

@@ -38,7 +38,7 @@ private:
     std::vector<std::shared_ptr<Haplotype>> findBestPaths(const std::vector<std::shared_ptr<SeqGraph>>& graphs, std::shared_ptr<Haplotype>& refHaplotype, const std::shared_ptr<SimpleInterval> &refLoc,
                                                           const std::shared_ptr<SimpleInterval> &activeRegionWindow, const std::map<std::shared_ptr<SeqGraph>, std::shared_ptr<AssemblyResult>>& assemblyResultByGraph, std::shared_ptr<AssemblyResultSet>& assemblyResultSet) const;
     std::shared_ptr<AssemblyResult> createGraph(const std::vector<std::shared_ptr<SAMRecord>>& reads, std::shared_ptr<Haplotype>& refHaplotype, int kmerSize, bool allowLowComplexityGraphs, bool allowNonUniqueKmersInRef);
-    static void addResult(std::vector<std::shared_ptr<AssemblyResult>> & results, const std::shared_ptr<AssemblyResult>& maybeNullResult);
+    static void addResult(std::vector<std::shared_ptr<AssemblyResult>> & results, std::shared_ptr<AssemblyResult> maybeNullResult);
     static int arrayMaxInt(const std::vector<int>& array);
 
 public:

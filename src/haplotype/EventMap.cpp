@@ -11,10 +11,10 @@
 #include "variantcontext/builder/VariantContextBuilder.h"
 #include <deque>
 
-const Allele* EventMap::SYMBOLIC_UNASSEMBLED_EVENT_ALLELE = Allele::create(std::shared_ptr<uint8_t[]> (new uint8_t[19]{'<','U','N','A','S','S','E','M','B','L','E','D','_','E','V','E','N','T','>'}), 19, false);
+const std::shared_ptr<Allele> EventMap::SYMBOLIC_UNASSEMBLED_EVENT_ALLELE = Allele::create(std::shared_ptr<uint8_t[]> (new uint8_t[19]{'<','U','N','A','S','S','E','M','B','L','E','D','_','E','V','E','N','T','>'}), 19, false);
 
-EventMap::EventMap(std::shared_ptr<Haplotype> haplotype, std::shared_ptr<uint8_t[]>ref, int refLength, const std::shared_ptr<Locatable> & refLoc, std::string sourceNameToAdd,
-                   int maxMnpDistance) : haplotype(std::move(haplotype)), ref(std::move(ref)), refLength(refLength), refLoc(refLoc), sourceNameToAdd(std::move(sourceNameToAdd)){
+EventMap::EventMap(std::shared_ptr<Haplotype> haplotype, std::shared_ptr<uint8_t[]>ref, int refLength, std::shared_ptr<Locatable>  refLoc, std::string sourceNameToAdd,
+                   int maxMnpDistance) : haplotype(std::move(haplotype)), ref(std::move(ref)), refLength(refLength), refLoc(std::move(refLoc)), sourceNameToAdd(std::move(sourceNameToAdd)){
     processCigarForInitialEvents(maxMnpDistance);
 }
 
@@ -37,11 +37,11 @@ void EventMap::processCigarForInitialEvents(int maxMnpDistance) {
             case I:
             {
                 if(refPos > 0) {
-                    std::vector<Allele*> insertionAlleles;
+                    std::shared_ptr<std::vector<std::shared_ptr<Allele>>> insertionAlleles = std::make_shared<std::vector<std::shared_ptr<Allele>>>();
                     int insertionStart = refLoc->getStart() + refPos - 1;
                     uint8_t refByte = ref.get()[refPos - 1];
                     if(BaseUtils::isRegularBase(refByte)) {
-                        insertionAlleles.emplace_back(Allele::create(refByte, true));
+                        insertionAlleles->emplace_back(Allele::create(refByte, true));
                     }
                     if(cigarIndex == 0 || cigarIndex == cigar->numCigarElements() - 1){
 
@@ -56,12 +56,12 @@ void EventMap::processCigarForInitialEvents(int maxMnpDistance) {
                         memcpy(tmp.get()+1, toAdd.get(), toAddLength);
                         insertionBases = tmp;
                         if(BaseUtils::isAllRegularBases(insertionBases, length)) {
-                            insertionAlleles.emplace_back(Allele::create(insertionBases, length, false));
+                            insertionAlleles->emplace_back(Allele::create(insertionBases, length, false));
                         }
                     }
-                    if(insertionAlleles.size() == 2) {
+                    if(insertionAlleles->size() == 2) {
                         std::string contig = refLoc->getContig();
-                        proposedEvents.emplace_back(VariantContextBuilder(sourceNameToAdd, contig, insertionStart, insertionStart, &insertionAlleles).make());
+                        proposedEvents.emplace_back(VariantContextBuilder(sourceNameToAdd, contig, insertionStart, insertionStart, insertionAlleles).make());
                     }
                 }
                 alignmentPos += elementLength;
@@ -78,14 +78,14 @@ void EventMap::processCigarForInitialEvents(int maxMnpDistance) {
                 if(refPos > 0) {
                     int deletionBasesLength;
                     std::shared_ptr<uint8_t[]> deletionBases = Mutect2Utils::copyOfRange(ref, refLength, refPos - 1, refPos + elementLength, deletionBasesLength);
-                    std::vector<Allele*> deletionAlleles;
+                    std::shared_ptr<std::vector<std::shared_ptr<Allele>>> deletionAlleles = std::make_shared<std::vector<std::shared_ptr<Allele>>>();
                     int deletionStart = refLoc->getStart() + refPos - 1;
                     uint8_t refByte = ref.get()[refPos - 1];
                     if(BaseUtils::isRegularBase(refByte) && BaseUtils::isAllRegularBases(deletionBases, deletionBasesLength)) {
-                        deletionAlleles.emplace_back(Allele::create(deletionBases, deletionBasesLength, true));
-                        deletionAlleles.emplace_back(Allele::create(refByte, false));
+                        deletionAlleles->emplace_back(Allele::create(deletionBases, deletionBasesLength, true));
+                        deletionAlleles->emplace_back(Allele::create(refByte, false));
                         std::string contig = refLoc->getContig();
-                        proposedEvents.emplace_back(VariantContextBuilder(sourceNameToAdd, contig, deletionStart, deletionStart + elementLength, &deletionAlleles).make());
+                        proposedEvents.emplace_back(VariantContextBuilder(sourceNameToAdd, contig, deletionStart, deletionStart + elementLength, deletionAlleles).make());
                     }
                 }
                 refPos += elementLength;
@@ -114,11 +114,14 @@ void EventMap::processCigarForInitialEvents(int maxMnpDistance) {
                     }
                     int length;
                     std::shared_ptr<uint8_t[]> bases = Mutect2Utils::copyOfRange(ref, refLength, refPos + start, refPos + end + 1, length);
-                    Allele* refAllele = Allele::create(bases, length, true);
+                    std::shared_ptr<Allele> refAllele = Allele::create(bases, length, true);
                     bases = Mutect2Utils::copyOfRange(alignment, alignmentLength, alignmentPos + start, alignmentPos + end + 1, length);
-                    Allele* altAllele = Allele::create(bases, length, false);
+                    std::shared_ptr<Allele> altAllele = Allele::create(bases, length, false);
                     std::string contig = refLoc->getContig();
-                    proposedEvents.emplace_back(VariantContextBuilder(sourceNameToAdd, contig, refLoc->getStart() + refPos + start, refLoc->getStart() + refPos + end, new std::vector<Allele*>{refAllele,altAllele}).make());
+                    std::shared_ptr<std::vector<std::shared_ptr<Allele>>> Alleles = std::make_shared<std::vector<std::shared_ptr<Allele>>>();
+                    Alleles->emplace_back(refAllele);
+                    Alleles->emplace_back(altAllele);
+                    proposedEvents.emplace_back(VariantContextBuilder(sourceNameToAdd, contig, refLoc->getStart() + refPos + start, refLoc->getStart() + refPos + end, Alleles).make());
                 }
                 refPos += elementLength;
                 alignmentPos += elementLength;
@@ -154,7 +157,8 @@ std::shared_ptr<VariantContext> EventMap::makeBlock(std::shared_ptr<VariantConte
         Mutect2Utils::validateArg(!vc2->isSNP(), "there's been some terrible bug in the cigar");
     }
 
-    Allele* new_ref, * new_alt;
+    std::shared_ptr<Allele> new_ref;
+    std::shared_ptr<Allele> new_alt;
     VariantContextBuilder b(vc1);
     if(vc1->isSNP()) {
         if(*(vc1->getReference()) == (*(vc2->getReference()))) {
@@ -180,8 +184,10 @@ std::shared_ptr<VariantContext> EventMap::makeBlock(std::shared_ptr<VariantConte
         new_alt = insertion->getAlternateAllele(0);
         b.setStop(deletion->getEnd());
     }
-    std::vector<Allele*> alleles{new_alt, new_ref};
-    b.setAlleles(&alleles);
+    std::shared_ptr<std::vector<std::shared_ptr<Allele>>> Alleles = std::make_shared<std::vector<std::shared_ptr<Allele>>>();
+    Alleles->emplace_back(new_ref);
+    Alleles->emplace_back(new_alt);
+    b.setAlleles(Alleles);
     return b.make();
 }
 
@@ -195,7 +201,7 @@ std::set<int> EventMap::buildEventMapsForHaplotypes(std::vector<std::shared_ptr<
     std::set<int> startPosKeySet;
     int hapNumber = 0;
     for(std::shared_ptr<Haplotype>& h : haplotypes) {
-        h->setEventMap(new EventMap(h, ref, refLength, refLoc, "HC" + std::to_string(hapNumber), maxMnpDistance));
+        h->setEventMap(std::make_shared<EventMap>(h, ref, refLength, refLoc, "HC" + std::to_string(hapNumber), maxMnpDistance));
         for(int i : h->getEventMap()->getStartPositions()) {
             startPosKeySet.insert(i);
         }
@@ -215,7 +221,7 @@ std::set<std::shared_ptr<VariantContext>, VariantContextComparator>
 EventMap::getAllVariantContexts(std::vector<std::shared_ptr<Haplotype>> & haplotypes) {
     std::set<std::shared_ptr<VariantContext>, VariantContextComparator> ret;
     for(const std::shared_ptr<Haplotype>& h : haplotypes) {
-        for(std::shared_ptr<VariantContext> vc : h->getEventMap()->getVariantContexts()) {
+        for(const std::shared_ptr<VariantContext>& vc : h->getEventMap()->getVariantContexts()) {
             ret.insert(vc);
         }
     }

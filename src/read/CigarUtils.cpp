@@ -3,7 +3,7 @@
 //
 
 #include <cstring>
-#include <c++/7/algorithm>
+#include <algorithm>
 #include "CigarUtils.h"
 #include "Mutect2Utils.h"
 #include "SWNativeAlignerWrapper.h"
