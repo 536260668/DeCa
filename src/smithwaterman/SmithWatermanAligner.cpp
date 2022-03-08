@@ -6,3 +6,4 @@
 
 SWParameters SmithWatermanAligner::ORIGINAL_DEFAULT = SWParameters(3, -1, -4, -3);
 SWParameters SmithWatermanAligner::STANDARD_NGS = SWParameters(25, -50, -110, -6);
+

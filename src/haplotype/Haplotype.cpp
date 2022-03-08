@@ -11,7 +11,7 @@ Haplotype::Haplotype(std::shared_ptr<uint8_t[]> bases, int length, bool isRef) :
         nullptr){}
 
 std::shared_ptr<uint8_t[]> Haplotype::copyArray(std::shared_ptr<uint8_t[]> base, int length) {
-    std::shared_ptr<uint8_t> res{new uint8_t[length+1]{0}};
+    std::shared_ptr<uint8_t[]> res{new uint8_t[length+1]{0}};
     memcpy(res.get(), base.get(), length);
     return res;
 }
@@ -38,7 +38,7 @@ std::shared_ptr<Haplotype> Haplotype::trim(const std::shared_ptr<Locatable> & lo
 
     int newStart = loc->getStart() - this->genomeLocation->getStart();
     int newStop = newStart + loc->getEnd() - loc->getStart();
-    std::shared_ptr<uint8_t> newBases = AlignmentUtils::getBasesCoveringRefInterval(newStart, newStop, getBases(), getBasesLength(), 0, getCigar());
+    std::shared_ptr<uint8_t[]> newBases = AlignmentUtils::getBasesCoveringRefInterval(newStart, newStop, getBases(), getBasesLength(), 0, getCigar());
     std::shared_ptr<Cigar> newCigar = AlignmentUtils::trimCigarByReference(getCigar(), newStart, newStop);
 
     if(newBases == nullptr || AlignmentUtils::startsOrEndsWithInsertionOrDeletion(newCigar))

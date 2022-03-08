@@ -37,9 +37,10 @@ ReadCache::ReadCache(aux_t **data, std::vector<char*> & bam_name, std::shared_pt
                 break;
         }
         hts_itr_destroy(iter);
+        hts_idx_destroy(idx);
     }
     bam_destroy1(b);
-    hts_idx_destroy(idx);
+
     start = end = currentPose = 0;
 }
 

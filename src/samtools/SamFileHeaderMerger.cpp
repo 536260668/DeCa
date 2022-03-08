@@ -314,6 +314,7 @@ std::vector<SAMReadGroupRecord> SamFileHeaderMerger::mergeReadGroups(std::vector
     std::string tmp = "tmp";
     HeaderRecordFactory * factory = new SAMReadGroupRecord(tmp);
     hasReadGroupCollisions = mergeHeaderRecords(readGroupsToProcess, factory, idsThatAreAlreadyTaken, samProgramGroupIdTranslation, result);
+    delete factory;
     std::vector<SAMReadGroupRecord> ret;
     for(AbstractSAMHeaderRecord* samHeaderRecord : result) {
         ret.emplace_back(*(SAMReadGroupRecord*)samHeaderRecord);

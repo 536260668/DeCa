@@ -96,7 +96,12 @@ vector<std::shared_ptr<AssemblyRegion>> * ActivityProfile::popReadyAssemblyRegio
             // only active regions are added here
             if(ReadyAssemblyRegion->getIsActive())
                 regions->emplace_back(ReadyAssemblyRegion);
-            //cout << *ReadyAssemblyRegion.value();
+            count++;
+            if(count % 5000 == 0){
+                cout << *ReadyAssemblyRegion;
+                count %= 5000;
+            }
+
         } else {
             return regions;
         }

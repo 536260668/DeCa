@@ -39,7 +39,7 @@ public:
      */
     char getBase(hts_pos_t pos);
 
-    std::shared_ptr<uint8_t> getSubsequenceAt(int tid, int start, int stop, int & length);
+    std::shared_ptr<uint8_t[]> getSubsequenceAt(int tid, int start, int stop, int & length);
 };
 
 

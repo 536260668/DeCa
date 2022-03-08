@@ -30,6 +30,8 @@ private:
      */
     void incorporateSingleState(const std::shared_ptr<ActivityProfileState> & stateToAdd);
 
+    int count = 0;
+
 protected:
     vector<std::shared_ptr<ActivityProfileState>> stateList;
     int maxProbPropagationDistance;
@@ -81,7 +83,8 @@ protected:
 public:
     ActivityProfile(int maxProbPropagationDistance, double activeProbThreshold, SAMFileHeader * header);
 
-    ~ActivityProfile();
+    // A virtual destructor is necessary for an abstract class. Otherwise delete operation will invoke undefined behavior
+    virtual ~ActivityProfile();
 
     /**
      * Is this profile empty?

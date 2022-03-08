@@ -2,16 +2,17 @@ cmake_minimum_required(VERSION 3.20)
 project(Mutect2Cpp_master)
 
 set(CMAKE_CXX_STANDARD 17)
-SET(CMAKE_BUILD_TYPE "debug")
-#
-#set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O1")
 
-#set(CMAKE_C_FLAGS_Release "${CMAKE_C_FLAGS_Release} -O3")
+#compile flag
+set(CMAKE_CXX_FLAGS "-g")
+set(CMAKE_CXX_FLAGS_RELEASE -O3)
+set(CMAKE_CXX_FLAGS_DEBUG "-fsanitize=address")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -O3 -fno-omit-frame-pointer -g")
+#linker flag
+set(CMAKE_EXE_LINKER_FLAGS_DEBUG "-fsanitize=address")
 
 # counterpart of gcc -I
-include_directories(../htslib)
+include_directories(${PROJECT_SOURCE_DIR}/../htslib)
 include_directories(src)
 
 aux_source_directory(./src DIR_SRCS)
@@ -49,7 +50,7 @@ add_executable(Mutect2Cpp_master ${DIR_SRCS} src/engine/ReferenceContext.cpp src
 
 
 # counterpart of gcc -L
-target_link_libraries(Mutect2Cpp_master ${PROJECT_SOURCE_DIR}/../htslib/libhts.dylib)
+target_link_libraries(Mutect2Cpp_master ${PROJECT_SOURCE_DIR}/../htslib/libhts.so)
 target_link_libraries(Mutect2Cpp_master CigarFunctions)
 target_link_libraries(Mutect2Cpp_master ReadFunctions)
 target_link_libraries(Mutect2Cpp_master CacheFunctions)

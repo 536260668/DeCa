@@ -134,11 +134,11 @@ void EventMap::processCigarForInitialEvents(int maxMnpDistance) {
                 throw std::invalid_argument("Unsupported cigar operator created during SW alignment");
         }
     }
-    for(std::shared_ptr<VariantContext> proposedEvent : proposedEvents )
+    for(const std::shared_ptr<VariantContext>& proposedEvent : proposedEvents )
         addVC(proposedEvent, true);
 }
 
-void EventMap::addVC(std::shared_ptr<VariantContext> vc, bool merge) {
+void EventMap::addVC(const std::shared_ptr<VariantContext>& vc, bool merge) {
     Mutect2Utils::validateArg(vc.get(), "null is not allowed here");
     if(variantMap.find(vc->getStart()) != variantMap.end()) {
         Mutect2Utils::validateArg(merge, "Will not merge previously bound variant contexts as merge is false");

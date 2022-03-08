@@ -2,6 +2,7 @@
 // Created by 梦想家xixi on 2021/11/20.
 //
 
+#include <cstring>
 #include "SharedSequenceMerger.h"
 
 bool SharedSequenceMerger::canMerge(const std::shared_ptr<SeqGraph>& graph, std::shared_ptr<SeqVertex> v, std::unordered_set<std::shared_ptr<SeqVertex>> incomingVertices) {

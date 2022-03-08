@@ -6,6 +6,7 @@
 #define MUTECT2CPP_MASTER_DIRECTEDEDGECONTAINER_H
 
 #include <unordered_set>
+#include <memory>
 
 template<class VV, class EE>
 class DirectedEdgeContainer {

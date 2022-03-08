@@ -139,9 +139,9 @@ ReadThreadingGraph::extendChainByOne(const std::shared_ptr<MultiDeBruijnVertex>&
                                      const bool isRef) {
     const std::unordered_set<std::shared_ptr<MultiSampleEdge>>& outgoingEdges = outgoingEdgesOf(prevVertex);
     int nextPos = kmerStart + kmerSize - 1;
-    std::unordered_set<std::shared_ptr<MultiSampleEdge>>::iterator iter;
+    //std::unordered_set<std::shared_ptr<MultiSampleEdge>>::iterator iter;
     uint8_t * sequence_ = sequence.get();
-    for(iter = outgoingEdges.begin(); iter != outgoingEdges.end(); iter++) {
+    for(auto iter = outgoingEdges.begin(); iter != outgoingEdges.end(); iter++) {
         std::shared_ptr<MultiDeBruijnVertex> target = getEdgeTarget(*iter);
         if(target->getSuffix() == sequence_[nextPos]) {
 //            if(target->getHashCode() == 884547439)

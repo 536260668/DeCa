@@ -27,7 +27,7 @@ private:
 public:
     static const std::shared_ptr<Allele> SYMBOLIC_UNASSEMBLED_EVENT_ALLELE;
     EventMap(std::shared_ptr<Haplotype> haplotype, std::shared_ptr<uint8_t[]> ref, int refLength, std::shared_ptr<Locatable>  refLoc, std::string sourceNameToAdd, int maxMnpDistance);
-    void addVC(std::shared_ptr<VariantContext> vc, bool merge);
+    void addVC(const std::shared_ptr<VariantContext>& vc, bool merge);
     bool empty();
     static std::set<int> buildEventMapsForHaplotypes(std::vector<std::shared_ptr<Haplotype>> & haplotypes, std::shared_ptr<uint8_t[]> ref, int refLength, const std::shared_ptr<Locatable> & refLoc, bool debug, int maxMnpDistance);
     std::set<int> getStartPositions();

@@ -32,6 +32,8 @@ public:
 
     VariantContextBuilder(std::shared_ptr<VariantContext> & parent);
 
+    ~VariantContextBuilder();
+
     std::shared_ptr<VariantContext> make(bool leaveModifyableAsIs);
 
     std::shared_ptr<VariantContext> make();

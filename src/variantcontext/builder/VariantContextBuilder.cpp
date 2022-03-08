@@ -24,7 +24,7 @@ std::shared_ptr<VariantContext> VariantContextBuilder::make() {
     return make(false);
 }
 
-VariantContextBuilder::VariantContextBuilder(std::shared_ptr<VariantContext> &parent) : alleles(&parent->getAlleles()), attribute(&parent->getAttributes()),attributesCanBeModified(false),
+VariantContextBuilder::VariantContextBuilder(std::shared_ptr<VariantContext> &parent) : alleles(std::make_shared<std::vector<std::shared_ptr<Allele>>>(parent->getAlleles()) ), attribute(&parent->getAttributes()),attributesCanBeModified(false),
 contig(parent->getContig()), filters(parent->getFiltersMaybeNull()), genotypes(parent->getGenotypes()), ID(parent->getID()), log10PError(parent->getLog10PError()),
 source(parent->getSource()), start(parent->getStart()), stop(parent->getEnd()), fullyDecoded(parent->isFullyDecoded()){}
 
@@ -35,4 +35,8 @@ void VariantContextBuilder::setStop(long stop) {
 void VariantContextBuilder::setAlleles(const std::shared_ptr<std::vector<std::shared_ptr<Allele>>> &  alleles) {
     this->alleles = alleles;
     toValidate.insert(ALLELES);
+}
+
+VariantContextBuilder::~VariantContextBuilder() {
+    alleles->clear();
 }

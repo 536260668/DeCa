@@ -313,8 +313,10 @@ std::vector<int> GenotypeLikelihoods::getAlleles(int PLindex, int ploidy) {
 }
 
 int *GenotypeLikelihoods::getPLIndicesOfAlleles(int allele1Index, int allele2Index) {
-    int* indexes = new int[]{calculatePLindex(allele1Index, allele1Index), calculatePLindex(allele1Index, allele2Index), calculatePLindex(allele2Index, allele2Index)};
-    return indexes;
+//    int* indexes = new int[]{calculatePLindex(allele1Index, allele1Index), calculatePLindex(allele1Index, allele2Index), calculatePLindex(allele2Index, allele2Index)};
+//    return indexes;
+
+    return nullptr;
 }
 
 void GenotypeLikelihoods::initial() {
@@ -325,5 +327,5 @@ void GenotypeLikelihoods::initial() {
     }
 
     diploidPLIndexToAlleleIndex = calculateDiploidPLcache(50, allelePairLength);
-    PLindexConversion = new int[]{0, 1, 3, 6, 2, 4, 7, 5, 8, 9};
+    PLindexConversion = new int[10]{0, 1, 3, 6, 2, 4, 7, 5, 8, 9};
 }

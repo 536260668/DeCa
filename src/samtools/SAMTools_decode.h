@@ -11,6 +11,8 @@
 class SAMTools_decode {
 public:
     static SAMFileHeader* decode_samFileHeader(sam_hdr_t* header);
+
+    // Don't forget to free the returned SAMFileHeader*
     static SAMFileHeader* merge_samFileHeaders(std::vector<sam_hdr_t *> headers);
 
 private:
