@@ -15,7 +15,7 @@
 #include "haplotypecaller/AssemblyBasedCallerUtils.h"
 
 Mutect2Engine::Mutect2Engine(M2ArgumentCollection & MTAC, char * ref, SAMFileHeader* samFileHeader):MATC(MTAC), minCallableDepth(MTAC.callableDepth),
-                                                            normalSamples(MTAC.normalSamples) ,callableSites(0), refCache(ref, header), header(samFileHeader),
+                                                            normalSample(MTAC.normalSample) ,callableSites(0), refCache(ref, header), header(samFileHeader),
                                                                                                     assemblyEngine(0, 1, 128, false, false, {10, 25}),
                                                                                                     trimmer(&assemblerArgs, &header->getSequenceDictionary(), false,
                                                                                                             false)
@@ -128,7 +128,7 @@ double Mutect2Engine::logLikelihoodRatio(int nRef, const std::shared_ptr<std::ve
 }
 
 bool Mutect2Engine::hasNormal() {
-    return !normalSamples.empty();
+    return !normalSample.empty();
 }
 
 void Mutect2Engine::fillNextAssemblyRegionWithReads(const std::shared_ptr<AssemblyRegion>& region, ReadCache &readCache) {
@@ -138,7 +138,7 @@ void Mutect2Engine::fillNextAssemblyRegionWithReads(const std::shared_ptr<Assemb
 
 std::vector<std::shared_ptr<VariantContext>>
 Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion>& originalAssemblyRegion, ReferenceContext &referenceContext) {
-//    if(originalAssemblyRegion->getStart() == 1976817) {
+//    if(originalAssemblyRegion->getStart() == 33665991) {
 //        for(const std::shared_ptr<SAMRecord>& read : originalAssemblyRegion->getReads()) {
 //            std::cout << read->getName() << " : " << read->getStart() + 1 << "~" << read->getEnd() + 1 << std::endl;
 //        }

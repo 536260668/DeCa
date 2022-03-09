@@ -17,6 +17,7 @@ class ChainPruner {
 public:
     ChainPruner() = default;
 
+    virtual ~ ChainPruner() = default;
 
     void pruneLowWeightChains(std::shared_ptr<DirectedSpecifics<V, E>> graph) {
         std::vector<Path<V, E>*> chains = findAllChains(graph);

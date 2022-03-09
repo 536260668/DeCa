@@ -16,6 +16,7 @@
 #include "transfer/PalindromeArtifactClipReadTransformer.h"
 #include "pileRead.h"
 
+#define REGION_SIZE 1000000
 
 typedef struct {     // auxiliary data structure
     samFile *fp;     // the file handle
@@ -44,7 +45,7 @@ private:
     int tid;
     int start;
     int end;
-    hts_idx_t *idx;
+    std::vector<hts_idx_t *> hts_idxes;
     int currentPose;
     PalindromeArtifactClipReadTransformer readTransformer;
     void advanceLoad();

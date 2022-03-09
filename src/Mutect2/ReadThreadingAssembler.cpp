@@ -264,6 +264,11 @@ ReadThreadingAssembler::ReadThreadingAssembler(int maxAllowedPathsForReadThreadi
     chainPruner = new AdaptiveChainPruner<MultiDeBruijnVertex, MultiSampleEdge>(initialErrorRateForPruning, pruningLogOddsThreshold, maxUnprunedVariants);
 }
 
+ReadThreadingAssembler::~ReadThreadingAssembler()
+{
+    delete chainPruner;
+}
+
 void ReadThreadingAssembler::setRecoverDanglingBranches(bool recoverDanglingBranches) {
     this->recoverDanglingBranches = recoverDanglingBranches;
 }

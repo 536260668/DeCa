@@ -15,9 +15,10 @@ ReadCache::ReadCache(aux_t **data, std::vector<char*> & bam_name, std::shared_pt
     for(int i = 0; i < bam_name.size(); i++){
         int result;
         int count = 0;
-        idx = sam_index_load(data[i]->fp, bam_name[i]);
-        if(idx == 0)
+        hts_idx_t * idx = sam_index_load(data[i]->fp, bam_name[i]);
+        if(idx == nullptr)
             throw std::invalid_argument("random alignment retrieval only works for indexed BAM or CRAM files.");
+        hts_idxes.push_back(idx);
         hts_itr_t* iter = sam_itr_querys(idx, data[i]->hdr, region.c_str());
         while((result = sam_itr_next(data[i]->fp, iter, b)) >= 0) {
             std::shared_ptr<SAMRecord> read(new SAMRecord(b, data[i]->header));
@@ -37,7 +38,6 @@ ReadCache::ReadCache(aux_t **data, std::vector<char*> & bam_name, std::shared_pt
                 break;
         }
         hts_itr_destroy(iter);
-        hts_idx_destroy(idx);
     }
     bam_destroy1(b);
 
@@ -47,11 +47,18 @@ ReadCache::ReadCache(aux_t **data, std::vector<char*> & bam_name, std::shared_pt
 ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, const std::string& region, std::shared_ptr<ReferenceCache> & cache) : tid(tid), data(data), bam_name(bam_name), readTransformer(cache, data[0]->header, 5){
     bam1_t * b;
     b = bam_init1();
+    std::cout << region << std::endl;
     for(int i = 0; i < bam_name.size(); i++){
         int result;
-        idx = sam_index_load(data[i]->fp, bam_name[i]);
-        if(idx == 0)
+        hts_idx_t * idx = sam_index_load(data[i]->fp, bam_name[i]);     // TODO: make it more elegant
+        if(idx == nullptr)
+        {
             throw std::invalid_argument("random alignment retrieval only works for indexed BAM or CRAM files.");
+            exit(1);
+        }
+
+
+        hts_idxes.push_back(idx);
         hts_itr_t* iter = sam_itr_querys(idx, data[i]->hdr, region.c_str());
         while((result = sam_itr_next(data[i]->fp, iter, b)) >= 0) {
             std::shared_ptr<SAMRecord> read = std::make_shared<SAMRecord>(b, data[i]->header);
@@ -70,7 +77,9 @@ ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, const
         hts_itr_destroy(iter);
     }
     bam_destroy1(b);
-    hts_idx_destroy(idx);
+
+
+    // TODO: make it more elegant
     unsigned i = region.find_last_of(':') + 1;
     start = end = 0;
     while(region[i] >= '0' && region[i] <= '9') {
@@ -100,6 +109,25 @@ ReadCache::~ReadCache() {
     for(pileRead* read : tumorCache) {
         delete read;
     }
+
+    for(auto idx : hts_idxes)
+    {
+        hts_idx_destroy(idx);
+    }
+
+    while(tumorReads.size())
+    {
+        delete tumorReads.front();
+        tumorReads.pop();
+    }
+
+    while(normalReads.size())
+    {
+        delete normalReads.front();
+        normalReads.pop();
+    }
+
+
 }
 
 int ReadCache::getNextPos() {
@@ -123,16 +151,17 @@ void ReadCache::advanceLoad() {
     if(!normalReads.empty() && !tumorReads.empty())
         throw std::logic_error("error");
     start = end + 1;
-    end = start + 1000000 -1;
+    end = start + REGION_SIZE -1;   // TODO: make it a parameter
 
     std::string region = data[0]->header->getSequenceDictionary().getSequences()[tid].getSequenceName() + ':' +
             std::to_string(start+1) + '-' + std::to_string(end);
+
     bam1_t * b;
     b = bam_init1();
     for(int i = 0; i < bam_name.size(); i++){
         int result;
-        idx = sam_index_load(data[i]->fp, bam_name[i]);
-        hts_itr_t* iter = sam_itr_querys(idx, data[i]->hdr, region.c_str());
+
+        hts_itr_t* iter = sam_itr_querys(hts_idxes[i], data[i]->hdr, region.c_str());
         while((result = sam_itr_next(data[i]->fp, iter, b)) >= 0) {
             std::shared_ptr<SAMRecord> read = std::make_shared<SAMRecord>(b, data[i]->header);
             if(ReadFilter::test(read, data[i]->header)) {
