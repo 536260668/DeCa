@@ -5,10 +5,10 @@
 #include "BaseVertex.h"
 #include "Mutect2Utils.h"
 
-long BaseVertex::hashCode(const std::shared_ptr<uint8_t[]> & a, int length) {
+int BaseVertex::hashCode(const std::shared_ptr<uint8_t[]> & a, int length) {
     if(a == nullptr)
         return 0;
-    long result = 1;
+    int result = 1;
     for(int i = 0; i < length; i++) {
         result = 31 * result + a.get()[i];
     }
@@ -16,7 +16,7 @@ long BaseVertex::hashCode(const std::shared_ptr<uint8_t[]> & a, int length) {
     return result;
 }
 
-BaseVertex::BaseVertex(std::shared_ptr<uint8_t[]> const sequence, const int length) : sequence(sequence), length(length){
+BaseVertex::BaseVertex(std::shared_ptr<uint8_t[]> const& sequence, const int length) : sequence(sequence), length(length){
     Mutect2Utils::validateArg(sequence != nullptr ||  length == 0, "Sequence cannot be null");
     cashedHashCode = hashCode(sequence, length);
 }

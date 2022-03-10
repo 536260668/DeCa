@@ -17,7 +17,7 @@ private:
     int length;
     std::string additionalInfo;
 
-    static long hashCode(const std::shared_ptr<uint8_t[]> & a, int length);
+    static int hashCode(const std::shared_ptr<uint8_t[]> & a, int length);
 
 protected:
     std::shared_ptr<uint8_t[]> sequence;
@@ -31,7 +31,7 @@ public:
      *
      * @param sequence a non-null sequence of bases contained in this vertex
      */
-    BaseVertex(std::shared_ptr<uint8_t[]> sequence, int length);
+    BaseVertex(const std::shared_ptr<uint8_t[]>& sequence, int length);
 
     virtual ~BaseVertex() = default;
 
