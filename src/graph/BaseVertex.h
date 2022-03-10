@@ -13,7 +13,7 @@
 
 class BaseVertex {
 private:
-    long cashedHashCode;
+    int cashedHashCode;
     int length;
     std::string additionalInfo;
 

@@ -47,7 +47,7 @@ ReadCache::ReadCache(aux_t **data, std::vector<char*> & bam_name, std::shared_pt
 ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, const std::string& region, std::shared_ptr<ReferenceCache> & cache) : tid(tid), data(data), bam_name(bam_name), readTransformer(cache, data[0]->header, 5){
     bam1_t * b;
     b = bam_init1();
-    std::cout << region << std::endl;
+
     for(int i = 0; i < bam_name.size(); i++){
         int result;
         hts_idx_t * idx = sam_index_load(data[i]->fp, bam_name[i]);     // TODO: make it more elegant
@@ -56,7 +56,6 @@ ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, const
             throw std::invalid_argument("random alignment retrieval only works for indexed BAM or CRAM files.");
             exit(1);
         }
-
 
         hts_idxes.push_back(idx);
         hts_itr_t* iter = sam_itr_querys(idx, data[i]->hdr, region.c_str());
