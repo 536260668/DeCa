@@ -33,7 +33,9 @@ std::vector<double> * BandPassActivityProfile::makeKernel(int filterSize, double
 
 BandPassActivityProfile::~BandPassActivityProfile()
 {
-    delete gaussianKernel;  //---deleting null pointer has no effect
+    delete gaussianKernel;
+    delete negativeState;
+    delete activateState;
 }
 
 int BandPassActivityProfile::determineFilterSize(std::vector<double> * kernel, double minProbToKeepInFilter)

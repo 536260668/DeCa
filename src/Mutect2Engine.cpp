@@ -15,7 +15,7 @@
 #include "haplotypecaller/AssemblyBasedCallerUtils.h"
 
 Mutect2Engine::Mutect2Engine(M2ArgumentCollection & MTAC, char * ref, SAMFileHeader* samFileHeader):MATC(MTAC), minCallableDepth(MTAC.callableDepth),
-                                                            normalSamples(MTAC.normalSamples) ,callableSites(0), refCache(ref, header), header(samFileHeader),
+                                                            normalSample(MTAC.normalSample) ,callableSites(0), refCache(ref, header), header(samFileHeader),
                                                                                                     assemblyEngine(0, 1, 128, false, false, {10, 25}),
                                                                                                     trimmer(&assemblerArgs, &header->getSequenceDictionary(), false,
                                                                                                             false)
@@ -128,7 +128,7 @@ double Mutect2Engine::logLikelihoodRatio(int nRef, const std::shared_ptr<std::ve
 }
 
 bool Mutect2Engine::hasNormal() {
-    return !normalSamples.empty();
+    return !normalSample.empty();
 }
 
 void Mutect2Engine::fillNextAssemblyRegionWithReads(const std::shared_ptr<AssemblyRegion>& region, ReadCache &readCache) {

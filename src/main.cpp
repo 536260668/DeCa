@@ -22,7 +22,6 @@
 #include "samtools/SamFileHeaderMerger.h"
 #include "engine/ReferenceContext.h"
 #include "read/ReadCache.h"
-#include "MathUtils.h"
 #include "intel/smithwaterman/IntelSmithWaterman.h"
 #include "ReferenceCache.h"
 
@@ -83,6 +82,27 @@ static int read_bam(void *data, bam1_t *b) // read level filters better go here 
     return ret;
 }
 
+/**
+ * adjust input_bam in main() to make input_bam[0] normal bam
+ * TODO: Maybe this method can be more elegant
+ */
+void adjust_input_bam(std::vector<char*> & input_bam, std::string & normalSample)
+{
+    for(int i=0; i<input_bam.size(); i++)
+    {
+        if(strstr(input_bam[i], normalSample.c_str()))
+        {
+            if(i != 0){
+                char * temp = input_bam[0];
+                input_bam[0] = input_bam[i];
+                input_bam[i] = temp;
+            }
+            break;
+        }
+    }
+
+}
+
 int main(int argc, char *argv[])
 {
     CigarOperatorUtils::initial();
@@ -102,7 +122,7 @@ int main(int argc, char *argv[])
     int baseQ = 1;
     int read_num = 0;
 
-    M2ArgumentCollection MTAC = {10, 50, 0.002, 100, 50, 300};
+    M2ArgumentCollection MTAC = {10, 50, 0.002, 100, 50, 300, ""};
 
     static struct option loptions[] =
             {
@@ -135,7 +155,8 @@ int main(int argc, char *argv[])
                 ref = strdup(optarg);
                 break;
             case 'r':
-                reg = strdup(optarg); break;   // parsing a region requires a BAM header
+                reg = strdup(optarg);
+                break;   // parsing a region requires a BAM header
             case 1000:  //--callable-depth
                 MTAC.callableDepth = atoi(optarg);
                 break;
@@ -155,10 +176,11 @@ int main(int argc, char *argv[])
                 MTAC.minAssemblyRegionSize = atoi(optarg);
                 break;
             case 1006:
-                MTAC.normalSamples.insert(string(optarg));
+                MTAC.normalSample = string(optarg);
                 break;
         }
     }
+    adjust_input_bam(input_bam, MTAC.normalSample);
 
     data = static_cast<aux_t **>(calloc(n, sizeof(aux_t *))); // data[i] for the i-th input
     reg_tid = 0; beg = 0; end = HTS_POS_MAX;  // set the default region
@@ -183,21 +205,20 @@ int main(int argc, char *argv[])
     faidx_t * refPoint = fai_load3_format(ref, nullptr, nullptr, FAI_CREATE, FAI_FASTA);
 
     sam_hdr_t *h = data[0]->hdr; // easy access to the header of the 1st BAM   //---why use header of the first bam
-    int nref = sam_hdr_nref(h);
+    int nref = sam_hdr_nref(h); //---Maybe this variable is not needed
 
     smithwaterman_initial();
     QualityUtils::initial();
     Mutect2Engine m2Engine(MTAC, ref, header);
     queue<std::shared_ptr<AssemblyRegion>> pendingRegions;
     ActivityProfile * activityProfile = new BandPassActivityProfile(MTAC.maxProbPropagationDistance, MTAC.activeProbThreshold, BandPassActivityProfile::MAX_FILTER_SIZE, BandPassActivityProfile::DEFAULT_SIGMA,true , header);
-//    for(int k = 0; k < nref; k++) {
-//        std::cout << header->getSequenceDictionary().getSequences()[k].getSequenceName() << std::endl;
-//    }
+
     int count = 0;
     // TODO: add multi-thread mode here
-    for(int k=18; k<nref; k++)
+    for(int k=18; k<nref; k++)  //---data for test only contains 19th chromosome
     {
-        int k_len = header->getSequenceDictionary().getSequences()[k].getSequenceLength();
+        int k_len = header->getSequenceDictionary().getSequences()[k].getSequenceLength();  //---too complex
+
         int len = k_len < 1000000 ? k_len : 1000000;
         std::string region = header->getSequenceDictionary().getSequences()[k].getSequenceName() + ":0-" + to_string(len);
         std::string contig = header->getSequenceDictionary().getSequences()[k].getSequenceName();
@@ -217,8 +238,7 @@ int main(int argc, char *argv[])
                     pendingRegions.emplace(newRegion);
                 }
             }
-//            if(pileup.getPosition() == 10076)
-//                std::cout << "hello";
+
             if(pileup.isEmpty()) {
                 std::shared_ptr<ActivityProfileState> state = std::make_shared<ActivityProfileState>(contig.c_str(), pileup.getPosition(), 0.0);
                 activityProfile->add(state);
@@ -235,10 +255,10 @@ int main(int argc, char *argv[])
 
                 std::shared_ptr<AssemblyRegion> nextRegion = pendingRegions.front();
 
-                if(count % 1000 == 0) {
-                    std::cout << *nextRegion;
-                    //break;
-                }
+                //if(count % 2000 == 0) {
+                    //std::cout << *nextRegion;
+                //    break;
+                //}
                 pendingRegions.pop();
                 Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
                 std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext);
@@ -250,6 +270,7 @@ int main(int argc, char *argv[])
 
             // gather AlignmentContext to AssemblyRegion
 
+        free(refBases);
         activityProfile->clear();
         break;
     }
@@ -258,7 +279,20 @@ int main(int argc, char *argv[])
 
 
     // free the space
-
+    delete activityProfile;
+    fai_destroy(refPoint);
+    for(char * input_file : input_bam)
+        free(input_file);
+    free(output);
+    free(ref);
+    delete header;
+    for(int i=0; i<n; i++)
+    {
+        hts_close(data[i]->fp);
+        sam_hdr_destroy(data[i]->hdr);
+        free(data[i]);
+    }
+    free(data);
 
     return 0;
 }

@@ -24,7 +24,7 @@
 class Mutect2Engine {
 private:
     int minCallableDepth;
-    std::set<std::string> & normalSamples;
+    std::string & normalSample;
     SAMFileHeader * header;
     M2ArgumentCollection & MATC;
     ReadThreadingAssembler assemblyEngine;
