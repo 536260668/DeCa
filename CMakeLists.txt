@@ -50,7 +50,11 @@ add_executable(Mutect2Cpp_master ${DIR_SRCS} src/engine/ReferenceContext.cpp src
 
 
 # counterpart of gcc -L
-target_link_libraries(Mutect2Cpp_master ${PROJECT_SOURCE_DIR}/../htslib/libhts.so)
+if (CMAKE_SYSTEM_NAME MATCHES "Linux")
+    target_link_libraries(Mutect2Cpp_master ${PROJECT_SOURCE_DIR}/../htslib/libhts.so)
+elseif (CMAKE_SYSTEM_NAME MATCHES "Darwin")
+    target_link_libraries(Mutect2Cpp_master ${PROJECT_SOURCE_DIR}/../htslib/libhts.dylib)
+endif()
 target_link_libraries(Mutect2Cpp_master CigarFunctions)
 target_link_libraries(Mutect2Cpp_master ReadFunctions)
 target_link_libraries(Mutect2Cpp_master CacheFunctions)

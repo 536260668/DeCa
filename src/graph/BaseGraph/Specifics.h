@@ -31,11 +31,11 @@ public:
 
     virtual int inDegreeOf(const std::shared_ptr<V> & vertex)  = 0;
 
-    virtual std::unordered_set<std::shared_ptr<E>> & incomingEdgesOf(const std::shared_ptr<V> & vertex) = 0;
+    virtual std::unordered_set<std::shared_ptr<E>>  &incomingEdgesOf(const std::shared_ptr<V> & vertex) = 0;
 
     virtual int outDegreeOf(const std::shared_ptr<V> & vertex)  = 0;
 
-    virtual std::unordered_set<std::shared_ptr<E>> & outgoingEdgesOf(const std::shared_ptr<V> & vertex) = 0;
+    virtual std::unordered_set<std::shared_ptr<E>>  &outgoingEdgesOf(const std::shared_ptr<V> & vertex) = 0;
 
     virtual void removeEdgeFromTouchingVertices(const std::shared_ptr<E>& e) = 0;
 
@@ -50,8 +50,8 @@ public:
 
     virtual bool isRefSource(const std::shared_ptr<V> & v) {
         Mutect2Utils::validateArg(v.get(), "Attempting to pull sequence from a null vertex.");
-        std::unordered_set<std::shared_ptr<E>> & incomingEdges = incomingEdgesOf(v);
-        std::unordered_set<std::shared_ptr<E>> & outgoingEdges = outgoingEdgesOf(v);
+        std::unordered_set<std::shared_ptr<E>> incomingEdges = incomingEdgesOf(v);
+        std::unordered_set<std::shared_ptr<E>> outgoingEdges = outgoingEdgesOf(v);
         for(const std::shared_ptr<E> & e : incomingEdges) {
             if(e->getIsRef())
                 return false;

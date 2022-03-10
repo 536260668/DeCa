@@ -26,11 +26,11 @@ Kmer::Kmer(const Kmer &kmer) : bases(kmer.bases), start(kmer.start), length(kmer
     this->hash = hashCode(bases, start, length);
 }
 
-int Kmer::hashCode(const std::shared_ptr<uint8_t[]>& bases, const int start, const int length) {
+long Kmer::hashCode(const std::shared_ptr<uint8_t[]>& bases, const int start, const int length) {
     if(length == 0) {
         return 0;
     }
-    int h = 0;
+    long h = 0;
     uint8_t * bases_ = bases.get();
     for(int i = start, stop = start + length; i < stop; i++) {
         h = 31 * h + bases_[i];

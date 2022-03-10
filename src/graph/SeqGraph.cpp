@@ -85,21 +85,22 @@ bool SeqGraph::mergeLinearChain(std::list<std::shared_ptr<SeqVertex>> &linearCha
     DirectedSpecifics<SeqVertex, BaseEdge>::addVertex(addedVertex);
 
     for(const std::shared_ptr<BaseEdge>& edge : DirectedSpecifics<SeqVertex, BaseEdge>::outgoingEdgesOf(last)) {
-        addEdge(addedVertex, getEdgeTarget(edge), std::shared_ptr<BaseEdge>(new BaseEdge(edge->getIsRef(), edge->getMultiplicity())));
+        addEdge(addedVertex, getEdgeTarget(edge), std::make_shared<BaseEdge>(edge->getIsRef(), edge->getMultiplicity()));
     }
-
+    std::unordered_set<std::shared_ptr<BaseEdge>> set1 = incomingEdgesOf(first);
     for(const std::shared_ptr<BaseEdge>& edge : DirectedSpecifics<SeqVertex, BaseEdge>::incomingEdgesOf(first)) {
-        addEdge(getEdgeSource(edge), addedVertex, std::shared_ptr<BaseEdge>(new BaseEdge(edge->getIsRef(), edge->getMultiplicity())));
+        addEdge(getEdgeSource(edge), addedVertex, std::make_shared<BaseEdge>(edge->getIsRef(), edge->getMultiplicity()));
     }
     DirectedSpecifics<SeqVertex, BaseEdge>::removeAllVertices(linearChain);
     return true;
 }
 
+
 std::shared_ptr<SeqVertex> SeqGraph::mergeLinearChainVertices(std::list<std::shared_ptr<SeqVertex>> &vertices) {
     int length = 500;
     int start = 0;
     std::shared_ptr<uint8_t[]> tmp(new uint8_t[length]);
-    for(std::shared_ptr<SeqVertex> v : vertices) {
+    for(const std::shared_ptr<SeqVertex> & v : vertices) {
         int seqLength = v->getLength();
         std::shared_ptr<uint8_t[]> seq = v->getSequence();
         while(start + seqLength >= length) {

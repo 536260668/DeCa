@@ -5,10 +5,10 @@
 #include "BaseVertex.h"
 #include "Mutect2Utils.h"
 
-int BaseVertex::hashCode(std::shared_ptr<uint8_t[]> a, int length) {
+long BaseVertex::hashCode(const std::shared_ptr<uint8_t[]> & a, int length) {
     if(a == nullptr)
         return 0;
-    int result = 1;
+    long result = 1;
     for(int i = 0; i < length; i++) {
         result = 31 * result + a.get()[i];
     }

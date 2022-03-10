@@ -367,6 +367,7 @@ void ReadThreadingGraph::recoverDanglingTails(int pruneFactor, int minDanglingBr
             nRecovered += recoverDanglingTail(v, pruneFactor, minDanglingBranchLength, recoverAll);
         }
     }
+    //std::cout << nRecovered << std::endl;
 }
 
 int ReadThreadingGraph::recoverDanglingTail(const std::shared_ptr<MultiDeBruijnVertex>& vertex, int pruneFactor, int minDanglingBranchLength,
@@ -592,11 +593,13 @@ void ReadThreadingGraph::recoverDanglingHeads(int pruneFactor, int minDanglingBr
     int attempted = 0;
     int nRecovered = 0;
     for ( const std::shared_ptr<MultiDeBruijnVertex>& v :  danglingHeads) {
-        if(outDegreeOf(v) == 0 && !isRefSink(v)) {
-            attempted++;
-            nRecovered += recoverDanglingHead(v, pruneFactor, minDanglingBranchLength, recoverAll);
-        }
+        attempted++;
+        nRecovered += recoverDanglingHead(v, pruneFactor, minDanglingBranchLength, recoverAll);
+//        if(outDegreeOf(v) == 0 && !isRefSink(v)) {
+//
+//        }
     }
+    //std::cout << nRecovered << std::endl;
 }
 
 int ReadThreadingGraph::recoverDanglingHead(const std::shared_ptr<MultiDeBruijnVertex> & vertex, int pruneFactor, int minDanglingBranchLength,
@@ -610,7 +613,9 @@ int ReadThreadingGraph::recoverDanglingHead(const std::shared_ptr<MultiDeBruijnV
     if(danglingTailMergeResult == nullptr || !cigarIsOkayToMerge(danglingTailMergeResult->cigar, true, false)) {
         return 0;
     }
-    return mergeDanglingHead(danglingTailMergeResult);
+    int res = mergeDanglingHead(danglingTailMergeResult);
+    delete danglingTailMergeResult;
+    return res;
 }
 
 DanglingChainMergeHelper *
@@ -622,7 +627,7 @@ ReadThreadingGraph::generateCigarAgainstUpwardsReferencePath(std::shared_ptr<Mul
     }
     std::vector<std::shared_ptr<MultiDeBruijnVertex>> refPath = getReferencePath(altPath.at(0), upwards, nullptr);
     std::vector<std::shared_ptr<MultiDeBruijnVertex>> newaltPath;
-    for(std::shared_ptr<MultiDeBruijnVertex> vertex1 : altPath) {
+    for(const std::shared_ptr<MultiDeBruijnVertex>& vertex1 : altPath) {
         newaltPath.emplace_back(vertex1);
     }
     int refLength;
@@ -640,7 +645,7 @@ ReadThreadingGraph::findPathDownwardsToHighestCommonDescendantOfReference(std::s
     std::deque<std::shared_ptr<MultiDeBruijnVertex>> ret;
     std::shared_ptr<MultiDeBruijnVertex> v = vertex;
     if(giveUpAtBranch) {
-        while(isReferenceNode(v) || outDegreeOf(v) != 1) {
+        while(!(isReferenceNode(v) || outDegreeOf(v) != 1)) {
             std::shared_ptr<MultiSampleEdge> edge = outgoingEdgeOf(v);
             if(edge->getPruningMultiplicity() < pruneFactor) {
                 ret.clear();
@@ -654,7 +659,7 @@ ReadThreadingGraph::findPathDownwardsToHighestCommonDescendantOfReference(std::s
 
         return isReferenceNode(v)? ret : std::deque<std::shared_ptr<MultiDeBruijnVertex>>();
     } else {
-        while(isReferenceNode(v) || outDegreeOf(v) == 0) {
+        while(!(isReferenceNode(v) || outDegreeOf(v) == 0)) {
             std::shared_ptr<MultiSampleEdge> edge = getHeaviestOutgoingEdge(v);
             if(edge->getPruningMultiplicity() < pruneFactor) {
                 ret.clear();
@@ -809,7 +814,7 @@ void ReadThreadingGraph::addSequence(std::string seqName, std::shared_ptr<uint8_
 }
 
 void ReadThreadingGraph::addSequence(std::string seqName, std::shared_ptr<uint8_t[]> sequence, int length, bool isRef) {
-    addSequence(std::move(seqName), sequence, length, 1, isRef);
+    addSequence(std::move(seqName), std::move(sequence), length, 1, isRef);
 }
 
 bool ReadThreadingGraph::isLowComplexity() {
@@ -817,7 +822,7 @@ bool ReadThreadingGraph::isLowComplexity() {
 }
 
 bool ReadThreadingGraph::hasCycles() {
-    DFS_CycleDetect<MultiDeBruijnVertex,MultiSampleEdge> detect = DFS_CycleDetect<MultiDeBruijnVertex,MultiSampleEdge>(*this);
+    DFS_CycleDetect<MultiDeBruijnVertex,MultiSampleEdge> detect = DFS_CycleDetect<MultiDeBruijnVertex,MultiSampleEdge>(this);
     return detect.detectCycles();
 }
 

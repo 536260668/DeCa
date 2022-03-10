@@ -14,7 +14,7 @@ KBestHaplotypeFinder::KBestHaplotypeFinder(std::shared_ptr<SeqGraph> graph, std:
     Mutect2Utils::validateArg(graph->containsAllVertices(sources), "source does not belong to the graph");
     Mutect2Utils::validateArg(graph->containsAllVertices(sinks), "sink does not belong to the graph");
 
-    this->graph =  DFS_CycleDetect<SeqVertex, BaseEdge>(*graph).detectCycles() ? removeCyclesAndVerticesThatDontLeadToSinks(graph, sources, sinks) : graph;
+    this->graph =  DFS_CycleDetect<SeqVertex, BaseEdge>(graph.get()).detectCycles() ? removeCyclesAndVerticesThatDontLeadToSinks(graph, sources, sinks) : graph;
     this->sources = sources;
     this->sinks = sinks;
 }

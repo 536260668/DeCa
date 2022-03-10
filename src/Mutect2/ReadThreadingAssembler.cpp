@@ -14,11 +14,12 @@
 
 std::shared_ptr<AssemblyResult>
 ReadThreadingAssembler::getAssemblyResult(std::shared_ptr<Haplotype>& refHaplotype, int kmerSize, const std::shared_ptr<ReadThreadingGraph>& rtgraph) {
+    //std::cout << rtgraph->getVertexSet().size() << rtgraph->getEdgeSet().size() << std::endl;
     if(recoverDanglingBranches){
         rtgraph->recoverDanglingTails(pruneFactor, minDanglingBranchLength, recoverAllDanglingBranches);
         rtgraph->recoverDanglingHeads(pruneFactor, minDanglingBranchLength, recoverAllDanglingBranches);
     }
-
+    //std::cout << rtgraph->getVertexSet().size() << rtgraph->getEdgeSet().size() << std::endl;
     if(removePathsNotConnectedToRef){
         rtgraph->removePathsNotConnectedToRef();
     }
@@ -156,7 +157,7 @@ ReadThreadingAssembler::createGraph(const std::vector<std::shared_ptr<SAMRecord>
     }
     SequenceForKmers tmp = {"ref", refHaplotype->getBases(), 0, refHaplotype->getLength(), 1, true};
     std::vector<std::shared_ptr<Kmer>>* res =ReadThreadingGraph::determineNonUniqueKmers(tmp, kmerSize);
-    if(!allowNonUniqueKmersInRef && !ReadThreadingGraph::determineNonUniqueKmers(tmp, kmerSize)->empty()) {
+    if(!allowNonUniqueKmersInRef && !res->empty()) {
         return nullptr;
     }
     delete res;
@@ -169,7 +170,7 @@ ReadThreadingAssembler::createGraph(const std::vector<std::shared_ptr<SAMRecord>
     }
 
     rtgraph->buildGraphIfNecessary();
-
+    //std::cout << rtgraph->getVertexSet().size() << rtgraph->getEdgeSet().size() << std::endl;
 
     chainPruner->pruneLowWeightChains(rtgraph);
 //    if(rtgraph->getVertexSet().size() == 292 && rtgraph->getEdgeSet().size() == 291)

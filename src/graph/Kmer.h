@@ -22,7 +22,7 @@ private:
      *  Compute the hashcode for a KMer.
      *  Equivalent to <code>new String(bases, start, length).hashCode()</code>
      */
-    static int hashCode(const std::shared_ptr<uint8_t[]>& bases, int start, int length);
+    static long hashCode(const std::shared_ptr<uint8_t[]>& bases, int start, int length);
 
 public:
     Kmer(std::shared_ptr<uint8_t[]> kmer, int length);

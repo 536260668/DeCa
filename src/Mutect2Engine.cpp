@@ -138,11 +138,11 @@ void Mutect2Engine::fillNextAssemblyRegionWithReads(const std::shared_ptr<Assemb
 
 std::vector<std::shared_ptr<VariantContext>>
 Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion>& originalAssemblyRegion, ReferenceContext &referenceContext) {
-//    if(originalAssemblyRegion->getStart() == 1976817) {
+//    if(originalAssemblyRegion->getStart() == 33665991) {
 //        for(const std::shared_ptr<SAMRecord>& read : originalAssemblyRegion->getReads()) {
 //            std::cout << read->getName() << " : " << read->getStart() + 1 << "~" << read->getEnd() + 1 << std::endl;
 //        }
-//        std::cout << "hello" << std::endl;
+//        //std::cout << "hello" << std::endl;
 //    }
     removeUnmarkedDuplicates(originalAssemblyRegion);
     if(originalAssemblyRegion->getReads().empty())

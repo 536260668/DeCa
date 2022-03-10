@@ -13,11 +13,11 @@
 
 class BaseVertex {
 private:
-    int cashedHashCode;
+    long cashedHashCode;
     int length;
     std::string additionalInfo;
 
-    static int hashCode(std::shared_ptr<uint8_t[]> a, int length);
+    static long hashCode(const std::shared_ptr<uint8_t[]> & a, int length);
 
 protected:
     std::shared_ptr<uint8_t[]> sequence;
@@ -55,7 +55,7 @@ public:
 
     bool operator<(const BaseVertex & other) const;
 
-    int getHashCode() const {return cashedHashCode;}
+    long getHashCode() const {return cashedHashCode;}
 
     friend  std::ostream & operator<<(std::ostream &os, const BaseVertex & baseVertex);
 

@@ -135,8 +135,7 @@ int main(int argc, char *argv[])
                 ref = strdup(optarg);
                 break;
             case 'r':
-                reg = strdup(optarg);
-                break;   // parsing a region requires a BAM header
+                reg = strdup(optarg); break;   // parsing a region requires a BAM header
             case 1000:  //--callable-depth
                 MTAC.callableDepth = atoi(optarg);
                 break;
@@ -218,7 +217,8 @@ int main(int argc, char *argv[])
                     pendingRegions.emplace(newRegion);
                 }
             }
-
+//            if(pileup.getPosition() == 10076)
+//                std::cout << "hello";
             if(pileup.isEmpty()) {
                 std::shared_ptr<ActivityProfileState> state = std::make_shared<ActivityProfileState>(contig.c_str(), pileup.getPosition(), 0.0);
                 activityProfile->add(state);
@@ -235,10 +235,10 @@ int main(int argc, char *argv[])
 
                 std::shared_ptr<AssemblyRegion> nextRegion = pendingRegions.front();
 
-                //if(count % 2000 == 0) {
+                if(count % 1000 == 0) {
                     std::cout << *nextRegion;
-                //    break;
-                //}
+                    //break;
+                }
                 pendingRegions.pop();
                 Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
                 std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext);
@@ -250,7 +250,6 @@ int main(int argc, char *argv[])
 
             // gather AlignmentContext to AssemblyRegion
 
-        free(refBases);
         activityProfile->clear();
         break;
     }
@@ -259,11 +258,7 @@ int main(int argc, char *argv[])
 
 
     // free the space
-    delete activityProfile;
-    fai_destroy(refPoint);
-    free(output);
-    free(ref);
-    delete header;
+
 
     return 0;
 }

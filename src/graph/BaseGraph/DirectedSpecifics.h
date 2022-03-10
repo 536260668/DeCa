@@ -327,7 +327,7 @@ public:
 
     bool removeAllEdges(const std::vector<std::shared_ptr<E>> & edges) {
         bool modified = false;
-        for(auto e : edges) {
+        for(const auto & e : edges) {
             modified |= removeEdge(e);
         }
 
@@ -336,7 +336,7 @@ public:
 
     bool removeAllEdges(const std::list<std::shared_ptr<E>> & edges) {
         bool modified = false;
-        for(auto e : edges) {
+        for(const auto & e : edges) {
             modified |= removeEdge(e);
         }
 
@@ -345,7 +345,7 @@ public:
 
     bool removeAllEdges(std::unordered_set<std::shared_ptr<E>> edges) {
         bool modified = false;
-        for(auto e : edges) {
+        for(const auto & e : edges) {
             modified |= removeEdge(e);
         }
 
@@ -383,12 +383,12 @@ public:
         if(v.get() == nullptr)
             throw std::invalid_argument("Attempting to test a null vertex.");
 
-        for(std::shared_ptr<E> e : outgoingEdgesOf(v)){
+        for(const std::shared_ptr<E> & e : outgoingEdgesOf(v)){
             if(e->getIsRef())
                 return false;
         }
 
-        for(std::shared_ptr<E> e : incomingEdgesOf(v)){
+        for(const std::shared_ptr<E> & e : incomingEdgesOf(v)){
             if(e->getIsRef())
                 return true;
         }
@@ -419,12 +419,9 @@ public:
     std::shared_ptr<V> getNextReferenceVertex(const std::shared_ptr<V> & v, bool allowNonRefPaths, std::shared_ptr<E> blacklistedEdge) {
         if(v == nullptr)
             return nullptr;
-        std::unordered_set<std::shared_ptr<E>> outgoingEdges = outgoingEdgesOf(v);
 
-        if(outgoingEdges.empty())
-            return nullptr;
 
-        for(std::shared_ptr<E> edgeToTest : outgoingEdges) {
+        for(const std::shared_ptr<E> & edgeToTest : outgoingEdgesOf(v)) {
             if(edgeToTest->getIsRef()) {
                 return getEdgeTarget(edgeToTest);
             }
@@ -434,11 +431,11 @@ public:
             return nullptr;
 
         std::vector<std::shared_ptr<E>> edges;
-        for(std::shared_ptr<E> edgeToTest : outgoingEdges) {
-            if(edgeToTest == blacklistedEdge) {
+        for(const std::shared_ptr<E> & edgeToTest : outgoingEdgesOf(v)) {
+            if(edgeToTest != blacklistedEdge) {
                 edges.template emplace_back(edgeToTest);
             }
-            if(edges.size() > 1)
+            if(edges.size() > 2)
                 break;
         }
         return edges.size() == 1 ? getEdgeTarget(edges.at(0)) : nullptr;
@@ -447,9 +444,9 @@ public:
     std::shared_ptr<V> getPrevReferenceVertex(const std::shared_ptr<V> & v) {
         if(v == nullptr)
             return nullptr;
-        std::unordered_set<std::shared_ptr<E>> edges = incomingEdgesOf(v);
+        std::unordered_set<std::shared_ptr<E>>& edges = incomingEdgesOf(v);
         std::vector<std::shared_ptr<V>> allVertexs;
-        for(std::shared_ptr<E> edge : edges) {
+        for(const std::shared_ptr<E> & edge : edges) {
             std::shared_ptr<V> v = getEdgeSource(edge);
             if(isReferenceNode(v))
                 allVertexs.template emplace_back(v);
@@ -461,7 +458,7 @@ public:
         if(v.get() == nullptr)
             throw std::invalid_argument("Attempting to test a null vertex.");
         std::unordered_set<std::shared_ptr<E>> * edges = edgesof(v);
-        for(std::shared_ptr<E> edge : *edges) {
+        for(const std::shared_ptr<E> & edge : *edges) {
             if(edge->getIsRef()) {
                 return true;
             }
@@ -471,7 +468,7 @@ public:
     }
 
     std::shared_ptr<V> getReferenceSourceVertex() {
-        for(std::shared_ptr<V> vertex : VertexSet) {
+        for(const std::shared_ptr<V> & vertex : VertexSet) {
             if(isRefSource(vertex))
                 return vertex;
         }
@@ -479,7 +476,7 @@ public:
     }
 
     std::shared_ptr<V> getReferenceSinkVertex() {
-        for(std::shared_ptr<V> vertex : VertexSet) {
+        for(const std::shared_ptr<V> & vertex : VertexSet) {
             if(isRefSink(vertex))
                 return vertex;
         }
@@ -520,7 +517,7 @@ public:
                 toRemove.insert(*iter);
             }
         }
-        for(std::shared_ptr<V> v : toRemove) {
+        for(const std::shared_ptr<V> & v : toRemove) {
             onPathFromRefSource.erase(v);
         }
 //        for(std::shared_ptr<V> v : onPathFromRefSource) {
@@ -528,12 +525,12 @@ public:
 //                onPathFromRefSource.erase(v);
 //            }
 //        }
-        for(std::shared_ptr<V> v : onPathFromRefSource) {
+        for(const std::shared_ptr<V> & v : onPathFromRefSource) {
             verticesToRemove.erase(v);
         }
 
         std::vector<std::shared_ptr<V>> vertices;
-        for(std::shared_ptr<V> v : verticesToRemove) {
+        for(const std::shared_ptr<V> & v : verticesToRemove) {
             vertices.emplace_back(v);
         }
         removeAllVertices(vertices);
@@ -549,7 +546,7 @@ public:
         if(v.get() == nullptr)
             throw std::invalid_argument("Attempting to test a null vertex.");
         std::unordered_set<std::shared_ptr<V>> ret;
-        for(std::shared_ptr<E> e : incomingEdgesOf(v)) {
+        for(const std::shared_ptr<E> & e : incomingEdgesOf(v)) {
             ret.insert(getEdgeSource(e));
         }
         return ret;
@@ -559,7 +556,7 @@ public:
         if(v.get() == nullptr)
             throw std::invalid_argument("Attempting to test a null vertex.");
         std::unordered_set<std::shared_ptr<V>> ret;
-        for(std::shared_ptr<E> e : outgoingEdgesOf(v)) {
+        for(const std::shared_ptr<E> & e : outgoingEdgesOf(v)) {
             ret.insert(getEdgeTarget(e));
         }
         return ret;
@@ -567,7 +564,7 @@ public:
 
     std::unordered_set<std::shared_ptr<V>> getSinks() {
         std::unordered_set<std::shared_ptr<V>> ret;
-        for(std::shared_ptr<V> v : VertexSet) {
+        for(const std::shared_ptr<V> & v : VertexSet) {
             if(isSink(v))
                 ret.insert(v);
         }
@@ -576,7 +573,7 @@ public:
 
     std::unordered_set<std::shared_ptr<V>> getSources() {
         std::unordered_set<std::shared_ptr<V>> ret;
-        for(std::shared_ptr<V> v : VertexSet) {
+        for(const std::shared_ptr<V> & v : VertexSet) {
             if(isSource(v))
                 ret.insert(v);
         }
@@ -588,13 +585,13 @@ public:
             return;
         }
         std::unordered_set<std::shared_ptr<E>> edgesToCheck;
-        for(std::shared_ptr<E> e : incomingEdgesOf(getReferenceSourceVertex())) {
+        for(const std::shared_ptr<E> & e : incomingEdgesOf(getReferenceSourceVertex())) {
             edgesToCheck.insert(e);
         }
         while(!edgesToCheck.empty()) {
             std::shared_ptr<E> e = *(edgesToCheck.begin());
             if(!e->getIsRef()) {
-                for(std::shared_ptr<E> e : incomingEdgesOf(getEdgeSource(e))) {
+                for(const std::shared_ptr<E> & e : incomingEdgesOf(getEdgeSource(e))) {
                     edgesToCheck.insert(e);
                 }
                 removeEdge(e);
@@ -602,13 +599,13 @@ public:
             edgesToCheck.erase(e);
         }
 
-        for(std::shared_ptr<E> e : outgoingEdgesOf(getReferenceSinkVertex())) {
+        for(const std::shared_ptr<E> & e : outgoingEdgesOf(getReferenceSinkVertex())) {
             edgesToCheck.insert(e);
         }
         while(!edgesToCheck.empty()) {
             std::shared_ptr<E> e = *(edgesToCheck.begin());
             if(!e->getIsRef()) {
-                for(std::shared_ptr<E> e : outgoingEdgesOf(getEdgeTarget(e))) {
+                for(const std::shared_ptr<E> & e : outgoingEdgesOf(getEdgeTarget(e))) {
                     edgesToCheck.insert(e);
                 }
                 removeEdge(e);
