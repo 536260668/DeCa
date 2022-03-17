@@ -4,6 +4,7 @@
 
 #include <cstring>
 #include <algorithm>
+#include <htslib/sam.h>
 #include "CigarUtils.h"
 #include "Mutect2Utils.h"
 #include "SWNativeAlignerWrapper.h"
@@ -130,6 +131,27 @@ bool CigarUtils::isGood(const std::shared_ptr<Cigar> & c) {
     return !startsWithDeletionIgnoringClips(elemsRev);
 }
 
+bool CigarUtils::isGood(bam1_t * read)
+{
+    if(!Cigar::isValid(read)){
+        return false;
+    }
+    uint32_t * elems = bam_get_cigar(read);
+    uint32_t n_cigar = read->core.n_cigar;
+    if(hasConsecutiveIndels(elems, n_cigar)){
+        return false;
+    }
+    if(startsWithDeletionIgnoringClips(elems, n_cigar)){
+        return false;
+    }
+
+    uint32_t elemsRev[n_cigar];
+    for(uint32_t i=0; i<n_cigar; i++){
+        elemsRev[i] = elems[n_cigar - i - 1];
+    }
+    return !startsWithDeletionIgnoringClips(elemsRev, n_cigar);
+}
+
 bool CigarUtils::hasConsecutiveIndels(std::vector<CigarElement> &elems) {
     bool prevIndel = false;
     for(CigarElement elem : elems) {
@@ -141,6 +163,33 @@ bool CigarUtils::hasConsecutiveIndels(std::vector<CigarElement> &elems) {
         prevIndel = isIndel;
     }
     return false;
+}
+
+bool CigarUtils::hasConsecutiveIndels(uint32_t * cigarArray, uint32_t n_cigar){
+    bool prevIndel = false;
+    for(uint32_t i=0; i<n_cigar; i++)
+    {
+        uint32_t op = bam_cigar_op(cigarArray[i]);
+        bool isIndel = (op == BAM_CINS || op == BAM_CDEL);
+        if(prevIndel && isIndel) {
+            return true;
+        }
+        prevIndel = isIndel;
+    }
+    return false;
+}
+
+bool CigarUtils::startsWithDeletionIgnoringClips(uint32_t * cigarArray, uint32_t n_cigar){
+    bool isClip = true;
+    int i = 0;
+    uint32_t op;
+    while(i < n_cigar && isClip) {
+        uint32_t elem = cigarArray[i];
+        op = bam_cigar_op(elem);
+        isClip = (op == BAM_CHARD_CLIP || op == BAM_CSOFT_CLIP);
+        i++;
+    }
+    return op == BAM_CDEL;
 }
 
 bool CigarUtils::startsWithDeletionIgnoringClips(const std::vector<CigarElement> &elems) {
@@ -158,4 +207,13 @@ bool CigarUtils::startsWithDeletionIgnoringClips(const std::vector<CigarElement>
 
 bool CigarUtils::containsNOperator(std::vector<CigarElement> cigarElements) {
     return std::any_of(cigarElements.begin(), cigarElements.end(), [](CigarElement & cigarElement)->bool { return cigarElement.getOperator() == N;});
+}
+
+bool CigarUtils::containsNOperator(uint32_t n_cigar, uint32_t* cigarArray){
+    for(uint32_t i=0; i<n_cigar; i++)
+    {
+        if(bam_cigar_op(cigarArray[i]) == BAM_CREF_SKIP)
+            return true;
+    }
+    return false;
 }

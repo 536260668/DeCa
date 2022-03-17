@@ -488,7 +488,7 @@ bool SAMRecord::isSupplementaryAlignment() const {
     return (mFlags & 2048) != 0;
 }
 
-SAMRecord::SAMRecord(bam1_t *read, SAMFileHeader* samFileHeader, bool load) {
+SAMRecord::SAMRecord(bam1_t *read, sam_hdr_t * hdr, bool load) {
     uint32_t * res = bam_get_cigar(read);
     uint32_t n = read->core.n_cigar;
     std::vector<CigarElement> nCigarElements;
@@ -503,11 +503,11 @@ SAMRecord::SAMRecord(bam1_t *read, SAMFileHeader* samFileHeader, bool load) {
     mMappingQuality = read->core.qual;
     mAlignmentStart = read->core.pos;
     mAlignmentEnd = mAlignmentStart + static_cast<int>(bam_cigar2rlen(n, res)) - 1;
-    mReferenceName = std::string(samFileHeader->getSequenceDictionary().getSequences()[read->core.tid].getSequenceName());
-    mMateReferenceName = std::string(samFileHeader->getSequenceDictionary().getSequences()[read->core.mtid].getSequenceName());
+    mReferenceName = std::string(sam_hdr_tid2name(hdr, read->core.tid));
+    mMateReferenceName = std::string(sam_hdr_tid2name(hdr, read->core.mtid));
     mReadName = std::string(bam_get_qname(read));
     baseLength = read->core.l_qseq;
-    baseQualitiesLength = static_cast<int>(bam_cigar2qlen(n, res));
+    baseQualitiesLength = read->core.l_qseq;
     if(load) {
         uint8_t * bases = bam_get_seq(read);
         mReadBases = std::shared_ptr<uint8_t[]>(new uint8_t[baseLength+1]{0});

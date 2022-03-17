@@ -2,6 +2,7 @@
 // Created by 梦想家xixi on 2022/1/11.
 //
 
+#include <cassert>
 #include "ReadCache.h"
 #include "iostream"
 #include "ReadUtils.h"
@@ -11,7 +12,7 @@ ReadCache::ReadCache(aux_t **data, std::vector<char*> & bam_name, std::shared_pt
                                                                     readTransformer(cache, data[0]->header, 5){
     bam1_t * b;
     b = bam_init1();
-    std::string& region = data[0]->header->getSequenceDictionary().getSequences()[0].getSequenceName();
+    std::string region(sam_hdr_tid2name(data[0]->hdr, 0));
     for(int i = 0; i < bam_name.size(); i++){
         int result;
         int count = 0;
@@ -21,9 +22,9 @@ ReadCache::ReadCache(aux_t **data, std::vector<char*> & bam_name, std::shared_pt
         hts_idxes.push_back(idx);
         hts_itr_t* iter = sam_itr_querys(idx, data[i]->hdr, region.c_str());
         while((result = sam_itr_next(data[i]->fp, iter, b)) >= 0) {
-            std::shared_ptr<SAMRecord> read(new SAMRecord(b, data[i]->header));
-            read = readTransformer.apply(read);
-            if(ReadFilter::test(read, data[i]->header)) {
+            bam1_t * transformed_read = readTransformer.apply(b, data[i]->hdr);
+            if(ReadFilter::test(transformed_read, data[i]->hdr)) {
+                std::shared_ptr<SAMRecord> read = std::make_shared<SAMRecord>(transformed_read, data[i]->hdr);
                 if(i == 0) {
                     read->setGroup(0);
                     normalReads.emplace(getpileRead(read));
@@ -32,7 +33,6 @@ ReadCache::ReadCache(aux_t **data, std::vector<char*> & bam_name, std::shared_pt
                     read->setGroup(1);
                     tumorReads.emplace(getpileRead(read));
                 }
-                count++;
             }
             if(count > 500)
                 break;
@@ -50,7 +50,7 @@ ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, const
 
     for(int i = 0; i < bam_name.size(); i++){
         int result;
-        hts_idx_t * idx = sam_index_load(data[i]->fp, bam_name[i]);     // TODO: make it more elegant
+        hts_idx_t * idx = sam_index_load(data[i]->fp, bam_name[i]);
         if(idx == nullptr)
         {
             throw std::invalid_argument("random alignment retrieval only works for indexed BAM or CRAM files.");
@@ -60,13 +60,19 @@ ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, const
         hts_idxes.push_back(idx);
         hts_itr_t* iter = sam_itr_querys(idx, data[i]->hdr, region.c_str());
         while((result = sam_itr_next(data[i]->fp, iter, b)) >= 0) {
-            std::shared_ptr<SAMRecord> read = std::make_shared<SAMRecord>(b, data[i]->header);
-            read = readTransformer.apply(read);
-            if(ReadFilter::test(read, data[i]->header)) {
+            //---for debugging
+            num_read++;
+
+            bam1_t * transformed_read = readTransformer.apply(b, data[i]->hdr);
+
+            if(ReadFilter::test(transformed_read, data[i]->hdr)) {
+                //---for debugging
+                num_pushed++;
+                std::shared_ptr<SAMRecord> read = std::make_shared<SAMRecord>(transformed_read, data[i]->hdr);
                 if(i == 0) {
                     read->setGroup(0);
                     normalReads.emplace(getpileRead(read));
-                    }
+                }
                 else {
                     read->setGroup(1);
                     tumorReads.emplace(getpileRead(read));
@@ -77,20 +83,12 @@ ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, const
     }
     bam_destroy1(b);
 
-
-    // TODO: make it more elegant
     unsigned i = region.find_last_of(':') + 1;
-    start = end = 0;
-    while(region[i] >= '0' && region[i] <= '9') {
-        start = start * 10 + region[i] - '0';
-        i++;
-    }
+    unsigned j = region.find_last_of('-') + 1;
+    start = std::stoi(region.substr(i, j-i));
+    end = std::stoi(region.substr(j, region.size() - j));
     currentPose = start - 1;
-    i = region.find_last_of('-') + 1;
-    while(region[i] >= '0' && region[i] <= '9') {
-        end = end * 10 + region[i] - '0';
-        i++;
-    }
+
 }
 
 ReadCache::~ReadCache() {
@@ -126,7 +124,7 @@ ReadCache::~ReadCache() {
         normalReads.pop();
     }
 
-
+    //std::cout << num_read << "records read from the file, " << num_pushed << "records pushed into the queue\n";
 }
 
 int ReadCache::getNextPos() {
@@ -152,7 +150,7 @@ void ReadCache::advanceLoad() {
     start = end + 1;
     end = start + REGION_SIZE -1;   // TODO: make it a parameter
 
-    std::string region = data[0]->header->getSequenceDictionary().getSequences()[tid].getSequenceName() + ':' +
+    std::string region = std::string(sam_hdr_tid2name(data[0]->hdr, tid)) + ':' +
             std::to_string(start+1) + '-' + std::to_string(end);
 
     bam1_t * b;
@@ -162,8 +160,15 @@ void ReadCache::advanceLoad() {
 
         hts_itr_t* iter = sam_itr_querys(hts_idxes[i], data[i]->hdr, region.c_str());
         while((result = sam_itr_next(data[i]->fp, iter, b)) >= 0) {
-            std::shared_ptr<SAMRecord> read = std::make_shared<SAMRecord>(b, data[i]->header);
-            if(ReadFilter::test(read, data[i]->header)) {
+            //---for debugging
+            num_read++;
+
+            bam1_t * transformed_read = readTransformer.apply(b, data[i]->hdr);
+
+            if(ReadFilter::test(transformed_read, data[i]->hdr)) {
+                //---for debugging
+                num_pushed++;
+                std::shared_ptr<SAMRecord> read = std::make_shared<SAMRecord>(transformed_read, data[i]->hdr);
                 if(i == 0) {
                     read->setGroup(0);
                     normalReads.emplace(getpileRead(read));
@@ -250,7 +255,7 @@ AlignmentContext ReadCache::getAlignmentContext() {
         InsertPileToAlignment(*iter, normalReadsForAlignment);
         normalCache.erase(iter++);
     }
-    SimpleInterval loc(data[0]->header->getSequenceDictionary().getSequences()[tid].getSequenceName(), currentPose, currentPose);
+    SimpleInterval loc(std::string(sam_hdr_tid2name(data[0]->hdr, tid)), currentPose, currentPose);
     return {tumorReadsForAlignment, normalReadsForAlignment, loc, tid, data[0]->header};
 }
 

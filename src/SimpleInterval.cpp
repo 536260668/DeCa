@@ -9,6 +9,10 @@ SimpleInterval::SimpleInterval(const std::string& contig, int start, int end) : 
     validatePositions(contig, start, end);
 }
 
+SimpleInterval::SimpleInterval(std::string&& contig, int start, int end) : contig(contig), start(start), end(end){
+
+}
+
 SimpleInterval::SimpleInterval(SimpleInterval const &simpleInterval) : contig(simpleInterval.contig), start(simpleInterval.start), end(simpleInterval.end){
     validatePositions(contig, start, end);
 }

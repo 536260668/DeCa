@@ -3,7 +3,6 @@
 //
 
 #include "ReadFilter.h"
-#include "Mutect2Engine.h"
 #include "read/CigarUtils.h"
 #include "QualityUtils.h"
 #include "read/ReadUtils.h"
@@ -17,12 +16,27 @@ bool ReadFilter::GoodCigarTest(std::shared_ptr<SAMRecord> & originalRead) {
     return CigarUtils::isGood(originalRead->getCigar());
 }
 
+bool ReadFilter::GoodCigarTest(bam1_t * read)
+{
+    return CigarUtils::isGood(read);
+}
 
 bool ReadFilter::NonZeroReferenceLengthAlignmentTest(std::shared_ptr<SAMRecord> & originalRead) {
     for(const CigarElement& element : originalRead->getCigarElements()) {
         if(CigarOperatorUtils::getConsumesReferenceBases(element.getOperator()) && element.getLength() > 0) {
             return true;
         }
+    }
+    return false;
+}
+
+bool ReadFilter::NonZeroReferenceLengthAlignmentTest(bam1_t * read) {
+    uint32_t * cigarArray = bam_get_cigar(read);
+    for(int i=0; i<read->core.n_cigar; i++)
+    {
+        uint32_t cigarElement = cigarArray[i];
+        if(ReadUtils::consumesReferenceBases(bam_cigar_op(cigarElement)) && bam_cigar_oplen(cigarElement) > 0)
+            return true;
     }
     return false;
 }
@@ -39,12 +53,20 @@ bool ReadFilter::MappingQualityAvailableTest(std::shared_ptr<SAMRecord> & origin
     return originalRead->getMappingQuality() != QualityUtils::MAPPING_QUALITY_UNAVALIABLE;
 }
 
+bool ReadFilter::MappingQualityAvailableTest(bam1_t * read){
+    return read->core.qual != QualityUtils::MAPPING_QUALITY_UNAVALIABLE;
+}
+
 bool ReadFilter::NotDuplicateTest(std::shared_ptr<SAMRecord> & originalRead) {
     return ! originalRead->isDuplicate();
 }
 
 bool ReadFilter::MappingQualityTest(std::shared_ptr<SAMRecord> & originalRead) {
-    return originalRead->getMappingQuality() >= 20;
+    return originalRead->getMappingQuality() >= READ_QUALITY_FILTER_THRESHOLD;
+}
+
+bool ReadFilter::MappingQualityTest(bam1_t * read) {
+    return read->core.qual >= READ_QUALITY_FILTER_THRESHOLD;
 }
 
 bool ReadFilter::MappingQualityNotZeroTest(std::shared_ptr<SAMRecord> & originalRead) {
@@ -62,9 +84,26 @@ bool ReadFilter::WellformedTest(std::shared_ptr<SAMRecord> & originalRead, SAMFi
             (! CigarUtils::containsNOperator(originalRead->getCigarElements()));
 }
 
+bool ReadFilter::WellformedTest(bam1_t * read, sam_hdr_t * hdr)
+{
+    return (ReadUtils::isUnmapped(read, hdr) || read->core.pos > 0) &&
+    (ReadUtils::isUnmapped(read, hdr) || (ReadUtils::getEnd(read) - read->core.pos + 1 >= 0) ) &&
+    ReadUtils::alignmentAgreesWithHeader(hdr, read) &&
+    read->core.l_qseq == bam_cigar2qlen(read->core.n_cigar, bam_get_cigar(read)) &&
+    (ReadUtils::isUnmapped(read, hdr) || read->core.l_qseq == Cigar::getReadLength(read->core.n_cigar, bam_get_cigar(read))) &&
+    (read->core.l_qseq > 0) &&
+    (!CigarUtils::containsNOperator(read->core.n_cigar, bam_get_cigar(read)));
+}
+
+bool ReadFilter::test(bam1_t * read, sam_hdr_t * hdr)
+{
+    return ReadLengthTest(read) && NonZeroReferenceLengthAlignmentTest(read) && NotDuplicateTest(read) &&
+            NotSecondaryAlignmentTest(read) && GoodCigarTest(read) && PassesVendorQualityCheck(read) && MappedReadTest(read, hdr) &&
+            MappingQualityAvailableTest(read) && MappingQualityNotZeroTest(read) && MappingQualityTest(read) &&
+            WellformedTest(read, hdr);
+}
+
 bool ReadFilter::test(std::shared_ptr<SAMRecord> & originalRead, SAMFileHeader* header) {
-//    if(originalRead.getStart() == 10056)
-//        std::cout << "hello";
 //    bool ret1 = ReadLengthTest();
 //    bool ret2 = NonZeroReferenceLengthAlignmentTest();
 //    bool ret3 = NotDuplicateTest();
@@ -83,5 +122,36 @@ bool ReadFilter::test(std::shared_ptr<SAMRecord> & originalRead, SAMFileHeader* 
 }
 
 bool ReadFilter::ReadLengthTest(std::shared_ptr<SAMRecord> & originalRead) {
-    return originalRead->getLength() > 30 && originalRead->getLength() < 2147483647;
+    return originalRead->getLength() > MIN_READ_LENGTH && originalRead->getLength() < INT32_MAX;
 }
+
+bool ReadFilter::ReadLengthTest(bam1_t *read) {
+    return read->core.l_qseq > MIN_READ_LENGTH && read->core.l_qseq < INT32_MAX;
+}
+
+bool ReadFilter::MappingQualityNotZeroTest(bam1_t *read)
+{
+    return (read->core.qual != 0);
+}
+
+
+bool ReadFilter::MappedReadTest(bam1_t *read, sam_hdr_t * hdr)
+{
+    return !ReadUtils::isUnmapped(read, hdr);
+}
+
+bool ReadFilter::NotSecondaryAlignmentTest(bam1_t *read)
+{
+    return (read->core.flag & BAM_FSECONDARY) == 0;
+}
+
+bool ReadFilter::NotDuplicateTest(bam1_t *read)
+{
+    return (read->core.flag & BAM_FDUP) == 0;
+}
+
+bool ReadFilter::PassesVendorQualityCheck(bam1_t *read)
+{
+    return (read->core.flag & BAM_FQCFAIL) == 0;
+}
+

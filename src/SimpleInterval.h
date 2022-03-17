@@ -30,6 +30,8 @@ private:
 public:
     SimpleInterval(const std::string& contig, int start, int end);
 
+    SimpleInterval(std::string&& contig, int start, int end);
+
     SimpleInterval(SimpleInterval const &simpleInterval);
 
     /**

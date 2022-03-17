@@ -23,7 +23,7 @@ private:
     SimpleInterval loc;
     double activeProb;
     Type resultState;
-    double resultValue;
+    double resultValue; // What's the meaning of this variable?
 
 public:
     ActivityProfileState(SimpleInterval const &loc, double activeProb, Type resultState, double resultValue);

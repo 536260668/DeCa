@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include "Cigar.h"
 #include "string"
+#include "ReadUtils.h"
 
 Cigar::Cigar(std::vector<CigarElement>& cigarElements) {
     for(CigarElement e : cigarElements)
@@ -65,6 +66,18 @@ int Cigar::getReadLength(const std::vector<CigarElement> & cigarElements) {
     return length;
 }
 
+int Cigar::getReadLength(uint32_t n_cigar, uint32_t *cigarArray)
+{
+    int length = 0;
+    for(uint32_t i=0; i<n_cigar; i++)
+    {
+        if(ReadUtils::consumesReadBases(cigarArray[i])){
+            length += bam_cigar_oplen(cigarArray[i]);
+        }
+    }
+    return length;
+}
+
 int Cigar::getReadLength() {
     return getReadLength(cigarElements);
 }
@@ -89,8 +102,15 @@ bool Cigar::isRealOperator(CigarOperator op) {
     return op == M || op == EQ || op == X || op == I || op == D || op == N;
 }
 
+bool Cigar::isRealOperator(uint32_t op) {
+    return op == BAM_CMATCH || op == BAM_CEQUAL || op == BAM_CDIFF || op == BAM_CINS || op == BAM_CDEL || op == BAM_CREF_SKIP;
+}
+
 bool Cigar::isInDelOperator(CigarOperator op) {
     return CigarOperatorUtils::isIndel(op);
+}
+bool Cigar::isInDelOperator(uint32_t op) {
+    return op == BAM_CINS || op == BAM_CDEL;
 }
 
 bool Cigar::isClippingOperator(CigarOperator op) {
@@ -99,6 +119,11 @@ bool Cigar::isClippingOperator(CigarOperator op) {
 
 bool Cigar::isPaddingOperator(CigarOperator op) {
     return CigarOperatorUtils::isPadding(op);
+}
+
+bool Cigar::isPaddingOperator(uint32_t op)
+{
+    return op == BAM_CPAD;
 }
 
 bool Cigar::isLeftClipped() {
@@ -187,6 +212,76 @@ std::vector<std::logic_error> Cigar::isValid(std::string readName, long recordNu
         ret.emplace_back(std::logic_error("No real operator (M|I|D|N) in CIGA"));
     }
     return ret;
+}
+
+bool Cigar::isValid(bam1_t *read)
+{
+    if(read->core.n_cigar == 0)
+        return false;
+
+    bool seenRealOperator = false;
+    uint32_t * cigarArray = bam_get_cigar(read);
+    for(int i=0; i<read->core.n_cigar; i++){
+        uint32_t cigar = cigarArray[i];
+        if(bam_cigar_oplen(cigar) == 0)
+            return false;
+
+        if(bam_cigar_op(cigar) == BAM_CHARD_CLIP)
+        {
+            if(i != 0 && i != read->core.n_cigar-1)
+                return false;
+        }
+        else if(bam_cigar_op(cigar) == BAM_CSOFT_CLIP) {
+            if (i == 0 || i == read->core.n_cigar - 1) {
+                // Soft clip at either end is fine
+            } else if (i == 1) {
+                if(read->core.n_cigar == 3 && bam_cigar_op(cigarArray[2]) == BAM_CHARD_CLIP){
+
+                } else if(bam_cigar_op(cigarArray[0]) != BAM_CHARD_CLIP){
+                    return false;
+                }
+            } else if(i == read->core.n_cigar - 2) {
+                if(bam_cigar_op(cigarArray[read->core.n_cigar-1]) != BAM_CHARD_CLIP){
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } else if(isRealOperator(bam_cigar_op(cigar))) {
+            // Must be at least one real operator (MIDN)
+            seenRealOperator = true;
+            // There should be an M or P operator between any pair of IDN operators
+            if (isInDelOperator(bam_cigar_op(cigar))) {
+                for (int j = i+1; j < read->core.n_cigar; ++j) {
+                    uint32_t nextOperator = bam_cigar_op( cigarArray[j]);
+                    // Allow
+                    if ((isRealOperator(nextOperator) && !isInDelOperator(nextOperator)) || isPaddingOperator(nextOperator)) {
+                        break;
+                    }
+                    if (isInDelOperator(nextOperator) && bam_cigar_op(cigar) == nextOperator) {
+                        return false;
+                    }
+                }
+            }
+        } else if(isPaddingOperator(bam_cigar_op(cigar))){
+            if (i == 0) {
+                /*
+                 * Removed restriction that padding not be the first operator because if a read starts in the middle of a pad
+                 * in a padded reference, it is necessary to precede the read with padding so that alignment start refers to a
+                 * position on the unpadded reference.
+                */
+            } else if (i == read->core.n_cigar - 1) {
+                return false;
+            } else if (!isRealOperator(bam_cigar_op(cigarArray[i-1])) || !isRealOperator(bam_cigar_op(cigarArray[i+1]))) {
+                return false;
+            }
+        }
+    }
+
+    if(!seenRealOperator){
+        return false;
+    }
+    return true;
 }
 
 CigarElement Cigar::getFirstCigarElement() {

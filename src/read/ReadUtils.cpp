@@ -2,9 +2,11 @@
 // Created by 梦想家xixi on 2021/12/18.
 //
 
+#include <cmath>
+#include <cassert>
 #include "ReadUtils.h"
 #include "samtools/SAMUtils.h"
-#include <cmath>
+#include "ReadConstants.h"
 
 std::string ReadUtils::BQSR_BASE_DELETION_QUALITIES = "BD";
 std::string ReadUtils::BQSR_BASE_INSERTION_QUALITIES = "BI";
@@ -299,6 +301,13 @@ bool ReadUtils::alignmentAgreesWithHeader(SAMFileHeader *header, std::shared_ptr
     return read->isUnmapped() || read->getStart() <= contigHeader.getSequenceLength();
 }
 
+bool ReadUtils::alignmentAgreesWithHeader(sam_hdr_t * hdr, bam1_t * read){
+    if(!isUnmapped(read, hdr) && read->core.tid == SAMRecord::NO_ALIGNMENT_REFERENCE_INDEX){
+        return false;
+    }
+    return isUnmapped(read, hdr) || read->core.pos <= sam_hdr_tid2len(hdr, read->core.tid);
+}
+
 int ReadUtils::getReferenceIndex(std::shared_ptr<SAMRecord> & read, SAMFileHeader *header) {
 //    if(read->isUnmapped()) {
 //        return SAMRecord::NO_ALIGNMENT_REFERENCE_INDEX;
@@ -346,6 +355,21 @@ bool ReadUtils::hasWellDefinedFragmentSize(SAMRecord * read) {
     }
 }
 
+bool ReadUtils::hasWellDefinedFragmentSize(bam1_t * read, sam_hdr_t * hdr) {
+    if(read->core.isize == 0)
+        return false;
+    if(!isPaired(read))
+        return false;
+    if(isUnmapped(read, hdr) || mateIsUnmapped(read, hdr))
+        return false;
+    if(isReverseStrand(read) == mateIsReverseStrand(read))
+        return false;
+    if(isReverseStrand(read))
+        return getEnd(read) > read->core.mpos;
+    else
+        return read->core.pos <= read->core.mpos + read->core.isize;
+}
+
 int ReadUtils::getAdaptorBoundary(SAMRecord * read) {
     if(!hasWellDefinedFragmentSize(read)) {
         return INT32_MIN;
@@ -355,6 +379,158 @@ int ReadUtils::getAdaptorBoundary(SAMRecord * read) {
         int insertSize = std::abs(read->getFragmentLength());
         return read->getStart() + insertSize;
     }
+}
+
+int ReadUtils::getAdaptorBoundary(bam1_t * read, sam_hdr_t * hdr) {
+    if(!hasWellDefinedFragmentSize(read, hdr)){
+        return INT32_MIN;
+    } else if(isReverseStrand(read)){
+        return read->core.mpos - 1;
+    } else {
+        int insertSize = std::abs(read->core.isize);
+        return read->core.pos + insertSize;
+    }
+}
+
+hts_pos_t ReadUtils::getEnd(bam1_t *read)
+{
+    return bam_endpos(read) - 1;
+}
+
+bool ReadUtils::isPaired(bam1_t *read)
+{
+    return read->core.flag & 1;
+}
+
+bool ReadUtils::getProperPairFlagUnchecked(bam1_t *read)
+{
+    return read->core.flag & 2;
+}
+
+bool ReadUtils::isReverseStrand(bam1_t *read)
+{
+    return read->core.flag & 16;
+}
+
+bool ReadUtils::getMateUnmappedFlagUnchecked(bam1_t *read)
+{
+    return (read->core.flag & 8) != 0;
+}
+
+bool ReadUtils::getMateNegativeStrandFlagUnchecked(bam1_t *read)
+{
+    return read->core.flag & 32;
+}
+
+bool ReadUtils::mateIsUnmapped(bam1_t * read, sam_hdr_t * hdr)
+{
+    if(!isPaired(read)){
+        throw std::invalid_argument("Cannot get mate information for an unpaired read");
+    }
+    return getMateUnmappedFlagUnchecked(read) || (sam_hdr_tid2name(hdr, read->core.mtid) == nullptr) || strcmp(sam_hdr_tid2name(hdr, read->core.mtid),  SAMRecord::NO_ALIGNMENT_REFERENCE_NAME.c_str()) == 0
+        || read->core.mpos == SAMRecord::NO_ALIGNMENT_START;
+}
+
+bool ReadUtils::mateIsReverseStrand(bam1_t *read)
+{
+    return getMateNegativeStrandFlagUnchecked(read);
+}
+
+const char * ReadUtils::getReferenceName(bam1_t * read, sam_hdr_t * hdr)
+{
+    return sam_hdr_tid2name(hdr, read->core.tid);
+}
+
+bool ReadUtils::isUnmapped(bam1_t *read, sam_hdr_t * hdr)
+{
+    const char * refName = getReferenceName(read, hdr);
+    return (read->core.flag & BAM_FUNMAP) != 0 ||
+    strcmp(refName, SAMRecord::NO_ALIGNMENT_REFERENCE_NAME.c_str()) == 0 ||
+    read->core.pos == SAMRecord::NO_ALIGNMENT_START;
+}
+
+bool ReadUtils::isProperlyPaired(bam1_t * read)
+{
+    return isPaired(read) && getProperPairFlagUnchecked(read);
+}
+
+uint8_t ReadUtils::decodeBase(uint8_t base)
+{
+    switch (base) {
+        case 1:
+            return 'A';
+        case 2:
+            return 'C';
+        case 4:
+            return 'G';
+        case 8:
+            return 'T';
+        case 15:
+            return 'N';
+        default:
+            return '-';
+    }
+}
+
+
+
+bool ReadUtils::consumesReadBases(uint32_t cigarElement)
+{
+    return bam_cigar_type(bam_cigar_op(cigarElement)) & 1;
+}
+
+bool ReadUtils::consumesReferenceBases(uint32_t cigarElement)
+{
+    return bam_cigar_type(bam_cigar_op(cigarElement)) & 2;
+}
+
+
+
+int ReadUtils::calculateAlignmentStartShift(int n_cigar, uint32_t *oldCigar, int newReadBasesClipped)
+{
+    int readBasesClipped = 0; // The number of read bases consumed on the new cigar before reference bases are consumed
+    int refBasesClipped = 0; // A measure of the reference offset between the oldCigar and the clippedCigar
+
+    bool truncated=false;
+    int i=0;
+
+    for (; i<n_cigar; i++)
+    {
+        uint32_t e = oldCigar[i];
+
+        int curRefLength = bam_cigar_oplen(e);
+        int curReadLength = consumesReadBases(e) ? bam_cigar_oplen(e) : 0;
+
+        truncated = readBasesClipped + curReadLength > newReadBasesClipped;
+        if (truncated) {
+            curReadLength = newReadBasesClipped - readBasesClipped;
+            curRefLength = curReadLength;
+        }
+
+        if (!consumesReferenceBases(e))
+            curRefLength = 0;
+
+        readBasesClipped += curReadLength;
+        refBasesClipped += curRefLength;
+
+        if (readBasesClipped >= newReadBasesClipped || truncated) {
+            break;
+        }
+    }
+
+    // needed only if the clipping ended at a cigar element boundary and is followed by either N or D
+    if (readBasesClipped == newReadBasesClipped && !truncated) {
+        while (i < n_cigar - 1){
+            i++;
+
+            if (consumesReadBases(oldCigar[i]) || !consumesReferenceBases(oldCigar[i]))
+                break;
+
+            refBasesClipped += bam_cigar_oplen(oldCigar[i]);
+        }
+    }
+
+    return refBasesClipped;
 }
 
 bool ReadUtils::isBaseInsideAdaptor(std::shared_ptr<SAMRecord> & read, long basePos) {

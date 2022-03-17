@@ -39,7 +39,7 @@ private:
 
 public:
     SAMRecord(std::shared_ptr<uint8_t[]> base, int baseLength, std::shared_ptr<uint8_t[]> baseQualities, int baseQualitiesLength, std::string &name);
-    SAMRecord(bam1_t * read, SAMFileHeader* samFileHeader, bool load = true);
+    SAMRecord(bam1_t * read, sam_hdr_t * hdr, bool load = true);
     SAMRecord(const SAMRecord & other);
     ~SAMRecord();
     static const std::string NO_ALIGNMENT_REFERENCE_NAME;

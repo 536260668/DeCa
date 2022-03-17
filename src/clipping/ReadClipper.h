@@ -11,6 +11,20 @@
 
 class ClippingOp;
 
+class cigarShift{
+public:
+    std::vector<uint32_t> * cigar;
+    int start;
+    int end;
+
+    cigarShift(std::vector<uint32_t> * cigar, int start, int end){
+        this->cigar = cigar;
+        this->start = start;
+        this->end = end;
+    }
+};
+
+
 class ReadClipper {
 public:
     std::shared_ptr<SAMRecord> read;
@@ -28,6 +42,20 @@ public:
     static std::shared_ptr<SAMRecord> hardClipAdaptorSequence(std::shared_ptr<SAMRecord> read);
     std::shared_ptr<SAMRecord> clipRead(ClippingRepresentation algorithm);
 
+    // clip reads, overrite some method in ReadClipper class
+    static bam1_t * hardClipRead(bam1_t * read, int start, int stop, sam_hdr_t * hdr);
+    static bam1_t * applyHardClipBases(bam1_t * read, int start, int stop, sam_hdr_t * hdr);
+    static cigarShift hardClipCigar(uint32_t * cigar, int n_cigar, int start, int stop);
+
+    /**
+      * Checks if a hard clipped cigar left a read starting or ending with deletions or gap (N)
+      * and cleans it up accordingly.
+      *
+      * @param cigar the original cigar
+      * @return an object with the shifts (see CigarShift class)
+      */
+    static cigarShift cleanHardClippedCigar(std::vector<uint32_t> & newCigar);
+
 private:
     static std::shared_ptr<SAMRecord> hardClipToRegion(std::shared_ptr<SAMRecord> read, int refStart, int refStop, int alignmentStart, int alignmentStop);
     std::shared_ptr<SAMRecord> hardClipBothEndsByReferenceCoordinates(int left, int right);
@@ -39,6 +67,8 @@ private:
     std::shared_ptr<SAMRecord> hardClipSoftClippedBases();
     std::shared_ptr<SAMRecord> revertSoftClippedBases();
     std::shared_ptr<SAMRecord> hardClipAdaptorSequence();
+
+
 };
 
 

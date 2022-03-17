@@ -22,6 +22,9 @@ public:
     PalindromeArtifactClipReadTransformer(std::shared_ptr<ReferenceCache>  referenceDataSource, SAMFileHeader* header,int minPalindromeSize);
 
     std::shared_ptr<SAMRecord> apply(const std::shared_ptr<SAMRecord> & read);
+
+    // overrite apply() without using SAMRecord class for performance
+    bam1_t * apply(bam1_t * read, sam_hdr_t * hdr);
 };
 
 

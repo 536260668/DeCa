@@ -13,6 +13,14 @@ enum ClippingTail {
     RIGHT_TAIL
 };
 
+enum Passes {
+    FIRST,
+    SECOND,
+    END
+};
+
+
+
 class ReadUtils {
 public:
     static const int CANNOT_COMPUTE_ADAPTOR_BOUNDARY = INT32_MIN;
@@ -43,6 +51,35 @@ public:
     static int getAdaptorBoundary(SAMRecord * read);
     static bool isBaseInsideAdaptor(std::shared_ptr<SAMRecord> & read, long basePos);
     static bool isInsideRead(std::shared_ptr<SAMRecord> & read, int referenceCoordinate);
+
+    // overrite some method without using SAMRecord class for performance
+    static bool hasWellDefinedFragmentSize(bam1_t * read, sam_hdr_t * hdr);
+    static int getAdaptorBoundary(bam1_t * read, sam_hdr_t * hdr);
+    static const char * getReferenceName(bam1_t * read, sam_hdr_t * hdr);
+    static bool isPaired(bam1_t * read);
+    static bool isProperlyPaired(bam1_t * read);
+    static bool isUnmapped(bam1_t * read, sam_hdr_t * hdr);
+    static bool isReverseStrand(bam1_t * read);
+    static bool getMateUnmappedFlagUnchecked(bam1_t * read);
+    static bool getMateNegativeStrandFlagUnchecked(bam1_t * read);
+    static bool getProperPairFlagUnchecked(bam1_t * read);
+    static bool mateIsUnmapped(bam1_t * read, sam_hdr_t * hdr);
+    static bool mateIsReverseStrand(bam1_t * read);
+    static bool alignmentAgreesWithHeader(sam_hdr_t * hdr, bam1_t * read);
+    static hts_pos_t getEnd(bam1_t * read);
+
+    static uint8_t decodeBase(uint8_t base);
+
+    static bool consumesReadBases(uint32_t cigarElement);
+    static bool consumesReferenceBases(uint32_t cigarElement);
+
+
+    /**
+     * Calculates how much the alignment should be shifted when hard/soft clipping is applied
+     * to the cigar
+     */
+    static int calculateAlignmentStartShift(int n_cigar, uint32_t * oldCigar, int newReadBasesClipped);
+
 
 private:
     static std::pair<int, bool> getReadCoordinateForReferenceCoordinate(int alignmentStart, std::shared_ptr<Cigar> cigar, int refCoord, bool allowGoalNotReached);

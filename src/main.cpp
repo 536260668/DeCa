@@ -7,6 +7,7 @@
 #include <cstring>
 #include <vector>
 #include <queue>
+#include <cassert>
 #include "getopt.h"
 #include "unistd.h"
 #include "htslib/sam.h"
@@ -205,7 +206,7 @@ int main(int argc, char *argv[])
     faidx_t * refPoint = fai_load3_format(ref, nullptr, nullptr, FAI_CREATE, FAI_FASTA);
 
     sam_hdr_t *h = data[0]->hdr; // easy access to the header of the 1st BAM   //---why use header of the first bam
-    int nref = sam_hdr_nref(h); //---Maybe this variable is not needed
+    int nref = sam_hdr_nref(h);
 
     smithwaterman_initial();
     QualityUtils::initial();
@@ -217,12 +218,12 @@ int main(int argc, char *argv[])
     // TODO: add multi-thread mode here
     for(int k=18; k<nref; k++)  //---data for test only contains 19th chromosome
     {
-        int k_len = header->getSequenceDictionary().getSequences()[k].getSequenceLength();  //---too complex
+        hts_pos_t ref_len = sam_hdr_tid2len(data[0]->hdr, k);   // the length of reference sequence
 
-        int len = k_len < 1000000 ? k_len : 1000000;
-        std::string region = header->getSequenceDictionary().getSequences()[k].getSequenceName() + ":0-" + to_string(len);
-        std::string contig = header->getSequenceDictionary().getSequences()[k].getSequenceName();
-        char* refBases = faidx_fetch_seq(refPoint, contig.c_str(), 0, header->getSequenceDictionary().getSequences()[k].getSequenceLength(), &len);
+        int len = ref_len < REGION_SIZE ? ref_len : REGION_SIZE;
+        std::string region = std::string(sam_hdr_tid2name(data[0]->hdr, k)) + ":0-" + to_string(len);
+        std::string contig = std::string(sam_hdr_tid2name(data[0]->hdr, k));
+        char* refBases = faidx_fetch_seq(refPoint, contig.c_str(), 0, ref_len, &len);
         std::shared_ptr<ReferenceCache>  refCache = std::make_shared<ReferenceCache>(ref, data[0]->header);
         ReadCache cache(data, input_bam, k, region, refCache);
         int currentPose = 0;
@@ -260,8 +261,9 @@ int main(int argc, char *argv[])
                 //    break;
                 //}
                 pendingRegions.pop();
+
                 Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
-                std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext);
+                //std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext);
                 //if(variant.size() != 0)
                   //  std::cout << variant.size();
             }

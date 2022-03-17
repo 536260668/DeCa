@@ -9,6 +9,7 @@
 #include "htslib/sam.h"
 #include "samtools/SAMRecord.h"
 
+
 class ReadFilter {  // TODO: add the filter left
 public:
     static bool ReadLengthTest(std::shared_ptr<SAMRecord> & originalRead);
@@ -24,7 +25,24 @@ public:
     static bool WellformedTest(std::shared_ptr<SAMRecord> & originalRead, SAMFileHeader* header);
     static bool test(std::shared_ptr<SAMRecord> & originalRead, SAMFileHeader* header);
 
+    // overrite some method without using SAMRecord class    // TODO: add NonChimericOriginalAlignmentReadFilter
+    static bool ReadLengthTest(bam1_t * read);
+    static bool MappingQualityAvailableTest(bam1_t * read);
+    static bool MappingQualityTest(bam1_t * read);
+    static bool MappingQualityNotZeroTest(bam1_t * read);
+    static bool MappedReadTest(bam1_t *read, sam_hdr_t * hdr);
+    static bool NotSecondaryAlignmentTest(bam1_t * read);
+    static bool NotDuplicateTest(bam1_t * read);
+    static bool PassesVendorQualityCheck(bam1_t * read);
+    static bool NonZeroReferenceLengthAlignmentTest(bam1_t * read);
+    static bool GoodCigarTest(bam1_t * read);
+    static bool WellformedTest(bam1_t * read, sam_hdr_t * hdr);
+    static bool test(bam1_t * read, sam_hdr_t * hdr);
+
 private:
+    static const int MIN_READ_LENGTH = 30;
+    static const int READ_QUALITY_FILTER_THRESHOLD = 20;
+
 };
 
 

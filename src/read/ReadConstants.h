@@ -9,6 +9,7 @@
 class ReadConstants {
 public:
     static const int UNSET_POSITION = 0;
+
 };
 
 
