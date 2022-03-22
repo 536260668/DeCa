@@ -63,7 +63,7 @@ std::shared_ptr<ActivityProfileState> Mutect2Engine::isActive(AlignmentContext& 
     return std::make_shared<ActivityProfileState>(refName.c_str(), pos, 1.0);
 }
 
-// TODO: finish this method 2021.11.1
+
 std::shared_ptr<std::vector<char>> Mutect2Engine::altQuals(ReadPileup &pileup, char refBase, int pcrErrorQual)
 {
     std::shared_ptr<std::vector<char>> result = std::make_shared<std::vector<char>>(std::vector<char>());

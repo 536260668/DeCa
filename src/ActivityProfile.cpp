@@ -141,6 +141,9 @@ std::shared_ptr<AssemblyRegion> ActivityProfile::popReadyAssemblyRegion(int asse
         regionStartLoc = stateList[0]->getLoc();
     }
 
+    // if the region is empty, then return nullptr
+    if(!isActiveRegion)
+        return nullptr;
 
     SimpleInterval regionLoc = SimpleInterval(first->getLoc().getContig(), first->getLoc().getStart(), first->getLoc().getStart() + offsetOfNextRegionEnd);
 

@@ -52,7 +52,6 @@ int BandPassActivityProfile::determineFilterSize(std::vector<double> * kernel, d
 
 vector<std::shared_ptr<ActivityProfileState>> * BandPassActivityProfile::processState(const std::shared_ptr<ActivityProfileState> & justAddedState)
 {
-
     double activeProb = justAddedState->isActiveProb();
 
     if(activeProb > 0.0)

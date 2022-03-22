@@ -78,6 +78,9 @@ ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, const
                     tumorReads.emplace(getpileRead(read));
                 }
             }
+
+            if(transformed_read != b)
+                bam_destroy1(transformed_read);
         }
         hts_itr_destroy(iter);
     }
@@ -87,7 +90,16 @@ ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, const
     unsigned j = region.find_last_of('-') + 1;
     start = std::stoi(region.substr(i, j-i));
     end = std::stoi(region.substr(j, region.size() - j));
-    currentPose = start - 1;
+
+    // set currentPose to the first position of reads
+    int tumorStart = start - 1;
+    int normalStart = start - 1;
+    if(!tumorReads.empty())
+        tumorStart = tumorReads.front()->read->getStart();
+    if(!normalReads.empty())
+        normalStart = normalReads.front()->read->getStart();
+
+    currentPose = std::min(tumorStart, normalStart);
 
 }
 
@@ -160,6 +172,7 @@ void ReadCache::advanceLoad() {
 
         hts_itr_t* iter = sam_itr_querys(hts_idxes[i], data[i]->hdr, region.c_str());
         while((result = sam_itr_next(data[i]->fp, iter, b)) >= 0) {
+
             //---for debugging
             num_read++;
 
@@ -169,6 +182,7 @@ void ReadCache::advanceLoad() {
                 //---for debugging
                 num_pushed++;
                 std::shared_ptr<SAMRecord> read = std::make_shared<SAMRecord>(transformed_read, data[i]->hdr);
+
                 if(i == 0) {
                     read->setGroup(0);
                     normalReads.emplace(getpileRead(read));
@@ -178,6 +192,10 @@ void ReadCache::advanceLoad() {
                     tumorReads.emplace(getpileRead(read));
                 }
             }
+
+            // if read is transformed, you need to free it
+            if(transformed_read != b)
+                bam_destroy1(transformed_read);
         }
         hts_itr_destroy(iter);
     }

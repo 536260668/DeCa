@@ -411,6 +411,7 @@ cigarShift ReadClipper::cleanHardClippedCigar(std::vector<uint32_t> & newCigar)
 
 bam1_t * ReadClipper::applyHardClipBases(bam1_t * read, int start, int stop, sam_hdr_t * hdr)
 {
+
     // If the read is unmapped there is no Cigar string and neither should we create a new cigar string
     uint32_t * cigar = bam_get_cigar(read);
     cigarShift shift = ReadUtils::isUnmapped(read, hdr) ? cigarShift{NULL, 0, 0} : hardClipCigar(cigar, read->core.n_cigar, start, stop);
@@ -425,48 +426,49 @@ bam1_t * ReadClipper::applyHardClipBases(bam1_t * read, int start, int stop, sam
     if (newLength == 0)
         return nullptr;     //---to use nullptr or an empty bam1_t?
 
-        char * newBases = new char[newLength + 1];
-        char * newQuals = new char[newLength + 1];
-        int copyStart = (start == 0) ? stop + 1 + shift.start : shift.start;
+    char * newBases = new char[newLength + 1];
+    char * newQuals = new char[newLength + 1];
+    int copyStart = (start == 0) ? stop + 1 + shift.start : shift.start;
 
-        // bam_set1() requires sequence representation of seq, so bases need to be decodedfrom 4 bit to ASCII code
-        for (int i = 0; i < newLength; ++i) {
-            uint8_t base = bam_seqi(bam_get_seq(read), copyStart + i);
-            newBases[i] = ReadUtils::decodeBase(base);
-        }
-        memcpy(newQuals, bam_get_qual(read) + copyStart, newLength);
-        newBases[newLength] = '\0';
-        newQuals[newLength] = '\0';
+    // bam_set1() requires sequence representation of seq, so bases need to be decodedfrom 4 bit to ASCII code
+    for (int i = 0; i < newLength; ++i) {
+        uint8_t base = bam_seqi(bam_get_seq(read), copyStart + i);
+        newBases[i] = ReadUtils::decodeBase(base);
+    }
+    memcpy(newQuals, bam_get_qual(read) + copyStart, newLength);
+    newBases[newLength] = '\0';
+    newQuals[newLength] = '\0';
 
-        hts_pos_t newPosition = read->core.pos;
+    hts_pos_t newPosition = read->core.pos;
 
-        bam1_t * hardClippedRead = bam_init1();
-        if (start == 0 && !ReadUtils::isUnmapped(read, hdr))
+    bam1_t * hardClippedRead = bam_init1();
+    if (start == 0 && !ReadUtils::isUnmapped(read, hdr))
+    {
+        newPosition = read->core.pos + ReadUtils::calculateAlignmentStartShift(read->core.n_cigar, cigar, stop - start + 1);
+    }
+    //TODO: bam_set() can be omitted // there is a bug in bam_set1 and setClipBases owing to cigar calculated before this method
+    bam_set1(hardClippedRead, read->core.l_qname, bam_get_qname(read), read->core.flag, read->core.tid, newPosition, read->core.qual, shift.cigar->size(), shift.cigar->data(),
+             read->core.mtid, read->core.mpos, read->core.isize, newLength, newBases, newQuals, bam_get_l_aux(read));
+
+    /*
+        if(setClipBases(read, newPosition, shift.cigar->size(), shift.cigar->data(), newLength, newBases, newQuals) < 0)
         {
-            newPosition = read->core.pos + ReadUtils::calculateAlignmentStartShift(read->core.n_cigar, cigar, stop - start + 1);
+            throw "error in applyHardClipBases method";
         }
-        //TODO: bam_set() can be omitted // there is a bug in bam_set1 and setClipBases owing to cigar calculated before this method
-        bam_set1(hardClippedRead, read->core.l_qname, bam_get_qname(read), read->core.flag, read->core.tid, newPosition, read->core.qual, shift.cigar->size(), shift.cigar->data(),
-                 read->core.mtid, read->core.mpos, read->core.isize, newLength, newBases, newQuals, bam_get_l_aux(read));
+    */
+    /*
+    uint8_t * qualities = bam_get_qual(hardClippedRead);
+    for(int i=0; i<hardClippedRead->core.l_qseq; i++)
+        cout << (int)qualities[i] << " ";
+    cout << endl;
+    */
+//    bam_destroy1(read);
+//    read = hardClippedRead;
 
-        /*
-            if(setClipBases(read, newPosition, shift.cigar->size(), shift.cigar->data(), newLength, newBases, newQuals) < 0)
-            {
-                throw "error in applyHardClipBases method";
-            }
-        */
-        /*
-        uint8_t * qualities = bam_get_qual(hardClippedRead);
-        for(int i=0; i<hardClippedRead->core.l_qseq; i++)
-            cout << (int)qualities[i] << " ";
-        cout << endl;
-        */
-        bam_destroy1(read);
-
-        delete shift.cigar;
-        delete[] newBases;
-        delete[] newQuals;
-        return hardClippedRead;
+    delete shift.cigar;
+    delete[] newBases;
+    delete[] newQuals;
+    return hardClippedRead;
 }
 
 bam1_t * ReadClipper::hardClipRead(bam1_t * read, int start, int stop, sam_hdr_t * hdr)

@@ -3,6 +3,7 @@
 //
 
 #include <stdexcept>
+#include <iostream>
 #include "BaseUtils.h"
 #include "Mutect2Utils.h"
 
@@ -55,7 +56,24 @@ uint8_t BaseUtils::getComplement(const uint8_t base) {
         case 'n':
         case 'N':
             return 'N';
+            // there maybe a 'S' 'K' 'R' 'Y' in the reference sequence
+        case 's':
+        case 'S':
+            return 'S';
+        case 'k':
+        case 'K':
+            return 'M';
+        case 'm':
+        case 'M':
+            return 'K';
+        case 'r':
+        case 'R':
+            return 'Y';
+        case 'y':
+        case 'Y':
+            return 'R';
         default:
+            std::cout << "unrecognized base: " << base << std::endl;
             throw std::invalid_argument("base must be A, C, G or T.");
     }
 }
@@ -77,6 +95,7 @@ uint8_t BaseUtils::getUpper(const uint8_t base) {
         case 'n':
         case 'N':
             return 'N';
+
         default:
             throw std::invalid_argument("base must be A, C, G or T.");
     }
