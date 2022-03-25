@@ -13,6 +13,14 @@
 #include "SAMFileHeader.h"
 #include "SimpleInterval.h"
 
+struct PositionToCigar{
+    PositionToCigar(int cigarOffset, int currentStart, int offset);
+
+    int cigarOffset;
+    int currentStart;
+    int offset;
+};
+
 class SAMRecord{
 private:
     std::shared_ptr<uint8_t[]> mReadBases;
@@ -33,11 +41,18 @@ private:
     int mMateAlignmentStart;
     int mInferredInsertSize;
     std::shared_ptr< SAMBinaryTagAndValue> mAttributes;
+
+
+
     void setFlag(bool flag, int bit);
     void requireReadPaired();
     bool getMateUnmappedFlagUnchecked();
 
 public:
+    // map from position to cigar index
+    std::vector<std::pair<int, PositionToCigar>> PositionToCigarMap;
+
+
     SAMRecord(std::shared_ptr<uint8_t[]> base, int baseLength, std::shared_ptr<uint8_t[]> baseQualities, int baseQualitiesLength, std::string &name);
     SAMRecord(bam1_t * read, sam_hdr_t * hdr, bool load = true);
     SAMRecord(const SAMRecord & other);

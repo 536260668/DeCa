@@ -20,7 +20,7 @@ Mutect2Engine::Mutect2Engine(M2ArgumentCollection & MTAC, char * ref, SAMFileHea
                                                                                                     trimmer(&assemblerArgs, &header->getSequenceDictionary(), false,
                                                                                                             false)
 {
-
+    NaturalLogUtils::initial();
 }
 
 
@@ -28,8 +28,6 @@ Mutect2Engine::Mutect2Engine(M2ArgumentCollection & MTAC, char * ref, SAMFileHea
 std::shared_ptr<ActivityProfileState> Mutect2Engine::isActive(AlignmentContext& context, ReferenceContext& ref)
 {
     hts_pos_t pos = context.getPosition();
-//    if(pos == 13272)
-//        std::cout << "hello" << std::endl;
 
     std::string refName = context.getRefName();
 
@@ -37,11 +35,8 @@ std::shared_ptr<ActivityProfileState> Mutect2Engine::isActive(AlignmentContext& 
         callableSites++;
 
     char refBase = refCache.getBase(pos);
-    //std::cout << "refBase: " << refBase << std::endl;
-    // TODO: divide the pileup to tumor pileup and normal pileup
 
     ReadPileup tumorPileup = context.makeTumorPileup();
-    // TODO: calculate the activeProb
 
     std::shared_ptr<std::vector<char>> tumorAltQuals = altQuals(tumorPileup, refBase, 40);
     double tumorLogOdds = logLikelihoodRatio(tumorPileup.size() - tumorAltQuals->size(), tumorAltQuals);

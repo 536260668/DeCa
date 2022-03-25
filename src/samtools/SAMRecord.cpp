@@ -548,6 +548,36 @@ SAMRecord::SAMRecord(bam1_t *read, sam_hdr_t * hdr, bool load) {
     mMateAlignmentStart = static_cast<int>(read->core.mpos);
     mInferredInsertSize = static_cast<int>(read->core.isize);
     mAttributes = nullptr;
+
+    //get the map from pos to cigarElement
+    hts_pos_t rlen = bam_cigar2rlen(n, res);
+    int start = 0;
+    int offset = 0;
+    int cigarOffset = -1;
+    int currentStart = 0;
+    uint32_t cigarLength = 0;
+    for(int i=0; i<rlen; i++)
+    {
+        if(cigarOffset == n-1)
+            break;
+        while(start <= i)
+        {
+            cigarOffset++;
+            cigarLength = bam_cigar_oplen(res[cigarOffset]);
+            if(ReadUtils::consumesReferenceBases(res[cigarOffset]))
+            {
+                start += cigarLength;
+            }
+            if(ReadUtils::consumesReadBases(res[cigarOffset]))
+            {
+                offset += cigarLength;
+            }
+            currentStart = start - cigarLength;
+
+            PositionToCigarMap.emplace_back(std::pair<int, PositionToCigar>(i, PositionToCigar(cigarOffset, currentStart, offset + i - currentStart - cigarLength)));
+        }
+    }
+
 }
 
 SAMRecord::~SAMRecord() {
@@ -593,5 +623,4 @@ int SAMRecord::getEndAfterFliter() {
     return mAlignmentEnd;
 }
 
-
-
+PositionToCigar::PositionToCigar(int cigarOffset, int currentStart, int offset):cigarOffset(cigarOffset), currentStart(currentStart), offset(offset) {}

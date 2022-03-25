@@ -2,11 +2,14 @@
 // Created by 梦想家xixi on 2022/1/4.
 //
 
+#include <iostream>
+#include <cassert>
 #include "PeUtils.h"
 #include "Mutect2Utils.h"
 
 PeUtils::PeUtils(SAMRecord *pe, int pos) : pos(pos), pe(pe), nCigarElements(&pe->getCigarElements()){
-    bool flag = false;
+
+/*    bool flag = false;
     offset = 0;
     int start = pe->getStart();
     int size = nCigarElements->size();
@@ -28,13 +31,33 @@ PeUtils::PeUtils(SAMRecord *pe, int pos) : pos(pos), pe(pe), nCigarElements(&pe-
                 if(length != 0) {
                     offset = offset + pos - currentStart;
                 }
+
                 flag = true;
             }
         }
 
     }
+
     if(! flag)
-        throw std::invalid_argument("pos and read is not match");
+        throw std::invalid_argument("pos and read is not match");*/
+
+    int start = pe->getStart();
+    uint32_t index = 0;
+    // find the appropiate position
+    uint32_t Size = pe->PositionToCigarMap.size();
+    for(index=0; index<Size; index++)
+    {
+        if(index+1 == Size)
+            break;
+
+        if(pos - start >= pe->PositionToCigarMap[index].first && pos - start < pe->PositionToCigarMap[index+1].first)
+            break;
+    }
+    std::pair<int, PositionToCigar> & pair = pe->PositionToCigarMap[index];
+    Cigar_offset = pair.second.cigarOffset;
+    currentStart = start + pair.second.currentStart;
+    offset = pair.second.offset + pos - start - pair.first;
+    currentCigarElement = &(*nCigarElements)[Cigar_offset];
 }
 
 bool PeUtils::isBeforeSoftClip() {

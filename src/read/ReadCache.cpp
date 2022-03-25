@@ -157,8 +157,14 @@ bool ReadCache::hasNextPos() {
 }
 
 void ReadCache::advanceLoad() {
+    // clear the elements of last region
     if(!normalReads.empty() && !tumorReads.empty())
         throw std::logic_error("error");
+    normalReadsForAlignment.clear();
+    tumorReadsForAlignment.clear();
+    normalReadsForRegion.clear();
+    tumorReadsForRegion.clear();
+
     start = end + 1;
     end = start + REGION_SIZE -1;   // TODO: make it a parameter
 
@@ -172,7 +178,6 @@ void ReadCache::advanceLoad() {
 
         hts_itr_t* iter = sam_itr_querys(hts_idxes[i], data[i]->hdr, region.c_str());
         while((result = sam_itr_next(data[i]->fp, iter, b)) >= 0) {
-
             //---for debugging
             num_read++;
 
@@ -319,7 +324,7 @@ pileRead *ReadCache::getpileRead(const std::shared_ptr<SAMRecord> &read) {
     int start = 0;
     int end = 0;
     if(read->isReverseStrand()) {
-        start = std::max(adaptorBoundary+1, read->getStart());
+        start = std::max(adaptorBoundary-1, read->getStart());
         end = read->getEnd();
 
     } else {
