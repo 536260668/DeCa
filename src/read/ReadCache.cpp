@@ -90,6 +90,7 @@ ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, const
     unsigned j = region.find_last_of('-') + 1;
     start = std::stoi(region.substr(i, j-i));
     end = std::stoi(region.substr(j, region.size() - j));
+    chr_name = std::string(sam_hdr_tid2name(data[0]->hdr, tid));
 
     // set currentPose to the first position of reads
     int tumorStart = start - 1;
@@ -278,7 +279,7 @@ AlignmentContext ReadCache::getAlignmentContext() {
         InsertPileToAlignment(*iter, normalReadsForAlignment);
         normalCache.erase(iter++);
     }
-    SimpleInterval loc(std::string(sam_hdr_tid2name(data[0]->hdr, tid)), currentPose, currentPose);
+    SimpleInterval loc(chr_name, currentPose, currentPose);
     return {tumorReadsForAlignment, normalReadsForAlignment, loc, tid, data[0]->header};
 }
 

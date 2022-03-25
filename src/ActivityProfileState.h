@@ -22,12 +22,8 @@ class ActivityProfileState {
 private:
     SimpleInterval loc;
     double activeProb;
-    Type resultState;
-    double resultValue; // What's the meaning of this variable?
 
 public:
-    ActivityProfileState(SimpleInterval const &loc, double activeProb, Type resultState, double resultValue);
-
     ActivityProfileState(SimpleInterval const &loc, double activeProb);
 
     ActivityProfileState(ActivityProfileState const &activityProfileState);
@@ -49,17 +45,6 @@ public:
      * @param activeProb probability (should be between 0.0 and 1.0) that the site is active
      */
     void setIsActiveProb(double activeProb);
-
-    /**
-    * @return The type of the value returned by {@link #getResultValue}
-    */
-    Type getResultState() const;
-
-    /**
-     * @return Numeric value associated with {@link #getResultState}. If {@link #getResultState} is HIGH_QUALITY_SOFT_CLIPS,
-     *         this is the number of bp affected by the soft clips
-     */
-    double getResultValue() const;
 
     /**
     * The offset of state w.r.t. our current region's start location
