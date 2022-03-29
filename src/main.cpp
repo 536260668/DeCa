@@ -56,33 +56,6 @@ static int usage() {
                     return EXIT_FAILURE;
 }
 
-// TODO: you can insert the filter in this method
-// This function reads a BAM alignment from one BAM file.
-static int read_bam(void *data, bam1_t *b) // read level filters better go here to avoid pileup
-{
-    aux_t *aux = (aux_t*)data; // data in fact is a pointer to an auxiliary structure
-    int ret;
-    while (1)
-    {
-        ret = aux->iter? sam_itr_next(aux->fp, aux->iter, b) : sam_read1(aux->fp, aux->hdr, b);
-//        std::cout << " org : ";
-//        for(int j = 0; j < b->core.l_qseq; j++) {
-//            std::cout << static_cast<char>(bam_get_qual(b)[j] + '!');
-//        }
-//        std::cout << std::endl;
-//        ReadFilter filter(b, aux->header);
-        if ( ret<0 ) break;
-//        if ( !filter.test() ) continue;
-//        std::cout <<" flt : ";
-//        for(int j = 0; j < b->core.l_qseq; j++) {
-//            std::cout << static_cast<char>(bam_get_qual(b)[j] + '!');
-//        }
-//        std::cout << std::endl;
-        break;
-    }
-    return ret;
-}
-
 /**
  * adjust input_bam in main() to make input_bam[0] normal bam
  * TODO: Maybe this method can be more elegant
@@ -224,9 +197,9 @@ int main(int argc, char *argv[])
         std::string region = std::string(sam_hdr_tid2name(data[0]->hdr, k)) + ":0-" + to_string(len);
         std::string contig = std::string(sam_hdr_tid2name(data[0]->hdr, k));
         char* refBases = faidx_fetch_seq(refPoint, contig.c_str(), 0, ref_len, &len);
+        std::cout << len << endl;
         std::shared_ptr<ReferenceCache>  refCache = std::make_shared<ReferenceCache>(ref, data[0]->header);
         ReadCache cache(data, input_bam, k, region, refCache);
-        int currentPose = 0;
 
         m2Engine.refCache.setTid(k);
         while(cache.hasNextPos()) {
@@ -263,7 +236,7 @@ int main(int argc, char *argv[])
                 pendingRegions.pop();
 
                 Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
-                //std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext);
+                std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext);
                 //if(variant.size() != 0)
                   //  std::cout << variant.size();
             }

@@ -39,6 +39,8 @@ std::shared_ptr<ActivityProfileState> Mutect2Engine::isActive(AlignmentContext& 
     ReadPileup tumorPileup = context.makeTumorPileup();
 
     std::shared_ptr<std::vector<char>> tumorAltQuals = altQuals(tumorPileup, refBase, 40);
+    if(!tumorAltQuals->size())
+        return std::make_shared<ActivityProfileState>(refName.c_str(), pos, 0.0);
     double tumorLogOdds = logLikelihoodRatio(tumorPileup.size() - tumorAltQuals->size(), tumorAltQuals);
 
     if(tumorLogOdds < M2ArgumentCollection::getInitialLogOdds()) {
