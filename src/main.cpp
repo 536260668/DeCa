@@ -197,7 +197,6 @@ int main(int argc, char *argv[])
         std::string region = std::string(sam_hdr_tid2name(data[0]->hdr, k)) + ":0-" + to_string(len);
         std::string contig = std::string(sam_hdr_tid2name(data[0]->hdr, k));
         char* refBases = faidx_fetch_seq(refPoint, contig.c_str(), 0, ref_len, &len);
-        std::cout << len << endl;
         std::shared_ptr<ReferenceCache>  refCache = std::make_shared<ReferenceCache>(ref, data[0]->header);
         ReadCache cache(data, input_bam, k, region, refCache);
 

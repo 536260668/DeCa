@@ -105,36 +105,11 @@ ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, const
 }
 
 ReadCache::~ReadCache() {
-    for(pileRead* read : normalReadsForAlignment) {
-        delete read;
-    }
-    for(pileRead* read : tumorReadsForAlignment) {
-        delete read;
-    }
-
-    for(pileRead* read : normalCache) {
-        delete read;
-    }
-
-    for(pileRead* read : tumorCache) {
-        delete read;
-    }
+    clear();
 
     for(auto idx : hts_idxes)
     {
         hts_idx_destroy(idx);
-    }
-
-    while(tumorReads.size())
-    {
-        delete tumorReads.front();
-        tumorReads.pop();
-    }
-
-    while(normalReads.size())
-    {
-        delete normalReads.front();
-        normalReads.pop();
     }
 
     //std::cout << num_read << "records read from the file, " << num_pushed << "records pushed into the queue\n";
@@ -161,10 +136,7 @@ void ReadCache::advanceLoad() {
     // clear the elements of last region
     if(!normalReads.empty() && !tumorReads.empty())
         throw std::logic_error("error");
-    normalReadsForAlignment.clear();
-    tumorReadsForAlignment.clear();
-    normalReadsForRegion.clear();
-    tumorReadsForRegion.clear();
+    clear();
 
     start = end + 1;
     end = start + REGION_SIZE -1;   // TODO: make it a parameter
@@ -368,4 +340,42 @@ bool ReadCache::InsertPileToCache(pileRead *pile, std::list<pileRead *> & toAdd)
         toAdd.emplace_front(pile);
     }
     return true;
+}
+
+void ReadCache::clear()
+{
+    normalReadsForRegion.clear();
+    tumorReadsForRegion.clear();
+
+    for(pileRead* read : tumorReadsForAlignment) {
+        delete read;
+    }
+    tumorReadsForAlignment.clear();
+
+    for(pileRead* read : normalReadsForAlignment) {
+        delete read;
+    }
+    normalReadsForAlignment.clear();
+
+    for(pileRead* read : normalCache) {
+        delete read;
+    }
+    normalCache.clear();
+
+    for(pileRead* read : tumorCache) {
+        delete read;
+    }
+    tumorCache.clear();
+
+    while(tumorReads.size())
+    {
+        delete tumorReads.front();
+        tumorReads.pop();
+    }
+
+    while(normalReads.size())
+    {
+        delete normalReads.front();
+        normalReads.pop();
+    }
 }

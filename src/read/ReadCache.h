@@ -55,6 +55,8 @@ private:
 
     void advanceLoad();
 
+    // clear all the reads in the cache
+    void clear();
 
 public:
 
