@@ -51,8 +51,6 @@ private:
     int currentPose;
     PalindromeArtifactClipReadTransformer readTransformer;
 
-    int num_read = 0;   // the number of record read from the file
-    int num_pushed = 0; // the number of record pushed into the queue
 
     void advanceLoad();
 

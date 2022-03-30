@@ -60,14 +60,10 @@ ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, const
         hts_idxes.push_back(idx);
         hts_itr_t* iter = sam_itr_querys(idx, data[i]->hdr, region.c_str());
         while((result = sam_itr_next(data[i]->fp, iter, b)) >= 0) {
-            //---for debugging
-            num_read++;
 
             bam1_t * transformed_read = readTransformer.apply(b, data[i]->hdr);
 
             if(ReadFilter::test(transformed_read, data[i]->hdr)) {
-                //---for debugging
-                num_pushed++;
                 std::shared_ptr<SAMRecord> read = std::make_shared<SAMRecord>(transformed_read, data[i]->hdr);
                 if(i == 0) {
                     read->setGroup(0);
@@ -112,8 +108,6 @@ ReadCache::~ReadCache() {
     {
         hts_idx_destroy(idx);
     }
-
-    //std::cout << num_read << "records read from the file, " << num_pushed << "records pushed into the queue\n";
 }
 
 int ReadCache::getNextPos() {
@@ -152,14 +146,10 @@ void ReadCache::advanceLoad() {
 
         hts_itr_t* iter = sam_itr_querys(hts_idxes[i], data[i]->hdr, region.c_str());
         while((result = sam_itr_next(data[i]->fp, iter, b)) >= 0) {
-            //---for debugging
-            num_read++;
 
             bam1_t * transformed_read = readTransformer.apply(b, data[i]->hdr);
 
             if(ReadFilter::test(transformed_read, data[i]->hdr)) {
-                //---for debugging
-                num_pushed++;
                 std::shared_ptr<SAMRecord> read = std::make_shared<SAMRecord>(transformed_read, data[i]->hdr);
 
                 if(i == 0) {

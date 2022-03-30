@@ -235,7 +235,7 @@ int main(int argc, char *argv[])
                 pendingRegions.pop();
 
                 Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
-                //std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext);
+                std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext);
                 //if(variant.size() != 0)
                   //  std::cout << variant.size();
             }
