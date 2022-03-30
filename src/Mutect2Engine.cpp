@@ -2,12 +2,13 @@
 // Created by lhh on 10/19/21.
 //
 
+#include <cmath>
+#include <utility>
+#include <cassert>
 #include "Mutect2Engine.h"
 #include "cigar/Cigar.h"
 #include "utils/PeUtils.h"
 #include "samtools/SAMRecord.h"
-#include <cmath>
-#include <utility>
 #include "MathUtils.h"
 #include "QualityUtils.h"
 #include "NaturalLogUtils.h"
@@ -15,7 +16,7 @@
 #include "haplotypecaller/AssemblyBasedCallerUtils.h"
 
 Mutect2Engine::Mutect2Engine(M2ArgumentCollection & MTAC, char * ref, SAMFileHeader* samFileHeader):MATC(MTAC), minCallableDepth(MTAC.callableDepth),
-                                                            normalSample(MTAC.normalSample) ,callableSites(0), refCache(ref, header), header(samFileHeader),
+                                                            normalSample(MTAC.normalSample) ,callableSites(0), refCache(nullptr) ,header(samFileHeader),
                                                                                                     assemblyEngine(0, 1, 128, false, false, {10, 25}),
                                                                                                     trimmer(&assemblerArgs, &header->getSequenceDictionary(), false,
                                                                                                             false)
@@ -25,7 +26,7 @@ Mutect2Engine::Mutect2Engine(M2ArgumentCollection & MTAC, char * ref, SAMFileHea
 
 
 
-std::shared_ptr<ActivityProfileState> Mutect2Engine::isActive(AlignmentContext& context, ReferenceContext& ref)
+std::shared_ptr<ActivityProfileState> Mutect2Engine::isActive(AlignmentContext& context)
 {
     hts_pos_t pos = context.getPosition();
 
@@ -34,7 +35,7 @@ std::shared_ptr<ActivityProfileState> Mutect2Engine::isActive(AlignmentContext& 
     if(context.getReadNum() > minCallableDepth)
         callableSites++;
 
-    char refBase = refCache.getBase(pos);
+    char refBase = refCache->getBase(pos);
 
     ReadPileup tumorPileup = context.makeTumorPileup();
 
@@ -144,7 +145,7 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion>& originalAssembl
     removeUnmarkedDuplicates(originalAssemblyRegion);
     if(originalAssemblyRegion->getReads().empty())
         return {};
-    std::shared_ptr<AssemblyResultSet> untrimmedAssemblyResult = AssemblyBasedCallerUtils::assembleReads(std::move(originalAssemblyRegion), MATC, header, refCache, assemblyEngine);
+    std::shared_ptr<AssemblyResultSet> untrimmedAssemblyResult = AssemblyBasedCallerUtils::assembleReads(std::move(originalAssemblyRegion), MATC, header, *refCache, assemblyEngine);
     std::set<std::shared_ptr<VariantContext>, VariantContextComparator> & allVariationEvents = untrimmedAssemblyResult->getVariationEvents(1);
 //    std::shared_ptr<AssemblyRegionTrimmer_Result> trimmingResult = trimmer.trim(originalAssemblyRegion, allVariationEvents);
 //    if(!trimmingResult->isVariationPresent()) {
@@ -219,4 +220,10 @@ void Mutect2Engine::removeReadStubs(const std::shared_ptr<AssemblyRegion> & asse
 std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>>
 Mutect2Engine::splitReadsBySample(const std::vector<std::shared_ptr<SAMRecord>> & reads) {
     return AssemblyBasedCallerUtils::splitReadsBySample(reads);
+}
+
+void Mutect2Engine::setReferenceCache(ReferenceCache *cache)
+{
+    assert(cache != nullptr);
+    refCache = cache;
 }

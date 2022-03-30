@@ -62,16 +62,18 @@ public:
     const static int HUGE_FRAGMENT_LENGTH = 1000000;
 
     int callableSites;  // in GATK4, this variable is a MutableInt class object
-    ReferenceCache refCache;
+    ReferenceCache * refCache;
 
     Mutect2Engine(M2ArgumentCollection & MTAC, char* ref, SAMFileHeader*);
 
-    std::shared_ptr<ActivityProfileState> isActive(AlignmentContext& context, ReferenceContext & referenceContext);
+    std::shared_ptr<ActivityProfileState> isActive(AlignmentContext& context);
 
     static void fillNextAssemblyRegionWithReads(const std::shared_ptr<AssemblyRegion>& region, ReadCache & readCache);
 
     std::vector<std::shared_ptr<VariantContext>> callRegion(const std::shared_ptr<AssemblyRegion>& originalAssemblyRegion, ReferenceContext & referenceContext);
 
+    // Maybe this variable can be removed in the multi-thread mode
+    void setReferenceCache(ReferenceCache * cache);
 protected:
     std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>> splitReadsBySample (const std::vector<std::shared_ptr<SAMRecord>> & reads);
 
