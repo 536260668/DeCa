@@ -24,7 +24,9 @@ private:
     std::shared_ptr<SeqGraph> graph;
 
 public:
-    AssemblyResult(Status status, const std::shared_ptr<SeqGraph>& graph, std::shared_ptr<ReadThreadingGraph> threadingGraph);
+	virtual ~AssemblyResult();
+
+	AssemblyResult(Status status, const std::shared_ptr<SeqGraph>& graph, std::shared_ptr<ReadThreadingGraph> threadingGraph);
 
     std::shared_ptr<ReadThreadingGraph> getThreadingGraph() {
         return threadingGraph;
