@@ -75,6 +75,7 @@ std::shared_ptr<uint8_t[]> ReferenceCache::getSubsequenceAt(int tid, int start, 
         std::shared_ptr<uint8_t[]> toRet(new uint8_t[seq_len]);
         std::copy(ret, ret + seq_len, toRet.get());
         length = seq_len;
+        free(ret);
         return toRet;
     }
 }
