@@ -3,15 +3,14 @@
 //
 
 #include "ReferenceContext.h"
-
 #include <utility>
 
-ReferenceContext::ReferenceContext(char *dataSource, std::shared_ptr<SimpleInterval>  interval) : dataSource(dataSource), interval(std::move(interval)){
+ReferenceContext::ReferenceContext(std::shared_ptr<SimpleInterval>  interval, char refBase) : interval(std::move(interval)), refBase(refBase){
 
 }
 
 uint8_t ReferenceContext::getBase() {
-    return dataSource[interval->getStart()];
+    return refBase;
 }
 
 const std::shared_ptr<SimpleInterval> & ReferenceContext::getInterval() {

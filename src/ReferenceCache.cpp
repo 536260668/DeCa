@@ -5,7 +5,7 @@
 #include "ReferenceCache.h"
 
 
-ReferenceCache::ReferenceCache(char * refName, SAMFileHeader* header) : tid(0), header(header)
+ReferenceCache::ReferenceCache(char * refName, SAMFileHeader* header, int tid) : tid(tid), header(header)
 {
     fai = fai_load3_format(refName, nullptr, nullptr, FAI_CREATE, FAI_FASTA);
     start = 0;

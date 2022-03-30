@@ -7,7 +7,7 @@
 #include "iostream"
 #include "ReadUtils.h"
 
-
+// unused constructor
 ReadCache::ReadCache(aux_t **data, std::vector<char*> & bam_name, std::shared_ptr<ReferenceCache> & cache) : data(data), tid(0), bam_name(bam_name),
                                                                     readTransformer(cache, data[0]->header, 5){
     bam1_t * b;
@@ -60,14 +60,10 @@ ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, const
         hts_idxes.push_back(idx);
         hts_itr_t* iter = sam_itr_querys(idx, data[i]->hdr, region.c_str());
         while((result = sam_itr_next(data[i]->fp, iter, b)) >= 0) {
-            //---for debugging
-            num_read++;
 
             bam1_t * transformed_read = readTransformer.apply(b, data[i]->hdr);
 
             if(ReadFilter::test(transformed_read, data[i]->hdr)) {
-                //---for debugging
-                num_pushed++;
                 std::shared_ptr<SAMRecord> read = std::make_shared<SAMRecord>(transformed_read, data[i]->hdr);
                 if(i == 0) {
                     read->setGroup(0);
@@ -90,6 +86,7 @@ ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, const
     unsigned j = region.find_last_of('-') + 1;
     start = std::stoi(region.substr(i, j-i));
     end = std::stoi(region.substr(j, region.size() - j));
+    chr_len = sam_hdr_tid2len(data[0]->hdr, tid);
     chr_name = std::string(sam_hdr_tid2name(data[0]->hdr, tid));
 
     // set currentPose to the first position of reads
@@ -111,13 +108,11 @@ ReadCache::~ReadCache() {
     {
         hts_idx_destroy(idx);
     }
-
-    //std::cout << num_read << "records read from the file, " << num_pushed << "records pushed into the queue\n";
 }
 
 int ReadCache::getNextPos() {
     int nextPose = currentPose + 1;
-    if(nextPose > data[0]->header->getSequenceDictionary().getSequences()[tid].getSequenceLength()) {
+    if(nextPose > chr_len) {
         throw std::invalid_argument("please check first");
     }
     while(nextPose > end) {
@@ -129,7 +124,7 @@ int ReadCache::getNextPos() {
 
 bool ReadCache::hasNextPos() {
     int nextPose = currentPose + 1;
-    return nextPose <= data[0]->header->getSequenceDictionary().getSequences()[tid].getSequenceLength();
+    return nextPose <= chr_len;
 }
 
 void ReadCache::advanceLoad() {
@@ -151,14 +146,10 @@ void ReadCache::advanceLoad() {
 
         hts_itr_t* iter = sam_itr_querys(hts_idxes[i], data[i]->hdr, region.c_str());
         while((result = sam_itr_next(data[i]->fp, iter, b)) >= 0) {
-            //---for debugging
-            num_read++;
 
             bam1_t * transformed_read = readTransformer.apply(b, data[i]->hdr);
 
             if(ReadFilter::test(transformed_read, data[i]->hdr)) {
-                //---for debugging
-                num_pushed++;
                 std::shared_ptr<SAMRecord> read = std::make_shared<SAMRecord>(transformed_read, data[i]->hdr);
 
                 if(i == 0) {
