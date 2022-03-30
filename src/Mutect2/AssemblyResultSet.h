@@ -57,9 +57,9 @@ private:
     std::map<std::shared_ptr<Haplotype>, std::shared_ptr<AssemblyResult>> assemblyResultByHaplotype;
     std::shared_ptr<AssemblyRegion> regionForGenotyping;
     std::shared_ptr<uint8_t[]> fullReferenceWithPadding;
-    int fullReferenceWithPaddingLength;
+    int fullReferenceWithPaddingLength{};
     std::shared_ptr<SimpleInterval> paddedReferenceLoc;
-    bool variationPresent;
+    bool variationPresent{};
     std::shared_ptr<Haplotype>  refHaplotype;
     bool wasTrimmed = false;
     int lastMaxMnpDistanceUsed = -1;
@@ -85,17 +85,19 @@ public:
     std::shared_ptr<std::vector<std::shared_ptr<Haplotype>>> getHaplotypeList();
     bool isisVariationPresent();
 
-    /**
-     * Trims an assembly result set down based on a new set of trimmed haplotypes.
-     *
-     * @param trimmedAssemblyRegion the trimmed down active region.
-     *
-     * @throws NullPointerException if any argument in {@code null} or
-     *      if there are {@code null} entries in {@code originalByTrimmedHaplotypes} for trimmed haplotype keys.
-     * @throws IllegalArgumentException if there is no reference haplotype amongst the trimmed ones.
-     *
-     * @return never {@code null}, a new trimmed assembly result set.
-     */
+	virtual ~AssemblyResultSet();
+
+	/**
+	 * Trims an assembly result set down based on a new set of trimmed haplotypes.
+	 *
+	 * @param trimmedAssemblyRegion the trimmed down active region.
+	 *
+	 * @throws NullPointerException if any argument in {@code null} or
+	 *      if there are {@code null} entries in {@code originalByTrimmedHaplotypes} for trimmed haplotype keys.
+	 * @throws IllegalArgumentException if there is no reference haplotype amongst the trimmed ones.
+	 *
+	 * @return never {@code null}, a new trimmed assembly result set.
+	 */
     std::shared_ptr<AssemblyResultSet> trimTo(const std::shared_ptr<AssemblyRegion> & trimmedAssemblyRegion);
 
     /**

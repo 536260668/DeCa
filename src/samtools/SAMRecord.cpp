@@ -612,7 +612,7 @@ mReferenceName(other.mReferenceName), mMateReferenceName(other.mMateReferenceNam
     else{
         mBaseQualities = nullptr;
     }
-    mCigar = std::shared_ptr<Cigar>(new Cigar(other.mCigar->getCigarElements()));
+    mCigar = std::make_shared<Cigar>(other.mCigar->getCigarElements());
 }
 
 std::shared_ptr<SimpleInterval> SAMRecord::getLoc() {

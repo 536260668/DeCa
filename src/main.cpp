@@ -7,7 +7,6 @@
 #include <cstring>
 #include <vector>
 #include <queue>
-#include <cassert>
 #include "getopt.h"
 #include "unistd.h"
 #include "htslib/sam.h"
@@ -100,23 +99,23 @@ int main(int argc, char *argv[])
 
     static struct option loptions[] =
             {
-            {"input",       required_argument, NULL, 'I'},
-            {"output",      required_argument, NULL, 'O'},
-            {"reference",   required_argument, NULL, 'R'},
-            {"callable-depth", required_argument, NULL, 1000},
-            {"max-prob-propagation-distance", required_argument, NULL, 1001},
-            {"active-probability-threshold", required_argument, NULL, 1002},
-            {"assembly-region-padding", required_argument, NULL, 1003},
-            {"max-assembly-region-size", required_argument, NULL, 1004},
-            {"min-assembly-region-size", required_argument, NULL, 1005},
-            {"normal", required_argument, NULL, 1006},
-            { NULL, 0, NULL, 0 }
+            {"input",       required_argument, nullptr, 'I'},
+            {"output",      required_argument, nullptr, 'O'},
+            {"reference",   required_argument, nullptr, 'R'},
+            {"callable-depth", required_argument, nullptr, 1000},
+            {"max-prob-propagation-distance", required_argument, nullptr, 1001},
+            {"active-probability-threshold", required_argument, nullptr, 1002},
+            {"assembly-region-padding", required_argument, nullptr, 1003},
+            {"max-assembly-region-size", required_argument, nullptr, 1004},
+            {"min-assembly-region-size", required_argument, nullptr, 1005},
+            {"normal", required_argument, nullptr, 1006},
+            { nullptr, 0, nullptr, 0 }
             };
 
     if (argc == 1 && isatty(STDIN_FILENO))
         return usage();
 
-    while((c = getopt_long(argc, argv, "I:O:R:r:", loptions, NULL)) >= 0){
+    while((c = getopt_long(argc, argv, "I:O:R:r:", loptions, nullptr)) >= 0){
         switch (c) {
             case 'I':
                 input_bam.emplace_back(strdup(optarg));

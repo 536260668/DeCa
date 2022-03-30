@@ -460,6 +460,7 @@ public:
         std::unordered_set<std::shared_ptr<E>> * edges = edgesof(v);
         for(const std::shared_ptr<E> & edge : *edges) {
             if(edge->getIsRef()) {
+	            delete edges;
                 return true;
             }
         }

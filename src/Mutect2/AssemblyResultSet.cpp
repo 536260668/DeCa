@@ -148,7 +148,7 @@ AssemblyResultSet::trimDownHaplotypes(const std::shared_ptr<AssemblyRegion> &tri
         std::shared_ptr<Haplotype> trimmed = h->trim(trimmedAssemblyRegion->getExtendedSpan());
 
         if(trimmed != nullptr) {
-            std::unordered_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype>::iterator iter = originalByTrimmedHaplotypes->find(trimmed);
+            auto iter = originalByTrimmedHaplotypes->find(trimmed);
             if(iter != originalByTrimmedHaplotypes->end()) {
                 if(trimmed->getIsReference()) {
                     originalByTrimmedHaplotypes->erase(iter);
@@ -217,4 +217,12 @@ bool AssemblyResultSet::isisVariationPresent() {
 
 std::shared_ptr<AssemblyRegion> AssemblyResultSet::getRegionForGenotyping() {
     return regionForGenotyping;
+}
+
+AssemblyResultSet::~AssemblyResultSet() {
+	assemblyResultByHaplotype.clear();
+	haplotypes.clear();
+	assemblyResultByHaplotype.clear();
+	kmerSizes.clear();
+	variationEvents.clear();
 }

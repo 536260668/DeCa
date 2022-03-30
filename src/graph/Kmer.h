@@ -44,21 +44,21 @@ public:
     Kmer subKmer(int newStart, int newLength);
 
     //delete
-    std::shared_ptr<uint8_t[]> getBases() const;
+    [[nodiscard]] std::shared_ptr<uint8_t[]> getBases() const;
 
     /**
      * The length of this kmer
      * @return an integer >= 0
      */
-    int getLength() const {return length;}
+    [[nodiscard]] int getLength() const {return length;}
 
-    int getDifferingPositions(Kmer other, int maxDistance, std::shared_ptr<int> differingIndeces, std::shared_ptr<uint8_t[]> differingBases);
+    int getDifferingPositions(const Kmer& other, int maxDistance, const std::shared_ptr<int>& differingIndeces, const std::shared_ptr<uint8_t[]>& differingBases);
 
     bool operator<(const Kmer & other) const;
 
     bool operator==(const Kmer & other) const;
 
-    size_t getHash() const {return hash;};
+    [[nodiscard]] size_t getHash() const {return hash;};
 
 };
 

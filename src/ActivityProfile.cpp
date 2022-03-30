@@ -4,7 +4,7 @@
 
 #include <limits>
 #include "ActivityProfile.h"
-#include "assert.h"
+#include <cassert>
 
 
 ActivityProfile::ActivityProfile(int maxProbPropagationDistance, double activeProbThreshold, SAMFileHeader * header):
@@ -46,7 +46,7 @@ void ActivityProfile::add(const std::shared_ptr<ActivityProfileState> & state)
 
 vector<std::shared_ptr<ActivityProfileState>> * ActivityProfile::processState(const std::shared_ptr<ActivityProfileState> & justAddedState)
 {
-
+	return nullptr;
 }
 
 optional<SimpleInterval> ActivityProfile::getLocForOffset(const SimpleInterval& relativeLoc, int offset)

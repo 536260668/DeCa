@@ -59,6 +59,7 @@ std::shared_ptr<Cigar> CigarUtils::calculateCigar(const std::shared_ptr<uint8_t[
         nonStandard->add(CigarElement(refLength = nonStandard->getReferenceLength(), D));
     }
 
+	delete alignment;
     return leftAlignCigarSequentially(nonStandard, refSeq, refLength, altSeq, altLength, 0, 0);
 }
 

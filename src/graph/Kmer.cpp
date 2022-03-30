@@ -4,7 +4,6 @@
 
 #include "Kmer.h"
 #include "Mutect2Utils.h"
-#include <iostream>
 #include <cstring>
 #include <utility>
 
@@ -51,7 +50,7 @@ std::shared_ptr<uint8_t[]> Kmer::getBases() const {
     return res;
 }
 
-int Kmer::getDifferingPositions(Kmer other, int maxDistance, std::shared_ptr<int> differingIndeces, std::shared_ptr<uint8_t[]> differingBases) {
+int Kmer::getDifferingPositions(const Kmer& other, int maxDistance, const std::shared_ptr<int>& differingIndeces, const std::shared_ptr<uint8_t[]>& differingBases) {
     Mutect2Utils::validateArg(differingIndeces != nullptr, "Null object is not allowed here.");
     Mutect2Utils::validateArg(differingBases != nullptr, "Null object is not allowed here.");
     Mutect2Utils::validateArg(maxDistance > 0, "maxDistance must be positive");

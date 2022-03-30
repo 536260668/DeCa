@@ -10,6 +10,7 @@
 #include "MultiSampleEdge.h"
 #include <unordered_map>
 #include <string>
+#include <utility>
 #include <vector>
 #include <deque>
 #include <list>
@@ -54,9 +55,9 @@ private:
 
     const uint8_t minBaseQualityToUseInAssembly;
 
-    bool debugGraphTransformations;
+    bool debugGraphTransformations{};
 
-    bool startThreadingOnlyAtExistingVertex;
+    bool startThreadingOnlyAtExistingVertex{};
 
     bool increaseCountsThroughBranches = false;
 
@@ -77,7 +78,7 @@ private:
      */
     bool baseIsUsableForAssembly(uint8_t base, uint8_t qual) const;
 
-    bool alreadyBuilt;
+    bool alreadyBuilt{};
 
     std::map<std::string, std::vector<SequenceForKmers>> pending;
 
@@ -153,11 +154,11 @@ private:
 
     std::deque<std::shared_ptr<MultiDeBruijnVertex>> findPathUpwardsToLowestCommonAncestor(std::shared_ptr<MultiDeBruijnVertex> vertex, int pruneFactor, bool giveUpAtBranch);
 
-    bool hasIncidentRefEdge(std::shared_ptr<MultiDeBruijnVertex> v);
+    bool hasIncidentRefEdge(const std::shared_ptr<MultiDeBruijnVertex>& v);
 
-    std::shared_ptr<MultiSampleEdge> getHeaviestIncomingEdge(std::shared_ptr<MultiDeBruijnVertex> v);
+    std::shared_ptr<MultiSampleEdge> getHeaviestIncomingEdge(const std::shared_ptr<MultiDeBruijnVertex>& v);
 
-    std::shared_ptr<MultiSampleEdge> getHeaviestOutgoingEdge(std::shared_ptr<MultiDeBruijnVertex> v);
+    std::shared_ptr<MultiSampleEdge> getHeaviestOutgoingEdge(const std::shared_ptr<MultiDeBruijnVertex>& v);
 
     std::vector<std::shared_ptr<MultiDeBruijnVertex>> getReferencePath(std::shared_ptr<MultiDeBruijnVertex> start, TraversalDirection direction, const std::shared_ptr<MultiSampleEdge>& blacklistedEdge);
 
@@ -175,7 +176,7 @@ private:
 
     std::deque<std::shared_ptr<MultiDeBruijnVertex>> findPathDownwardsToHighestCommonDescendantOfReference(std::shared_ptr<MultiDeBruijnVertex> vertex, int pruneFactor, bool giveUpAtBranch);
 
-    int bestPrefixMatch(const std::shared_ptr<uint8_t[]>& path1, const std::shared_ptr<uint8_t[]> path2, int maxIndex);
+    int bestPrefixMatch(const std::shared_ptr<uint8_t[]>& path1, const std::shared_ptr<uint8_t[]>& path2, int maxIndex);
 
     int getMaxMismatches(int lengthOfDanglingBranch) const;
 
@@ -184,8 +185,8 @@ private:
     void resetToInitialState();
 
 public:
-    ReadThreadingGraph(uint8_t minBaseQualityToUseInAssembly, int kmerSize, bool alreadyBuilt, const std::shared_ptr<Kmer>& ref, int numPruningSamples) : minBaseQualityToUseInAssembly(minBaseQualityToUseInAssembly), kmerSize(kmerSize), alreadyBuilt(
-            false), refSource(ref), numPruningSamples(numPruningSamples), nonUniqueKmers(){}
+    ReadThreadingGraph(uint8_t minBaseQualityToUseInAssembly, int kmerSize, bool alreadyBuilt, std::shared_ptr<Kmer>  ref, int numPruningSamples) : minBaseQualityToUseInAssembly(minBaseQualityToUseInAssembly), kmerSize(kmerSize), alreadyBuilt(
+            false), refSource(std::move(ref)), numPruningSamples(numPruningSamples), nonUniqueKmers(){}
 
     ReadThreadingGraph(int kmerSize, bool debugGraphTransformations, uint8_t minBaseQualityToUseInAssembly, int numPruningSamples);
 
@@ -242,7 +243,7 @@ public:
      */
     int mergeDanglingTail(DanglingChainMergeHelper* danglingTailMergeResult);
 
-    static int longestSuffixMatch(std::shared_ptr<uint8_t[]> seq, int seqLength, std::shared_ptr<uint8_t[]> kmer, int kmerLength, int seqStart);
+    static int longestSuffixMatch(const std::shared_ptr<uint8_t[]>& seq, int seqLength, const std::shared_ptr<uint8_t[]>& kmer, int kmerLength, int seqStart);
 
     int mergeDanglingHead(DanglingChainMergeHelper* danglingTailMergeResult);
 
@@ -250,9 +251,9 @@ public:
 
     std::shared_ptr<SeqGraph> toSequenceGraph();
 
-    void addSequence(std::string seqName, std::shared_ptr<uint8_t[]> sequence, int length, int count, bool isRef);
+    void addSequence(std::string seqName, const std::shared_ptr<uint8_t[]>& sequence, int length, int count, bool isRef);
 
-    void addSequence(std::string seqName, std::shared_ptr<uint8_t[]> sequence, int length, bool isRef);
+    void addSequence(std::string seqName, const std::shared_ptr<uint8_t[]>& sequence, int length, bool isRef);
 
     bool isLowComplexity();
 

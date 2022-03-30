@@ -3,12 +3,11 @@
  */
 #include <iostream>
 #include "ReferenceCache.h"
-#include "assert.h"
 
 
 ReferenceCache::ReferenceCache(char * refName, SAMFileHeader* header) : tid(0), header(header)
 {
-    fai = fai_load3_format(refName, NULL, NULL, FAI_CREATE, FAI_FASTA);
+    fai = fai_load3_format(refName, nullptr, nullptr, FAI_CREATE, FAI_FASTA);
     start = 0;
     end = std::min(999999, header->getSequenceDictionary().getSequences()[tid].getSequenceLength());
     std::string region = header->getSequenceDictionary().getSequences()[tid].getSequenceName() + ':' + std::to_string(start + 1) + '-' + std::to_string(end + 1);
@@ -72,7 +71,7 @@ std::shared_ptr<uint8_t[]> ReferenceCache::getSubsequenceAt(int tid, int start, 
     else {
         std::string region = header->getSequenceDictionary().getSequences()[tid].getSequenceName() + ':' + std::to_string(start+1) + '-' + std::to_string(stop+1);
         hts_pos_t seq_len;
-        uint8_t * ret = reinterpret_cast<uint8_t*>(fai_fetch64(fai, region.c_str(), &seq_len));
+        auto * ret = reinterpret_cast<uint8_t*>(fai_fetch64(fai, region.c_str(), &seq_len));
         std::shared_ptr<uint8_t[]> toRet(new uint8_t[seq_len]);
         std::copy(ret, ret + seq_len, toRet.get());
         length = seq_len;
