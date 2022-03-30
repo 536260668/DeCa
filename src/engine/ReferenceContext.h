@@ -10,11 +10,11 @@
 
 class ReferenceContext {
 private:
-    char* dataSource;
+    char refBase;
     std::shared_ptr<SimpleInterval> interval;
 
 public:
-    ReferenceContext(char* dataSource, std::shared_ptr<SimpleInterval>  interval);
+    ReferenceContext(std::shared_ptr<SimpleInterval>  interval, char refBase);
     uint8_t getBase();
     const std::shared_ptr<SimpleInterval> & getInterval();
 };

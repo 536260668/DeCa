@@ -196,11 +196,10 @@ int main(int argc, char *argv[])
         int len = ref_len < REGION_SIZE ? ref_len : REGION_SIZE;
         std::string region = std::string(sam_hdr_tid2name(data[0]->hdr, k)) + ":0-" + to_string(len);
         std::string contig = std::string(sam_hdr_tid2name(data[0]->hdr, k));
-        char* refBases = faidx_fetch_seq(refPoint, contig.c_str(), 0, ref_len, &len);
-        std::shared_ptr<ReferenceCache>  refCache = std::make_shared<ReferenceCache>(ref, data[0]->header);
+        std::shared_ptr<ReferenceCache>  refCache = std::make_shared<ReferenceCache>(ref, data[0]->header, k);
         ReadCache cache(data, input_bam, k, region, refCache);
 
-        m2Engine.refCache.setTid(k);
+        m2Engine.setReferenceCache(refCache.get());
         while(cache.hasNextPos()) {
             AlignmentContext pileup = cache.getAlignmentContext();
             if(!activityProfile->isEmpty()){
@@ -218,9 +217,10 @@ int main(int argc, char *argv[])
                 continue;
             }
             std::shared_ptr<SimpleInterval> pileupInterval = std::make_shared<SimpleInterval>(contig, (int)pileup.getPosition(), (int)pileup.getPosition());
-            ReferenceContext pileupRefContext(refBases, pileupInterval);
+            char refBase = refCache->getBase(pileup.getPosition());
+            ReferenceContext pileupRefContext(pileupInterval, refBase);
 
-            std::shared_ptr<ActivityProfileState> profile = m2Engine.isActive(pileup, pileupRefContext);
+            std::shared_ptr<ActivityProfileState> profile = m2Engine.isActive(pileup);
             activityProfile->add(profile);
 
             if(!pendingRegions.empty() && IntervalUtils::isAfter(pileup.getLocation(), *pendingRegions.front()->getExtendedSpan(), header->getSequenceDictionary())) {
@@ -235,7 +235,7 @@ int main(int argc, char *argv[])
                 pendingRegions.pop();
 
                 Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
-                std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext);
+                //std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext);
                 //if(variant.size() != 0)
                   //  std::cout << variant.size();
             }
@@ -244,7 +244,6 @@ int main(int argc, char *argv[])
 
             // gather AlignmentContext to AssemblyRegion
 
-        free(refBases);
         activityProfile->clear();
         break;
     }

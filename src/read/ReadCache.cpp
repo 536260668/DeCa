@@ -7,7 +7,7 @@
 #include "iostream"
 #include "ReadUtils.h"
 
-
+// unused constructor
 ReadCache::ReadCache(aux_t **data, std::vector<char*> & bam_name, std::shared_ptr<ReferenceCache> & cache) : data(data), tid(0), bam_name(bam_name),
                                                                     readTransformer(cache, data[0]->header, 5){
     bam1_t * b;
@@ -90,6 +90,7 @@ ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, const
     unsigned j = region.find_last_of('-') + 1;
     start = std::stoi(region.substr(i, j-i));
     end = std::stoi(region.substr(j, region.size() - j));
+    chr_len = sam_hdr_tid2len(data[0]->hdr, tid);
     chr_name = std::string(sam_hdr_tid2name(data[0]->hdr, tid));
 
     // set currentPose to the first position of reads
@@ -117,7 +118,7 @@ ReadCache::~ReadCache() {
 
 int ReadCache::getNextPos() {
     int nextPose = currentPose + 1;
-    if(nextPose > data[0]->header->getSequenceDictionary().getSequences()[tid].getSequenceLength()) {
+    if(nextPose > chr_len) {
         throw std::invalid_argument("please check first");
     }
     while(nextPose > end) {
@@ -129,7 +130,7 @@ int ReadCache::getNextPos() {
 
 bool ReadCache::hasNextPos() {
     int nextPose = currentPose + 1;
-    return nextPose <= data[0]->header->getSequenceDictionary().getSequences()[tid].getSequenceLength();
+    return nextPose <= chr_len;
 }
 
 void ReadCache::advanceLoad() {

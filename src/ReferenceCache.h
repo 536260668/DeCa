@@ -20,7 +20,7 @@ private:
     faidx_t * fai;
 
 public:
-    ReferenceCache(char * refName, SAMFileHeader* header);
+    ReferenceCache(char * refName, SAMFileHeader* header, int tid);
 
     ~ReferenceCache();
 

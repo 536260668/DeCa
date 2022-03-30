@@ -45,6 +45,7 @@ private:
     int tid;
     int start;
     int end;
+    int chr_len;    // the total length of current chromosome
     std::string chr_name;   // the name of current chromosome
     std::vector<hts_idx_t *> hts_idxes;
     int currentPose;
