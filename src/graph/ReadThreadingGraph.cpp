@@ -223,12 +223,11 @@ void ReadThreadingGraph::threadSequence(SequenceForKmers &sequenceForKmers) {
 	if (uniqueStartPos == -1)
 		return;
 
-	std::shared_ptr<MultiDeBruijnVertex> startingVertex = getOrCreateKmerVertex(sequenceForKmers.sequence,
-	                                                                            uniqueStartPos);
+	std::shared_ptr<MultiDeBruijnVertex> vertex = getOrCreateKmerVertex(sequenceForKmers.sequence,
+	                                                                    uniqueStartPos);
 
-	if (INCREASE_COUNTS_BACKWARDS) {
-		increaseCountsInMatchedKmers(sequenceForKmers, startingVertex, startingVertex->getSequence(), kmerSize - 2);
-	}
+	if (INCREASE_COUNTS_BACKWARDS)
+		increaseCountsInMatchedKmers(sequenceForKmers.count, vertex, vertex->getSequence(), kmerSize - 2);
 
 	if (sequenceForKmers.isRef) {
 		if (refSource->getBases() != nullptr)
@@ -237,7 +236,6 @@ void ReadThreadingGraph::threadSequence(SequenceForKmers &sequenceForKmers) {
 		refSource = std::make_shared<Kmer>(sequenceForKmers.sequence, sequenceForKmers.start, kmerSize);
 	}
 
-	std::shared_ptr<MultiDeBruijnVertex> vertex = startingVertex;
 	for (int i = uniqueStartPos + 1; i <= sequenceForKmers.stop - kmerSize; i++) {
 		vertex = extendChainByOne(vertex, sequenceForKmers.sequence, i, sequenceForKmers.count, sequenceForKmers.isRef);
 	}
@@ -272,23 +270,28 @@ ReadThreadingGraph::getOrCreateKmerVertex(const std::shared_ptr<uint8_t[]> &sequ
 	return res == nullptr ? createVertex(kmer) : res;
 }
 
-void ReadThreadingGraph::increaseCountsInMatchedKmers(SequenceForKmers &seqForKmers,
-                                                      const std::shared_ptr<MultiDeBruijnVertex> &vertex,
+void ReadThreadingGraph::increaseCountsInMatchedKmers(int incr, const std::shared_ptr<MultiDeBruijnVertex> &vertex,
                                                       const std::shared_ptr<uint8_t[]> &originalKmer, int offset) {
-	if (offset == -1)
-		return;
+	//if (offset == -1)
+	//	return;
 
 //    if(vertex->getHashCode() == 884547439)
 //        std::cout << "hello";
 
-	std::unordered_set<std::shared_ptr<MultiSampleEdge>> incomingEdges = incomingEdgesOf(vertex);
-	for (const auto &incomingEdge: incomingEdges) {
-		std::shared_ptr<MultiDeBruijnVertex> prev = getEdgeSource(incomingEdge);
-		uint8_t suffix = prev->getSuffix();
-		uint8_t seqBase = originalKmer.get()[offset];
-		if (suffix == seqBase && (increaseCountsThroughBranches || inDegreeOf(vertex) == 1)) {
-			incomingEdge->incMultiplicity(seqForKmers.count);
-			increaseCountsInMatchedKmers(seqForKmers, prev, originalKmer, offset - 1);
+	std::queue<std::pair<std::shared_ptr<MultiDeBruijnVertex>, int>> q;
+	q.push(std::make_pair(vertex, offset));
+
+	while (!q.empty()) {
+		std::shared_ptr<MultiDeBruijnVertex> v = q.front().first;
+		int o = q.front().second;
+		q.pop();
+		for (const auto &incomingEdge: incomingEdgesOf(v)) {
+			std::shared_ptr<MultiDeBruijnVertex> prev = getEdgeSource(incomingEdge);
+			if (prev->getSuffix() == originalKmer.get()[o] && (inDegreeOf(v) == 1 || increaseCountsThroughBranches)) {
+				incomingEdge->incMultiplicity(incr);
+				if (o - 1 >= 0)
+					q.push(std::make_pair(prev, o - 1));
+			}
 		}
 	}
 }
@@ -309,20 +312,20 @@ void ReadThreadingGraph::buildGraphIfNecessary() {
 //    }
 
 	determineNonUniques();
-	if (!nonUniqueKmers.empty()) {
-		std::cout << "[buildGraphIfNecessary] " << nonUniqueKmers.size() << std::endl;
+	//if (!nonUniqueKmers.empty()) {
+		//std::cout << "[buildGraphIfNecessary] " << nonUniqueKmers.size() << std::endl;
 		/*for(const auto& nonnnnn : nonUniqueKmers){
 			std::string s = reinterpret_cast<const char *>(nonnnnn->getBases().get());
 			std::cout<<s.substr(0,nonnnnn->getLength())<<std::endl;
 		}*/
-	}
+	//}
 
 	for (auto &miter: pending) {
 		for (auto &viter: miter.second) {
 			threadSequence(viter);
 		}
 		for (auto &eiter: edgeMap) {
-			(*eiter.first).flushSingleSampleMultiplicity();
+			eiter.first->flushSingleSampleMultiplicity();
 		}
 	}
 

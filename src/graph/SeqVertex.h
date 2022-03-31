@@ -9,23 +9,25 @@
 
 #include "BaseVertex.h"
 
-class SeqVertex : public BaseVertex{
+class SeqVertex : public BaseVertex {
 public:
-    /**
-     * Create a new SeqVertex with sequence and the next available id
-     * @param sequence our base sequence
-     */
-    SeqVertex(std::shared_ptr<uint8_t[]> sequence, int length) : BaseVertex(std::move(sequence), length) {}
+	/**
+	 * Create a new SeqVertex with sequence and the next available id
+	 * @param sequence our base sequence
+	 */
+	SeqVertex(const std::shared_ptr<uint8_t[]> &sequence, int length) : BaseVertex(sequence, length) {}
 
-    int getId() {return hashCode();}
+	[[nodiscard]] int getId() const { return (int) hashCode(); }
 
-    long hashCode() const;
+	[[nodiscard]] long hashCode() const;
 
-    bool operator<(const SeqVertex & other) const;
+	bool operator<(const SeqVertex &other) const;
 
-    std::shared_ptr<SeqVertex> withoutSuffix(const std::shared_ptr<uint8_t[]>& suffix, int length);
+	std::shared_ptr<SeqVertex> withoutSuffix(const std::shared_ptr<uint8_t[]> &suffix, int length);
 
-    std::shared_ptr<SeqVertex> withoutPrefixAndSuffix(const std::shared_ptr<uint8_t[]>& prefix, int preLength, std::shared_ptr<uint8_t[]> suffix, int sufLength);
+	std::shared_ptr<SeqVertex>
+	withoutPrefixAndSuffix(const std::shared_ptr<uint8_t[]> &prefix, int preLength, const std::shared_ptr<uint8_t[]>& suffix,
+	                       int sufLength);
 };
 
 

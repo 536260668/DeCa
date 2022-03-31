@@ -5,84 +5,84 @@
 #include "BaseVertex.h"
 #include "Mutect2Utils.h"
 
-int BaseVertex::hashCode(const std::shared_ptr<uint8_t[]> & a, int length) {
-    if(a == nullptr)
-        return 0;
-    int result = 1;
-    for(int i = 0; i < length; i++) {
-        result = 31 * result + a.get()[i];
-    }
+xxh::hash64_t BaseVertex::hashCode(const std::shared_ptr<uint8_t[]> &a, int length) {
+	if (a == nullptr)
+		return 0;
+	return xxh::xxhash3<64>(a.get(), length);
+	/*int result = 1;
+	for(int i = 0; i < length; i++) {
+		result = 31 * result + a.get()[i];
+	}
 
-    return result;
+	return result;*/
 }
 
-BaseVertex::BaseVertex(std::shared_ptr<uint8_t[]> const& sequence, const int length) : sequence(sequence), length(length){
-    Mutect2Utils::validateArg(sequence != nullptr ||  length == 0, "Sequence cannot be null");
-    cashedHashCode = hashCode(sequence, length);
+BaseVertex::BaseVertex(std::shared_ptr<uint8_t[]> const &sequence, const int length) : sequence(sequence),
+                                                                                       length(length) {
+	Mutect2Utils::validateArg(sequence != nullptr || length == 0, "Sequence cannot be null");
+	cashedHashCode = hashCode(sequence, length);
 }
 
 bool BaseVertex::isEmpty() const {
-    return length == 0;
+	return length == 0;
 }
 
 bool BaseVertex::operator==(const BaseVertex &other) const {
-    if(other.cashedHashCode != cashedHashCode || other.length != length)
-        return false;
-    for(int i = 0; i < length; i++)
-        if(sequence.get()[i] != other.sequence.get()[i])
-            return false;
-    return true;
+	if (other.cashedHashCode != cashedHashCode || other.length != length)
+		return false;
+	for (int i = 0; i < length; i++)
+		if (sequence.get()[i] != other.sequence.get()[i])
+			return false;
+	return true;
 }
 
 bool BaseVertex::operator<(const BaseVertex &other) const {
-    if(length > other.length)
-        return false;
-    if(length == other.length || cashedHashCode > other.cashedHashCode)
-        return false;
-    for(int i = 0; i < length; i++)
-        if(sequence.get()[i] > other.sequence.get()[i])
-            return false;
-    return true;
+	if (length >= other.length)
+		return false;
+	for (int i = 0; i < length; i++)
+		if (sequence.get()[i] > other.sequence.get()[i])
+			return false;
+	return true;
 }
 
-std::ostream & operator<<(std::ostream &os, const BaseVertex &baseVertex) {
-    os << "baseVertex : ";
-    for(int i = 0; i < baseVertex.length; i++)
-        os << baseVertex.sequence.get()[i];
-    os << '.' << std::endl;
-    return os;
+std::ostream &operator<<(std::ostream &os, const BaseVertex &baseVertex) {
+	os << "baseVertex : ";
+	for (int i = 0; i < baseVertex.length; i++)
+		os << baseVertex.sequence.get()[i];
+	os << '.' << std::endl;
+	return os;
 }
 
 void BaseVertex::setAdditionalInfo(const std::string &info) {
-    additionalInfo = info;
+	additionalInfo = info;
 }
 
 bool BaseVertex::hasAmbiguousSequence() {
-    for(int i = 0; i < length; i++) {
-        uint8_t tmp = sequence.get()[i];
-        if(tmp > 60)
-            tmp -= 32;
-        switch (tmp) {
-            case 'A':
-            case 'T':
-            case 'G':
-            case 'C':
-                continue;
-            default:
-                return true;
-        }
-    }
-    return false;
+	for (int i = 0; i < length; i++) {
+		uint8_t tmp = sequence.get()[i];
+		if (tmp > 60)
+			tmp -= 32;
+		switch (tmp) {
+			case 'A':
+			case 'T':
+			case 'G':
+			case 'C':
+				continue;
+			default:
+				return true;
+		}
+	}
+	return false;
 }
 
-bool BaseVertex::seqEquals(std::shared_ptr<BaseVertex> other) {
-    if(length != other->getLength())
-        return false;
+bool BaseVertex::seqEquals(const std::shared_ptr<BaseVertex> &other) {
+	if (length != other->getLength() || cashedHashCode!=other->getHashCode())
+		return false;
 
-    std::shared_ptr<uint8_t[]> otherSeq = other->getSequence();
-    for(int i = 0; i < length; i++){
-        if(otherSeq.get()[i] != sequence.get()[i])
-            return false;
-    }
-    return true;
+	std::shared_ptr<uint8_t[]> otherSeq = other->getSequence();
+	for (int i = 0; i < length; i++) {
+		if (otherSeq.get()[i] != sequence.get()[i])
+			return false;
+	}
+	return true;
 }

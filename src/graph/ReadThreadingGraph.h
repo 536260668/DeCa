@@ -147,7 +147,7 @@ private:
 
 	std::shared_ptr<MultiDeBruijnVertex> getOrCreateKmerVertex(const std::shared_ptr<uint8_t[]> &sequence, int start);
 
-	void increaseCountsInMatchedKmers(SequenceForKmers &seqForKmers, const std::shared_ptr<MultiDeBruijnVertex> &vertex,
+	void increaseCountsInMatchedKmers(int incr, const std::shared_ptr<MultiDeBruijnVertex> &vertex,
 	                                  const std::shared_ptr<uint8_t[]> &originalKmer, int offset);
 
 	/**
@@ -210,9 +210,6 @@ public:
 
 	ReadThreadingGraph(int kmerSize, bool debugGraphTransformations, uint8_t minBaseQualityToUseInAssembly,
 	                   int numPruningSamples);
-
-	static std::vector<std::shared_ptr<Kmer>> *
-	determineNonUniqueKmers(const SequenceForKmers &sequenceForKmers, int kmerSize);
 
 	/**
 	 * Build the read threaded assembly graph if it hasn't already been constructed from the sequences that have

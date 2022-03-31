@@ -15,7 +15,7 @@
 
 std::shared_ptr<AssemblyResult>
 ReadThreadingAssembler::getAssemblyResult(std::shared_ptr<Haplotype> &refHaplotype, int kmerSize,
-                                          const std::shared_ptr<ReadThreadingGraph> &rtgraph) {
+                                          const std::shared_ptr<ReadThreadingGraph> &rtgraph) const {
 	//std::cout << rtgraph->getVertexSet().size() << rtgraph->getEdgeSet().size() << std::endl;
 	if (recoverDanglingBranches) {
 		rtgraph->recoverDanglingTails(pruneFactor, minDanglingBranchLength, recoverAllDanglingBranches);
@@ -278,7 +278,7 @@ ReadThreadingAssembler::createGraph(const std::vector<std::shared_ptr<SAMRecord>
 	}
 
 	rtgraph->buildGraphIfNecessary();
-	std::cout << "1: " << rtgraph->getEdgeSet().size() << " " << rtgraph->getVertexSet().size() << std::endl;
+	//std::cout << "1: " << rtgraph->getEdgeSet().size() << " " << rtgraph->getVertexSet().size() << std::endl;
 	/*std::ofstream outfile1("./graph1.dot");
 	outfile1 << "digraph G{" << std::endl;
 	for (auto &edge: rtgraph->edgeMap) {
@@ -294,7 +294,7 @@ ReadThreadingAssembler::createGraph(const std::vector<std::shared_ptr<SAMRecord>
 	outfile1.close();*/
 
 	chainPruner->pruneLowWeightChains(rtgraph);
-	std::cout << "2: " << rtgraph->getEdgeSet().size() << " " << rtgraph->getVertexSet().size() << std::endl;
+	//std::cout << "2: " << rtgraph->getEdgeSet().size() << " " << rtgraph->getVertexSet().size() << std::endl;
 	/*std::ofstream outfile2("./graph2.dot");
 		outfile2 << "digraph G{" << std::endl;
 		for (auto &edge: rtgraph->edgeMap) {
@@ -315,15 +315,15 @@ ReadThreadingAssembler::createGraph(const std::vector<std::shared_ptr<SAMRecord>
 	//    outfile.close();
 
 	if (rtgraph->hasCycles()) {
-		std::cout << kmerSize << " failed because hasCycles" << std::endl;
+		//std::cout << kmerSize << " failed because hasCycles" << std::endl;
 		return nullptr;
 	}
 
 	if (!allowLowComplexityGraphs && rtgraph->isLowComplexity()) {
-		std::cout << kmerSize << " failed because isLowComplexity" << std::endl;
+		//std::cout << kmerSize << " failed because isLowComplexity" << std::endl;
 		return nullptr;
 	}
-	std::cout << kmerSize << std::endl;
+	//std::cout << kmerSize << std::endl;
 	return getAssemblyResult(refHaplotype, kmerSize, rtgraph);
 }
 

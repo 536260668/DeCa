@@ -81,10 +81,6 @@ bool Kmer::operator<(const Kmer &other) const {
 		return false;
 	if (this->length < other.length)
 		return true;
-	if (this->hash > other.hash)
-		return false;
-	if (this->hash < other.hash)
-		return true;
 	uint8_t *bases_ = bases.get();
 	uint8_t *other_ = other.bases.get();
 	for (int i = 0; i < length; i++)
