@@ -96,7 +96,7 @@ private:
 	 * Get the collection of all sequences for kmers across all samples in no particular order
 	 * @return non-null Collection
 	 */
-	std::list<SequenceForKmers> getAllPendingSequences();
+	//std::list<SequenceForKmers> getAllPendingSequences();
 
 	/**
 	 * Compute the smallest kmer size >= minKmerSize and <= maxKmerSize that has no non-unique kmers
@@ -283,6 +283,8 @@ public:
 	bool hasCycles();
 
 	void determineNonUniques();
+
+	void reserveSpace(int size);
 };
 
 

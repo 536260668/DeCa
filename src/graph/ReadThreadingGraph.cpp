@@ -65,46 +65,52 @@ void ReadThreadingGraph::addSequence(std::string seqName, std::string &sampleNam
 	iter->second.push_back(SequenceForKmers{std::move(seqName), sequence, start, stop, count, isRef});
 }
 
+void ReadThreadingGraph::reserveSpace(int size) {
+	DirectedSpecifics::reserveSpace(size);
+	uniqueKmers.reserve(size);
+}
+
 //find kmers repeated in the same sequence
 void ReadThreadingGraph::determineNonUniques() {
 	nonUniqueKmers.clear();
-	std::list<SequenceForKmers> withNonUniques = getAllPendingSequences();
 	std::vector<std::pair<std::shared_ptr<uint8_t[]>, int>> nonUniqueKmersPair;
 
 	if (kmerSize <= 30) {  //when kmerSize_ <= 30, use Bit Operation (long long)
 		std::unordered_set<long long> nonUniquesFromSeqSet;
 		std::unordered_set<long long> seqAllKmers;
 
-		for (auto &withNonUnique: withNonUniques) {
-			int len = withNonUnique.stop - withNonUnique.start;
-			seqAllKmers.clear();
-			seqAllKmers.reserve(len - kmerSize + 1);
+		for (auto &iter: pending) {
+			for (auto &withNonUnique: iter.second) {
+				int len = withNonUnique.stop - withNonUnique.start;
+				seqAllKmers.clear();
+				seqAllKmers.reserve(len - kmerSize + 1);
 
-			//std::string str = reinterpret_cast<const char *>(withNonUnique.sequence.get());
-			//sequence[start, stop)
-			uint8_t *s = withNonUnique.sequence.get();
-			uint8_t charToU8[len];
-			for (int i = 0; i < len; ++i) {
-				uint8_t ch = s[withNonUnique.start + i];
-				if (ch == 'A') charToU8[i] = 0;
-				else if (ch == 'C') charToU8[i] = 1;
-				else if (ch == 'G') charToU8[i] = 2;
-				else if (ch == 'T') charToU8[i] = 3;
-				else throw std::invalid_argument("Found N in sequence when determining NonUniques!");
-			}
+				//std::string str = reinterpret_cast<const char *>(withNonUnique.sequence.get());
+				//sequence[start, stop)
+				uint8_t *s = withNonUnique.sequence.get();
+				uint8_t charToU8[len];
+				for (int i = 0; i < len; ++i) {
+					uint8_t ch = s[withNonUnique.start + i];
+					if (ch == 'A') charToU8[i] = 0;
+					else if (ch == 'C') charToU8[i] = 1;
+					else if (ch == 'G') charToU8[i] = 2;
+					else if (ch == 'T') charToU8[i] = 3;
+					else throw std::invalid_argument("Found N in sequence when determining NonUniques!");
+				}
 
-			long long val = 0L, mask = (1L << (kmerSize * 2)) - 1;
-			for (int i = 0; i < kmerSize - 1; ++i) val = (val << 2) | charToU8[i];
-			for (int i = kmerSize - 1; i < len; i++) {
-				val = ((val << 2) & mask) | charToU8[i];
-				//std::cout << val << std::endl;
-				if (!seqAllKmers.insert(val).second) {   // is nonUnique in the sequence
-					if (nonUniquesFromSeqSet.insert(val).second) {   //and first appearance
-						nonUniqueKmersPair.emplace_back(withNonUnique.sequence,
-						                                withNonUnique.start + i - kmerSize + 1);
-						//std::cout << withNonUnique.start << " " << withNonUnique.stop << " "
-						//          << str.substr(withNonUnique.start, len) << std::endl;
-						//std::cout << str.substr(withNonUnique.start + i - kmerSize_ + 1, kmerSize_) << std::endl;
+				long long val = 0L, mask = (1L << (kmerSize * 2)) - 1;
+				for (int i = 0; i < kmerSize - 1; ++i) val = (val << 2) | charToU8[i];
+				for (int i = kmerSize - 1; i < len; i++) {
+					val = ((val << 2) & mask) | charToU8[i];
+					//std::cout << val << std::endl;
+					if (!seqAllKmers.insert(val).second) {   // is nonUnique in the sequence
+						if (nonUniquesFromSeqSet.insert(val).second) {   //and first appearance
+							nonUniqueKmersPair.emplace_back(withNonUnique.sequence,
+							                                withNonUnique.start + i - kmerSize + 1);
+							//std::cout << withNonUnique.start << " " << withNonUnique.stop << " "
+							//          << str.substr(withNonUnique.start, len) << std::endl;
+							//std::cout << str.substr(withNonUnique.start + i - kmerSize_ + 1, kmerSize_) << std::endl;
+						}
 					}
 				}
 			}
@@ -113,39 +119,41 @@ void ReadThreadingGraph::determineNonUniques() {
 		std::unordered_set<boost::dynamic_bitset<>> nonUniquesFromSeqSet;
 		std::unordered_set<boost::dynamic_bitset<>> seqAllKmers;
 
-		for (auto &withNonUnique: withNonUniques) {
-			int len = withNonUnique.stop - withNonUnique.start;
-			seqAllKmers.clear();
-			seqAllKmers.reserve(len - kmerSize + 1);
+		for (auto &iter: pending) {
+			for (auto &withNonUnique: iter.second) {
+				int len = withNonUnique.stop - withNonUnique.start;
+				seqAllKmers.clear();
+				seqAllKmers.reserve(len - kmerSize + 1);
 
-			//std::string str = reinterpret_cast<const char *>(withNonUnique.sequence.get());
-			uint8_t *s = withNonUnique.sequence.get();
-			uint8_t charToBitH[len], charToBitL[len];
-			for (int i = 0; i < len; ++i) {
-				uint8_t ch = s[withNonUnique.start + i];
-				if (ch == 'A') charToBitH[i] = 0, charToBitL[i] = 0;
-				else if (ch == 'C') charToBitH[i] = 0, charToBitL[i] = 1;
-				else if (ch == 'G') charToBitH[i] = 1, charToBitL[i] = 0;
-				else if (ch == 'T') charToBitH[i] = 1, charToBitL[i] = 1;
-				else throw std::invalid_argument("Found N in sequence when determining NonUniques!");
-			}
+				//std::string str = reinterpret_cast<const char *>(withNonUnique.sequence.get());
+				uint8_t *s = withNonUnique.sequence.get();
+				uint8_t charToBitH[len], charToBitL[len];
+				for (int i = 0; i < len; ++i) {
+					uint8_t ch = s[withNonUnique.start + i];
+					if (ch == 'A') charToBitH[i] = 0, charToBitL[i] = 0;
+					else if (ch == 'C') charToBitH[i] = 0, charToBitL[i] = 1;
+					else if (ch == 'G') charToBitH[i] = 1, charToBitL[i] = 0;
+					else if (ch == 'T') charToBitH[i] = 1, charToBitL[i] = 1;
+					else throw std::invalid_argument("Found N in sequence when determining NonUniques!");
+				}
 
-			boost::dynamic_bitset<> bitSeq(2 * kmerSize);
-			for (int i = 0; i < kmerSize - 1; ++i) {
-				bitSeq <<= 2;
-				bitSeq[1] = charToBitH[i], bitSeq[0] = charToBitL[i];
-			}
-			for (int i = kmerSize - 1; i < len; i++) {
-				bitSeq <<= 2;
-				bitSeq[1] = charToBitH[i], bitSeq[0] = charToBitL[i];
-				//std::cout << bitSeq << std::endl;
-				if (!seqAllKmers.insert(bitSeq).second) {   // is nonUnique in the sequence
-					if (nonUniquesFromSeqSet.insert(bitSeq).second) {   //and first appearance
-						nonUniqueKmersPair.emplace_back(withNonUnique.sequence,
-						                                withNonUnique.start + i - kmerSize + 1);
-						//std::cout << withNonUnique.start << " " << withNonUnique.stop << " "
-						//          << str.substr(withNonUnique.start, len) << std::endl;
-						//std::cout << str.substr(withNonUnique.start + i - kmerSize_ + 1, kmerSize_) << std::endl;
+				boost::dynamic_bitset<> bitSeq(2 * kmerSize);
+				for (int i = 0; i < kmerSize - 1; ++i) {
+					bitSeq <<= 2;
+					bitSeq[1] = charToBitH[i], bitSeq[0] = charToBitL[i];
+				}
+				for (int i = kmerSize - 1; i < len; i++) {
+					bitSeq <<= 2;
+					bitSeq[1] = charToBitH[i], bitSeq[0] = charToBitL[i];
+					//std::cout << bitSeq << std::endl;
+					if (!seqAllKmers.insert(bitSeq).second) {   // is nonUnique in the sequence
+						if (nonUniquesFromSeqSet.insert(bitSeq).second) {   //and first appearance
+							nonUniqueKmersPair.emplace_back(withNonUnique.sequence,
+							                                withNonUnique.start + i - kmerSize + 1);
+							//std::cout << withNonUnique.start << " " << withNonUnique.stop << " "
+							//          << str.substr(withNonUnique.start, len) << std::endl;
+							//std::cout << str.substr(withNonUnique.start + i - kmerSize_ + 1, kmerSize_) << std::endl;
+						}
 					}
 				}
 			}
@@ -157,28 +165,23 @@ void ReadThreadingGraph::determineNonUniques() {
 	}
 }
 
-std::list<SequenceForKmers> ReadThreadingGraph::getAllPendingSequences() {
-	std::map<std::string, std::vector<SequenceForKmers>>::iterator iter;
-	std::list<SequenceForKmers> res;
-	for (iter = pending.begin(); iter != pending.end(); ++iter) {
-		std::vector<SequenceForKmers>::iterator viter;
-		for (viter = iter->second.begin(); viter != iter->second.end(); ++viter) {
-			res.push_back(*viter);
-		}
-	}
-	return res;
-}
-
-
 std::shared_ptr<MultiDeBruijnVertex> ReadThreadingGraph::createVertex(const std::shared_ptr<Kmer> &kmer) {
 	std::shared_ptr<MultiDeBruijnVertex> newVertex = std::make_shared<MultiDeBruijnVertex>(kmer->getBases(),
-	                                                                                       kmer->getLength(), false);
+	                                                                                       kmer->getLength(),
+	                                                                                       false);
+	/*std::string s = (char *) kmer->getBases().get();
+	s = s.substr(0, kmer->getLength());
+	if (s == std::string("CCACAGCTCC")) {
+		int i;
+		std::cout << kmer->getHash()<<std::endl;
+	}*/
+	//todo:why ?
 	unsigned prevSize = getVertexSet().size();
 	addVertex(newVertex);
 	if (getVertexSet().size() != prevSize + 1)
 		throw std::invalid_argument("Adding vertex to graph didn't increase the graph size");
 
-	if (nonUniqueKmers.find(kmer) == nonUniqueKmers.end() && uniqueKmers.find(kmer) == uniqueKmers.end())
+	if (nonUniqueKmers.find(kmer) == nonUniqueKmers.end())
 		uniqueKmers.insert({kmer, newVertex});
 
 	return newVertex;
@@ -188,34 +191,29 @@ std::shared_ptr<MultiDeBruijnVertex>
 ReadThreadingGraph::extendChainByOne(const std::shared_ptr<MultiDeBruijnVertex> &prevVertex,
                                      const std::shared_ptr<uint8_t[]> &sequence, const int kmerStart, const int count,
                                      const bool isRef) {
-	const std::unordered_set<std::shared_ptr<MultiSampleEdge>> &outgoingEdges = outgoingEdgesOf(prevVertex);
-	int nextPos = kmerStart + kmerSize - 1;
-	//std::unordered_set<std::shared_ptr<MultiSampleEdge>>::iterator iter;
-	uint8_t *sequence_ = sequence.get();
-	for (const auto &outgoingEdge: outgoingEdges) {
-		std::shared_ptr<MultiDeBruijnVertex> target = getEdgeTarget(outgoingEdge);
-		if (target->getSuffix() == sequence_[nextPos]) {
-//            if(target->getHashCode() == 884547439)
-//                std::cout << "hello";
+	std::shared_ptr<MultiDeBruijnVertex> nextVertex;
+
+	for (const auto &outgoingEdge: outgoingEdgesOf(prevVertex)) {
+		nextVertex = getEdgeTarget(outgoingEdge);
+		if (nextVertex->getSuffix() == sequence.get()[kmerStart + kmerSize - 1]) {
 			outgoingEdge->incMultiplicity(count);
-			return target;
+			return nextVertex;
 		}
 	}
 
 	std::shared_ptr<Kmer> kmer = std::make_shared<Kmer>(sequence, kmerStart, kmerSize);
-	if (!isRef && *kmer == *refSource) {
-		std::shared_ptr<MultiDeBruijnVertex> nextVertex = createVertex(kmer);
-		addEdge(prevVertex, nextVertex, std::make_shared<MultiSampleEdge>(isRef, count, numPruningSamples));
-		return nextVertex;
+	if (*kmer == *refSource && !isRef) {
+		nextVertex = createVertex(kmer);
 	} else {
-		if (isRef && getUniqueKmerVertex(kmer, false))
+		nextVertex = getUniqueKmerVertex(kmer, false);
+		if (nextVertex == nullptr) {
+			nextVertex = createVertex(kmer);
+		} else if (isRef)
 			throw std::invalid_argument("Found a unique vertex to merge into the reference graph");
-		std::shared_ptr<MultiDeBruijnVertex> nextVertex = getUniqueKmerVertex(kmer, false) ? uniqueKmers.find(
-				kmer)->second : createVertex(kmer);
-		addEdge(prevVertex, nextVertex, std::make_shared<MultiSampleEdge>(isRef, count, numPruningSamples));
-		return nextVertex;
 	}
 
+	addEdge(prevVertex, nextVertex, std::make_shared<MultiSampleEdge>(isRef, count, numPruningSamples));
+	return nextVertex;
 }
 
 void ReadThreadingGraph::threadSequence(SequenceForKmers &sequenceForKmers) {
@@ -237,7 +235,8 @@ void ReadThreadingGraph::threadSequence(SequenceForKmers &sequenceForKmers) {
 	}
 
 	for (int i = uniqueStartPos + 1; i <= sequenceForKmers.stop - kmerSize; i++) {
-		vertex = extendChainByOne(vertex, sequenceForKmers.sequence, i, sequenceForKmers.count, sequenceForKmers.isRef);
+		vertex = extendChainByOne(vertex, sequenceForKmers.sequence, i, sequenceForKmers.count,
+		                          sequenceForKmers.isRef);
 	}
 }
 
@@ -270,8 +269,9 @@ ReadThreadingGraph::getOrCreateKmerVertex(const std::shared_ptr<uint8_t[]> &sequ
 	return res == nullptr ? createVertex(kmer) : res;
 }
 
-void ReadThreadingGraph::increaseCountsInMatchedKmers(int incr, const std::shared_ptr<MultiDeBruijnVertex> &vertex,
-                                                      const std::shared_ptr<uint8_t[]> &originalKmer, int offset) {
+void
+ReadThreadingGraph::increaseCountsInMatchedKmers(int incr, const std::shared_ptr<MultiDeBruijnVertex> &vertex,
+                                                 const std::shared_ptr<uint8_t[]> &originalKmer, int offset) {
 	//if (offset == -1)
 	//	return;
 
@@ -279,7 +279,7 @@ void ReadThreadingGraph::increaseCountsInMatchedKmers(int incr, const std::share
 //        std::cout << "hello";
 
 	std::queue<std::pair<std::shared_ptr<MultiDeBruijnVertex>, int>> q;
-	q.push(std::make_pair(vertex, offset));
+	q.emplace(vertex, offset);
 
 	while (!q.empty()) {
 		std::shared_ptr<MultiDeBruijnVertex> v = q.front().first;
@@ -287,10 +287,11 @@ void ReadThreadingGraph::increaseCountsInMatchedKmers(int incr, const std::share
 		q.pop();
 		for (const auto &incomingEdge: incomingEdgesOf(v)) {
 			std::shared_ptr<MultiDeBruijnVertex> prev = getEdgeSource(incomingEdge);
-			if (prev->getSuffix() == originalKmer.get()[o] && (inDegreeOf(v) == 1 || increaseCountsThroughBranches)) {
+			if (prev->getSuffix() == originalKmer.get()[o] &&
+			    (inDegreeOf(v) == 1 || increaseCountsThroughBranches)) {
 				incomingEdge->incMultiplicity(incr);
 				if (o - 1 >= 0)
-					q.push(std::make_pair(prev, o - 1));
+					q.emplace(prev, o - 1);
 			}
 		}
 	}
@@ -380,7 +381,6 @@ void ReadThreadingGraph::buildGraphIfNecessary() {
 	for (auto &uniqueKmer: uniqueKmers) {
 		uniqueKmer.second->setAdditionalInfo(uniqueKmer.second->getAdditionalInfo() + '+');
 	}
-
 }
 
 void ReadThreadingGraph::setThreadingStartOnlyAtExistingVertex(bool value) {
@@ -438,11 +438,13 @@ int ReadThreadingGraph::recoverDanglingTail(const std::shared_ptr<MultiDeBruijnV
 		throw std::invalid_argument("Attempting to recover a dangling tail but it has out-degree > 0");
 	}
 
-	DanglingChainMergeHelper *danglingTailMergeResult = generateCigarAgainstDownwardsReferencePath(vertex, pruneFactor,
+	DanglingChainMergeHelper *danglingTailMergeResult = generateCigarAgainstDownwardsReferencePath(vertex,
+	                                                                                               pruneFactor,
 	                                                                                               minDanglingBranchLength,
 	                                                                                               recoverAll);
 
-	if (danglingTailMergeResult == nullptr || !cigarIsOkayToMerge(danglingTailMergeResult->cigar, false, true)) {
+	if (danglingTailMergeResult == nullptr ||
+	    !cigarIsOkayToMerge(danglingTailMergeResult->cigar, false, true)) {
 		delete danglingTailMergeResult;
 		return 0;
 	}
@@ -456,9 +458,10 @@ ReadThreadingGraph::generateCigarAgainstDownwardsReferencePath(std::shared_ptr<M
                                                                int pruneFactor,
                                                                int minDanglingBranchLength, bool recoverAll) {
 	int minTailPathLength = std::max(1, minDanglingBranchLength);
-	std::deque<std::shared_ptr<MultiDeBruijnVertex>> altPath = findPathUpwardsToLowestCommonAncestor(std::move(vertex),
-	                                                                                                 pruneFactor,
-	                                                                                                 !recoverAll);
+	std::deque<std::shared_ptr<MultiDeBruijnVertex>> altPath = findPathUpwardsToLowestCommonAncestor(
+			std::move(vertex),
+			pruneFactor,
+			!recoverAll);
 	if (altPath.empty() || isRefSource(altPath.front()) || altPath.size() < minTailPathLength + 1) {
 		return nullptr;
 	}
@@ -486,7 +489,8 @@ ReadThreadingGraph::generateCigarAgainstDownwardsReferencePath(std::shared_ptr<M
 
 
 std::deque<std::shared_ptr<MultiDeBruijnVertex>>
-ReadThreadingGraph::findPathUpwardsToLowestCommonAncestor(std::shared_ptr<MultiDeBruijnVertex> vertex, int pruneFactor,
+ReadThreadingGraph::findPathUpwardsToLowestCommonAncestor(std::shared_ptr<MultiDeBruijnVertex> vertex,
+                                                          int pruneFactor,
                                                           bool giveUpAtBranch) {
 	std::deque<std::shared_ptr<MultiDeBruijnVertex>> ret;
 	std::shared_ptr<MultiDeBruijnVertex> v = std::move(vertex);
@@ -515,7 +519,8 @@ ReadThreadingGraph::findPathUpwardsToLowestCommonAncestor(std::shared_ptr<MultiD
 		}
 		ret.push_front(v);
 
-		return outDegreeOf(v) > 1 && hasIncidentRefEdge(v) ? ret : std::deque<std::shared_ptr<MultiDeBruijnVertex>>();
+		return outDegreeOf(v) > 1 && hasIncidentRefEdge(v) ? ret
+		                                                   : std::deque<std::shared_ptr<MultiDeBruijnVertex>>();
 	}
 }
 
@@ -551,7 +556,8 @@ ReadThreadingGraph::getReferencePath(std::shared_ptr<MultiDeBruijnVertex> start,
 
 	while (v != nullptr) {
 		path.emplace_back(v);
-		v = (direction == downwards ? getNextReferenceVertex(v, true, blacklistedEdge) : getPrevReferenceVertex(v));
+		v = (direction == downwards ?
+		     getNextReferenceVertex(v, true, blacklistedEdge) : getPrevReferenceVertex(v));
 	}
 	return path;
 }
@@ -623,8 +629,8 @@ int ReadThreadingGraph::mergeDanglingTail(DanglingChainMergeHelper *danglingTail
 	int matchingSuffix = std::min(longestSuffixMatch(danglingTailMergeResult->referencePathString,
 	                                                 danglingTailMergeResult->referencePathStringLength,
 	                                                 danglingTailMergeResult->danglingPathString,
-	                                                 danglingTailMergeResult->danglingPathStringLength, lastRefIndex),
-	                              lastElement.getLength());
+	                                                 danglingTailMergeResult->danglingPathStringLength,
+	                                                 lastRefIndex), lastElement.getLength());
 
 	if (matchingSuffix == 0) {
 		return 0;
@@ -647,7 +653,8 @@ int ReadThreadingGraph::mergeDanglingTail(DanglingChainMergeHelper *danglingTail
 }
 
 int ReadThreadingGraph::longestSuffixMatch(const std::shared_ptr<uint8_t[]> &seq, int seqLength,
-                                           const std::shared_ptr<uint8_t[]> &kmer, int kmerLength, int seqStart) {
+                                           const std::shared_ptr<uint8_t[]> &kmer, int kmerLength,
+                                           int seqStart) {
 	for (int len = 1; len <= kmerLength; len++) {
 		int seqI = seqStart - len + 1;
 		int kmerI = kmerLength - len;
@@ -691,11 +698,13 @@ int ReadThreadingGraph::recoverDanglingHead(const std::shared_ptr<MultiDeBruijnV
 		throw std::invalid_argument("Attempting to recover a dangling head but it has in-degree > 0");
 	}
 
-	DanglingChainMergeHelper *danglingTailMergeResult = generateCigarAgainstUpwardsReferencePath(vertex, pruneFactor,
+	DanglingChainMergeHelper *danglingTailMergeResult = generateCigarAgainstUpwardsReferencePath(vertex,
+	                                                                                             pruneFactor,
 	                                                                                             minDanglingBranchLength,
 	                                                                                             recoverAll);
 
-	if (danglingTailMergeResult == nullptr || !cigarIsOkayToMerge(danglingTailMergeResult->cigar, true, false)) {
+	if (danglingTailMergeResult == nullptr ||
+	    !cigarIsOkayToMerge(danglingTailMergeResult->cigar, true, false)) {
 		delete danglingTailMergeResult;
 		return 0;
 	}
@@ -713,7 +722,8 @@ ReadThreadingGraph::generateCigarAgainstUpwardsReferencePath(std::shared_ptr<Mul
 	if (altPath.empty() || isRefSink(altPath.front()) || altPath.size() < minDanglingBranchLength + 1) {
 		return nullptr;
 	}
-	std::vector<std::shared_ptr<MultiDeBruijnVertex>> refPath = getReferencePath(altPath.at(0), upwards, nullptr);
+	std::vector<std::shared_ptr<MultiDeBruijnVertex>> refPath = getReferencePath(altPath.at(0), upwards,
+	                                                                             nullptr);
 	std::vector<std::shared_ptr<MultiDeBruijnVertex>> newaltPath;
 	newaltPath.reserve(altPath.size());
 	for (const std::shared_ptr<MultiDeBruijnVertex> &vertex1: altPath) {
@@ -733,9 +743,10 @@ ReadThreadingGraph::generateCigarAgainstUpwardsReferencePath(std::shared_ptr<Mul
 }
 
 std::deque<std::shared_ptr<MultiDeBruijnVertex>>
-ReadThreadingGraph::findPathDownwardsToHighestCommonDescendantOfReference(std::shared_ptr<MultiDeBruijnVertex> vertex,
-                                                                          int pruneFactor,
-                                                                          bool giveUpAtBranch) {
+ReadThreadingGraph::findPathDownwardsToHighestCommonDescendantOfReference(
+		std::shared_ptr<MultiDeBruijnVertex> vertex,
+		int pruneFactor,
+		bool giveUpAtBranch) {
 	std::deque<std::shared_ptr<MultiDeBruijnVertex>> ret;
 	std::shared_ptr<MultiDeBruijnVertex> v = std::move(vertex);
 	if (giveUpAtBranch) {
@@ -904,13 +915,8 @@ std::shared_ptr<SeqGraph> ReadThreadingGraph::toSequenceGraph() {
 ReadThreadingGraph::ReadThreadingGraph(int kmerSize, bool debugGraphTransformations,
                                        uint8_t minBaseQualityToUseInAssembly, int numPruningSamples) : kmerSize(
 		kmerSize), minBaseQualityToUseInAssembly(minBaseQualityToUseInAssembly), debugGraphTransformations(
-		debugGraphTransformations),
-                                                                                                       refSource(
-		                                                                                                       std::make_shared<Kmer>(
-				                                                                                                       nullptr,
-				                                                                                                       0)),
-                                                                                                       numPruningSamples(
-		                                                                                                       numPruningSamples) {
+		debugGraphTransformations), refSource(std::make_shared<Kmer>(nullptr, 0)), numPruningSamples(
+		numPruningSamples) {
 	Mutect2Utils::validateArg(kmerSize > 0, "bad minkKmerSize");
 	resetToInitialState();
 }
@@ -923,13 +929,15 @@ void ReadThreadingGraph::resetToInitialState() {
 }
 
 void
-ReadThreadingGraph::addSequence(std::string seqName, const std::shared_ptr<uint8_t[]> &sequence, int length, int count,
+ReadThreadingGraph::addSequence(std::string seqName, const std::shared_ptr<uint8_t[]> &sequence, int length,
+                                int count,
                                 bool isRef) {
 	addSequence(std::move(seqName), ANONYMOUS_SAMPLE, sequence, 0, length, count, isRef);
 }
 
-void ReadThreadingGraph::addSequence(std::string seqName, const std::shared_ptr<uint8_t[]> &sequence, int length,
-                                     bool isRef) {
+void
+ReadThreadingGraph::addSequence(std::string seqName, const std::shared_ptr<uint8_t[]> &sequence, int length,
+                                bool isRef) {
 	addSequence(std::move(seqName), sequence, length, 1, isRef);
 }
 

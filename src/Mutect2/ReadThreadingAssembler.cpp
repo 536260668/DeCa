@@ -272,6 +272,7 @@ ReadThreadingAssembler::createGraph(const std::vector<std::shared_ptr<SAMRecord>
 	                                                                                   numPruningSamples);
 	rtgraph->setThreadingStartOnlyAtExistingVertex(!recoverDanglingBranches);
 	rtgraph->addSequence("ref", refHaplotype->getBases(), refHaplotype->getLength(), true);
+	rtgraph->reserveSpace(refHaplotype->getLength());
 
 	for (std::shared_ptr<SAMRecord> read: reads) {
 		rtgraph->addRead(read);
@@ -281,6 +282,12 @@ ReadThreadingAssembler::createGraph(const std::vector<std::shared_ptr<SAMRecord>
 	//std::cout << "1: " << rtgraph->getEdgeSet().size() << " " << rtgraph->getVertexSet().size() << std::endl;
 	/*std::ofstream outfile1("./graph1.dot");
 	outfile1 << "digraph G{" << std::endl;
+	for (auto &v: rtgraph->getVertexSet()) {
+		std::string s = reinterpret_cast<const char *>(v->getSequence().get());
+		s = s.substr(0, v->getLength());
+		//if (s==std::string("CCACAGCTCC")) std::cout<<"wdnmd ";
+		outfile1 << "    " << s << ";" << std::endl;
+	}
 	for (auto &edge: rtgraph->edgeMap) {
 		auto *a = edge.second.getSource().get();
 		auto *b = edge.second.getTarget().get();

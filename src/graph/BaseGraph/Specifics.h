@@ -23,7 +23,7 @@ public:
     virtual std::shared_ptr<E> getEdge(const std::shared_ptr<V> & sourceVertex, const std::shared_ptr<V> & targetVertex)  = 0;
 
     //Adds the specified edge to the edge containers of its source and target vertices.
-    virtual void addEdgeToTouchingVertices(const std::shared_ptr<E>& e) = 0;
+    //virtual void addEdgeToTouchingVertices(const std::shared_ptr<E>& e) = 0;
 
     virtual int degreeOf(const std::shared_ptr<V> &vertex)  = 0;
 

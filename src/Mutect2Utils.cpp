@@ -29,7 +29,7 @@ bool Mutect2Utils::encloses(int outerStart, int outerEnd, int innerStart, int in
     return innerStart >= outerStart && innerEnd <= outerEnd;
 }
 
-void Mutect2Utils::validateArg(bool condition, std::string msg) {
+void Mutect2Utils::validateArg(bool condition, const std::string& msg) {
     if(!condition){
         throw std::invalid_argument(msg);
     }
@@ -39,7 +39,7 @@ bool Mutect2Utils::goodProbability(const double result) {
     return result >= 0.0 && result <= 1.0;
 }
 
-double Mutect2Utils::logLikelihoodRatio(const int nRef, std::vector<uint8_t> altQuals, const int repeatFactor) {
+double Mutect2Utils::logLikelihoodRatio(const int nRef, const std::vector<uint8_t>& altQuals, const int repeatFactor) {
     int nAlt = repeatFactor * altQuals.size();
     int n = nRef + nAlt;
 
@@ -66,7 +66,7 @@ double Mutect2Utils::logLikelihoodRatio(int refCount, int altCount, double error
     return logLikelihoodRatio(refCount, tmp, altCount);
 }
 
-int Mutect2Utils::lastIndexOf(const std::shared_ptr<uint8_t[]> reference_, int refLength, const std::shared_ptr<uint8_t[]> query_, int queryLength) {
+int Mutect2Utils::lastIndexOf(const std::shared_ptr<uint8_t[]>& reference_, int refLength, const std::shared_ptr<uint8_t[]>& query_, int queryLength) {
     uint8_t * reference = reference_.get();
     uint8_t * query = query_.get();
     for (int r = refLength - queryLength; r >= 0; r--) {
@@ -82,7 +82,7 @@ int Mutect2Utils::lastIndexOf(const std::shared_ptr<uint8_t[]> reference_, int r
 }
 
 //需要delete
-std::shared_ptr<uint8_t[]> Mutect2Utils::copyOfRange(std::shared_ptr<uint8_t[]>original, int originalLength, int from, int to, int &length) {
+std::shared_ptr<uint8_t[]> Mutect2Utils::copyOfRange(const std::shared_ptr<uint8_t[]>&original, int originalLength, int from, int to, int &length) {
     int newLength = to - from;
     if(newLength < 0)
         throw std::invalid_argument("from > to");

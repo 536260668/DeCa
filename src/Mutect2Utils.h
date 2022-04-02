@@ -19,12 +19,12 @@ public:
     static std::string replaceWith(std::string& str1, const std::string& str2, const std::string& str3);
     static bool overlaps(int start, int end, int start2, int end2);
     static bool encloses(int outerStart, int outerEnd, int innerStart, int innerEnd);
-    static void validateArg(bool condition, std::string msg);
+    static void validateArg(bool condition, const std::string& msg);
     static bool goodProbability(double result);
-    static double logLikelihoodRatio(int nRef, std::vector<uint8_t> altQuals, int repeatFactor);
+    static double logLikelihoodRatio(int nRef, const std::vector<uint8_t>& altQuals, int repeatFactor);
     static double logLikelihoodRatio(int refCount, int altCount, double errorProbability);
-    static int lastIndexOf(const std::shared_ptr<uint8_t[]> reference, int refLength, const std::shared_ptr<uint8_t[]> query, int queryLength);
-    static std::shared_ptr<uint8_t[]> copyOfRange(std::shared_ptr<uint8_t[]> original, int ,int from, int to, int & length);
+    static int lastIndexOf(const std::shared_ptr<uint8_t[]>& reference, int refLength, const std::shared_ptr<uint8_t[]>& query, int queryLength);
+    static std::shared_ptr<uint8_t[]> copyOfRange(const std::shared_ptr<uint8_t[]>& original, int ,int from, int to, int & length);
     static int Int_compare(int x, int y);
     static uint8_t decodeBase(uint8_t i);
     template<class T>
