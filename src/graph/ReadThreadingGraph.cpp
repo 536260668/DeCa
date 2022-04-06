@@ -169,13 +169,6 @@ std::shared_ptr<MultiDeBruijnVertex> ReadThreadingGraph::createVertex(const std:
 	std::shared_ptr<MultiDeBruijnVertex> newVertex = std::make_shared<MultiDeBruijnVertex>(kmer->getBases(),
 	                                                                                       kmer->getLength(),
 	                                                                                       false);
-	/*std::string s = (char *) kmer->getBases().get();
-	s = s.substr(0, kmer->getLength());
-	if (s == std::string("CCACAGCTCC")) {
-		int i;
-		std::cout << kmer->getHash()<<std::endl;
-	}*/
-	//todo:why ?
 	unsigned prevSize = getVertexSet().size();
 	addVertex(newVertex);
 	if (getVertexSet().size() != prevSize + 1)

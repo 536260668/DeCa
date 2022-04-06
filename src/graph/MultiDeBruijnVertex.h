@@ -26,7 +26,7 @@ public:
 
     ~MultiDeBruijnVertex() override = default;
 
-    bool operator==(const MultiDeBruijnVertex &other) const;
+	bool operator==(const MultiDeBruijnVertex &other) const;
 
     bool operator<(const MultiDeBruijnVertex &other) const;
 

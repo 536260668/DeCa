@@ -7,6 +7,7 @@
 
 #include "MultiDeBruijnVertex.h"
 #include "Cigar.h"
+#include <utility>
 #include <vector>
 #include <utility>
 
@@ -20,9 +21,9 @@ public:
     int referencePathStringLength;
     std::shared_ptr<Cigar> cigar;
 
-    DanglingChainMergeHelper(std::vector<std::shared_ptr<MultiDeBruijnVertex>> danglingPath, std::vector<std::shared_ptr<MultiDeBruijnVertex>> referencePath, std::shared_ptr<uint8_t[]> danglingPathString, int danglingPathStringLength,
-                             std::shared_ptr<uint8_t[]> referencePathString,  int referencePathStringLength, const std::shared_ptr<Cigar> & cigar) : danglingPath(std::move(danglingPath)), referencePath(std::move(referencePath)), danglingPathString(std::move(danglingPathString)),
-                             referencePathString(std::move(referencePathString)), danglingPathStringLength(danglingPathStringLength), referencePathStringLength(referencePathStringLength), cigar(cigar) {}
+	DanglingChainMergeHelper(std::vector<std::shared_ptr<MultiDeBruijnVertex>> danglingPath, std::vector<std::shared_ptr<MultiDeBruijnVertex>> referencePath, std::shared_ptr<uint8_t[]> danglingPathString, int danglingPathStringLength,
+                             std::shared_ptr<uint8_t[]> referencePathString,  int referencePathStringLength, std::shared_ptr<Cigar>  cigar) : danglingPath(std::move(danglingPath)), referencePath(std::move(referencePath)), danglingPathString(std::move(danglingPathString)),
+                             referencePathString(std::move(referencePathString)), danglingPathStringLength(danglingPathStringLength), referencePathStringLength(referencePathStringLength), cigar(std::move(cigar)) {}
 };
 
 

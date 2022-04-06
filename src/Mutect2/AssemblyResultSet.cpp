@@ -219,10 +219,3 @@ std::shared_ptr<AssemblyRegion> AssemblyResultSet::getRegionForGenotyping() {
     return regionForGenotyping;
 }
 
-AssemblyResultSet::~AssemblyResultSet() {
-	assemblyResultByHaplotype.clear();
-	haplotypes.clear();
-	assemblyResultByHaplotype.clear();
-	kmerSizes.clear();
-	variationEvents.clear();
-}

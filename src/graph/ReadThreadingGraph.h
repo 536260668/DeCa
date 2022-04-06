@@ -72,6 +72,7 @@ private:
 
 	int maxMismatchesInDanglingHead = -1;
 
+private:
 	inline static std::string ANONYMOUS_SAMPLE = "XXX_UNNAMED_XXX";
 
 	/**
@@ -284,7 +285,7 @@ public:
 
 	void determineNonUniques();
 
-	void reserveSpace(int size);
+	void reserveSpace(int size) override;
 };
 
 

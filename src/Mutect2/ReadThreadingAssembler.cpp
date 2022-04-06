@@ -134,8 +134,7 @@ ReadThreadingAssembler::runLocalAssembly(const std::shared_ptr<AssemblyRegion> &
 	for (const std::shared_ptr<AssemblyResult> &result: assemble(correctedReads, refHaplotype)) {
 		if (result->getStatus() == ASSEMBLED_SOME_VARIATION) {
 			//TODO:do some QC on the graph
-			assemblyResultByGraph.insert(
-					std::pair<std::shared_ptr<SeqGraph>, std::shared_ptr<AssemblyResult>>(result->getGraph(), result));
+			assemblyResultByGraph.insert(std::make_pair(result->getGraph(), result));
 			nonRefGraphs.emplace_back(result->getGraph());
 		}
 	}

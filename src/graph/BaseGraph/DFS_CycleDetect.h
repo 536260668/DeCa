@@ -39,9 +39,8 @@ public:
         return false;
     }
 
-    DFS_CycleDetect(DirectedSpecifics<V, E> * graph) : graph(graph) {
-        std::unordered_set<std::shared_ptr<V>>& allVertex = graph->getVertexSet();
-        for(const std::shared_ptr<V> & v : allVertex) {
+    explicit DFS_CycleDetect(DirectedSpecifics<V, E> * graph) : graph(graph) {
+        for(const std::shared_ptr<V> & v : graph->getVertexSet()) {
             colorMap.insert(std::pair<std::shared_ptr<V>, color>(v, WHITE));
         }
     }

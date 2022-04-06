@@ -145,7 +145,7 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion>& originalAssembl
     removeUnmarkedDuplicates(originalAssemblyRegion);
     if(originalAssemblyRegion->getReads().empty())
         return {};
-    std::shared_ptr<AssemblyResultSet> untrimmedAssemblyResult = AssemblyBasedCallerUtils::assembleReads(std::move(originalAssemblyRegion), MATC, header, *refCache, assemblyEngine);
+    std::shared_ptr<AssemblyResultSet> untrimmedAssemblyResult = AssemblyBasedCallerUtils::assembleReads(originalAssemblyRegion, MATC, header, *refCache, assemblyEngine);
     std::set<std::shared_ptr<VariantContext>, VariantContextComparator> & allVariationEvents = untrimmedAssemblyResult->getVariationEvents(1);
 //    std::shared_ptr<AssemblyRegionTrimmer_Result> trimmingResult = trimmer.trim(originalAssemblyRegion, allVariationEvents);
 //    if(!trimmingResult->isVariationPresent()) {

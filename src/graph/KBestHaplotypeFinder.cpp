@@ -4,7 +4,9 @@
 
 #include "KBestHaplotypeFinder.h"
 #include "BaseGraph/DFS_CycleDetect.h"
+#include <memory>
 #include <queue>
+#include <utility>
 
 KBestHaplotypeFinder::KBestHaplotypeFinder(std::shared_ptr<SeqGraph> graph, std::unordered_set<std::shared_ptr<SeqVertex>> & sources,
                                            std::unordered_set<std::shared_ptr<SeqVertex>> & sinks) : graph(graph){
@@ -67,7 +69,7 @@ bool KBestHaplotypeFinder::findGuiltyVerticesAndEdgesToRemoveCycles(std::shared_
     return reachesSink;
 }
 
-KBestHaplotypeFinder::KBestHaplotypeFinder(std::shared_ptr<SeqGraph> graph, std::shared_ptr<SeqVertex>source, std::shared_ptr<SeqVertex>sink) : graph(graph){
+KBestHaplotypeFinder::KBestHaplotypeFinder(std::shared_ptr<SeqGraph> graph, std::shared_ptr<SeqVertex>source, std::shared_ptr<SeqVertex>sink) : graph(std::move(graph)){
     sources.insert(source);
     sinks.insert(sink);
 }
@@ -78,7 +80,7 @@ std::vector<std::shared_ptr<KBestHaplotype>> KBestHaplotypeFinder::findBestHaplo
     std::vector<std::shared_ptr<KBestHaplotype>> result;
     std::priority_queue<std::shared_ptr<KBestHaplotype>, std::vector<std::shared_ptr<KBestHaplotype>>, KBestHaplotypeComp> queue;
     for(std::shared_ptr<SeqVertex> source : sources) {
-        queue.push(std::shared_ptr<KBestHaplotype>(new KBestHaplotype(source, graph)));
+        queue.push(std::make_shared<KBestHaplotype>(source, graph));
     }
     std::map<std::shared_ptr<SeqVertex>, int> vertexCounts;
     for(std::shared_ptr<SeqVertex> v : graph->getVertexSet()) {
@@ -93,16 +95,16 @@ std::vector<std::shared_ptr<KBestHaplotype>> KBestHaplotypeFinder::findBestHaplo
         } else {
             std::unordered_set<std::shared_ptr<BaseEdge>> outgoingEdges = graph->outgoingEdgesOf(vertexToExtend);
             int totalOutgoingMultiplicity = 0;
-            for(std::shared_ptr<BaseEdge> edge : outgoingEdges) {
+            for(const std::shared_ptr<BaseEdge>& edge : outgoingEdges) {
                 totalOutgoingMultiplicity += edge->getMultiplicity();
             }
-            for(std::shared_ptr<BaseEdge> edge : outgoingEdges) {
+            for(const std::shared_ptr<BaseEdge>& edge : outgoingEdges) {
                 std::shared_ptr<SeqVertex> targetVertex = graph->getEdgeTarget(edge);
                 int num = vertexCounts.at(targetVertex);
                 num++;
                 vertexCounts.find(targetVertex)->second = num;
                 if(num < maxNumberOfHaplotypes) {
-                    queue.push(std::shared_ptr<KBestHaplotype>(new KBestHaplotype(pathToExtend, edge, totalOutgoingMultiplicity)));
+                    queue.push(std::make_shared<KBestHaplotype>(pathToExtend, edge, totalOutgoingMultiplicity));
                 }
             }
         }
