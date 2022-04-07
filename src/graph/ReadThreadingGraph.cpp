@@ -15,9 +15,8 @@
 
 void ReadThreadingGraph::addRead(std::shared_ptr<SAMRecord> &read) {
 	std::shared_ptr<uint8_t[]> sequence_ = read->getBasesNoCopy();
-	std::shared_ptr<uint8_t[]> qualities_ = read->getBaseQualitiesNoCopy();
 	uint8_t *sequence = sequence_.get();
-	uint8_t *qualities = qualities_.get();
+	uint8_t *qualities = read->getBaseQualitiesNoCopy().get();
 
 //    for(int i = 0; i < read->getLength(); i++) {
 //        std::cout << (char)sequence[i];
@@ -27,15 +26,12 @@ void ReadThreadingGraph::addRead(std::shared_ptr<SAMRecord> &read) {
 //    if(sequence[0] == 'A' && sequence[1] == 'G' && sequence[2] == 'G' && sequence[3] == 'A')
 //        std::cout << "hello";
 
-	int lastGood = -1;
-	for (int end = 0; end <= read->getLength(); end++) {
-		if (end == read->getLength() || !baseIsUsableForAssembly(sequence[end], qualities[end])) {
-			int start = lastGood;
-			int len = end - start;
-
+	int lastGood = -1, length = read->getLength();
+	for (int end = 0; end <= length; end++) {
+		if (!baseIsUsableForAssembly(sequence[end], qualities[end]) || end == length) {
+			int start = lastGood, len = end - start;
 			if (start != -1 && len >= kmerSize) {
-				std::string name = read->getName();
-				name += '_' + std::to_string(start) + '_' + std::to_string(end);
+				std::string name = read->getName() + '_' + std::to_string(start) + '_' + std::to_string(end);
 				std::string sampleName = read->getGroup() == 0 ? "tumor" : "normal";
 				addSequence(name, sampleName, sequence_, start, end, 1, false);
 			}
@@ -44,7 +40,6 @@ void ReadThreadingGraph::addRead(std::shared_ptr<SAMRecord> &read) {
 			lastGood = end;
 		}
 	}
-
 }
 
 bool ReadThreadingGraph::baseIsUsableForAssembly(uint8_t base, uint8_t qual) const {
@@ -54,12 +49,12 @@ bool ReadThreadingGraph::baseIsUsableForAssembly(uint8_t base, uint8_t qual) con
 void ReadThreadingGraph::addSequence(std::string seqName, std::string &sampleName,
                                      const std::shared_ptr<uint8_t[]> &sequence, int start, int stop,
                                      int count, bool isRef) {
-	Mutect2Utils::validateArg(!alreadyBuilt, "Graph already built");
-	std::map<std::string, std::vector<SequenceForKmers>>::iterator iter;
-	iter = pending.find(sampleName);
+	if (alreadyBuilt)
+		throw std::invalid_argument("Graph already built");
+	auto iter = pending.find(sampleName);
 	if (iter == pending.end()) {
 		std::vector<SequenceForKmers> list;
-		pending.insert(std::pair<std::string, std::vector<SequenceForKmers>>(sampleName, list));
+		pending.insert(std::make_pair(sampleName, list));
 		iter = pending.find(sampleName);
 	}
 	iter->second.push_back(SequenceForKmers{std::move(seqName), sequence, start, stop, count, isRef});
@@ -76,7 +71,7 @@ void ReadThreadingGraph::determineNonUniques() {
 	std::vector<std::pair<std::shared_ptr<uint8_t[]>, int>> nonUniqueKmersPair;
 
 	if (kmerSize <= 30) {  //when kmerSize_ <= 30, use Bit Operation (long long)
-		std::unordered_set<long long> nonUniquesFromSeqSet;
+		std::set<long long> nonUniquesFromSeqSet;
 		std::unordered_set<long long> seqAllKmers;
 
 		for (auto &iter: pending) {
@@ -116,7 +111,7 @@ void ReadThreadingGraph::determineNonUniques() {
 			}
 		}
 	} else {    //when kmerSize_ > 30, use dynamic bitset
-		std::unordered_set<boost::dynamic_bitset<>> nonUniquesFromSeqSet;
+		std::set<boost::dynamic_bitset<>> nonUniquesFromSeqSet;
 		std::unordered_set<boost::dynamic_bitset<>> seqAllKmers;
 
 		for (auto &iter: pending) {

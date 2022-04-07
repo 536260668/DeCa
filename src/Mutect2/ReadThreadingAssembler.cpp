@@ -162,6 +162,7 @@ ReadThreadingAssembler::getMinKmerSize(std::shared_ptr<Haplotype> &refHaplotype,
 
 	while (candidateKmerSizes[k] <= 30) {
 		std::unordered_set<long long> valueSet;
+		valueSet.reserve(len - candidateKmerSizes[k] + 1);
 		long long val = 0L, mask = (1L << (candidateKmerSizes[k] * 2)) - 1;
 		for (i = 0; i < candidateKmerSizes[k]; ++i) val = (val << 2) | charToU8[i];
 		valueSet.insert(val);
@@ -255,9 +256,8 @@ std::shared_ptr<AssemblyResult>
 ReadThreadingAssembler::createGraph(const std::vector<std::shared_ptr<SAMRecord>> &reads,
                                     std::shared_ptr<Haplotype> &refHaplotype, int kmerSize,
                                     bool allowLowComplexityGraphs) {
-	if (refHaplotype->getLength() < kmerSize) {
+	if (refHaplotype->getLength() < kmerSize)
 		return std::make_shared<AssemblyResult>(FAILED, nullptr, nullptr);
-	}
 	/* SequenceForKmers tmp = {"ref", refHaplotype->getBases(), 0, refHaplotype->getLength(), 1, true};
 	 std::vector<std::shared_ptr<Kmer>>* res =ReadThreadingGraph::determineNonUniqueKmers(tmp, kmerSize);
 	 if(!allowNonUniqueKmersInRef && !res->empty()) {
@@ -270,12 +270,11 @@ ReadThreadingAssembler::createGraph(const std::vector<std::shared_ptr<SAMRecord>
 	                                                                                   minBaseQualityToUseInAssembly,
 	                                                                                   numPruningSamples);
 	rtgraph->setThreadingStartOnlyAtExistingVertex(!recoverDanglingBranches);
-	rtgraph->addSequence("ref", refHaplotype->getBases(), refHaplotype->getLength(), true);
+	rtgraph->addSequence(refSequenceName, refHaplotype->getBases(), refHaplotype->getLength(), true);
 	rtgraph->reserveSpace(refHaplotype->getLength());
 
-	for (std::shared_ptr<SAMRecord> read: reads) {
+	for (std::shared_ptr<SAMRecord> read: reads)
 		rtgraph->addRead(read);
-	}
 
 	rtgraph->buildGraphIfNecessary();
 	//std::cout << "1: " << rtgraph->getEdgeSet().size() << " " << rtgraph->getVertexSet().size() << std::endl;
@@ -417,8 +416,8 @@ ReadThreadingAssembler::ReadThreadingAssembler(int maxAllowedPathsForReadThreadi
                                                                           pruneFactor(pruneFactor),
                                                                           numBestHaplotypesPerGraph(
 		                                                                          maxAllowedPathsForReadThreadingAssembler) {
-	Mutect2Utils::validateArg(maxAllowedPathsForReadThreadingAssembler >= 1,
-	                          "numBestHaplotypesPerGraph should be >= 1");
+	if (maxAllowedPathsForReadThreadingAssembler < 1)
+		throw std::invalid_argument("numBestHaplotypesPerGraph should be >= 1");
 	chainPruner = new AdaptiveChainPruner<MultiDeBruijnVertex, MultiSampleEdge>(initialErrorRateForPruning,
 	                                                                            pruningLogOddsThreshold,
 	                                                                            maxUnprunedVariants);

@@ -8,41 +8,41 @@
 #include "BaseVertex.h"
 #include <vector>
 
-class MultiDeBruijnVertex : public BaseVertex{
+class MultiDeBruijnVertex : public BaseVertex {
 private:
     std::vector<std::string> read;
     long hashCode;
     bool mergeIdenticalNodes;
 
 public:
-    /**
-    * Create a new MultiDeBruijnVertex with kmer sequence
-    * @param mergeIdenticalNodes should nodes with the same sequence be treated as equal?
-    * @param sequence the kmer sequence
-    */
-    MultiDeBruijnVertex(std::shared_ptr<uint8_t[]> sequence, int length, bool mergeIdenticalNodes);
+	/**
+	* Create a new MultiDeBruijnVertex with kmer sequence
+	* @param mergeIdenticalNodes should nodes with the same sequence be treated as equal?
+	* @param sequence the kmer sequence
+	*/
+	MultiDeBruijnVertex(const std::shared_ptr<uint8_t[]>& sequence, int length, bool mergeIdenticalNodes);
 
-    MultiDeBruijnVertex(std::shared_ptr<uint8_t[]> sequence, int length);
+	MultiDeBruijnVertex(const std::shared_ptr<uint8_t[]>& sequence, int length);
 
-    ~MultiDeBruijnVertex() override = default;
+	~MultiDeBruijnVertex() override = default;
 
 	bool operator==(const MultiDeBruijnVertex &other) const;
 
-    bool operator<(const MultiDeBruijnVertex &other) const;
+	bool operator<(const MultiDeBruijnVertex &other) const;
 
-    int getKmerSize() const {return getLength();}
+	[[nodiscard]] int getKmerSize() const { return getLength(); }
 
-    uint8_t getSuffix() const {
-        return  sequence.get()[getKmerSize() - 1];
-    }
+	[[nodiscard]] uint8_t getSuffix() const {
+		return sequence.get()[getKmerSize() - 1];
+	}
 
-    std::shared_ptr<uint8_t[]> getAdditionalSequence(bool source) override;
+	std::shared_ptr<uint8_t[]> getAdditionalSequence(bool source) override;
 
-    std::shared_ptr<uint8_t[]> getSuffixAsArray() const;
+	[[nodiscard]] std::shared_ptr<uint8_t[]> getSuffixAsArray() const;
 
-    int getAdditionalLength(bool source);
+	int getAdditionalLength(bool source);
 
-    int getAdditionalSequenceLength(bool isSource) override;
+	int getAdditionalSequenceLength(bool isSource) override;
 };
 
 

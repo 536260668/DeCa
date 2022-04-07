@@ -31,6 +31,7 @@ private:
 	ChainPruner<MultiDeBruijnVertex, MultiSampleEdge> *chainPruner;
 	static const uint8_t DEFAULT_MIN_BASE_QUALITY_TO_USE = 10;
 	static const int KMER_SIZE_ITERATION_INCREASE = 10;
+	std::string refSequenceName = "ref";
 
 	std::shared_ptr<AssemblyResult> getAssemblyResult(std::shared_ptr<Haplotype> &refHaplotype, int kmerSize,
 	                                                  const std::shared_ptr<ReadThreadingGraph> &rtgraph) const;

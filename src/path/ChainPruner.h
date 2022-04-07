@@ -43,10 +43,10 @@ public:
 			chainStarts.pop_front();
 			for (auto &eiter: graph->outgoingEdgesOf(chainStart)) {
 				Path<V, E> *chain = findChain(eiter, graph);
-				chains.template emplace_back(chain);
+				chains.emplace_back(chain);
 				std::shared_ptr<V> chainEnd = chain->getLastVertex();
 				if (alreadySeen.find(chainEnd) == alreadySeen.end()) {
-					chainStarts.template emplace_back(chainEnd);
+					chainStarts.emplace_back(chainEnd);
 					alreadySeen.insert(chainEnd);
 				}
 			}
@@ -57,17 +57,17 @@ public:
 private:
 	Path<V, E> *findChain(std::shared_ptr<E> startEdge, std::shared_ptr<DirectedSpecifics<V, E>> graph) {
 		std::vector<std::shared_ptr<E>> edges;
-		edges.template emplace_back(startEdge);
+		edges.emplace_back(startEdge);
 		std::shared_ptr<V> firstVertex = graph->getEdgeSource(startEdge);
 		std::shared_ptr<V> lastVertex = graph->getEdgeTarget(startEdge);
-
+		std::unordered_set<std::shared_ptr<E>> outEdges;
 		while (true) {
-			std::unordered_set<std::shared_ptr<E>> outEdges = graph->outgoingEdgesOf(lastVertex);
+			outEdges = graph->outgoingEdgesOf(lastVertex);
 			if (outEdges.size() != 1 || graph->inDegreeOf(lastVertex) > 1 || lastVertex == firstVertex) {
 				break;
 			}
 			std::shared_ptr<E> nextEdge = *outEdges.begin();
-			edges.template emplace_back(nextEdge);
+			edges.emplace_back(nextEdge);
 			lastVertex = graph->getEdgeTarget(nextEdge);
 		}
 		return new Path<V, E>(edges, lastVertex, graph);

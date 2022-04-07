@@ -10,7 +10,7 @@
 
 class MultiSampleEdge : public BaseEdge {
 private:
-    int currentSingleSampleMultiplicity;
+    int currentSingleSampleMultiplicity{};
     int singleSampleCapacity;
     std::priority_queue<int> singleSampleMultiplicities;
 

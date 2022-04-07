@@ -50,16 +50,12 @@ private:
 	static const long serialVersionUID = 8971725103718958232L;
 
 	DirectedEdgeContainer<V, E> &getEdgeContainer(const std::shared_ptr<V> &vertex) {
-		//Mutect2Utils::validateArg(VertexSet.find(vertex) != VertexSet.end(), "no such vertex in graph");
-		typename std::unordered_map<std::shared_ptr<V>, DirectedEdgeContainer<V, E>>::iterator miter = vertexMapDirected.find(
-				vertex);
+		auto miter = vertexMapDirected.find(vertex);
 		if (miter == vertexMapDirected.end()) {
 			throw std::invalid_argument("no such vertex in graph");
 		}
-		//return vertexMapDirected.find(vertex)->second;
 		return miter->second;
 	}
-
 
 	bool allowingLoops{};
 	bool allowingMultipleEdges{};
@@ -672,8 +668,8 @@ public:
 	}
 
 	virtual void reserveSpace(int size) {
-		edgeMap.reserve(size);
-		EdgeSet.reserve(size);
+		edgeMap.reserve(2 * size);
+		EdgeSet.reserve(2 * size);
 		vertexMapDirected.reserve(size);
 		VertexSet.reserve(size);
 	}

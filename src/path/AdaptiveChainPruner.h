@@ -12,121 +12,127 @@
 #include "ChainPruner.h"
 
 template<class V, class E>
-class AdaptiveChainPruner : public ChainPruner<V, E>{
+class AdaptiveChainPruner : public ChainPruner<V, E> {
 private:
-    double initialErrorProbability;
-    double logOddsThreshold;
-    int maxUnprunedVariants;
+	double initialErrorProbability;
+	double logOddsThreshold;
+	int maxUnprunedVariants;
 
 public:
-    AdaptiveChainPruner(const double initialErrorProbability, const double logOddsThreshold, const int maxUnprunedVariants) : ChainPruner<V, E>(),
-    initialErrorProbability(initialErrorProbability), logOddsThreshold(logOddsThreshold), maxUnprunedVariants(maxUnprunedVariants) {
-        Mutect2Utils::validateArg(initialErrorProbability > 0, "Must have positive error probability");
-    }
+	AdaptiveChainPruner(const double initialErrorProbability, const double logOddsThreshold,
+	                    const int maxUnprunedVariants) : ChainPruner<V, E>(),
+	                                                     initialErrorProbability(initialErrorProbability),
+	                                                     logOddsThreshold(logOddsThreshold),
+	                                                     maxUnprunedVariants(maxUnprunedVariants) {
+		if (initialErrorProbability <= 0)
+			throw std::invalid_argument("Must have positive error probability");
+	}
 
 protected:
-    std::unordered_set<Path<V,E>*> chainsToRemove(std::vector<Path<V,E>*> chains) {
-        if(chains.empty()){
-            std::unordered_set<Path<V,E>*> result;
-            return result;
-        }
+	std::unordered_set<Path<V, E> *> chainsToRemove(std::vector<Path<V, E> *> chains) {
+		if (chains.empty()) {
+			std::unordered_set<Path<V, E> *> result;
+			return result;
+		}
 
-        std::shared_ptr<DirectedSpecifics<V, E>> graph = chains[0]->getGraph();
-        std::unordered_set<Path<V,E>*> probableErrorChains = likelyErrorChains(chains, graph, 0.001);
-        int errorCount = 0;
-        int totalBases = 0;
-        typename std::vector<Path<V,E>*>::iterator viter;
-        typename std::unordered_set<Path<V,E>*>::iterator siter;
-        for(siter = probableErrorChains.begin(); siter != probableErrorChains.end(); siter++) {
-            errorCount += (*siter)->getLastEdge()->getMultiplicity();
-        }
-        for(viter = chains.begin(); viter != chains.end(); viter++) {
-            for(typename std::vector<std::shared_ptr<E>>::iterator iter = (*viter)->getEdges().begin(); iter != (*viter)->getEdges().end(); iter++) {
-                totalBases += (*iter)->getMultiplicity();
-            }
-        }
-        double errorRate = (double) errorCount / totalBases;
-        return likelyErrorChains(chains, graph, errorRate);
-    }
+		std::shared_ptr<DirectedSpecifics<V, E>> graph = chains[0]->getGraph();
+		std::unordered_set<Path<V, E> *> probableErrorChains = likelyErrorChains(chains, graph, 0.001);
+		int errorCount = 0, totalBases = 0;
+		for (typename std::unordered_set<Path<V, E> *>::iterator siter = probableErrorChains.begin();
+		     siter != probableErrorChains.end(); siter++) {
+			errorCount += (*siter)->getLastEdge()->getMultiplicity();
+		}
+		for (typename std::vector<Path<V, E> *>::iterator viter = chains.begin(); viter != chains.end(); viter++) {
+			for (typename std::vector<std::shared_ptr<E>>::iterator iter = (*viter)->getEdges().begin();
+			     iter != (*viter)->getEdges().end(); iter++) {
+				totalBases += (*iter)->getMultiplicity();
+			}
+		}
+		double errorRate = (double) errorCount / totalBases;
+		return likelyErrorChains(chains, graph, errorRate);
+	}
 
 private:
-    std::unordered_set<Path<V,E>*> likelyErrorChains(std::vector<Path<V,E>*> & chains, std::shared_ptr<DirectedSpecifics<V, E>> graph, double errorRate) {
-        std::map<Path<V,E>*, double> chainLogOddsmap;
-        typename std::vector<Path<V,E>*>::iterator viter;
-        for(viter = chains.begin(); viter != chains.end(); viter++) {
-            chainLogOddsmap.insert(std::pair<Path<V,E>* , double>(*viter, chainLogOdds(*viter, graph, errorRate)));
-        }
-        std::unordered_set<Path<V,E>*> result;
-        typename std::map<Path<V,E>*, double>::iterator miter;
-        for(miter = chainLogOddsmap.begin(); miter != chainLogOddsmap.end(); miter++) {
-            if(miter->second < 2.302585092994046) {
-                result.insert(miter->first);
-            }
-        }
-        std::vector<Path<V,E>*> newchains;
-        for(viter = chains.begin(); viter != chains.end(); viter++) {
-            if(isChainPossibleVariant(*viter, graph))
-                newchains.template emplace_back(*viter);
-        }
-        std::sort(newchains.begin(), newchains.end(), [chainLogOddsmap](Path<V,E>* a, Path<V,E>* b)->bool{return chainLogOddsmap.at(a) > chainLogOddsmap.at(b);});
-        std::reverse(newchains.begin(), newchains.end());
-        std::sort(newchains.begin(), newchains.end(), [](Path<V,E>* a, Path<V,E>* b)->bool{return a->length() > b->length();});
-        if(newchains.size() <= 100)
-            return result;
-        else {
-            for(viter = newchains.begin() + 100; viter != newchains.end(); viter++) {
-                result.insert(*viter);
-            }
-            return result;
-        }
-    }
+	std::unordered_set<Path<V, E> *>
+	likelyErrorChains(std::vector<Path<V, E> *> &chains, std::shared_ptr<DirectedSpecifics<V, E>> graph,
+	                  double errorRate) {
+		typename std::vector<Path<V, E> *>::iterator viter;
+		std::unordered_set<Path<V, E> *> result;
+		std::map<Path<V, E> *, double> chainLogOddsmap;
+		std::vector<Path<V, E> *> newchains;
 
-    double chainLogOdds(Path<V,E>* chain, std::shared_ptr<DirectedSpecifics<V, E>> graph, double errorRate) {
-        typename std::unordered_set<std::shared_ptr<E>>::iterator eiter;
-        typename std::vector<std::shared_ptr<E>>::iterator viter;
-        for(viter = chain->getEdges().begin(); viter != chain->getEdges().end(); viter++) {
-            if((*viter)->getIsRef())
-                return POSITIVE_INFINITY;
-        }
-        int leftTotalMultiplicity = 0;
-        int rightTotalMultiplicity = 0;
+		for (viter = chains.begin(); viter != chains.end(); viter++) {
+			chainLogOddsmap.insert(std::pair<Path<V, E> *, double>(*viter, chainLogOdds(*viter, graph, errorRate)));
+		}
+		for (typename std::map<Path<V, E> *, double>::iterator miter = chainLogOddsmap.begin();
+		     miter != chainLogOddsmap.end(); miter++) {
+			if (miter->second < 2.302585092994046) {
+				result.insert(miter->first);
+			}
+		}
+		for (viter = chains.begin(); viter != chains.end(); viter++) {
+			if (isChainPossibleVariant(*viter, graph))
+				newchains.template emplace_back(*viter);
+		}
+		//todo: why sort twice?
+		std::sort(newchains.begin(), newchains.end(), [chainLogOddsmap](Path<V, E> *a, Path<V, E> *b) -> bool {
+			return chainLogOddsmap.at(a) > chainLogOddsmap.at(b);
+		});
+		std::reverse(newchains.begin(), newchains.end());
+		std::sort(newchains.begin(), newchains.end(),
+		          [](Path<V, E> *a, Path<V, E> *b) -> bool { return a->length() > b->length(); });
+		if (newchains.size() <= 100)
+			return result;
+		for (viter = newchains.begin() + 100; viter != newchains.end(); viter++) {
+			result.insert(*viter);
+		}
+		return result;
+	}
+
+	double chainLogOdds(Path<V, E> *chain, std::shared_ptr<DirectedSpecifics<V, E>> graph, double errorRate) {
+		typename std::unordered_set<std::shared_ptr<E>>::iterator eiter;
+		for (typename std::vector<std::shared_ptr<E>>::iterator viter = chain->getEdges().begin(); viter != chain->getEdges().end(); viter++) {
+			if ((*viter)->getIsRef())
+				return POSITIVE_INFINITY;
+		}
+		int leftTotalMultiplicity = 0, rightTotalMultiplicity = 0;
 //        std::shared_ptr<V> first = chain->getFirstVertex();
 //        std::shared_ptr<V> last = chain->getLastVertex();
-        std::unordered_set<std::shared_ptr<E>> outgoing = graph->outgoingEdgesOf(chain->getFirstVertex());
-        std::unordered_set<std::shared_ptr<E>> incoming = graph->incomingEdgesOf(chain->getLastVertex());
-        for(eiter = outgoing.begin(); eiter != outgoing.end(); eiter++) {
-            leftTotalMultiplicity += (*eiter)->getMultiplicity();
-        }
-        for(eiter= incoming.begin(); eiter != incoming.end(); eiter++) {
-            rightTotalMultiplicity += (*eiter)->getMultiplicity();
-        }
-        int leftMultiplicity = (chain->getEdges()[0])->getMultiplicity();
-        int rightMultiplicity = chain->getLastEdge()->getMultiplicity();
+		std::unordered_set<std::shared_ptr<E>> outgoing = graph->outgoingEdgesOf(chain->getFirstVertex());
+		std::unordered_set<std::shared_ptr<E>> incoming = graph->incomingEdgesOf(chain->getLastVertex());
+		for (eiter = outgoing.begin(); eiter != outgoing.end(); eiter++) {
+			leftTotalMultiplicity += (*eiter)->getMultiplicity();
+		}
+		for (eiter = incoming.begin(); eiter != incoming.end(); eiter++) {
+			rightTotalMultiplicity += (*eiter)->getMultiplicity();
+		}
+		int leftMultiplicity = (chain->getEdges()[0])->getMultiplicity();
+		int rightMultiplicity = chain->getLastEdge()->getMultiplicity();
 
-        double leftLogOdds = graph->isSource(chain->getFirstVertex()) ? 0.0 : Mutect2Utils::logLikelihoodRatio(leftTotalMultiplicity - leftMultiplicity, leftMultiplicity, errorRate);
-        double rightLogOdds = graph->isSink(chain->getLastVertex()) ? 0.0 : Mutect2Utils::logLikelihoodRatio(rightTotalMultiplicity - rightMultiplicity, rightMultiplicity, errorRate);
+		double leftLogOdds = graph->isSource(chain->getFirstVertex()) ? 0.0 : Mutect2Utils::logLikelihoodRatio(
+				leftTotalMultiplicity - leftMultiplicity, leftMultiplicity, errorRate);
+		double rightLogOdds = graph->isSink(chain->getLastVertex()) ? 0.0 : Mutect2Utils::logLikelihoodRatio(
+				rightTotalMultiplicity - rightMultiplicity, rightMultiplicity, errorRate);
 
-        return std::max(leftLogOdds, rightLogOdds);
-    }
+		return std::max(leftLogOdds, rightLogOdds);
+	}
 
-    bool isChainPossibleVariant(Path<V,E>* chain, std::shared_ptr<DirectedSpecifics<V, E>> &graph) {
-        typename std::unordered_set<std::shared_ptr<E>>::iterator eiter;
-        typename std::vector<std::shared_ptr<E>>::iterator viter;
-        int leftTotalMultiplicity = 0;
-        int rightTotalMultiplicity = 0;
-        std::unordered_set<std::shared_ptr<E>> outgoing = graph->outgoingEdgesOf(chain->getFirstVertex());
-        std::unordered_set<std::shared_ptr<E>> incoming = graph->incomingEdgesOf(chain->getLastVertex());
-        for(eiter = outgoing.begin(); eiter != outgoing.end(); eiter++) {
-            leftTotalMultiplicity += (*eiter)->getMultiplicity();
-        }
-        for(eiter= incoming.begin(); eiter != incoming.end(); eiter++) {
-            rightTotalMultiplicity += (*eiter)->getMultiplicity();
-        }
-        int leftMultiplicity = (chain->getEdges()[0])->getMultiplicity();
-        int rightMultiplicity = chain->getLastEdge()->getMultiplicity();
+	bool isChainPossibleVariant(Path<V, E> *chain, std::shared_ptr<DirectedSpecifics<V, E>> &graph) {
+		typename std::unordered_set<std::shared_ptr<E>>::iterator eiter;
+		int leftTotalMultiplicity = 0, rightTotalMultiplicity = 0;
+		std::unordered_set<std::shared_ptr<E>> outgoing = graph->outgoingEdgesOf(chain->getFirstVertex());
+		std::unordered_set<std::shared_ptr<E>> incoming = graph->incomingEdgesOf(chain->getLastVertex());
+		for (eiter = outgoing.begin(); eiter != outgoing.end(); eiter++) {
+			leftTotalMultiplicity += (*eiter)->getMultiplicity();
+		}
+		for (eiter = incoming.begin(); eiter != incoming.end(); eiter++) {
+			rightTotalMultiplicity += (*eiter)->getMultiplicity();
+		}
+		int leftMultiplicity = (chain->getEdges()[0])->getMultiplicity();
+		int rightMultiplicity = chain->getLastEdge()->getMultiplicity();
 
-        return leftMultiplicity <= leftTotalMultiplicity / 2 || rightMultiplicity <= rightTotalMultiplicity / 2;
-    }
+		return leftMultiplicity <= leftTotalMultiplicity / 2 || rightMultiplicity <= rightTotalMultiplicity / 2;
+	}
 };
 
 
