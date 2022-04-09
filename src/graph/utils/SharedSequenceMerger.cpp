@@ -15,7 +15,7 @@ bool SharedSequenceMerger::canMerge(const std::shared_ptr<SeqGraph>& graph, std:
         if(! prev->seqEquals(first)) {
             return false;
         }
-        std::unordered_set<std::shared_ptr<SeqVertex>> prevOuts = graph->outgoingVerticesOf(prev);
+        std::vector<std::shared_ptr<SeqVertex>> prevOuts = graph->vecOutgoingVerticesOf(prev);
         if(prevOuts.size() != 1){
             return false;
         }

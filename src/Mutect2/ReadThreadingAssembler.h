@@ -33,7 +33,7 @@ private:
 	static const int KMER_SIZE_ITERATION_INCREASE = 10;
 	std::string refSequenceName = "ref";
 
-	std::shared_ptr<AssemblyResult> getAssemblyResult(std::shared_ptr<Haplotype> &refHaplotype, int kmerSize,
+	std::shared_ptr<AssemblyResult> getAssemblyResult(std::shared_ptr<Haplotype> &refHaplotype,
 	                                                  const std::shared_ptr<ReadThreadingGraph> &rtgraph) const;
 
 	static std::shared_ptr<AssemblyResult> cleanupSeqGraph(const std::shared_ptr<SeqGraph> &seqGraph);

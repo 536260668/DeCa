@@ -8,7 +8,7 @@
 #include <unordered_set>
 #include <memory>
 
-template<class VV, class EE>
+template<class EE>
 class DirectedEdgeContainer {
 private:
 	static const long serialVersionUID = 7494242245729767106L;
@@ -33,13 +33,9 @@ public:
 		return outgoing;
 	}
 
-	void removeIncomingEdge(const std::shared_ptr<EE> &e) {
-		incoming.erase(e);
-	}
+	void removeIncomingEdge(const std::shared_ptr<EE> &e) { incoming.erase(e); }
 
-	void removeOutgoingEdge(const std::shared_ptr<EE> &e) {
-		outgoing.erase(e);
-	}
+	void removeOutgoingEdge(const std::shared_ptr<EE> &e) { outgoing.erase(e); }
 };
 
 

@@ -7,7 +7,7 @@
 MultiDeBruijnVertex::MultiDeBruijnVertex(const std::shared_ptr<uint8_t[]> &sequence, int length,
                                          bool mergeIdenticalNodes)
 		: BaseVertex(sequence, length), mergeIdenticalNodes(mergeIdenticalNodes) {
-	hashCode = mergeIdenticalNodes ? (long)BaseVertex::getHashCode() : (long) this;
+	hashCode = mergeIdenticalNodes ? (long) BaseVertex::getHashCode() : (long) this;
 }
 
 bool MultiDeBruijnVertex::operator==(const MultiDeBruijnVertex &other) const {
@@ -42,7 +42,7 @@ std::shared_ptr<uint8_t[]> MultiDeBruijnVertex::getSuffixAsArray() const {
 
 MultiDeBruijnVertex::MultiDeBruijnVertex(const std::shared_ptr<uint8_t[]> &sequence, int length)
 		: BaseVertex(sequence, length), mergeIdenticalNodes(false) {
-	hashCode = mergeIdenticalNodes ? (long)BaseVertex::getHashCode() : (long)this;
+	hashCode = mergeIdenticalNodes ? (long) BaseVertex::getHashCode() : (long) this;
 }
 
 int MultiDeBruijnVertex::getAdditionalLength(bool source) {

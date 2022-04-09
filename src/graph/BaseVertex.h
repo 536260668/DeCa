@@ -73,6 +73,8 @@ public:
 	virtual std::shared_ptr<uint8_t[]> getAdditionalSequence(bool source) { return getSequence(); }
 
 	virtual int getAdditionalSequenceLength(bool source) { return getLength(); }
+
+	void additionalInfoAppendPlusSign();
 };
 
 

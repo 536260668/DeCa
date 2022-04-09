@@ -367,7 +367,7 @@ void ReadThreadingGraph::buildGraphIfNecessary() {
 //    }
 
 	for (auto &uniqueKmer: uniqueKmers) {
-		uniqueKmer.second->setAdditionalInfo(uniqueKmer.second->getAdditionalInfo() + '+');
+		uniqueKmer.second->additionalInfoAppendPlusSign();
 	}
 }
 
@@ -401,44 +401,22 @@ void ReadThreadingGraph::removeSingletonOrphanVertices() {
 }
 
 void ReadThreadingGraph::recoverDanglingTails(int pruneFactor, int minDanglingBranchLength, bool recoverAll) {
-	Mutect2Utils::validateArg(pruneFactor >= 0, "pruneFactor must be non-negative");
-	Mutect2Utils::validateArg(minDanglingBranchLength >= 0, "minDanglingBranchLength must be non-negative");
-
-	if (!alreadyBuilt) {
-		throw std::invalid_argument("recoverDanglingTails requires the graph be already built");
-	}
-
-	int attempted = 0;
-	int nRecovered = 0;
+	//int attempted = 0, nRecovered = 0;
+	DanglingChainMergeHelper *danglingTailMergeResult = nullptr;
 	for (const std::shared_ptr<MultiDeBruijnVertex> &v: getVertexSet()) {
 		if (outDegreeOf(v) == 0 && !isRefSink(v)) {
-			attempted++;
-			nRecovered += recoverDanglingTail(v, pruneFactor, minDanglingBranchLength, recoverAll);
+			//attempted++;
+			//nRecovered += recoverDanglingTail(v, pruneFactor, minDanglingBranchLength, recoverAll);
+			danglingTailMergeResult = generateCigarAgainstDownwardsReferencePath(v, pruneFactor,
+			                                                                     minDanglingBranchLength, recoverAll);
+			if (danglingTailMergeResult != nullptr) {
+				if (cigarIsOkayToMerge(danglingTailMergeResult->cigar, false, true))
+					mergeDanglingTail(danglingTailMergeResult);
+				delete danglingTailMergeResult;
+			}
 		}
 	}
 	//std::cout << nRecovered << std::endl;
-}
-
-int ReadThreadingGraph::recoverDanglingTail(const std::shared_ptr<MultiDeBruijnVertex> &vertex, int pruneFactor,
-                                            int minDanglingBranchLength,
-                                            bool recoverAll) {
-	if (outDegreeOf(vertex) != 0) {
-		throw std::invalid_argument("Attempting to recover a dangling tail but it has out-degree > 0");
-	}
-
-	DanglingChainMergeHelper *danglingTailMergeResult = generateCigarAgainstDownwardsReferencePath(vertex,
-	                                                                                               pruneFactor,
-	                                                                                               minDanglingBranchLength,
-	                                                                                               recoverAll);
-
-	if (danglingTailMergeResult == nullptr ||
-	    !cigarIsOkayToMerge(danglingTailMergeResult->cigar, false, true)) {
-		delete danglingTailMergeResult;
-		return 0;
-	}
-	int res = mergeDanglingTail(danglingTailMergeResult);
-	delete danglingTailMergeResult;
-	return res;
 }
 
 DanglingChainMergeHelper *
@@ -446,41 +424,32 @@ ReadThreadingGraph::generateCigarAgainstDownwardsReferencePath(std::shared_ptr<M
                                                                int pruneFactor,
                                                                int minDanglingBranchLength, bool recoverAll) {
 	int minTailPathLength = std::max(1, minDanglingBranchLength);
-	std::deque<std::shared_ptr<MultiDeBruijnVertex>> altPath = findPathUpwardsToLowestCommonAncestor(
-			std::move(vertex),
-			pruneFactor,
-			!recoverAll);
-	if (altPath.empty() || isRefSource(altPath.front()) || altPath.size() < minTailPathLength + 1) {
+	std::vector<std::shared_ptr<MultiDeBruijnVertex>> altPath = findPathUpwardsToLowestCommonAncestor(
+			std::move(vertex), pruneFactor, !recoverAll);
+	if (altPath.empty() || isRefSource(altPath.back()) || altPath.size() < minTailPathLength + 1)
 		return nullptr;
-	}
-	std::shared_ptr<MultiDeBruijnVertex> toBlacklistedEdge = altPath.size() > 1 ? altPath.at(1) : nullptr;
-	std::vector<std::shared_ptr<MultiDeBruijnVertex>> refPath = getReferencePath(altPath.at(0), downwards,
+	std::reverse(altPath.begin(), altPath.end());
+	std::shared_ptr<MultiDeBruijnVertex> toBlacklistedEdge = altPath.size() > 1 ? altPath[1] : nullptr;
+	std::vector<std::shared_ptr<MultiDeBruijnVertex>> refPath = getReferencePath(altPath[0], downwards,
 	                                                                             getHeaviestIncomingEdge(
 			                                                                             toBlacklistedEdge));
-	std::vector<std::shared_ptr<MultiDeBruijnVertex>> newaltPath;
-	newaltPath.reserve(altPath.size());
-	for (const std::shared_ptr<MultiDeBruijnVertex> &vertex1: altPath) {
-		newaltPath.emplace_back(vertex1);
-	}
-	int refLength;
+	int refLength, altLength;
 	std::shared_ptr<uint8_t[]> refBases = getBasesForPath(refPath, refLength, false);
-	int altLength;
-	std::shared_ptr<uint8_t[]> altBases = getBasesForPath(newaltPath, altLength, false);
+	std::shared_ptr<uint8_t[]> altBases = getBasesForPath(altPath, altLength, false);
 	SWNativeAlignerWrapper wrapper = SWNativeAlignerWrapper();
 	SmithWatermanAlignment *alignment = wrapper.align(refBases, refLength, altBases, altLength,
 	                                                  &SmithWatermanAligner::STANDARD_NGS, LEADING_INDEL);
-	auto *res = new DanglingChainMergeHelper(newaltPath, refPath, altBases, altLength, refBases, refLength,
-	                                         AlignmentUtils::removeTrailingDeletions(alignment->getCigar()));
+	std::shared_ptr<Cigar> c = alignment->getCigar();
 	delete alignment;
-	return res;
+	return new DanglingChainMergeHelper(altPath, refPath, altBases, altLength, refBases, refLength,
+	                                    AlignmentUtils::removeTrailingDeletions(c));
 }
 
-
-std::deque<std::shared_ptr<MultiDeBruijnVertex>>
+std::vector<std::shared_ptr<MultiDeBruijnVertex>>
 ReadThreadingGraph::findPathUpwardsToLowestCommonAncestor(std::shared_ptr<MultiDeBruijnVertex> vertex,
                                                           int pruneFactor,
                                                           bool giveUpAtBranch) {
-	std::deque<std::shared_ptr<MultiDeBruijnVertex>> ret;
+	std::vector<std::shared_ptr<MultiDeBruijnVertex>> ret;
 	std::shared_ptr<MultiDeBruijnVertex> v = std::move(vertex);
 	if (giveUpAtBranch) {
 		while (!(inDegreeOf(v) != 1 || outDegreeOf(v) >= 2)) {
@@ -488,27 +457,26 @@ ReadThreadingGraph::findPathUpwardsToLowestCommonAncestor(std::shared_ptr<MultiD
 			if (edge->getPruningMultiplicity() < pruneFactor) {
 				ret.clear();
 			} else {
-				ret.push_front(v);
+				ret.push_back(v);
 			}
 			v = getEdgeSource(edge);
 		}
-		ret.push_front(v);
+		ret.push_back(v);
 
-		return outDegreeOf(v) > 1 ? ret : std::deque<std::shared_ptr<MultiDeBruijnVertex>>();
+		return outDegreeOf(v) > 1 ? ret : std::vector<std::shared_ptr<MultiDeBruijnVertex>>();
 	} else {
 		while (!(hasIncidentRefEdge(v) || inDegreeOf(v) == 0)) {
 			std::shared_ptr<MultiSampleEdge> edge = getHeaviestIncomingEdge(v);
 			if (edge->getPruningMultiplicity() < pruneFactor) {
 				ret.clear();
 			} else {
-				ret.push_front(v);
+				ret.push_back(v);
 			}
 			v = getEdgeSource(edge);
 		}
-		ret.push_front(v);
+		ret.push_back(v);
 
-		return outDegreeOf(v) > 1 && hasIncidentRefEdge(v) ? ret
-		                                                   : std::deque<std::shared_ptr<MultiDeBruijnVertex>>();
+		return outDegreeOf(v) > 1 && hasIncidentRefEdge(v) ? ret : std::vector<std::shared_ptr<MultiDeBruijnVertex>>();
 	}
 }
 
@@ -539,9 +507,8 @@ std::vector<std::shared_ptr<MultiDeBruijnVertex>>
 ReadThreadingGraph::getReferencePath(std::shared_ptr<MultiDeBruijnVertex> start, TraversalDirection direction,
                                      const std::shared_ptr<MultiSampleEdge> &blacklistedEdge) {
 	std::vector<std::shared_ptr<MultiDeBruijnVertex>> path;
-
+	path.reserve(vertexMapDirected.size());
 	std::shared_ptr<MultiDeBruijnVertex> v = std::move(start);
-
 	while (v != nullptr) {
 		path.emplace_back(v);
 		v = (direction == downwards ?
@@ -654,88 +621,53 @@ int ReadThreadingGraph::longestSuffixMatch(const std::shared_ptr<uint8_t[]> &seq
 }
 
 void ReadThreadingGraph::recoverDanglingHeads(int pruneFactor, int minDanglingBranchLength, bool recoverAll) {
-	Mutect2Utils::validateArg(pruneFactor >= 0, "pruneFactor must be non-negative");
-	Mutect2Utils::validateArg(minDanglingBranchLength >= 0, "minDanglingBranchLength must be non-negative");
-
-	if (!alreadyBuilt) {
-		throw std::invalid_argument("recoverDanglingTails requires the graph be already built");
-	}
-
-	std::vector<std::shared_ptr<MultiDeBruijnVertex>> danglingHeads;
+	DanglingChainMergeHelper *danglingHeadMergeResult = nullptr;
 	for (const std::shared_ptr<MultiDeBruijnVertex> &v: getVertexSet()) {
-		if (DirectedSpecifics<MultiDeBruijnVertex, MultiSampleEdge>::inDegreeOf(v) == 0 && !isRefSource(v))
-			danglingHeads.emplace_back(v);
+		if (inDegreeOf(v) == 0 && !isRefSource(v)) {
+			danglingHeadMergeResult = generateCigarAgainstUpwardsReferencePath(v, pruneFactor, minDanglingBranchLength,
+			                                                                   recoverAll);
+			if (danglingHeadMergeResult != nullptr) {
+				if (cigarIsOkayToMerge(danglingHeadMergeResult->cigar, true, false))
+					mergeDanglingHead(danglingHeadMergeResult);
+				delete danglingHeadMergeResult;
+			}
+		}
 	}
-
-	int attempted = 0;
-	int nRecovered = 0;
+	/*int attempted = 0, nRecovered = 0;
 	for (const std::shared_ptr<MultiDeBruijnVertex> &v: danglingHeads) {
 		attempted++;
 		nRecovered += recoverDanglingHead(v, pruneFactor, minDanglingBranchLength, recoverAll);
-//        if(outDegreeOf(v) == 0 && !isRefSink(v)) {
-//
-//        }
-	}
+	}*/
 	//std::cout << nRecovered << std::endl;
-}
-
-int ReadThreadingGraph::recoverDanglingHead(const std::shared_ptr<MultiDeBruijnVertex> &vertex, int pruneFactor,
-                                            int minDanglingBranchLength,
-                                            bool recoverAll) {
-	if (inDegreeOf(vertex) != 0) {
-		throw std::invalid_argument("Attempting to recover a dangling head but it has in-degree > 0");
-	}
-
-	DanglingChainMergeHelper *danglingTailMergeResult = generateCigarAgainstUpwardsReferencePath(vertex,
-	                                                                                             pruneFactor,
-	                                                                                             minDanglingBranchLength,
-	                                                                                             recoverAll);
-
-	if (danglingTailMergeResult == nullptr ||
-	    !cigarIsOkayToMerge(danglingTailMergeResult->cigar, true, false)) {
-		delete danglingTailMergeResult;
-		return 0;
-	}
-	int res = mergeDanglingHead(danglingTailMergeResult);
-	delete danglingTailMergeResult;
-	return res;
 }
 
 DanglingChainMergeHelper *
 ReadThreadingGraph::generateCigarAgainstUpwardsReferencePath(std::shared_ptr<MultiDeBruijnVertex> vertex,
                                                              int pruneFactor,
                                                              int minDanglingBranchLength, bool recoverAll) {
-	std::deque<std::shared_ptr<MultiDeBruijnVertex>> altPath = findPathDownwardsToHighestCommonDescendantOfReference(
+	std::vector<std::shared_ptr<MultiDeBruijnVertex>> altPath = findPathDownwardsToHighestCommonDescendantOfReference(
 			std::move(vertex), pruneFactor, !recoverAll);
-	if (altPath.empty() || isRefSink(altPath.front()) || altPath.size() < minDanglingBranchLength + 1) {
+	if (altPath.empty() || isRefSink(altPath.back()) || altPath.size() < minDanglingBranchLength + 1) {
 		return nullptr;
 	}
-	std::vector<std::shared_ptr<MultiDeBruijnVertex>> refPath = getReferencePath(altPath.at(0), upwards,
-	                                                                             nullptr);
-	std::vector<std::shared_ptr<MultiDeBruijnVertex>> newaltPath;
-	newaltPath.reserve(altPath.size());
-	for (const std::shared_ptr<MultiDeBruijnVertex> &vertex1: altPath) {
-		newaltPath.emplace_back(vertex1);
-	}
-	int refLength;
+	std::reverse(altPath.begin(), altPath.end());
+	std::vector<std::shared_ptr<MultiDeBruijnVertex>> refPath = getReferencePath(altPath[0], upwards, nullptr);
+	int refLength, altLength;
 	std::shared_ptr<uint8_t[]> refBases = getBasesForPath(refPath, refLength, false);
-	int altLength;
-	std::shared_ptr<uint8_t[]> altBases = getBasesForPath(newaltPath, altLength, false);
+	std::shared_ptr<uint8_t[]> altBases = getBasesForPath(altPath, altLength, false);
 	SWNativeAlignerWrapper wrapper = SWNativeAlignerWrapper();
 	SmithWatermanAlignment *alignment = wrapper.align(refBases, refLength, altBases, altLength,
 	                                                  &SmithWatermanAligner::STANDARD_NGS, LEADING_INDEL);
 	std::shared_ptr<Cigar> c = alignment->getCigar();
 	delete alignment;
-	return new DanglingChainMergeHelper(newaltPath, refPath, altBases, altLength, refBases, refLength,
+	return new DanglingChainMergeHelper(altPath, refPath, altBases, altLength, refBases, refLength,
 	                                    AlignmentUtils::removeTrailingDeletions(c));
 }
 
-std::deque<std::shared_ptr<MultiDeBruijnVertex>>
-ReadThreadingGraph::findPathDownwardsToHighestCommonDescendantOfReference(
-		std::shared_ptr<MultiDeBruijnVertex> vertex,
-		int pruneFactor,
-		bool giveUpAtBranch) {
-	std::deque<std::shared_ptr<MultiDeBruijnVertex>> ret;
+std::vector<std::shared_ptr<MultiDeBruijnVertex>>
+ReadThreadingGraph::findPathDownwardsToHighestCommonDescendantOfReference(std::shared_ptr<MultiDeBruijnVertex> vertex,
+                                                                          int pruneFactor, bool giveUpAtBranch) {
+	std::vector<std::shared_ptr<MultiDeBruijnVertex>> ret;
 	std::shared_ptr<MultiDeBruijnVertex> v = std::move(vertex);
 	if (giveUpAtBranch) {
 		while (!(isReferenceNode(v) || outDegreeOf(v) != 1)) {
@@ -743,26 +675,26 @@ ReadThreadingGraph::findPathDownwardsToHighestCommonDescendantOfReference(
 			if (edge->getPruningMultiplicity() < pruneFactor) {
 				ret.clear();
 			} else {
-				ret.push_front(v);
+				ret.push_back(v);
 			}
 			v = getEdgeTarget(edge);
 		}
-		ret.push_front(v);
+		ret.push_back(v);
 
-		return isReferenceNode(v) ? ret : std::deque<std::shared_ptr<MultiDeBruijnVertex>>();
+		return isReferenceNode(v) ? ret : std::vector<std::shared_ptr<MultiDeBruijnVertex>>();
 	} else {
 		while (!(isReferenceNode(v) || outDegreeOf(v) == 0)) {
 			std::shared_ptr<MultiSampleEdge> edge = getHeaviestOutgoingEdge(v);
 			if (edge->getPruningMultiplicity() < pruneFactor) {
 				ret.clear();
 			} else {
-				ret.push_front(v);
+				ret.push_back(v);
 			}
 			v = getEdgeTarget(edge);
 		}
-		ret.push_front(v);
+		ret.push_back(v);
 
-		return isReferenceNode(v) ? ret : std::deque<std::shared_ptr<MultiDeBruijnVertex>>();
+		return isReferenceNode(v) ? ret : std::vector<std::shared_ptr<MultiDeBruijnVertex>>();
 	}
 }
 
@@ -939,6 +871,9 @@ bool ReadThreadingGraph::hasCycles() {
 	return detect.detectCycles();
 }
 
+bool ReadThreadingGraph::ifAlreadyBuilt() const {
+	return alreadyBuilt;
+}
 
 
 

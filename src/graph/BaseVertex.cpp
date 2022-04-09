@@ -57,6 +57,11 @@ void BaseVertex::setAdditionalInfo(const std::string &info) {
 	additionalInfo = info;
 }
 
+void BaseVertex::additionalInfoAppendPlusSign() {
+	additionalInfo += '+';
+}
+
+
 bool BaseVertex::hasAmbiguousSequence() {
 	for (int i = 0; i < length; i++) {
 		uint8_t tmp = sequence.get()[i];
@@ -76,7 +81,7 @@ bool BaseVertex::hasAmbiguousSequence() {
 }
 
 bool BaseVertex::seqEquals(const std::shared_ptr<BaseVertex> &other) {
-	if (length != other->getLength() || cashedHashCode!=other->getHashCode())
+	if (length != other->getLength() || cashedHashCode != other->getHashCode())
 		return false;
 
 	std::shared_ptr<uint8_t[]> otherSeq = other->getSequence();

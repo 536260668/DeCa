@@ -160,11 +160,11 @@ private:
 	* @param aligner
 	* @return 1 if we successfully recovered the vertex and 0 otherwise
 	*/
-	int recoverDanglingTail(const std::shared_ptr<MultiDeBruijnVertex> &v, int pruneFactor, int minDanglingBranchLength,
-	                        bool recoverAll);
+	/*int recoverDanglingTail(const std::shared_ptr<MultiDeBruijnVertex> &v, int pruneFactor, int minDanglingBranchLength,
+	                        bool recoverAll);*/
 
 
-	std::deque<std::shared_ptr<MultiDeBruijnVertex>>
+	std::vector<std::shared_ptr<MultiDeBruijnVertex>>
 	findPathUpwardsToLowestCommonAncestor(std::shared_ptr<MultiDeBruijnVertex> vertex, int pruneFactor,
 	                                      bool giveUpAtBranch);
 
@@ -188,10 +188,10 @@ private:
 	 * @param aligner
 	 * @return 1 if we successfully recovered a vertex and 0 otherwise
 	 */
-	int recoverDanglingHead(const std::shared_ptr<MultiDeBruijnVertex> &v, int pruneFactor, int minDanglingBranchLength,
-	                        bool recoverAll);
+	/*int recoverDanglingHead(const std::shared_ptr<MultiDeBruijnVertex> &v, int pruneFactor, int minDanglingBranchLength,
+	                        bool recoverAll);*/
 
-	std::deque<std::shared_ptr<MultiDeBruijnVertex>>
+	std::vector<std::shared_ptr<MultiDeBruijnVertex>>
 	findPathDownwardsToHighestCommonDescendantOfReference(std::shared_ptr<MultiDeBruijnVertex> vertex, int pruneFactor,
 	                                                      bool giveUpAtBranch);
 
@@ -217,6 +217,8 @@ public:
 	 * been added to the graph.
 	 */
 	void buildGraphIfNecessary();
+
+	bool ifAlreadyBuilt() const;
 
 	/**
 	 * Changes the threading start location policy.

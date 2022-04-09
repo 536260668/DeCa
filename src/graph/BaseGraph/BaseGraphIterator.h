@@ -5,7 +5,7 @@
 #ifndef MUTECT2CPP_MASTER_BASEGRAPHITERATOR_H
 #define MUTECT2CPP_MASTER_BASEGRAPHITERATOR_H
 
-#include <deque>
+#include <queue>
 #include "DirectedSpecifics.h"
 #include <unordered_set>
 
@@ -16,7 +16,7 @@ template<class T, class E>
 class BaseGraphIterator {
 private:
 	std::unordered_set<std::shared_ptr<T>> visited;
-	std::deque<std::shared_ptr<T>> toVisit;
+	std::queue<std::shared_ptr<T>> toVisit;
 	DirectedSpecifics<T, E> *graph;
 	bool followIncomingEdges;
 	bool followOutgoingEdges;
@@ -28,23 +28,24 @@ public:
 		Mutect2Utils::validateArg(graph, "graph cannot be null");
 		Mutect2Utils::validateArg(start.get(), "start cannot be null");
 		Mutect2Utils::validateArg(graph->containsVertex(start), "start must be in graph but it isn't");
-		toVisit.push_front(start);
+		visited.reserve(graph->getVertexSet().size());
+		toVisit.push(start);
 	}
 
 	bool hasNext() { return !toVisit.empty(); }
 
 	std::shared_ptr<T> next() {
 		std::shared_ptr<T> v = toVisit.front();
-		toVisit.pop_front();
+		toVisit.pop();
 		if (visited.find(v) == visited.end()) {
 			visited.insert(v);
 			if (followIncomingEdges) {
-				for (std::shared_ptr<T> vertex: graph->incomingVerticesOf(v))
-					toVisit.push_back(vertex);
+				for (std::shared_ptr<T> vertex: graph->vecIncomingVerticesOf(v))
+					toVisit.push(vertex);
 			}
 			if (followOutgoingEdges) {
-				for (std::shared_ptr<T> vertex: graph->outgoingVerticesOf(v))
-					toVisit.push_back(vertex);
+				for (std::shared_ptr<T> vertex: graph->vecOutgoingVerticesOf(v))
+					toVisit.push(vertex);
 			}
 		}
 		return v;

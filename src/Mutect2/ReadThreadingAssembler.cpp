@@ -14,16 +14,22 @@
 
 
 std::shared_ptr<AssemblyResult>
-ReadThreadingAssembler::getAssemblyResult(std::shared_ptr<Haplotype> &refHaplotype, int kmerSize,
+ReadThreadingAssembler::getAssemblyResult(std::shared_ptr<Haplotype> &refHaplotype,
                                           const std::shared_ptr<ReadThreadingGraph> &rtgraph) const {
 	//std::cout << rtgraph->getVertexSet().size() << rtgraph->getEdgeSet().size() << std::endl;
 	if (recoverDanglingBranches) {
+		if (pruneFactor < 0)
+			throw std::invalid_argument("pruneFactor must be non-negative");
+		if (minDanglingBranchLength < 0)
+			throw std::invalid_argument("minDanglingBranchLength must be non-negative");
+		if (!rtgraph->ifAlreadyBuilt())
+			throw std::invalid_argument("recoverDanglingTails requires the graph be already built");
 		rtgraph->recoverDanglingTails(pruneFactor, minDanglingBranchLength, recoverAllDanglingBranches);
 		rtgraph->recoverDanglingHeads(pruneFactor, minDanglingBranchLength, recoverAllDanglingBranches);
 	}
 	//std::cout << rtgraph->getVertexSet().size() << rtgraph->getEdgeSet().size() << std::endl;
 	if (removePathsNotConnectedToRef) {
-		rtgraph->removePathsNotConnectedToRef();
+		rtgraph->removePathsNotConnectedToRef(rtgraph->getVertexSet().size());
 	}
 
 	std::shared_ptr<SeqGraph> initialSeqGraph = rtgraph->toSequenceGraph();
@@ -33,9 +39,7 @@ ReadThreadingAssembler::getAssemblyResult(std::shared_ptr<Haplotype> &refHaploty
 	initialSeqGraph->cleanNonRefPaths();
 
 	std::shared_ptr<AssemblyResult> cleaned = cleanupSeqGraph(initialSeqGraph);
-	Status status = cleaned->getStatus();
-	std::shared_ptr<AssemblyResult> ret = std::make_shared<AssemblyResult>(status, cleaned->getGraph(), rtgraph);
-	return ret;
+	return std::make_shared<AssemblyResult>(cleaned->getStatus(), cleaned->getGraph(), rtgraph);
 }
 
 std::shared_ptr<AssemblyResult> ReadThreadingAssembler::cleanupSeqGraph(const std::shared_ptr<SeqGraph> &seqGraph) {
@@ -46,7 +50,7 @@ std::shared_ptr<AssemblyResult> ReadThreadingAssembler::cleanupSeqGraph(const st
 	if (seqGraph->getReferenceSinkVertex() == nullptr || seqGraph->getReferenceSourceVertex() == nullptr) {
 		return std::make_shared<AssemblyResult>(JUST_ASSEMBLED_REFERENCE, seqGraph, nullptr);
 	}
-	seqGraph->removePathsNotConnectedToRef();
+	seqGraph->removePathsNotConnectedToRef(seqGraph->getVertexSet().size());
 	seqGraph->simplifyGraph();
 	if (seqGraph->getVertexSet().size() == 1) {
 		std::shared_ptr<SeqVertex> complete = *(seqGraph->getVertexSet().begin());
@@ -329,7 +333,7 @@ ReadThreadingAssembler::createGraph(const std::vector<std::shared_ptr<SAMRecord>
 		return nullptr;
 	}
 	//std::cout << kmerSize << std::endl;
-	return getAssemblyResult(refHaplotype, kmerSize, rtgraph);
+	return getAssemblyResult(refHaplotype, rtgraph);
 }
 
 void ReadThreadingAssembler::addResult(std::vector<std::shared_ptr<AssemblyResult>> &results,
