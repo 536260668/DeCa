@@ -301,13 +301,13 @@ void ReadThreadingGraph::buildGraphIfNecessary() {
 //    }
 
 	determineNonUniques();
-	//if (!nonUniqueKmers.empty()) {
-		//std::cout << "[buildGraphIfNecessary] " << nonUniqueKmers.size() << std::endl;
+	if (!nonUniqueKmers.empty()) {
+		std::cout << "[buildGraphIfNecessary] " << nonUniqueKmers.size() << std::endl;
 		/*for(const auto& nonnnnn : nonUniqueKmers){
 			std::string s = reinterpret_cast<const char *>(nonnnnn->getBases().get());
 			std::cout<<s.substr(0,nonnnnn->getLength())<<std::endl;
 		}*/
-	//}
+	}
 
 	for (auto &miter: pending) {
 		for (auto &viter: miter.second) {
@@ -810,24 +810,24 @@ std::shared_ptr<MultiSampleEdge> ReadThreadingGraph::createEdge(const std::share
 }
 
 std::shared_ptr<SeqGraph> ReadThreadingGraph::toSequenceGraph() {
-	buildGraphIfNecessary();
+	//buildGraphIfNecessary();
+	int reserveSize = (int) ((double) getVertexSet().size() * 1.3);
 	std::shared_ptr<SeqGraph> seqGraph(new SeqGraph(kmerSize));
-	std::map<std::shared_ptr<MultiDeBruijnVertex>, std::shared_ptr<SeqVertex>> vertexMap;
-	for (const std::shared_ptr<MultiDeBruijnVertex> &dv: DirectedSpecifics<MultiDeBruijnVertex, MultiSampleEdge>::getVertexSet()) {
+	seqGraph->reserveSpace(reserveSize);
+	std::unordered_map<std::shared_ptr<MultiDeBruijnVertex>, std::shared_ptr<SeqVertex>> vertexMap;
+	vertexMap.reserve(reserveSize);
+	for (auto &dv: DirectedSpecifics<MultiDeBruijnVertex, MultiSampleEdge>::getVertexSet()) {
 		std::shared_ptr<SeqVertex> sv(new SeqVertex(dv->getAdditionalSequence(
 				DirectedSpecifics<MultiDeBruijnVertex, MultiSampleEdge>::isSource(dv)), dv->getAdditionalLength(
 				DirectedSpecifics<MultiDeBruijnVertex, MultiSampleEdge>::isSource(dv))));
 		sv->setAdditionalInfo(dv->getAdditionalInfo());
-		vertexMap.insert(std::pair<std::shared_ptr<MultiDeBruijnVertex>, std::shared_ptr<SeqVertex>>(dv, sv));
+		vertexMap.insert(std::make_pair(dv, sv));
 		seqGraph->addVertex(sv);
 	}
 
-	std::unordered_map<std::shared_ptr<MultiSampleEdge>, IntrusiveEdge<MultiDeBruijnVertex>>::iterator eiter;
-	for (eiter = edgeMap.begin(); eiter != edgeMap.end(); eiter++) {
-		std::shared_ptr<SeqVertex> seqInV = vertexMap.at(getEdgeSource(eiter->first));
-		std::shared_ptr<SeqVertex> seqOutV = vertexMap.at(getEdgeTarget(eiter->first));
-		seqGraph->addEdge(seqInV, seqOutV,
-		                  std::make_shared<BaseEdge>(eiter->first->getIsRef(), eiter->first->getMultiplicity()));
+	for (auto &eiter: edgeMap) {
+		seqGraph->addEdge(vertexMap.at(getEdgeSource(eiter.first)), vertexMap.at(getEdgeTarget(eiter.first)),
+		                  std::make_shared<BaseEdge>(eiter.first->getIsRef(), eiter.first->getMultiplicity()));
 	}
 	return seqGraph;
 }

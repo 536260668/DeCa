@@ -21,7 +21,7 @@ private:
     std::shared_ptr<EventMap>  eventMap;
     int alignmentStartHapwrtRef;
     double score;
-    static std::shared_ptr<uint8_t[]> copyArray(std::shared_ptr<uint8_t[]> base, int length);
+    static std::shared_ptr<uint8_t[]> copyArray(const std::shared_ptr<uint8_t[]>& base, int length);
 
 public:
     /**
@@ -49,9 +49,9 @@ public:
     * @param alignmentStartHapwrtRef offset of this haplotype w.r.t. the reference
     * @param cigar the cigar that maps this haplotype to the reference sequence
     */
-    Haplotype(std::shared_ptr<uint8_t[]> bases, bool isRef, int length, int alignmentStartHapwrtRef, std::shared_ptr<Cigar> & cigar);
+    Haplotype(const std::shared_ptr<uint8_t[]>& bases, bool isRef, int length, int alignmentStartHapwrtRef, std::shared_ptr<Cigar> & cigar);
 
-    Haplotype(std::shared_ptr<uint8_t[]> bases, int length, const std::shared_ptr<Locatable> & loc);
+    Haplotype(const std::shared_ptr<uint8_t[]>& bases, int length, std::shared_ptr<Locatable>  loc);
 
     /**
     * Set the cigar of this haplotype to cigar.

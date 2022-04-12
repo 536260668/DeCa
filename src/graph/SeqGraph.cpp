@@ -13,15 +13,15 @@
 #include "utils/SplitCommonSuffices.h"
 #include "utils/GraphUtils.h"
 
-
+/*
 std::shared_ptr<BaseEdge>
 SeqGraph::createEdge(std::shared_ptr<SeqVertex> sourceVertex, std::shared_ptr<SeqVertex> targetVertrx) {
 	return std::make_shared<BaseEdge>(false, 1);
-}
+}*/
 
 bool SeqGraph::zipLinearChains() {
-	std::list<std::shared_ptr<SeqVertex>> zipStarts;
-	for (const std::shared_ptr<SeqVertex> &source: DirectedSpecifics<SeqVertex, BaseEdge>::getVertexSet()) {
+	std::vector<std::shared_ptr<SeqVertex>> zipStarts;
+	for (auto &source: getVertexSet()) {
 		if (isLinearChainStart(source)) {
 			zipStarts.emplace_back(source);
 		}
@@ -30,19 +30,18 @@ bool SeqGraph::zipLinearChains() {
 	if (zipStarts.empty())
 		return false;
 
+	std::list<std::shared_ptr<SeqVertex>> linearChain;
 	bool mergedOne = false;
-	for (const std::shared_ptr<SeqVertex> &zipStart: zipStarts) {
-		std::list<std::shared_ptr<SeqVertex>> linearChain = traceLinearChain(zipStart);
-
+	for (auto &zipStart: zipStarts) {
+		linearChain = traceLinearChain(zipStart);
 		mergedOne |= mergeLinearChain(linearChain);
 	}
 	return mergedOne;
 }
 
 bool SeqGraph::isLinearChainStart(const std::shared_ptr<SeqVertex> &source) {
-	return DirectedSpecifics<SeqVertex, BaseEdge>::outDegreeOf(source) == 1
-	       && (DirectedSpecifics<SeqVertex, BaseEdge>::inDegreeOf(source) != 1 ||
-	           DirectedSpecifics<SeqVertex, BaseEdge>::outDegreeOf(*(incomingVerticesOf(source).begin())) > 1);
+	return outDegreeOf(source) == 1
+	       && (inDegreeOf(source) != 1 || outDegreeOf(*(incomingVerticesOf(source).begin())) > 1);
 }
 
 std::list<std::shared_ptr<SeqVertex>> SeqGraph::traceLinearChain(const std::shared_ptr<SeqVertex> &zipStart) {
@@ -52,20 +51,16 @@ std::list<std::shared_ptr<SeqVertex>> SeqGraph::traceLinearChain(const std::shar
 	bool lastIsRef = isReferenceNode(zipStart);
 	std::shared_ptr<SeqVertex> last = zipStart;
 	while (true) {
-		if (DirectedSpecifics<SeqVertex, BaseEdge>::outDegreeOf(last) != 1) {
+		if (outDegreeOf(last) != 1)
 			break;
-		}
 
 		std::shared_ptr<SeqVertex> target = getEdgeTarget(outgoingEdgeOf(last));
-
-		if (DirectedSpecifics<SeqVertex, BaseEdge>::inDegreeOf(target) != 1 || last == target) {
+		if (inDegreeOf(target) != 1 || last == target)
 			break;
-		}
 
 		bool targetIsRef = isReferenceNode(target);
-		if (lastIsRef != targetIsRef) {
+		if (lastIsRef != targetIsRef)
 			break;
-		}
 		linearChain.emplace_back(target);
 		last = target;
 		lastIsRef = targetIsRef;
@@ -74,7 +69,8 @@ std::list<std::shared_ptr<SeqVertex>> SeqGraph::traceLinearChain(const std::shar
 }
 
 bool SeqGraph::mergeLinearChain(std::list<std::shared_ptr<SeqVertex>> &linearChain) {
-	Mutect2Utils::validateArg(!linearChain.empty(), "BUG: cannot have linear chain with 0 elements");
+	if (linearChain.empty())
+		throw std::invalid_argument("BUG: cannot have linear chain with 0 elements");
 
 	std::shared_ptr<SeqVertex> first = linearChain.front();
 	std::shared_ptr<SeqVertex> last = linearChain.back();
@@ -83,18 +79,18 @@ bool SeqGraph::mergeLinearChain(std::list<std::shared_ptr<SeqVertex>> &linearCha
 		return false;
 
 	std::shared_ptr<SeqVertex> addedVertex = mergeLinearChainVertices(linearChain);
-	DirectedSpecifics<SeqVertex, BaseEdge>::addVertex(addedVertex);
+	addVertex(addedVertex);
 
-	for (const std::shared_ptr<BaseEdge> &edge: DirectedSpecifics<SeqVertex, BaseEdge>::outgoingEdgesOf(last)) {
+	for (auto &edge: outgoingEdgesOf(last)) {
 		addEdge(addedVertex, getEdgeTarget(edge),
 		        std::make_shared<BaseEdge>(edge->getIsRef(), edge->getMultiplicity()));
 	}
-	std::unordered_set<std::shared_ptr<BaseEdge>> set1 = incomingEdgesOf(first);
-	for (const std::shared_ptr<BaseEdge> &edge: DirectedSpecifics<SeqVertex, BaseEdge>::incomingEdgesOf(first)) {
+	//std::unordered_set<std::shared_ptr<BaseEdge>> set1 = incomingEdgesOf(first);
+	for (auto &edge: incomingEdgesOf(first)) {
 		addEdge(getEdgeSource(edge), addedVertex,
 		        std::make_shared<BaseEdge>(edge->getIsRef(), edge->getMultiplicity()));
 	}
-	DirectedSpecifics<SeqVertex, BaseEdge>::removeAllVertices(linearChain);
+	removeAllVertices(linearChain);
 	return true;
 }
 
@@ -103,16 +99,15 @@ std::shared_ptr<SeqVertex> SeqGraph::mergeLinearChainVertices(std::list<std::sha
 	int length = 500;
 	int start = 0;
 	std::shared_ptr<uint8_t[]> tmp(new uint8_t[length]);
-	for (const std::shared_ptr<SeqVertex> &v: vertices) {
+	for (auto &v: vertices) {
 		int seqLength = v->getLength();
-		std::shared_ptr<uint8_t[]> seq = v->getSequence();
 		while (start + seqLength >= length) {
-			length *= 2;
+			length <<= 1;
 			std::shared_ptr<uint8_t[]> newtmp(new uint8_t[length]);
 			memcpy(newtmp.get(), tmp.get(), start);
 			tmp = newtmp;
 		}
-		memcpy(tmp.get() + start, seq.get(), seqLength);
+		memcpy(tmp.get() + start, v->getSequence().get(), seqLength);
 		start += seqLength;
 	}
 	return std::make_shared<SeqVertex>(tmp, start);
@@ -129,10 +124,8 @@ void SeqGraph::simplifyGraph(int maxCycles) {
 		if (i > MAX_REASONABLE_SIMPLIFICATION_CYCLES) {
 			throw std::invalid_argument("Infinite loop detected in simplification routines for kmer graph");
 		}
-		bool didSomeWork = simplifyGraphOnce(i);
-		if (!didSomeWork) {
+		if (!simplifyGraphOnce(i))
 			break;
-		}
 		if (i > 5) {
 			if (prevGraph != nullptr && GraphUtils::graphEquals(prevGraph.get(), this))
 				break;

@@ -58,11 +58,12 @@ private:
 	                  double errorRate) {
 		typename std::vector<Path<V, E> *>::iterator viter;
 		std::unordered_set<Path<V, E> *> result;
+		result.reserve(chains.size());
 		std::map<Path<V, E> *, double> chainLogOddsmap;
-		std::vector<Path<V, E> *> newchains;
+
 
 		for (viter = chains.begin(); viter != chains.end(); viter++) {
-			chainLogOddsmap.insert(std::pair<Path<V, E> *, double>(*viter, chainLogOdds(*viter, graph, errorRate)));
+			chainLogOddsmap.insert(std::make_pair(*viter, chainLogOdds(*viter, graph, errorRate)));
 		}
 		for (typename std::map<Path<V, E> *, double>::iterator miter = chainLogOddsmap.begin();
 		     miter != chainLogOddsmap.end(); miter++) {
@@ -70,19 +71,26 @@ private:
 				result.insert(miter->first);
 			}
 		}
+
+		std::vector<Path<V, E> *> newchains;
 		for (viter = chains.begin(); viter != chains.end(); viter++) {
 			if (isChainPossibleVariant(*viter, graph))
 				newchains.template emplace_back(*viter);
 		}
-		//todo: why sort twice?
-		std::sort(newchains.begin(), newchains.end(), [chainLogOddsmap](Path<V, E> *a, Path<V, E> *b) -> bool {
-			return chainLogOddsmap.at(a) > chainLogOddsmap.at(b);
-		});
-		std::reverse(newchains.begin(), newchains.end());
-		std::sort(newchains.begin(), newchains.end(),
-		          [](Path<V, E> *a, Path<V, E> *b) -> bool { return a->length() > b->length(); });
 		if (newchains.size() <= 100)
 			return result;
+
+		//.sorted(Comparator.comparingDouble((ToDoubleFunction<Path<V, E>>) chainLogOdds::get)
+		//                        .reversed().thenComparingInt(Path::length))
+		//according to JAVA version, chainLogOdds in descending order, if chainsLogOdds equal, length ascending order
+		std::sort(newchains.begin(), newchains.end(), [chainLogOddsmap](Path<V, E> *a, Path<V, E> *b) -> bool {
+			if (chainLogOddsmap.at(a) == chainLogOddsmap.at(b))
+				return a->length() < b->length();
+			return chainLogOddsmap.at(a) > chainLogOddsmap.at(b);
+		});
+		/*for(auto *newchain : newchains)
+			std::cout<<chainLogOddsmap.at(newchain)<<" "<<newchain->length()<< std::endl;*/
+		//todo: 100 according to what?
 		for (viter = newchains.begin() + 100; viter != newchains.end(); viter++) {
 			result.insert(*viter);
 		}
@@ -90,8 +98,8 @@ private:
 	}
 
 	double chainLogOdds(Path<V, E> *chain, std::shared_ptr<DirectedSpecifics<V, E>> graph, double errorRate) {
-		typename std::unordered_set<std::shared_ptr<E>>::iterator eiter;
-		for (typename std::vector<std::shared_ptr<E>>::iterator viter = chain->getEdges().begin(); viter != chain->getEdges().end(); viter++) {
+		for (typename std::vector<std::shared_ptr<E>>::iterator viter = chain->getEdges().begin();
+		     viter != chain->getEdges().end(); viter++) {
 			if ((*viter)->getIsRef())
 				return POSITIVE_INFINITY;
 		}
@@ -100,6 +108,7 @@ private:
 //        std::shared_ptr<V> last = chain->getLastVertex();
 		std::unordered_set<std::shared_ptr<E>> outgoing = graph->outgoingEdgesOf(chain->getFirstVertex());
 		std::unordered_set<std::shared_ptr<E>> incoming = graph->incomingEdgesOf(chain->getLastVertex());
+		typename std::unordered_set<std::shared_ptr<E>>::iterator eiter;
 		for (eiter = outgoing.begin(); eiter != outgoing.end(); eiter++) {
 			leftTotalMultiplicity += (*eiter)->getMultiplicity();
 		}

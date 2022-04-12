@@ -28,7 +28,7 @@ public:
 		Mutect2Utils::validateArg(graph, "graph cannot be null");
 		Mutect2Utils::validateArg(start.get(), "start cannot be null");
 		Mutect2Utils::validateArg(graph->containsVertex(start), "start must be in graph but it isn't");
-		visited.reserve(graph->getVertexSet().size());
+		visited.reserve((int) (graph->getVertexSet().size() * 1.1));
 		toVisit.push(start);
 	}
 

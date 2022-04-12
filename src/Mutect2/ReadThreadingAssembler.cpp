@@ -61,51 +61,6 @@ std::shared_ptr<AssemblyResult> ReadThreadingAssembler::cleanupSeqGraph(const st
 	return std::make_shared<AssemblyResult>(ASSEMBLED_SOME_VARIATION, seqGraph, nullptr);
 }
 
-
-std::vector<std::shared_ptr<Haplotype>>
-ReadThreadingAssembler::findBestPaths(const std::list<std::shared_ptr<SeqGraph>> &graphs,
-                                      std::shared_ptr<Haplotype> &refHaplotype,
-                                      const std::shared_ptr<SimpleInterval> &refLoc,
-                                      const std::shared_ptr<SimpleInterval> &activeRegionWindow,
-                                      const std::map<std::shared_ptr<SeqGraph>, std::shared_ptr<AssemblyResult>> &assemblyResultByGraph,
-                                      std::shared_ptr<AssemblyResultSet> &assemblyResultSet) const {
-	std::set<std::shared_ptr<Haplotype>, HaplotypeComp> returnHaplotypes;
-	int activeRegionStart = refHaplotype->getAlignmentStartHapwrtRef();
-	int failedCigars = 0;
-
-	for (const std::shared_ptr<SeqGraph> &graph: graphs) {
-		std::shared_ptr<SeqVertex> source = graph->getReferenceSourceVertex();
-		std::shared_ptr<SeqVertex> sink = graph->getReferenceSinkVertex();
-		Mutect2Utils::validateArg(source != nullptr && sink != nullptr, "Both source and sink cannot be null");
-
-		for (const std::shared_ptr<KBestHaplotype> &kBestHaplotype: KBestHaplotypeFinder(graph, source,
-		                                                                                 sink).findBestHaplotypes(
-				numBestHaplotypesPerGraph)) {
-			std::shared_ptr<Haplotype> h = kBestHaplotype->getHaplotype();
-			if (returnHaplotypes.find(h) == returnHaplotypes.end()) {
-				if (kBestHaplotype->getIsReference()) {
-					refHaplotype->setScore(kBestHaplotype->getScore());
-				}
-				std::shared_ptr<Cigar> cigar = CigarUtils::calculateCigar(refHaplotype->getBases(),
-				                                                          refHaplotype->getLength(), h->getBases(),
-				                                                          h->getLength());
-
-				h->setCigar(cigar);
-				h->setAlignmentStartHapwrtRef(activeRegionStart);
-				h->setGenomeLocation(activeRegionWindow);
-				returnHaplotypes.insert(h);
-				const std::shared_ptr<AssemblyResult> &tmp = assemblyResultByGraph.at(graph);
-				assemblyResultSet->add(h, tmp);
-			}
-		}
-	}
-	if (returnHaplotypes.find(refHaplotype) == returnHaplotypes.end()) {
-		returnHaplotypes.insert(refHaplotype);
-	}
-	//TODO:验证
-	return {returnHaplotypes.begin(), returnHaplotypes.end()};
-}
-
 std::shared_ptr<AssemblyResultSet>
 ReadThreadingAssembler::runLocalAssembly(const std::shared_ptr<AssemblyRegion> &assemblyRegion,
                                          std::shared_ptr<Haplotype> &refHaplotype,
@@ -122,12 +77,10 @@ ReadThreadingAssembler::runLocalAssembly(const std::shared_ptr<AssemblyRegion> &
 	if (readErrorCorrector != nullptr) {
 		//TODO::readErrorCorrector
 		readErrorCorrector->addReadsToKmers(assemblyRegion->getReads());
-		correctedReads = assemblyRegion->getReads();
-	} else {
-		correctedReads = assemblyRegion->getReads();
 	}
+	correctedReads = assemblyRegion->getReads();
 	std::vector<std::shared_ptr<SeqGraph>> nonRefGraphs;
-	std::shared_ptr<AssemblyResultSet> resultSet(new AssemblyResultSet());
+	std::shared_ptr<AssemblyResultSet> resultSet = std::make_shared<AssemblyResultSet>();
 	resultSet->setRegionForGenotyping(assemblyRegion);
 	resultSet->setFullReferenceWithPadding(fullReferenceWithPadding, refLength);
 	resultSet->setPaddedReferenceLoc(refLoc);
@@ -137,7 +90,6 @@ ReadThreadingAssembler::runLocalAssembly(const std::shared_ptr<AssemblyRegion> &
 	std::map<std::shared_ptr<SeqGraph>, std::shared_ptr<AssemblyResult>> assemblyResultByGraph;
 	for (const std::shared_ptr<AssemblyResult> &result: assemble(correctedReads, refHaplotype)) {
 		if (result->getStatus() == ASSEMBLED_SOME_VARIATION) {
-			//TODO:do some QC on the graph
 			assemblyResultByGraph.insert(std::make_pair(result->getGraph(), result));
 			nonRefGraphs.emplace_back(result->getGraph());
 		}
@@ -275,13 +227,13 @@ ReadThreadingAssembler::createGraph(const std::vector<std::shared_ptr<SAMRecord>
 	                                                                                   numPruningSamples);
 	rtgraph->setThreadingStartOnlyAtExistingVertex(!recoverDanglingBranches);
 	rtgraph->addSequence(refSequenceName, refHaplotype->getBases(), refHaplotype->getLength(), true);
-	rtgraph->reserveSpace(refHaplotype->getLength());
+	rtgraph->reserveSpace((int) (refHaplotype->getLength() * 1.1));
 
 	for (std::shared_ptr<SAMRecord> read: reads)
 		rtgraph->addRead(read);
 
 	rtgraph->buildGraphIfNecessary();
-	//std::cout << "1: " << rtgraph->getEdgeSet().size() << " " << rtgraph->getVertexSet().size() << std::endl;
+	std::cout << "1: " << rtgraph->getEdgeSet().size() << " " << rtgraph->getVertexSet().size() << std::endl;
 	/*std::ofstream outfile1("./graph1.dot");
 	outfile1 << "digraph G{" << std::endl;
 	for (auto &v: rtgraph->getVertexSet()) {
@@ -303,7 +255,7 @@ ReadThreadingAssembler::createGraph(const std::vector<std::shared_ptr<SAMRecord>
 	outfile1.close();*/
 
 	chainPruner->pruneLowWeightChains(rtgraph);
-	//std::cout << "2: " << rtgraph->getEdgeSet().size() << " " << rtgraph->getVertexSet().size() << std::endl;
+	std::cout << "2: " << rtgraph->getEdgeSet().size() << " " << rtgraph->getVertexSet().size() << std::endl;
 	/*std::ofstream outfile2("./graph2.dot");
 		outfile2 << "digraph G{" << std::endl;
 		for (auto &edge: rtgraph->edgeMap) {
@@ -324,15 +276,15 @@ ReadThreadingAssembler::createGraph(const std::vector<std::shared_ptr<SAMRecord>
 	//    outfile.close();
 
 	if (rtgraph->hasCycles()) {
-		//std::cout << kmerSize << " failed because hasCycles" << std::endl;
+		std::cout << kmerSize << " failed because hasCycles" << std::endl;
 		return nullptr;
 	}
 
 	if (!allowLowComplexityGraphs && rtgraph->isLowComplexity()) {
-		//std::cout << kmerSize << " failed because isLowComplexity" << std::endl;
+		std::cout << kmerSize << " failed because isLowComplexity" << std::endl;
 		return nullptr;
 	}
-	//std::cout << kmerSize << std::endl;
+	std::cout << kmerSize << std::endl;
 	return getAssemblyResult(refHaplotype, rtgraph);
 }
 
@@ -390,15 +342,11 @@ ReadThreadingAssembler::findBestPaths(const std::vector<std::shared_ptr<SeqGraph
 
 ReadThreadingAssembler::ReadThreadingAssembler(int pruneFactor, int numPruningSamples, int numBestHaplotypesPerGraph,
                                                bool dontIncreaseKmerSizesForCycles,
-                                               bool allowNonUniqueKmersInRef, std::vector<int> kmerSizes) : pruneFactor(
-		pruneFactor), numPruningSamples(numPruningSamples), numBestHaplotypesPerGraph(numBestHaplotypesPerGraph),
-                                                                                                            dontIncreaseKmerSizesForCycles(
-		                                                                                                            dontIncreaseKmerSizesForCycles),
-                                                                                                            allowNonUniqueKmersInRef(
-		                                                                                                            allowNonUniqueKmersInRef),
-                                                                                                            kmerSizes(
-		                                                                                                            std::move(
-				                                                                                                            kmerSizes)) {
+                                               bool allowNonUniqueKmersInRef, std::vector<int> kmerSizes)
+		: pruneFactor(pruneFactor), numPruningSamples(numPruningSamples),
+		  numBestHaplotypesPerGraph(numBestHaplotypesPerGraph),
+		  dontIncreaseKmerSizesForCycles(dontIncreaseKmerSizesForCycles),
+		  allowNonUniqueKmersInRef(allowNonUniqueKmersInRef), kmerSizes(std::move(kmerSizes)) {
 	chainPruner = new AdaptiveChainPruner<MultiDeBruijnVertex, MultiSampleEdge>(0.001, 2.302585092994046, 100);
 	setMinDanglingBranchLength(4);
 }

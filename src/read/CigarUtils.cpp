@@ -94,7 +94,7 @@ CigarUtils::leftAlignCigarSequentially(std::shared_ptr<Cigar> & cigar, const std
             for(CigarElement toAdd : leftAligned->getCigarElements()) {cigarToReturn->add(toAdd);}
             refIndex += cigarToAlign->getReferenceLength();
             readIndex += cigarToAlign->getReadLength();
-            cigarToAlign = std::shared_ptr<Cigar>(new Cigar());
+            cigarToAlign = std::make_shared<Cigar>();
         } else {
             cigarToAlign->add(ce);
         }
