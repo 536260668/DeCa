@@ -10,7 +10,7 @@
 #include "samtools/SAMRecord.h"
 
 
-class ReadFilter {  // TODO: add the filter left
+class ReadFilter {
 public:
     static bool ReadLengthTest(std::shared_ptr<SAMRecord> & originalRead);
     static bool NotSecondaryAlignmentTest(std::shared_ptr<SAMRecord> & originalRead) ;

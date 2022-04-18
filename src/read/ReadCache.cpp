@@ -7,6 +7,8 @@
 #include "iostream"
 #include "ReadUtils.h"
 
+#define START_GAP 50
+
 // unused constructor
 ReadCache::ReadCache(aux_t **data, std::vector<char*> & bam_name, std::shared_ptr<ReferenceCache> & cache) : data(data), tid(0), bam_name(bam_name),
                                                                     readTransformer(cache, data[0]->header, 5){
@@ -44,12 +46,10 @@ ReadCache::ReadCache(aux_t **data, std::vector<char*> & bam_name, std::shared_pt
     start = end = currentPose = 0;
 }
 
-ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, const std::string& region, std::shared_ptr<ReferenceCache> & cache) : tid(tid), data(data), bam_name(bam_name), readTransformer(cache, data[0]->header, 5){
-    bam1_t * b;
-    b = bam_init1();
+ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, const std::string& region, std::shared_ptr<ReferenceCache> & cache, bool bqsr_within_mutect, BQSRReadTransformer * tumorTransformer, BQSRReadTransformer * normalTransformer) :
+    tid(tid), data(data), bam_name(bam_name), readTransformer(cache, data[0]->header, 5), bqsr_within_mutect(bqsr_within_mutect), tumorTransformer(tumorTransformer), normalTransformer(normalTransformer){
 
     for(int i = 0; i < bam_name.size(); i++){
-        int result;
         hts_idx_t * idx = sam_index_load(data[i]->fp, bam_name[i]);
         if(idx == nullptr)
         {
@@ -58,29 +58,8 @@ ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, const
         }
 
         hts_idxes.push_back(idx);
-        hts_itr_t* iter = sam_itr_querys(idx, data[i]->hdr, region.c_str());
-        while((result = sam_itr_next(data[i]->fp, iter, b)) >= 0) {
-
-            bam1_t * transformed_read = readTransformer.apply(b, data[i]->hdr);
-
-            if(ReadFilter::test(transformed_read, data[i]->hdr)) {
-                std::shared_ptr<SAMRecord> read = std::make_shared<SAMRecord>(transformed_read, data[i]->hdr);
-                if(i == 0) {
-                    read->setGroup(0);
-                    normalReads.emplace(getpileRead(read));
-                }
-                else {
-                    read->setGroup(1);
-                    tumorReads.emplace(getpileRead(read));
-                }
-            }
-
-            if(transformed_read != b)
-                bam_destroy1(transformed_read);
-        }
-        hts_itr_destroy(iter);
     }
-    bam_destroy1(b);
+    readData(region);
 
     unsigned i = region.find_last_of(':') + 1;
     unsigned j = region.find_last_of('-') + 1;
@@ -97,8 +76,13 @@ ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, const
     if(!normalReads.empty())
         normalStart = normalReads.front()->read->getStart();
 
-    currentPose = std::min(tumorStart, normalStart);
+    currentPose = std::max(std::min(tumorStart, normalStart) - START_GAP, 0);
 
+    if(bqsr_within_mutect)
+    {
+        assert(tumorTransformer);
+        assert(normalTransformer);
+    }
 }
 
 ReadCache::~ReadCache() {
@@ -108,6 +92,49 @@ ReadCache::~ReadCache() {
     {
         hts_idx_destroy(idx);
     }
+}
+
+void ReadCache::readData(const string &region)
+{
+    bam1_t * b;
+    b = bam_init1();
+
+    for(int i = 0; i < bam_name.size(); i++){
+        int result;
+        hts_itr_t* iter = sam_itr_querys(hts_idxes[i], data[i]->hdr, region.c_str());
+        while((result = sam_itr_next(data[i]->fp, iter, b)) >= 0) {
+
+            if(ReadFilter::test(b, data[i]->hdr)) {
+                // recalibrate base qualities
+                if(bqsr_within_mutect)
+                {
+                    if(i == 0)
+                    {
+                        normalTransformer->apply(b);
+                    }
+                    else {
+                        tumorTransformer->apply(b);
+                    }
+                }
+
+                bam1_t * transformed_read = readTransformer.apply(b, data[i]->hdr);
+                std::shared_ptr<SAMRecord> read = std::make_shared<SAMRecord>(transformed_read, data[i]->hdr);
+                if(i == 0) {
+                    read->setGroup(0);
+                    normalReads.emplace(getpileRead(read));
+                }
+                else {
+                    read->setGroup(1);
+                    tumorReads.emplace(getpileRead(read));
+                }
+
+                if(transformed_read != b)
+                    bam_destroy1(transformed_read);
+            }
+        }
+        hts_itr_destroy(iter);
+    }
+    bam_destroy1(b);
 }
 
 int ReadCache::getNextPos() {
@@ -139,42 +166,12 @@ void ReadCache::advanceLoad() {
     std::string region = std::string(sam_hdr_tid2name(data[0]->hdr, tid)) + ':' +
             std::to_string(start+1) + '-' + std::to_string(end);
 
-    bam1_t * b;
-    b = bam_init1();
-    for(int i = 0; i < bam_name.size(); i++){
-        int result;
-
-        hts_itr_t* iter = sam_itr_querys(hts_idxes[i], data[i]->hdr, region.c_str());
-        while((result = sam_itr_next(data[i]->fp, iter, b)) >= 0) {
-
-            bam1_t * transformed_read = readTransformer.apply(b, data[i]->hdr);
-
-            if(ReadFilter::test(transformed_read, data[i]->hdr)) {
-                std::shared_ptr<SAMRecord> read = std::make_shared<SAMRecord>(transformed_read, data[i]->hdr);
-
-                if(i == 0) {
-                    read->setGroup(0);
-                    normalReads.emplace(getpileRead(read));
-                }
-                else {
-                    read->setGroup(1);
-                    tumorReads.emplace(getpileRead(read));
-                }
-            }
-
-            // if read is transformed, you need to free it
-            if(transformed_read != b)
-                bam_destroy1(transformed_read);
-        }
-        hts_itr_destroy(iter);
-    }
-
-    bam_destroy1(b);
+    readData(region);
 }
 
 AlignmentContext ReadCache::getAlignmentContext() {
     getNextPos();
-
+    // remove some read if necessary
     std::list<pileRead*>::iterator iter = tumorReadsForAlignment.begin();
     while(iter != tumorReadsForAlignment.end() && (*iter)->activateStop < currentPose) {
         delete *iter;
@@ -288,7 +285,7 @@ pileRead *ReadCache::getpileRead(const std::shared_ptr<SAMRecord> &read) {
     int start = 0;
     int end = 0;
     if(read->isReverseStrand()) {
-        start = std::max(adaptorBoundary-1, read->getStart());
+        start = std::max(adaptorBoundary+1, read->getStart());
         end = read->getEnd();
 
     } else {

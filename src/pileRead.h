@@ -9,7 +9,7 @@
 
 typedef struct {
     std::shared_ptr<SAMRecord> read;
-    int activateStart;
+    int activateStart;  // When traversing, the position greater than (or equal to) this variable will be considered, otherwise not considered
     int activateStop;
 }pileRead;
 

@@ -33,6 +33,7 @@ add_subdirectory(./src/cache)
 add_subdirectory(./src/cigar)
 add_subdirectory(./src/haplotype)
 add_subdirectory(./src/path)
+add_subdirectory(./src/transformers)
 add_subdirectory(./src/read)
 add_subdirectory(./src/graph)
 add_subdirectory(./src/intel/smithwaterman)
@@ -46,7 +47,7 @@ add_subdirectory(./src/samtools)
 add_subdirectory(./src/param)
 add_subdirectory(./src/clipping)
 
-add_executable(Mutect2Cpp_master ${DIR_SRCS} src/engine/ReferenceContext.cpp src/engine/ReferenceContext.h src/engine/AlignmentContext.cpp src/engine/AlignmentContext.h src/transfer/PalindromeArtifactClipReadTransformer.cpp src/transfer/PalindromeArtifactClipReadTransformer.h src/pileRead.h src/collection/IndexedSet.h src/collection/IndexedAlleleList.h)
+add_executable(Mutect2Cpp_master ${DIR_SRCS} src/engine/ReferenceContext.cpp src/engine/ReferenceContext.h src/engine/AlignmentContext.cpp src/engine/AlignmentContext.h src/pileRead.h src/collection/IndexedSet.h src/collection/IndexedAlleleList.h)
 
 
 # counterpart of gcc -L

@@ -62,3 +62,35 @@ Log10FactorialCache &MathUtils::LOG_10_FACTORIAL_CACHE() {
 }
 
 
+int MathUtils::fastRound(double d)
+{
+    return d > 0.0 ? (int)(d+0.5) : (int)(d-0.5);
+}
+
+double MathUtils::log10BinomialProbability(int n, int k, double log10p)
+{
+    if (log10p == std::numeric_limits<double>::infinity())
+    {
+        return k == 0 ? 0 : std::numeric_limits<double>::infinity();
+    }
+    double log10OneMinusP = log10(1 - pow(10.0, log10p));
+    return log10BinomialCoefficient(n, k) + log10p * k + log10OneMinusP * (n - k);
+}
+
+double MathUtils::log10Gamma(double x)
+{
+    return lgamma(x) * M_LOG10E;
+}
+
+double MathUtils::log10Fractorial(int n)
+{
+    return LOG_10_FACTORIAL_CACHE().get(n);
+}
+
+double MathUtils::log10BinomialCoefficient(int n, int k)
+{
+    assert(n >= 0);
+    assert(k <= n && k >= 0);
+    return log10Fractorial(n) - log10Fractorial(k) - log10Fractorial(n-k);
+}
+

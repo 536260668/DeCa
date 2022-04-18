@@ -39,7 +39,11 @@ char ReferenceCache::getBase(hts_pos_t pos)
     while(pos > end) {
         advanceLoad();
     }
-    return bases[pos - start];
+    char base = bases[pos - start];
+    if(base >= 'A' && base <= 'Z')
+        return base;
+    else if(base >= 'a' && base <= 'z')
+        return base - ('a' - 'A');
 }
 
 void ReferenceCache::advanceLoad() {
