@@ -13,7 +13,8 @@
 #include "engine/AlignmentContext.h"
 #include "ReadFilter.h"
 #include "AssemblyRegion.h"
-#include "transfer/PalindromeArtifactClipReadTransformer.h"
+#include "transformers/PalindromeArtifactClipReadTransformer.h"
+#include "transformers/BQSRReadTransformer.h"
 #include "pileRead.h"
 
 #define REGION_SIZE 1000000
@@ -22,8 +23,6 @@ typedef struct {     // auxiliary data structure
     samFile *fp;     // the file handle
     sam_hdr_t *hdr;  // the file header
     hts_itr_t *iter; // NULL if a region not specified
-    int min_mapQ; // mapQ filter;
-    uint32_t flags;// read filtering flags
     SAMFileHeader * header;
 } aux_t;
 
@@ -50,7 +49,12 @@ private:
     std::vector<hts_idx_t *> hts_idxes;
     int currentPose;
     PalindromeArtifactClipReadTransformer readTransformer;
+    BQSRReadTransformer * tumorTransformer;
+    BQSRReadTransformer * normalTransformer;
+    bool bqsr_within_mutect;
 
+    // read data in a specific region and add it to the cache
+    void readData(const string & region);
 
     void advanceLoad();
 
@@ -60,7 +64,7 @@ private:
 public:
 
     ReadCache(aux_t** data, std::vector<char*> & bam_name, std::shared_ptr<ReferenceCache> & cache);
-    ReadCache(aux_t** data, std::vector<char*> & bam_name, int tid, const std::string&, std::shared_ptr<ReferenceCache> & cache);
+    ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, const std::string& region, std::shared_ptr<ReferenceCache> & cache, bool bqsr_within_mutect = false, BQSRReadTransformer * tumorTransformer = nullptr, BQSRReadTransformer * normalTransformer = nullptr);
     int getNextPos();
     bool hasNextPos();
     void InsertPileToAlignment(pileRead* stopPos, std::list<pileRead*> &);
