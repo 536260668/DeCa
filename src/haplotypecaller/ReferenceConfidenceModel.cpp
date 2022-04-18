@@ -8,13 +8,12 @@
 
 std::shared_ptr<Haplotype>
 ReferenceConfidenceModel::createReferenceHaplotype(const std::shared_ptr<AssemblyRegion> &activeRegion,
-                                                   std::shared_ptr<uint8_t[]> refBases, int &length,
+                                                   const std::shared_ptr<uint8_t[]>& refBases, int &length,
                                                    const std::shared_ptr<SimpleInterval> &paddedReferenceLoc) {
 	int alignmentStart = activeRegion->getExtendedSpan()->getStart() - paddedReferenceLoc->getStart();
-	if (alignmentStart < 0) {
+	if (alignmentStart < 0)
 		throw std::invalid_argument("Bad alignment start in createReferenceHaplotype");
-	}
-	std::shared_ptr<Haplotype> refHaplotype(new Haplotype(std::move(refBases), length, true));
+	std::shared_ptr<Haplotype> refHaplotype = std::make_shared<Haplotype>(refBases, length, true);
 	refHaplotype->setAlignmentStartHapwrtRef(alignmentStart);
 	std::shared_ptr<Cigar> c(new Cigar());
 	c->add(CigarElement(refHaplotype->getBasesLength(), M));

@@ -175,7 +175,7 @@ public:
     * @param extensionSize the extensionSize size we want for the newly trimmed active region
     * @return a non-null, empty assembly region
     */
-    std::shared_ptr<AssemblyRegion> trim(std::shared_ptr<SimpleInterval> span, std::shared_ptr<SimpleInterval> extendedSpan);
+    std::shared_ptr<AssemblyRegion> trim(const std::shared_ptr<SimpleInterval>& span, const std::shared_ptr<SimpleInterval>& extendedSpan);
 
     /**
      * Get the extension applied to this region

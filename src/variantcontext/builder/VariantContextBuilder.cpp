@@ -4,9 +4,11 @@
 
 #include "VariantContextBuilder.h"
 
+#include <utility>
+
 VariantContextBuilder::VariantContextBuilder(std::string & source, std::string & contig, long start, long stop,
-                                             const std::shared_ptr<std::vector<std::shared_ptr<Allele>>> &  alleles) : genotypes(&GenoTypesContext::NO_GENOTYPES), log10PError(1.0),
-                                             attributesCanBeModified(false), source(source), contig(contig), start(start), stop(stop), alleles(alleles), filters(
+                                             std::shared_ptr<std::vector<std::shared_ptr<Allele>>>   alleles) : genotypes(&GenoTypesContext::NO_GENOTYPES), log10PError(1.0),
+                                             attributesCanBeModified(false), source(source), contig(contig), start(start), stop(stop), alleles(std::move(alleles)), filters(
                 nullptr), attribute(nullptr){
     toValidate.insert(ALLELES);
 }
@@ -15,9 +17,7 @@ std::shared_ptr<VariantContext> VariantContextBuilder::make(bool leaveModifyable
     if(!leaveModifyableAsIs) {
         attributesCanBeModified = false;
     }
-
-    std::shared_ptr<VariantContext> ret = std::make_shared<VariantContext>(source, ID, contig, start, stop, alleles, genotypes, log10PError, filters, attribute, fullyDecoded,toValidate);
-    return ret;
+    return std::make_shared<VariantContext>(source, ID, contig, start, stop, alleles, genotypes, log10PError, filters, attribute, fullyDecoded,toValidate);
 }
 
 std::shared_ptr<VariantContext> VariantContextBuilder::make() {

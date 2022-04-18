@@ -21,7 +21,7 @@ VariantContext::VariantContext(std::string &source,
 {
     type = VariantContext_NULL;
     if(ID.empty() || std::equal(ID.begin(), ID.end(), ""))
-        throw "ID field cannot be the null or the empty string";
+        throw std::invalid_argument("ID field cannot be the null or the empty string");
 
     this->ID = ID == VCFConstants::EMPTY_ID_FIELD ? VCFConstants::EMPTY_ID_FIELD : ID;
 

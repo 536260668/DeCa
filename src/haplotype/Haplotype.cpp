@@ -8,7 +8,7 @@
 #include "read/AlignmentUtils.h"
 #include "SimpleInterval.h"
 
-Haplotype::Haplotype(std::shared_ptr<uint8_t[]> bases, int length, bool isRef) : Allele(copyArray(bases, length),
+Haplotype::Haplotype(const std::shared_ptr<uint8_t[]>& bases, int length, bool isRef) : Allele(copyArray(bases, length),
                                                                                         length, isRef), eventMap(
 		nullptr) {}
 
@@ -18,7 +18,7 @@ std::shared_ptr<uint8_t[]> Haplotype::copyArray(const std::shared_ptr<uint8_t[]>
 	return res;
 }
 
-Haplotype::Haplotype(std::shared_ptr<uint8_t[]> bases, int length) : Allele(copyArray(bases, length), length, false) {}
+Haplotype::Haplotype(const std::shared_ptr<uint8_t[]>& bases, int length) : Allele(copyArray(bases, length), length, false) {}
 
 void Haplotype::setCigar(std::shared_ptr<Cigar> &cigar) {
 	this->cigar = AlignmentUtils::consolidateCigar(cigar);

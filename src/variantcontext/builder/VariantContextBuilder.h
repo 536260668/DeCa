@@ -28,7 +28,7 @@ private:
     std::set<Validation> toValidate;
 
 public:
-    VariantContextBuilder(std::string & source, std::string & contig, long start, long stop, const std::shared_ptr<std::vector<std::shared_ptr<Allele>>> &  alleles);
+    VariantContextBuilder(std::string & source, std::string & contig, long start, long stop, std::shared_ptr<std::vector<std::shared_ptr<Allele>>>   alleles);
 
     VariantContextBuilder(std::shared_ptr<VariantContext> & parent);
 

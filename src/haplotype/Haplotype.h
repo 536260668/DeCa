@@ -19,8 +19,8 @@ private:
     std::shared_ptr<Locatable> genomeLocation;
     std::shared_ptr<Cigar> cigar;
     std::shared_ptr<EventMap>  eventMap;
-    int alignmentStartHapwrtRef;
-    double score;
+    int alignmentStartHapwrtRef{};
+    double score{};
     static std::shared_ptr<uint8_t[]> copyArray(const std::shared_ptr<uint8_t[]>& base, int length);
 
 public:
@@ -30,14 +30,14 @@ public:
      * @param bases a non-null array of bases
      * @param isRef is this the reference haplotype?
      */
-    Haplotype(std::shared_ptr<uint8_t[]> bases, int length, bool isRef);
+    Haplotype(const std::shared_ptr<uint8_t[]>& bases, int length, bool isRef);
 
     /**
      * Create a new non-ref haplotype
      *
      * @param bases a non-null array of bases
      */
-     Haplotype(std::shared_ptr<uint8_t[]> bases, int length);
+     Haplotype(const std::shared_ptr<uint8_t[]>& bases, int length);
 
     /**
     * Create a new haplotype with bases

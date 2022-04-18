@@ -6,7 +6,6 @@
 #include "haplotypecaller/ReferenceConfidenceModel.h"
 #include "clipping/ReadClipper.h"
 #include "read/ReadUtils.h"
-#include <fstream>
 
 std::shared_ptr<Haplotype>
 AssemblyBasedCallerUtils::createReferenceHaplotype(const std::shared_ptr<AssemblyRegion> &region,

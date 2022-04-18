@@ -38,12 +38,18 @@ private:
 
 	static std::shared_ptr<AssemblyResult> cleanupSeqGraph(const std::shared_ptr<SeqGraph> &seqGraph);
 
-	std::vector<std::shared_ptr<Haplotype>>
+	/*std::vector<std::shared_ptr<Haplotype>>
 	findBestPaths(const std::vector<std::shared_ptr<SeqGraph>> &graphs, std::shared_ptr<Haplotype> &refHaplotype,
 	              const std::shared_ptr<SimpleInterval> &refLoc,
 	              const std::shared_ptr<SimpleInterval> &activeRegionWindow,
 	              const std::map<std::shared_ptr<SeqGraph>, std::shared_ptr<AssemblyResult>> &assemblyResultByGraph,
-	              std::shared_ptr<AssemblyResultSet> &assemblyResultSet) const;
+	              std::shared_ptr<AssemblyResultSet> &assemblyResultSet) const;*/
+
+	void findBestPaths(const std::vector<std::shared_ptr<SeqGraph>> &graphs, std::shared_ptr<Haplotype> &refHaplotype,
+	                   const std::shared_ptr<SimpleInterval> &refLoc,
+	                   const std::shared_ptr<SimpleInterval> &activeRegionWindow,
+	                   const std::map<std::shared_ptr<SeqGraph>, std::shared_ptr<AssemblyResult>> &assemblyResultByGraph,
+	                   std::shared_ptr<AssemblyResultSet> &assemblyResultSet) const;
 
 	std::shared_ptr<AssemblyResult>
 	createGraph(const std::vector<std::shared_ptr<SAMRecord>> &reads, std::shared_ptr<Haplotype> &refHaplotype,
