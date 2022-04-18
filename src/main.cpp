@@ -250,13 +250,13 @@ int main(int argc, char *argv[])
                 std::shared_ptr<AssemblyRegion> nextRegion = pendingRegions.front();
 
                 //if(count % 2000 == 0) {
-                    std::cout << *nextRegion;
+                    //std::cout << *nextRegion;
                 //    break;
                 //}
                 pendingRegions.pop();
 
                 Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
-                //std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext);
+                std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext);
                 //if(variant.size() != 0)
                   //  std::cout << variant.size();
             }
@@ -276,11 +276,11 @@ int main(int argc, char *argv[])
         {
             count++;
             std::shared_ptr<AssemblyRegion> nextRegion = pendingRegions.front();
-            std::cout << *nextRegion;
+            //std::cout << *nextRegion;
             pendingRegions.pop();
 
             Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
-            //std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext);
+            //std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext); // TODO: callRegion() needs pileupRefContext
         }
         //break;
     }
