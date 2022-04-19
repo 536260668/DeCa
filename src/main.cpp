@@ -7,6 +7,7 @@
 #include <cstring>
 #include <vector>
 #include <queue>
+#include <thread>
 #include "getopt.h"
 #include "unistd.h"
 #include "htslib/sam.h"
@@ -82,6 +83,10 @@ void adjust_input_bam(std::vector<char*> & input_bam, std::string & normalSample
 
 }
 
+void threadFunc(int id){
+	std::cout << std::to_string(id) + " new thread here!\n";
+}
+
 int main(int argc, char *argv[])
 {
     CigarOperatorUtils::initial();
@@ -95,6 +100,7 @@ int main(int argc, char *argv[])
     int read_num = 0;
     bool bqsr_within_mutect = false;    //---Maybe these parameters can make a struct
     char * tumor_table = nullptr, * normal_table = nullptr;
+	int thread_num = 1;
 
     M2ArgumentCollection MTAC = {10, 50, 0.002, 100, 50, 300, ""};
 
@@ -119,7 +125,7 @@ int main(int argc, char *argv[])
     if (argc == 1 && isatty(STDIN_FILENO))
         return usage();
 
-    while((c = getopt_long(argc, argv, "I:O:R:r:", loptions, nullptr)) >= 0){
+    while((c = getopt_long(argc, argv, "I:O:R:r:T:", loptions, nullptr)) >= 0){
         switch (c) {
             case 'I':
                 input_bam.emplace_back(strdup(optarg));
@@ -131,6 +137,9 @@ int main(int argc, char *argv[])
             case 'R':
                 ref = strdup(optarg);
                 break;
+	        case 'T':
+				thread_num = atoi(optarg);
+		        break;
             case 'r':
                 reg = strdup(optarg);
                 break;   // parsing a region requires a BAM header
@@ -195,6 +204,10 @@ int main(int argc, char *argv[])
 
     smithwaterman_initial();
     QualityUtils::initial();
+	std::vector<std::thread> threads(thread_num);
+	//TODO: thread pool initial
+	//exitFlag = false;
+
     Mutect2Engine m2Engine(MTAC, ref, header);
     queue<std::shared_ptr<AssemblyRegion>> pendingRegions;
     ActivityProfile * activityProfile = new BandPassActivityProfile(MTAC.maxProbPropagationDistance, MTAC.activeProbThreshold, BandPassActivityProfile::MAX_FILTER_SIZE, BandPassActivityProfile::DEFAULT_SIGMA,true , header);
@@ -207,7 +220,11 @@ int main(int argc, char *argv[])
         normalTransformer = std::make_shared<BQSRReadTransformer>(normal_table, bqsrArgs);
     }
 
-
+	vector<std::shared_ptr<ReferenceCache>> refCaches(nref);
+	//save all refCachess;
+	for(int k = 0; k < nref; k++)   {
+		refCaches[k] = std::make_shared<ReferenceCache>(ref, data[0]->header, k);
+	}
     int count = 0;
     // TODO: add multi-thread mode here
     for(int k=0; k<nref; k++)
@@ -216,11 +233,19 @@ int main(int argc, char *argv[])
 
         int len = ref_len < REGION_SIZE ? ref_len : REGION_SIZE;
         std::string region = std::string(sam_hdr_tid2name(data[0]->hdr, k)) + ":0-" + to_string(len);
-        std::string contig = std::string(sam_hdr_tid2name(data[0]->hdr, k));
-        std::shared_ptr<ReferenceCache>  refCache = std::make_shared<ReferenceCache>(ref, data[0]->header, k);
-        ReadCache cache(data, input_bam, k, region, refCache, bqsr_within_mutect, tumorTransformer.get(), normalTransformer.get());
+	    for (int i = 0; i < thread_num; ++i) {
+		    threads[i] = std::thread(&threadFunc,i);
+	    }
+		for(auto &thread:threads){
+			thread.join();
+		}
 
-        m2Engine.setReferenceCache(refCache.get());
+		// region data imput_bam ref
+		// main thread  hashMap refCache
+        std::string contig = std::string(sam_hdr_tid2name(data[0]->hdr, k));
+        ReadCache cache(data, input_bam, k, region, refCaches[k]);
+
+        m2Engine.setReferenceCache(refCaches[k].get());
         while(cache.hasNextPos()) {
             AlignmentContext pileup = cache.getAlignmentContext();
             if(!activityProfile->isEmpty()){
@@ -238,7 +263,7 @@ int main(int argc, char *argv[])
                 continue;
             }
             std::shared_ptr<SimpleInterval> pileupInterval = std::make_shared<SimpleInterval>(contig, (int)pileup.getPosition(), (int)pileup.getPosition());
-            char refBase = refCache->getBase(pileup.getPosition());
+            char refBase = refCaches[k]->getBase(pileup.getPosition());
             ReferenceContext pileupRefContext(pileupInterval, refBase);
 
             std::shared_ptr<ActivityProfileState> profile = m2Engine.isActive(pileup);
