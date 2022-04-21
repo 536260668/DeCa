@@ -24,7 +24,26 @@
 #include "read/ReadCache.h"
 #include "intel/smithwaterman/IntelSmithWaterman.h"
 #include "ReferenceCache.h"
+struct Region{
+    int _start;
+    int _end;
 
+    Region(int start, int end)
+    {
+        _start = start;
+        _end = end;
+    }
+
+    int getStart()
+    {
+        return _start;
+    }
+
+    int getEnd()
+    {
+        return _end;
+    }
+};
 
 static int usage() {
     fprintf(stderr, "\n");
@@ -214,73 +233,93 @@ int main(int argc, char *argv[])
     {
         hts_pos_t ref_len = sam_hdr_tid2len(data[0]->hdr, k);   // the length of reference sequence
 
-        int len = ref_len < REGION_SIZE ? ref_len : REGION_SIZE;
-        std::string region = std::string(sam_hdr_tid2name(data[0]->hdr, k)) + ":0-" + to_string(len);
-        std::string contig = std::string(sam_hdr_tid2name(data[0]->hdr, k));
-        std::shared_ptr<ReferenceCache>  refCache = std::make_shared<ReferenceCache>(ref, data[0]->header, k);
-        ReadCache cache(data, input_bam, k, region, refCache, bqsr_within_mutect, tumorTransformer.get(), normalTransformer.get());
+        //TODO: use a concurrent blocking queue
+        queue<struct Region> RegionQueue;
+        int start = 0;
+        int end = ref_len < REGION_SIZE - 1 ? ref_len : REGION_SIZE - 1;
+        while(end != ref_len)
+        {
+            RegionQueue.emplace(Region(start, end));
+            start += REGION_SIZE;
+            end = end + REGION_SIZE < ref_len ? end + REGION_SIZE : ref_len;
+        }
+        RegionQueue.emplace(Region(start, end));
 
-        m2Engine.setReferenceCache(refCache.get());
-        while(cache.hasNextPos()) {
-            AlignmentContext pileup = cache.getAlignmentContext();
-            if(!activityProfile->isEmpty()){
-                bool forceConversion = pileup.getPosition() != activityProfile->getEnd() + 1;
-                vector<std::shared_ptr<AssemblyRegion>> * ReadyAssemblyRegions = activityProfile->popReadyAssemblyRegions(MTAC.assemblyRegionPadding, MTAC.minAssemblyRegionSize, MTAC.maxAssemblyRegionSize, forceConversion);
-                for(const std::shared_ptr<AssemblyRegion>& newRegion : *ReadyAssemblyRegions)
-                {
-                    pendingRegions.emplace(newRegion);
+        std::shared_ptr<ReferenceCache> refCache = std::make_shared<ReferenceCache>(ref, data[0]->header, k);
+        while(!RegionQueue.empty())
+        {
+            int start = RegionQueue.front().getStart();
+            int end =  RegionQueue.front().getEnd();
+            std::string contig = std::string(sam_hdr_tid2name(data[0]->hdr, k));
+
+            ReadCache cache(data, input_bam, k, start, end, MTAC.maxAssemblyRegionSize, refCache, bqsr_within_mutect, tumorTransformer.get(), normalTransformer.get());
+
+            m2Engine.setReferenceCache(refCache.get());
+            while(cache.hasNextPos()) {
+                AlignmentContext pileup = cache.getAlignmentContext();
+                if(!activityProfile->isEmpty()){
+                    bool forceConversion = pileup.getPosition() != activityProfile->getEnd() + 1;
+                    vector<std::shared_ptr<AssemblyRegion>> * ReadyAssemblyRegions = activityProfile->popReadyAssemblyRegions(MTAC.assemblyRegionPadding, MTAC.minAssemblyRegionSize, MTAC.maxAssemblyRegionSize, forceConversion);
+                    for(const std::shared_ptr<AssemblyRegion>& newRegion : *ReadyAssemblyRegions)
+                    {
+                        if(newRegion->getStart() >= start && newRegion->getStart() < end)
+                            pendingRegions.emplace(newRegion);
+                    }
+                }
+
+                if(pileup.isEmpty()) {
+                    std::shared_ptr<ActivityProfileState> state = std::make_shared<ActivityProfileState>(contig.c_str(), pileup.getPosition(), 0.0);
+                    activityProfile->add(state);
+                    continue;
+                }
+                std::shared_ptr<SimpleInterval> pileupInterval = std::make_shared<SimpleInterval>(contig, (int)pileup.getPosition(), (int)pileup.getPosition());
+                char refBase = refCache->getBase(pileup.getPosition());
+                ReferenceContext pileupRefContext(pileupInterval, refBase);
+
+                std::shared_ptr<ActivityProfileState> profile = m2Engine.isActive(pileup);
+                activityProfile->add(profile);
+
+                if(!pendingRegions.empty() && IntervalUtils::isAfter(pileup.getLocation(), *pendingRegions.front()->getExtendedSpan(), header->getSequenceDictionary())) {
+                    count++;
+
+                    std::shared_ptr<AssemblyRegion> nextRegion = pendingRegions.front();
+
+                    //---print the region
+                    std::cout << *nextRegion;
+
+                    pendingRegions.pop();
+
+                    Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
+                    //std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext);
                 }
             }
 
-            if(pileup.isEmpty()) {
-                std::shared_ptr<ActivityProfileState> state = std::make_shared<ActivityProfileState>(contig.c_str(), pileup.getPosition(), 0.0);
-                activityProfile->add(state);
-                continue;
+            // pop the AssemblyRegion left
+            while(!activityProfile->isEmpty())
+            {
+                vector<std::shared_ptr<AssemblyRegion>> * ReadyAssemblyRegions = activityProfile->popReadyAssemblyRegions(MTAC.assemblyRegionPadding, MTAC.minAssemblyRegionSize, MTAC.maxAssemblyRegionSize, true);
+                for(const std::shared_ptr<AssemblyRegion>& newRegion : *ReadyAssemblyRegions)
+                {
+                    if(newRegion->getStart() >= start && newRegion->getStart() < end)
+                        pendingRegions.emplace(newRegion);
+                }
             }
-            std::shared_ptr<SimpleInterval> pileupInterval = std::make_shared<SimpleInterval>(contig, (int)pileup.getPosition(), (int)pileup.getPosition());
-            char refBase = refCache->getBase(pileup.getPosition());
-            ReferenceContext pileupRefContext(pileupInterval, refBase);
 
-            std::shared_ptr<ActivityProfileState> profile = m2Engine.isActive(pileup);
-            activityProfile->add(profile);
-
-            if(!pendingRegions.empty() && IntervalUtils::isAfter(pileup.getLocation(), *pendingRegions.front()->getExtendedSpan(), header->getSequenceDictionary())) {
+            while(!pendingRegions.empty())
+            {
                 count++;
-
                 std::shared_ptr<AssemblyRegion> nextRegion = pendingRegions.front();
 
-                //if(count % 2000 == 0) {
-                    //std::cout << *nextRegion;
-                //    break;
-                //}
+                //---print the region
+                std::cout << *nextRegion;
+
                 pendingRegions.pop();
-
                 Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
-                std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext);
-                //if(variant.size() != 0)
-                  //  std::cout << variant.size();
+                //std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext); // TODO: callRegion() needs pileupRefContext
             }
-        }
 
-        // pop the AssemblyRegion left
-        while(!activityProfile->isEmpty())
-        {
-            vector<std::shared_ptr<AssemblyRegion>> * ReadyAssemblyRegions = activityProfile->popReadyAssemblyRegions(MTAC.assemblyRegionPadding, MTAC.minAssemblyRegionSize, MTAC.maxAssemblyRegionSize, true);
-            for(const std::shared_ptr<AssemblyRegion>& newRegion : *ReadyAssemblyRegions)
-            {
-                pendingRegions.emplace(newRegion);
-            }
-        }
 
-        while(!pendingRegions.empty())
-        {
-            count++;
-            std::shared_ptr<AssemblyRegion> nextRegion = pendingRegions.front();
-            //std::cout << *nextRegion;
-            pendingRegions.pop();
-
-            Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
-            //std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext); // TODO: callRegion() needs pileupRefContext
+            RegionQueue.pop();
         }
         //break;
     }
