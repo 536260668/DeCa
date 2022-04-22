@@ -28,7 +28,7 @@ void ReadThreadingGraph::addRead(std::shared_ptr<SAMRecord> &read) {
 
 	int lastGood = -1, length = read->getLength();
 	for (int end = 0; end <= length; end++) {
-		if (!baseIsUsableForAssembly(sequence[end], qualities[end]) || end == length) {
+	    if ( end == length || !baseIsUsableForAssembly(sequence[end], qualities[end])) {
 			int start = lastGood, len = end - start;
 			if (start != -1 && len >= kmerSize) {
 				std::string name = read->getName() + '_' + std::to_string(start) + '_' + std::to_string(end);

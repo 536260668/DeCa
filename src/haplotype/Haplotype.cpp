@@ -44,14 +44,14 @@ std::shared_ptr<Haplotype> Haplotype::trim(const std::shared_ptr<Locatable> &loc
 
 	int newStart = loc->getStart() - this->genomeLocation->getStart();
 	int newStop = newStart + loc->getEnd() - loc->getStart();
-	std::shared_ptr<uint8_t[]> newBases = AlignmentUtils::getBasesCoveringRefInterval(newStart, newStop, getBases(),
+	std::pair<int, std::shared_ptr<uint8_t[]>> newBases = AlignmentUtils::getBasesCoveringRefInterval(newStart, newStop, getBases(),
 	                                                                                  getBasesLength(), 0, getCigar());
 	std::shared_ptr<Cigar> newCigar = AlignmentUtils::trimCigarByReference(getCigar(), newStart, newStop);
 
-	if (newBases == nullptr || AlignmentUtils::startsOrEndsWithInsertionOrDeletion(newCigar))
+	if (newBases.second == nullptr || AlignmentUtils::startsOrEndsWithInsertionOrDeletion(newCigar))
 		return nullptr;
 
-	std::shared_ptr<Haplotype> ret = std::make_shared<Haplotype>(newBases, getIsReference());
+	std::shared_ptr<Haplotype> ret = std::make_shared<Haplotype>(newBases.second, newBases.first, getIsReference());
 	ret->setCigar(newCigar);
 	ret->setGenomeLocation(loc);
 	ret->setScore(score);

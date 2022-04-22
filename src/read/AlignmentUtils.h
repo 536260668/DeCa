@@ -32,7 +32,7 @@ public:
      * @param basesToRefCigar the cigar that maps the bases to the reference genome
      * @return a byte[] containing the bases covering this interval, or null if we would start or end within a deletion
      */
-    static std::shared_ptr<uint8_t[]> getBasesCoveringRefInterval(int refStart, int refEnd, std::shared_ptr<uint8_t[]> bases, int length, int basesStartOnRef, const std::shared_ptr<Cigar>& basesToRefCigar);
+    static std::pair<int, std::shared_ptr<uint8_t[]>> getBasesCoveringRefInterval(int refStart, int refEnd, std::shared_ptr<uint8_t[]> bases, int length, int basesStartOnRef, const std::shared_ptr<Cigar>& basesToRefCigar);
 
     static std::shared_ptr<Cigar> trimCigarByReference(const std::shared_ptr<Cigar>& cigar, int start, int end);
 

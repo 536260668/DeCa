@@ -49,7 +49,7 @@ bool AssemblyRegionTrimmer_Result::isVariationPresent() {
 }
 
 std::shared_ptr<AssemblyRegion> AssemblyRegionTrimmer_Result::getCallableRegion() {
-    if(callableRegion == nullptr && extendedSpan == nullptr) {
+    if(callableRegion == nullptr && extendedSpan != nullptr) {
         callableRegion = emitReferenceConfidence ? originalRegion->trim(callableSpan, extendedSpan) : originalRegion->trim(extendedSpan, extendedSpan);
     }
     return callableRegion;

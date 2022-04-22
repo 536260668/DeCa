@@ -47,7 +47,7 @@ bool AlignmentUtils::needsConsolidation(const std::shared_ptr<Cigar>& c) {
     return false;
 }
 
-std::shared_ptr<uint8_t[]> AlignmentUtils::getBasesCoveringRefInterval(int refStart, int refEnd, std::shared_ptr<uint8_t[]>bases, int length, int basesStartOnRef,
+std::pair<int, std::shared_ptr<uint8_t[]>> AlignmentUtils::getBasesCoveringRefInterval(int refStart, int refEnd, std::shared_ptr<uint8_t[]>bases, int length, int basesStartOnRef,
                                                      const std::shared_ptr<Cigar>& basesToRefCigar) {
     if(refStart < 0 || refEnd < refStart) {
         throw std::invalid_argument("Bad start and/or stop");
@@ -87,7 +87,7 @@ std::shared_ptr<uint8_t[]> AlignmentUtils::getBasesCoveringRefInterval(int refSt
             case D:
                 for(int i = 0; i < ce.getLength(); i++) {
                     if(refPos == refEnd || refPos == refStart) {
-                        return nullptr;
+                        return {0, nullptr};
                     }
                     refPos++;
                 }
@@ -100,9 +100,10 @@ std::shared_ptr<uint8_t[]> AlignmentUtils::getBasesCoveringRefInterval(int refSt
     if(basesStart == -1 || basesStop == -1)
         throw std::invalid_argument("Never found start or stop");
 
-    std::shared_ptr<uint8_t[]> ret(new uint8_t[basesStop - basesStart + 2]);
-    memcpy(ret.get(), bases.get() + basesStart, basesStop - basesStart + 2);
-    return ret;
+    int newLength = basesStop - basesStart + 1;
+    std::shared_ptr<uint8_t[]> ret(new uint8_t[newLength]);
+    memcpy(ret.get(), bases.get() + basesStart, newLength);
+    return {newLength, ret};
 }
 
 std::shared_ptr<Cigar> AlignmentUtils::trimCigarByReference(const std::shared_ptr<Cigar>&cigar, const int start, const int end) {
