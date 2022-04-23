@@ -8,6 +8,7 @@
 #include <vector>
 #include <queue>
 #include <thread>
+#include <atomic>
 #include "getopt.h"
 #include "unistd.h"
 #include "htslib/sam.h"
@@ -59,6 +60,8 @@ static int usage() {
     fprintf(stderr, "\n");
     fprintf(stderr, "--normal-table                 Recalibration table for normal reads, generated in the BaseRecalibrator part\n");
     fprintf(stderr, "\n");
+	fprintf(stderr, "-T:Int                         size of thread pool\n");
+    fprintf(stderr, "\n");
                     return EXIT_FAILURE;
 }
 
@@ -83,8 +86,109 @@ void adjust_input_bam(std::vector<char*> & input_bam, std::string & normalSample
 
 }
 
-void threadFunc(int id){
-	std::cout << std::to_string(id) + " new thread here!\n";
+struct Shared{
+	aux_t **data{};
+	std::atomic<int> count{0};
+	vector<std::shared_ptr<ReferenceCache>> refCaches;
+	std::vector<char*> input_bam;
+	SAMFileHeader* header{};
+	M2ArgumentCollection MTAC;
+};
+
+struct Worker{
+	explicit Worker(Shared *w, char *ref) {
+		k = -1;
+		len = -1;
+		activityProfile = new BandPassActivityProfile(w->MTAC.maxProbPropagationDistance, w->MTAC.activeProbThreshold, BandPassActivityProfile::MAX_FILTER_SIZE, BandPassActivityProfile::DEFAULT_SIGMA,true , w->header);
+		m2Engine = new Mutect2Engine(w->MTAC, ref, w->header);
+	}
+	int k;
+	int len;
+	queue<std::shared_ptr<AssemblyRegion>> pendingRegions;
+	ActivityProfile *activityProfile;
+	Mutect2Engine *m2Engine;
+};
+
+void threadFunc(Shared *w, Worker *t){
+	vector<std::shared_ptr<ReferenceCache>> refCaches = w->refCaches;
+	aux_t **data = w->data;
+	std::vector<char*> input_bam = w->input_bam;
+	SAMFileHeader* header = w->header;
+	M2ArgumentCollection MTAC = w->MTAC;
+	int k = t->k;
+	int len = t->len;
+	std::cout<<"thread start\n";
+
+	std::string contig = std::string(sam_hdr_tid2name(data[0]->hdr, k));
+	std::string region = contig + ":0-" + to_string(len);
+	ReadCache cache(data, input_bam, k, region, refCaches[k]);
+
+	t->m2Engine->setReferenceCache(refCaches[k].get());
+	while(cache.hasNextPos()) {
+		AlignmentContext pileup = cache.getAlignmentContext();
+		if(!t->activityProfile->isEmpty()){
+			bool forceConversion = pileup.getPosition() != t->activityProfile->getEnd() + 1;
+			vector<std::shared_ptr<AssemblyRegion>> * ReadyAssemblyRegions = t->activityProfile->popReadyAssemblyRegions(MTAC.assemblyRegionPadding, MTAC.minAssemblyRegionSize, MTAC.maxAssemblyRegionSize, forceConversion);
+			for(const std::shared_ptr<AssemblyRegion>& newRegion : *ReadyAssemblyRegions)
+			{
+				t->pendingRegions.emplace(newRegion);
+			}
+		}
+
+		if(pileup.isEmpty()) {
+			std::shared_ptr<ActivityProfileState> state = std::make_shared<ActivityProfileState>(contig.c_str(), pileup.getPosition(), 0.0);
+			t->activityProfile->add(state);
+			continue;
+		}
+		std::shared_ptr<SimpleInterval> pileupInterval = std::make_shared<SimpleInterval>(contig, (int)pileup.getPosition(), (int)pileup.getPosition());
+		char refBase = refCaches[k]->getBase(pileup.getPosition());
+		ReferenceContext pileupRefContext(pileupInterval, refBase);
+
+		std::shared_ptr<ActivityProfileState> profile = t->m2Engine->isActive(pileup);
+		t->activityProfile->add(profile);
+
+		if(!t->pendingRegions.empty() && IntervalUtils::isAfter(pileup.getLocation(), *t->pendingRegions.front()->getExtendedSpan(), header->getSequenceDictionary())) {
+			w->count++;
+
+			std::shared_ptr<AssemblyRegion> nextRegion = t->pendingRegions.front();
+
+			//if(count % 2000 == 0) {
+			//std::cout << *nextRegion;
+			//    break;
+			//}
+			t->pendingRegions.pop();
+
+			Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
+			std::vector<std::shared_ptr<VariantContext>> variant = t->m2Engine->callRegion(nextRegion, pileupRefContext);
+			//if(variant.size() != 0)
+			//  std::cout << variant.size();
+		}
+	}
+
+	// pop the AssemblyRegion left
+	while(!t->activityProfile->isEmpty())
+	{
+		vector<std::shared_ptr<AssemblyRegion>> * ReadyAssemblyRegions = t->activityProfile->popReadyAssemblyRegions(MTAC.assemblyRegionPadding, MTAC.minAssemblyRegionSize, MTAC.maxAssemblyRegionSize, true);
+		for(const std::shared_ptr<AssemblyRegion>& newRegion : *ReadyAssemblyRegions)
+		{
+			t->pendingRegions.emplace(newRegion);
+		}
+	}
+
+	while(!t->pendingRegions.empty())
+	{
+		w->count++;
+		std::shared_ptr<AssemblyRegion> nextRegion = t->pendingRegions.front();
+		//std::cout << *nextRegion;
+		t->pendingRegions.pop();
+
+		Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
+		//std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext); // TODO: callRegion() needs pileupRefContext
+	}
+
+	std::cout<<"thread exit\n";
+	delete t->m2Engine;
+	delete t->activityProfile;
 }
 
 int main(int argc, char *argv[])
@@ -94,21 +198,21 @@ int main(int argc, char *argv[])
     hts_pos_t beg, end, pos = -1, last_pos = -1;
     char * reg;
     char *in = nullptr, *output = nullptr, *ref = nullptr;
-    std::vector<char*> input_bam;
-    aux_t **data;
+	Shared sharedData;
 
     int read_num = 0;
     bool bqsr_within_mutect = false;    //---Maybe these parameters can make a struct
     char * tumor_table = nullptr, * normal_table = nullptr;
 	int thread_num = 1;
 
-    M2ArgumentCollection MTAC = {10, 50, 0.002, 100, 50, 300, ""};
+	sharedData.MTAC = {10, 50, 0.002, 100, 50, 300, ""};
 
     static struct option loptions[] =
             {
             {"input",       required_argument, nullptr, 'I'},
             {"output",      required_argument, nullptr, 'O'},
             {"reference",   required_argument, nullptr, 'R'},
+            {"thread",      required_argument, nullptr, 'T'},
             {"callable-depth", required_argument, nullptr, 1000},
             {"max-prob-propagation-distance", required_argument, nullptr, 1001},
             {"active-probability-threshold", required_argument, nullptr, 1002},
@@ -128,7 +232,7 @@ int main(int argc, char *argv[])
     while((c = getopt_long(argc, argv, "I:O:R:r:T:", loptions, nullptr)) >= 0){
         switch (c) {
             case 'I':
-                input_bam.emplace_back(strdup(optarg));
+	            sharedData.input_bam.emplace_back(strdup(optarg));
                 n++;
                 break;
             case 'O':
@@ -144,25 +248,25 @@ int main(int argc, char *argv[])
                 reg = strdup(optarg);
                 break;   // parsing a region requires a BAM header
             case 1000:  //--callable-depth
-                MTAC.callableDepth = atoi(optarg);
+	            sharedData.MTAC.callableDepth = atoi(optarg);
                 break;
             case 1001:
-                MTAC.maxProbPropagationDistance = atoi(optarg);
+	            sharedData.MTAC.maxProbPropagationDistance = atoi(optarg);
                 break;
             case 1002:
-                MTAC.activeProbThreshold = atof(optarg);
+	            sharedData.MTAC.activeProbThreshold = atof(optarg);
                 break;
             case 1003:
-                MTAC.assemblyRegionPadding = atoi(optarg);
+	            sharedData.MTAC.assemblyRegionPadding = atoi(optarg);
                 break;
             case 1004:
-                MTAC.maxAssemblyRegionSize = atoi(optarg);
+	            sharedData.MTAC.maxAssemblyRegionSize = atoi(optarg);
                 break;
             case 1005:
-                MTAC.minAssemblyRegionSize = atoi(optarg);
+	            sharedData.MTAC.minAssemblyRegionSize = atoi(optarg);
                 break;
             case 1006:
-                MTAC.normalSample = string(optarg);
+	            sharedData.MTAC.normalSample = string(optarg);
                 break;
             case 1007:
                 bqsr_within_mutect = true;
@@ -176,41 +280,33 @@ int main(int argc, char *argv[])
         }
     }
 
+    adjust_input_bam(sharedData.input_bam, sharedData.MTAC.normalSample);
 
-    adjust_input_bam(input_bam, MTAC.normalSample);
-
-    data = static_cast<aux_t **>(calloc(n, sizeof(aux_t *))); // data[i] for the i-th input
+	sharedData.data = static_cast<aux_t **>(calloc(n, sizeof(aux_t *))); // data[i] for the i-th input
     reg_tid = 0; beg = 0; end = HTS_POS_MAX;  // set the default region
     vector<sam_hdr_t *> headers;// used to contain headers
 
     for (int i = 0; i < n; ++i) {
-        data[i] = static_cast<aux_t *>(calloc(1, sizeof(aux_t)));
-        data[i]->fp = hts_open(input_bam[i], "r"); // open BAM
-        if (data[i]->fp == nullptr) {
+	    sharedData.data[i] = static_cast<aux_t *>(calloc(1, sizeof(aux_t)));
+	    sharedData.data[i]->fp = hts_open(sharedData.input_bam[i], "r"); // open BAM
+        if (sharedData.data[i]->fp == nullptr) {
             throw "Could not open sam/bam/cram files";
             exit(0);
         }
-        data[i]->hdr = sam_hdr_read(data[i]->fp);    // read the BAM header
-        headers.emplace_back(data[i]->hdr);
+	    sharedData.data[i]->hdr = sam_hdr_read(sharedData.data[i]->fp);    // read the BAM header
+        headers.emplace_back(sharedData.data[i]->hdr);
     }
-    SAMFileHeader* header = SAMTools_decode::merge_samFileHeaders(headers);
+    sharedData.header = SAMTools_decode::merge_samFileHeaders(headers);
     for (int i = 0; i < n; ++i) {
-        data[i]->header = header;
+	    sharedData.data[i]->header = sharedData.header;
     }
     faidx_t * refPoint = fai_load3_format(ref, nullptr, nullptr, FAI_CREATE, FAI_FASTA);
 
-    sam_hdr_t *h = data[0]->hdr; // easy access to the header of the 1st BAM   //---why use header of the first bam
+    sam_hdr_t *h = sharedData.data[0]->hdr; // easy access to the header of the 1st BAM   //---why use header of the first bam
     int nref = sam_hdr_nref(h);
 
     smithwaterman_initial();
     QualityUtils::initial();
-	std::vector<std::thread> threads(thread_num);
-	//TODO: thread pool initial
-	//exitFlag = false;
-
-    Mutect2Engine m2Engine(MTAC, ref, header);
-    queue<std::shared_ptr<AssemblyRegion>> pendingRegions;
-    ActivityProfile * activityProfile = new BandPassActivityProfile(MTAC.maxProbPropagationDistance, MTAC.activeProbThreshold, BandPassActivityProfile::MAX_FILTER_SIZE, BandPassActivityProfile::DEFAULT_SIGMA,true , header);
     std::shared_ptr<BQSRReadTransformer> tumorTransformer(nullptr);
     std::shared_ptr<BQSRReadTransformer> normalTransformer(nullptr);
     if(bqsr_within_mutect)
@@ -220,116 +316,43 @@ int main(int argc, char *argv[])
         normalTransformer = std::make_shared<BQSRReadTransformer>(normal_table, bqsrArgs);
     }
 
-	vector<std::shared_ptr<ReferenceCache>> refCaches(nref);
-	//save all refCachess;
+	//get all refCaches
 	for(int k = 0; k < nref; k++)   {
-		refCaches[k] = std::make_shared<ReferenceCache>(ref, data[0]->header, k);
+		sharedData.refCaches.push_back(std::make_shared<ReferenceCache>(ref, sharedData.data[0]->header, k));
 	}
-    int count = 0;
-    // TODO: add multi-thread mode here
-    for(int k=0; k<nref; k++)
+
+	//start threads
+	std::vector<std::thread> threads;
+	for (int i = 0; i < thread_num; ++i) {
+		threads.emplace_back(&threadFunc, &sharedData, new Worker(&sharedData, ref));
+	}
+
+	for(int k = 18; k < nref; k++)
     {
-        hts_pos_t ref_len = sam_hdr_tid2len(data[0]->hdr, k);   // the length of reference sequence
-
+        hts_pos_t ref_len = sam_hdr_tid2len(sharedData.data[0]->hdr, k);   // the length of reference sequence
         int len = ref_len < REGION_SIZE ? ref_len : REGION_SIZE;
-        std::string region = std::string(sam_hdr_tid2name(data[0]->hdr, k)) + ":0-" + to_string(len);
-	    for (int i = 0; i < thread_num; ++i) {
-		    threads[i] = std::thread(&threadFunc,i);
-	    }
-		for(auto &thread:threads){
-			thread.join();
-		}
-
-		// region data imput_bam ref
-		// main thread  hashMap refCache
-        std::string contig = std::string(sam_hdr_tid2name(data[0]->hdr, k));
-        ReadCache cache(data, input_bam, k, region, refCaches[k]);
-
-        m2Engine.setReferenceCache(refCaches[k].get());
-        while(cache.hasNextPos()) {
-            AlignmentContext pileup = cache.getAlignmentContext();
-            if(!activityProfile->isEmpty()){
-                bool forceConversion = pileup.getPosition() != activityProfile->getEnd() + 1;
-                vector<std::shared_ptr<AssemblyRegion>> * ReadyAssemblyRegions = activityProfile->popReadyAssemblyRegions(MTAC.assemblyRegionPadding, MTAC.minAssemblyRegionSize, MTAC.maxAssemblyRegionSize, forceConversion);
-                for(const std::shared_ptr<AssemblyRegion>& newRegion : *ReadyAssemblyRegions)
-                {
-                    pendingRegions.emplace(newRegion);
-                }
-            }
-
-            if(pileup.isEmpty()) {
-                std::shared_ptr<ActivityProfileState> state = std::make_shared<ActivityProfileState>(contig.c_str(), pileup.getPosition(), 0.0);
-                activityProfile->add(state);
-                continue;
-            }
-            std::shared_ptr<SimpleInterval> pileupInterval = std::make_shared<SimpleInterval>(contig, (int)pileup.getPosition(), (int)pileup.getPosition());
-            char refBase = refCaches[k]->getBase(pileup.getPosition());
-            ReferenceContext pileupRefContext(pileupInterval, refBase);
-
-            std::shared_ptr<ActivityProfileState> profile = m2Engine.isActive(pileup);
-            activityProfile->add(profile);
-
-            if(!pendingRegions.empty() && IntervalUtils::isAfter(pileup.getLocation(), *pendingRegions.front()->getExtendedSpan(), header->getSequenceDictionary())) {
-                count++;
-
-                std::shared_ptr<AssemblyRegion> nextRegion = pendingRegions.front();
-
-                //if(count % 2000 == 0) {
-                    //std::cout << *nextRegion;
-                //    break;
-                //}
-                pendingRegions.pop();
-
-                Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
-                std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext);
-                //if(variant.size() != 0)
-                  //  std::cout << variant.size();
-            }
-        }
-
-        // pop the AssemblyRegion left
-        while(!activityProfile->isEmpty())
-        {
-            vector<std::shared_ptr<AssemblyRegion>> * ReadyAssemblyRegions = activityProfile->popReadyAssemblyRegions(MTAC.assemblyRegionPadding, MTAC.minAssemblyRegionSize, MTAC.maxAssemblyRegionSize, true);
-            for(const std::shared_ptr<AssemblyRegion>& newRegion : *ReadyAssemblyRegions)
-            {
-                pendingRegions.emplace(newRegion);
-            }
-        }
-
-        while(!pendingRegions.empty())
-        {
-            count++;
-            std::shared_ptr<AssemblyRegion> nextRegion = pendingRegions.front();
-            //std::cout << *nextRegion;
-            pendingRegions.pop();
-
-            Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
-            //std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext); // TODO: callRegion() needs pileupRefContext
-        }
-        //break;
     }
 
-    //std::cout << "read_num : " << read_num << std::endl;
-
+	for(auto &thread:threads) {
+		thread.join();
+	}
 
     // free the space
-    delete activityProfile;
     fai_destroy(refPoint);
-    for(char * input_file : input_bam)
+    for(char * input_file : sharedData.input_bam)
         free(input_file);
     free(output);
     free(ref);
     free(tumor_table);
     free(normal_table);
-    delete header;
+    delete sharedData.header;
     for(int i=0; i<n; i++)
     {
-        hts_close(data[i]->fp);
-        sam_hdr_destroy(data[i]->hdr);
-        free(data[i]);
+        hts_close(sharedData.data[i]->fp);
+        sam_hdr_destroy(sharedData.data[i]->hdr);
+        free(sharedData.data[i]);
     }
-    free(data);
+    free(sharedData.data);
 
     return 0;
 }
