@@ -4,8 +4,7 @@ project(Mutect2Cpp_master)
 set(CMAKE_CXX_STANDARD 17)
 
 #compile flag
-set(CMAKE_CXX_FLAGS "-g")
-set(CMAKE_CXX_FLAGS "-lpthread")
+set(CMAKE_CXX_FLAGS "-g -lpthread")
 set(CMAKE_CXX_FLAGS_RELEASE -O3)
 set(CMAKE_CXX_FLAGS_DEBUG "-fsanitize=leak")
 
@@ -56,7 +55,7 @@ if (CMAKE_SYSTEM_NAME MATCHES "Linux")
     target_link_libraries(Mutect2Cpp_master ${PROJECT_SOURCE_DIR}/../htslib/libhts.so)
 elseif (CMAKE_SYSTEM_NAME MATCHES "Darwin")
     target_link_libraries(Mutect2Cpp_master ${PROJECT_SOURCE_DIR}/../htslib/libhts.dylib)
-endif()
+endif ()
 target_link_libraries(Mutect2Cpp_master CigarFunctions)
 target_link_libraries(Mutect2Cpp_master ReadFunctions)
 target_link_libraries(Mutect2Cpp_master CacheFunctions)
