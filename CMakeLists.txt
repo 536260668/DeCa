@@ -4,7 +4,7 @@ project(Mutect2Cpp_master)
 set(CMAKE_CXX_STANDARD 17)
 
 #compile flag
-set(CMAKE_CXX_FLAGS "-g -lpthread")
+set(CMAKE_CXX_FLAGS "-g -pthread")
 set(CMAKE_CXX_FLAGS_RELEASE -O3)
 set(CMAKE_CXX_FLAGS_DEBUG "-fsanitize=leak")
 
