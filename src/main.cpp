@@ -160,16 +160,14 @@ void threadFunc(Shared *w, char *ref, int n, int nref) {
 	// make sure all refCaches have been created
 	while (w->numOfRefCache != nref) std::this_thread::yield();
 
+	Region tmpRegion(0, 0, 0);
 	int start, end, k;
 	while (true) {
 		while (true) {
 			std::unique_lock<std::mutex> lock(w->queueMutex);
 			w->queueCond.wait(lock, [w] { return w->exitFlag || !w->RegionQueue.empty(); });
 			if (w->exitFlag) break;
-
-			start = w->RegionQueue.front().getStart();
-			end =  w->RegionQueue.front().getEnd();
-			k = w->RegionQueue.front().getK();
+			tmpRegion = w->RegionQueue.front();
 			w->RegionQueue.pop();
 			std::cout << "queue size: " + std::to_string(w->RegionQueue.size()) + '\n';
 			w->numOfFreeThreads--;
@@ -178,6 +176,9 @@ void threadFunc(Shared *w, char *ref, int n, int nref) {
 		if (w->exitFlag) break;
 
 		// running the task
+		start = tmpRegion.getStart();
+		end =  tmpRegion.getEnd();
+		k = tmpRegion.getK();
 		std::cout << "solving " + std::to_string(start) + " " + std::to_string(end) + " " + std::to_string(k) + '\n';
 		std::string contig = std::string(sam_hdr_tid2name(data[0]->hdr, k));
 		ReadCache cache(data, w->input_bam, k, start, end, w->MTAC.maxAssemblyRegionSize, w->refCaches[k], w->bqsr_within_mutect, w->tumorTransformer.get(), w->normalTransformer.get());
@@ -394,7 +395,7 @@ int main(int argc, char *argv[])
 		threads.emplace_back(&threadFunc, &sharedData, ref, n, nref);
 	}
 
-    for(int k = 18; k < nref; k++)
+    for(int k = 0; k < nref; k++)
     {
         hts_pos_t ref_len = sam_hdr_tid2len(data[0]->hdr, k);   // the length of reference sequence
         int start = 0;
