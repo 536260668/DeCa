@@ -102,6 +102,7 @@ int
 ReadThreadingAssembler::getMinKmerSize(std::shared_ptr<Haplotype> &refHaplotype, std::vector<int> candidateKmerSizes) {
 	//std::string s = refHaplotype->getBaseString();
 	std::shared_ptr<uint8_t[]> s = refHaplotype->getBases();
+	bool justACGT = true;
 	int len = refHaplotype->getLength();
 	int i, k = 0;
 
@@ -113,52 +114,108 @@ ReadThreadingAssembler::getMinKmerSize(std::shared_ptr<Haplotype> &refHaplotype,
 		else if (ch == 'C') charToU8[i] = 1;
 		else if (ch == 'G') charToU8[i] = 2;
 		else if (ch == 'T') charToU8[i] = 3;
-		else throw std::invalid_argument("Found N in sequence when getting MinKmerSize!");
-	}
-
-	while (candidateKmerSizes[k] <= 30) {
-		std::unordered_set<long long> valueSet;
-		valueSet.reserve(len - candidateKmerSizes[k] + 1);
-		long long val = 0L, mask = (1L << (candidateKmerSizes[k] * 2)) - 1;
-		for (i = 0; i < candidateKmerSizes[k]; ++i) val = (val << 2) | charToU8[i];
-		valueSet.insert(val);
-		for (i = candidateKmerSizes[k]; i < len; ++i) {
-			val = ((val << 2) & mask) | charToU8[i];
-			if (!valueSet.insert(val).second) {
-				k++;
-				break;
-			}
+		else {
+			justACGT = false;
+			break;
 		}
-		if (i == len) return candidateKmerSizes[k];
 	}
 
-	//when candidateKmerSizes[k] > 30, use dynamic bitset
-	uint8_t charToBitH[len], charToBitL[len];
+	if (justACGT) {
+		while (candidateKmerSizes[k] <= 30) {
+			std::unordered_set<long long> valueSet;
+			valueSet.reserve(len - candidateKmerSizes[k] + 1);
+			long long val = 0L, mask = (1L << (candidateKmerSizes[k] * 2)) - 1;
+			for (i = 0; i < candidateKmerSizes[k]; ++i) val = (val << 2) | charToU8[i];
+			valueSet.insert(val);
+			for (i = candidateKmerSizes[k]; i < len; ++i) {
+				val = ((val << 2) & mask) | charToU8[i];
+				if (!valueSet.insert(val).second) {
+					k++;
+					break;
+				}
+			}
+			if (i == len) return candidateKmerSizes[k];
+		}
+
+		//when candidateKmerSizes[k] > 30, use dynamic bitset
+		uint8_t charToBitH[len], charToBitL[len];
+		for (i = 0; i < len; ++i) {
+			uint8_t ch = s[i];
+			if (ch == 'A') charToBitH[i] = 0, charToBitL[i] = 0;
+			else if (ch == 'C') charToBitH[i] = 0, charToBitL[i] = 1;
+			else if (ch == 'G') charToBitH[i] = 1, charToBitL[i] = 0;
+			else charToBitH[i] = 1, charToBitL[i] = 1;
+		}
+
+		int last_i = 0, j;
+		while (k < candidateKmerSizes.size() - 1) {
+			int bitSetSize = 2 * candidateKmerSizes[k];
+			boost::dynamic_bitset<> s1(bitSetSize), s2(bitSetSize);
+			for (j = last_i; j < last_i + candidateKmerSizes[k] - 1; ++j) {
+				s1 <<= 2;
+				s1[1] = charToBitH[j], s1[0] = charToBitL[j];
+			}
+			for (i = last_i + candidateKmerSizes[k] - 1; i < len; i++) {
+				s1 <<= 2;
+				s1[1] = charToBitH[i], s1[0] = charToBitL[i];
+				//std::cout << "s1: " << s1 << std::endl;
+				s2 = s1;
+				for (j = i + 1; j < len; j++) { //s2[j] loop
+					s2 <<= 2;
+					s2[1] = charToBitH[j], s2[0] = charToBitL[j];
+					//std::cout << "s2: " << s2 << std::endl;
+					if (s1 == s2) { //match
+						last_i = i - candidateKmerSizes[k] + 1;
+						k++;
+						if (last_i + candidateKmerSizes[k] >= len) return candidateKmerSizes[k];
+						break;
+					}
+				}
+				if (j != len) break; //match, solve next k
+			}
+			if (i == len) return candidateKmerSizes[k]; //not match, return
+		}
+		return candidateKmerSizes[k];
+	}
+
+	// not justACGT, use 4 bits to solve
+	uint8_t charToBit1[len], charToBit2[len], charToBit3[len], charToBit4[len]; //1 is highest, 2 is lowest
 	for (i = 0; i < len; ++i) {
 		uint8_t ch = s[i];
-		if (ch == 'A') charToBitH[i] = 0, charToBitL[i] = 0;
-		else if (ch == 'C') charToBitH[i] = 0, charToBitL[i] = 1;
-		else if (ch == 'G') charToBitH[i] = 1, charToBitL[i] = 0;
-		else if (ch == 'T') charToBitH[i] = 1, charToBitL[i] = 1;
-		else throw std::invalid_argument("Found N in sequence when getting MinKmerSize!");
+		if (ch == 'A') charToBit1[i] = 0, charToBit2[i] = 0, charToBit3[i] = 0, charToBit4[i] = 0;
+		else if (ch == 'C') charToBit1[i] = 0, charToBit2[i] = 0, charToBit3[i] = 0, charToBit4[i] = 1;
+		else if (ch == 'G') charToBit1[i] = 0, charToBit2[i] = 0, charToBit3[i] = 1, charToBit4[i] = 0;
+		else if (ch == 'T') charToBit1[i] = 0, charToBit2[i] = 0, charToBit3[i] = 1, charToBit4[i] = 1;
+		else if (ch == 'R') charToBit1[i] = 0, charToBit2[i] = 1, charToBit3[i] = 0, charToBit4[i] = 0;
+		else if (ch == 'Y') charToBit1[i] = 0, charToBit2[i] = 1, charToBit3[i] = 0, charToBit4[i] = 1;
+		else if (ch == 'M') charToBit1[i] = 0, charToBit2[i] = 1, charToBit3[i] = 1, charToBit4[i] = 0;
+		else if (ch == 'K') charToBit1[i] = 0, charToBit2[i] = 1, charToBit3[i] = 1, charToBit4[i] = 1;
+		else if (ch == 'S') charToBit1[i] = 1, charToBit2[i] = 0, charToBit3[i] = 0, charToBit4[i] = 0;
+		else if (ch == 'W') charToBit1[i] = 1, charToBit2[i] = 0, charToBit3[i] = 0, charToBit4[i] = 1;
+		else if (ch == 'H') charToBit1[i] = 1, charToBit2[i] = 0, charToBit3[i] = 1, charToBit4[i] = 0;
+		else if (ch == 'B') charToBit1[i] = 1, charToBit2[i] = 0, charToBit3[i] = 1, charToBit4[i] = 1;
+		else if (ch == 'V') charToBit1[i] = 1, charToBit2[i] = 1, charToBit3[i] = 0, charToBit4[i] = 0;
+		else if (ch == 'D') charToBit1[i] = 1, charToBit2[i] = 1, charToBit3[i] = 0, charToBit4[i] = 1;
+		else if (ch == 'N') charToBit1[i] = 1, charToBit2[i] = 1, charToBit3[i] = 1, charToBit4[i] = 0;
+		else charToBit1[i] = 1, charToBit2[i] = 1, charToBit3[i] = 1, charToBit4[i] = 1;
 	}
 
 	int last_i = 0, j;
 	while (k < candidateKmerSizes.size() - 1) {
-		int bitSetSize = 2 * candidateKmerSizes[k];
+		int bitSetSize = 4 * candidateKmerSizes[k];
 		boost::dynamic_bitset<> s1(bitSetSize), s2(bitSetSize);
 		for (j = last_i; j < last_i + candidateKmerSizes[k] - 1; ++j) {
-			s1 <<= 2;
-			s1[1] = charToBitH[j], s1[0] = charToBitL[j];
+			s1 <<= 4;
+			s1[3] = charToBit1[j], s1[2] = charToBit2[j], s1[1] = charToBit3[j], s1[0] = charToBit4[j];
 		}
 		for (i = last_i + candidateKmerSizes[k] - 1; i < len; i++) {
-			s1 <<= 2;
-			s1[1] = charToBitH[i], s1[0] = charToBitL[i];
+			s1 <<= 4;
+			s1[3] = charToBit1[i], s1[2] = charToBit2[i], s1[1] = charToBit3[i], s1[0] = charToBit4[i];
 			//std::cout << "s1: " << s1 << std::endl;
 			s2 = s1;
 			for (j = i + 1; j < len; j++) { //s2[j] loop
-				s2 <<= 2;
-				s2[1] = charToBitH[j], s2[0] = charToBitL[j];
+				s2 <<= 4;
+				s2[3] = charToBit1[j], s2[2] = charToBit2[j], s2[1] = charToBit3[j], s2[0] = charToBit4[j];
 				//std::cout << "s2: " << s2 << std::endl;
 				if (s1 == s2) { //match
 					last_i = i - candidateKmerSizes[k] + 1;
@@ -233,7 +290,8 @@ ReadThreadingAssembler::createGraph(const std::vector<std::shared_ptr<SAMRecord>
 		rtgraph->addRead(read);
 
 	rtgraph->buildGraphIfNecessary();
-	std::cout << "1: " << rtgraph->getEdgeSet().size() << " " << rtgraph->getVertexSet().size() << std::endl;
+	std::cout << "1: " + std::to_string(rtgraph->getEdgeSet().size()) + " " +
+	             std::to_string(rtgraph->getVertexSet().size()) + '\n';
 	/*std::ofstream outfile1("./graph1.dot");
 	outfile1 << "digraph G{" << std::endl;
 	for (auto &v: rtgraph->getVertexSet()) {
@@ -255,7 +313,8 @@ ReadThreadingAssembler::createGraph(const std::vector<std::shared_ptr<SAMRecord>
 	outfile1.close();*/
 
 	chainPruner->pruneLowWeightChains(rtgraph);
-	std::cout << "2: " << rtgraph->getEdgeSet().size() << " " << rtgraph->getVertexSet().size() << std::endl;
+	std::cout << "2: " + std::to_string(rtgraph->getEdgeSet().size()) + " " +
+	             std::to_string(rtgraph->getVertexSet().size()) + '\n';
 	/*std::ofstream outfile2("./graph2.dot");
 		outfile2 << "digraph G{" << std::endl;
 		for (auto &edge: rtgraph->edgeMap) {
@@ -276,15 +335,15 @@ ReadThreadingAssembler::createGraph(const std::vector<std::shared_ptr<SAMRecord>
 	//    outfile.close();
 
 	if (rtgraph->hasCycles()) {
-		std::cout << kmerSize << " failed because hasCycles" << std::endl;
+		std::cout << std::to_string(kmerSize) + " failed because hasCycles" + '\n';
 		return nullptr;
 	}
 
 	if (!allowLowComplexityGraphs && rtgraph->isLowComplexity()) {
-		std::cout << kmerSize << " failed because isLowComplexity" << std::endl;
+		std::cout << std::to_string(kmerSize) + " failed because isLowComplexity" + '\n';
 		return nullptr;
 	}
-	std::cout << kmerSize << std::endl;
+	std::cout << std::to_string(kmerSize) + '\n';
 	return getAssemblyResult(refHaplotype, rtgraph);
 }
 
@@ -320,7 +379,8 @@ void ReadThreadingAssembler::findBestPaths(const std::vector<std::shared_ptr<Seq
 				std::shared_ptr<Cigar> cigar = CigarUtils::calculateCigar(refHaplotype->getBases(),
 				                                                          refHaplotype->getLength(), h->getBases(),
 				                                                          h->getLength());
-
+				if (cigar == nullptr)
+					continue;   // couldn't produce a meaningful alignment of haplotype to reference, fail quietly
 				h->setCigar(cigar);
 				h->setAlignmentStartHapwrtRef(activeRegionStart);
 				h->setGenomeLocation(activeRegionWindow);
