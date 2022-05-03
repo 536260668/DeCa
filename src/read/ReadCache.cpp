@@ -43,11 +43,11 @@ ReadCache::ReadCache(aux_t **data, std::vector<char*> & bam_name, std::shared_pt
     }
     bam_destroy1(b);
 
-    start = end = currentPose = 0;
+    //start = end = currentPose = 0;
 }
 
-ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, const std::string& region, std::shared_ptr<ReferenceCache> & cache, bool bqsr_within_mutect, BQSRReadTransformer * tumorTransformer, BQSRReadTransformer * normalTransformer) :
-    tid(tid), data(data), bam_name(bam_name), readTransformer(cache, data[0]->header, 5), bqsr_within_mutect(bqsr_within_mutect), tumorTransformer(tumorTransformer), normalTransformer(normalTransformer){
+ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, int start, int end, int maxAssemblyRegionSize, std::shared_ptr<ReferenceCache> & cache, bool bqsr_within_mutect, BQSRReadTransformer * tumorTransformer, BQSRReadTransformer * normalTransformer) :
+tid(tid), data(data), bam_name(bam_name), readTransformer(cache, data[0]->header, 5), bqsr_within_mutect(bqsr_within_mutect), tumorTransformer(tumorTransformer), normalTransformer(normalTransformer){
 
     for(int i = 0; i < bam_name.size(); i++){
         hts_idx_t * idx = sam_index_load(data[i]->fp, bam_name[i]);
@@ -59,24 +59,14 @@ ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, const
 
         hts_idxes.push_back(idx);
     }
-    readData(region);
 
-    unsigned i = region.find_last_of(':') + 1;
-    unsigned j = region.find_last_of('-') + 1;
-    start = std::stoi(region.substr(i, j-i));
-    end = std::stoi(region.substr(j, region.size() - j));
     chr_len = sam_hdr_tid2len(data[0]->hdr, tid);
+    ExtendedStart = max(start - maxAssemblyRegionSize, 0);
+    ExtendedEnd = min(end + maxAssemblyRegionSize, chr_len);
     chr_name = std::string(sam_hdr_tid2name(data[0]->hdr, tid));
+    currentPose = ExtendedStart - 1;
 
-    // set currentPose to the first position of reads
-    int tumorStart = start - 1;
-    int normalStart = start - 1;
-    if(!tumorReads.empty())
-        tumorStart = tumorReads.front()->read->getStart();
-    if(!normalReads.empty())
-        normalStart = normalReads.front()->read->getStart();
-
-    currentPose = std::max(std::min(tumorStart, normalStart) - START_GAP, 0);
+    readData(string(sam_hdr_tid2name(data[0]->hdr, tid)) + ":" + to_string(ExtendedStart) + "-" + to_string(ExtendedEnd));
 
     if(bqsr_within_mutect)
     {
@@ -139,11 +129,8 @@ void ReadCache::readData(const string &region)
 
 int ReadCache::getNextPos() {
     int nextPose = currentPose + 1;
-    if(nextPose > chr_len) {
+    if(nextPose > chr_len || nextPose > ExtendedEnd) {
         throw std::invalid_argument("please check first");
-    }
-    while(nextPose > end) {
-        advanceLoad();
     }
     currentPose = nextPose;
     return nextPose;
@@ -151,23 +138,23 @@ int ReadCache::getNextPos() {
 
 bool ReadCache::hasNextPos() {
     int nextPose = currentPose + 1;
-    return nextPose <= chr_len;
+    return nextPose <= ExtendedEnd;
 }
 
-void ReadCache::advanceLoad() {
+/*void ReadCache::advanceLoad() {
     // clear the elements of last region
     if(!normalReads.empty() && !tumorReads.empty())
         throw std::logic_error("error");
     clear();
 
     start = end + 1;
-    end = start + REGION_SIZE -1;   // TODO: make it a parameter
+    end = start + REGION_SIZE -1;
 
     std::string region = std::string(sam_hdr_tid2name(data[0]->hdr, tid)) + ':' +
             std::to_string(start+1) + '-' + std::to_string(end);
 
     readData(region);
-}
+}*/
 
 AlignmentContext ReadCache::getAlignmentContext() {
     getNextPos();

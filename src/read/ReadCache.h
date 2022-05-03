@@ -42,8 +42,8 @@ private:
     std::vector<char*> bam_name;
     aux_t ** data;
     int tid;
-    int start;
-    int end;
+    int ExtendedStart;
+    int ExtendedEnd;
     int chr_len;    // the total length of current chromosome
     std::string chr_name;   // the name of current chromosome
     std::vector<hts_idx_t *> hts_idxes;
@@ -64,7 +64,7 @@ private:
 public:
 
     ReadCache(aux_t** data, std::vector<char*> & bam_name, std::shared_ptr<ReferenceCache> & cache);
-    ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, const std::string& region, std::shared_ptr<ReferenceCache> & cache, bool bqsr_within_mutect = false, BQSRReadTransformer * tumorTransformer = nullptr, BQSRReadTransformer * normalTransformer = nullptr);
+    ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, int start, int end, int maxAssemblyRegionSize, std::shared_ptr<ReferenceCache> & cache, bool bqsr_within_mutect = false, BQSRReadTransformer * tumorTransformer = nullptr, BQSRReadTransformer * normalTransformer = nullptr);
     int getNextPos();
     bool hasNextPos();
     void InsertPileToAlignment(pileRead* stopPos, std::list<pileRead*> &);

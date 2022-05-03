@@ -9,7 +9,7 @@ ReferenceCache::ReferenceCache(char * refName, SAMFileHeader* header, int tid) :
 {
     fai = fai_load3_format(refName, nullptr, nullptr, FAI_CREATE, FAI_FASTA);
     start = 0;
-    end = std::min(999999, header->getSequenceDictionary().getSequences()[tid].getSequenceLength());
+    end = header->getSequenceDictionary().getSequences()[tid].getSequenceLength();  // TODO: make it more elegan
     std::string region = header->getSequenceDictionary().getSequences()[tid].getSequenceName() + ':' + std::to_string(start + 1) + '-' + std::to_string(end + 1);
     bases = fai_fetch64(fai, region.c_str(), &len);
 }
@@ -36,9 +36,9 @@ void ReferenceCache::clear()
 
 char ReferenceCache::getBase(hts_pos_t pos)
 {
-    while(pos > end) {
+/*    while(pos > end) {
         advanceLoad();
-    }
+    }*/
     char base = bases[pos - start];
     if(base >= 'A' && base <= 'Z')
         return base;
