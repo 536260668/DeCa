@@ -18,7 +18,10 @@ typedef struct M2ArgumentCollection{
     bool genotypeGermlineSites = false;
 
     static double getInitialLogOdds() {
-        return 4.6052;
+		// A constant should not be returned, it caused a bug sometimes, one over a billion
+		// So I won't implement MTAC class for the time being
+		// 4.605170185988092 == 2 * ln(10)
+		return 4.605170185988092;
     }
 }M2ArgumentCollection;
 

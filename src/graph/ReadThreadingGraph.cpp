@@ -78,7 +78,7 @@ void ReadThreadingGraph::determineNonUniques() {
 			int len = withNonUnique.stop - withNonUnique.start;
 			for (int i = 0; i < len; ++i) {
 				uint8_t ch = s[withNonUnique.start + i];
-				if (ch != 'G' && ch != 'T' && ch != 'A' && ch != 'C') {
+				if (BOOST_UNLIKELY(ch != 'G' && ch != 'T' && ch != 'A' && ch != 'C')) {
 					justACGT = false;
 					break;
 				}
@@ -376,13 +376,13 @@ void ReadThreadingGraph::buildGraphIfNecessary() {
 //    }
 
 	determineNonUniques();
-	if (!nonUniqueKmers.empty()) {
-		std::cout << "[buildGraphIfNecessary] " + std::to_string(nonUniqueKmers.size()) + '\n';
+	//if (!nonUniqueKmers.empty()) {
+		//std::cout << "[buildGraphIfNecessary] " + std::to_string(nonUniqueKmers.size()) + '\n';
 		/*for(const auto& nonnnnn : nonUniqueKmers){
 			std::string s = reinterpret_cast<const char *>(nonnnnn->getBases().get());
 			std::cout<<s.substr(0,nonnnnn->getLength())<<std::endl;
 		}*/
-	}
+	//}
 
 	for (auto &miter: pending) {
 		for (auto &viter: miter.second) {

@@ -159,7 +159,7 @@ bool ReadCache::hasNextPos() {
 AlignmentContext ReadCache::getAlignmentContext() {
     getNextPos();
     // remove some read if necessary
-    std::list<pileRead*>::iterator iter = tumorReadsForAlignment.begin();
+    auto iter = tumorReadsForAlignment.begin();
     while(iter != tumorReadsForAlignment.end() && (*iter)->activateStop < currentPose) {
         delete *iter;
         tumorReadsForAlignment.erase(iter++);
@@ -233,11 +233,10 @@ AlignmentContext ReadCache::getAlignmentContext() {
 std::vector<std::shared_ptr<SAMRecord>> ReadCache::getReadsForRegion(AssemblyRegion & region) {
     std::vector<std::shared_ptr<SAMRecord>> ret;
     std::shared_ptr<SimpleInterval> loc = region.getExtendedSpan();
-    std::list<std::shared_ptr<SAMRecord>>::iterator iter = tumorReadsForRegion.begin();
+    auto iter = tumorReadsForRegion.begin();
+
     while(iter != tumorReadsForRegion.end()) {
         std::shared_ptr<SimpleInterval> readLoc = (*iter)->getLoc();
-
-
         if((*iter)->getEndAfterFliter() < loc->getStart()) {
             tumorReadsForRegion.erase(iter++);
         } else {
@@ -248,11 +247,10 @@ std::vector<std::shared_ptr<SAMRecord>> ReadCache::getReadsForRegion(AssemblyReg
         }
 
     }
+
     iter = normalReadsForRegion.begin();
     while(iter != normalReadsForRegion.end()) {
         std::shared_ptr<SimpleInterval> readLoc = (*iter)->getLoc();
-
-
         if((*iter)->getEndAfterFliter() < loc->getStart()) {
             normalReadsForRegion.erase(iter++);
         } else {

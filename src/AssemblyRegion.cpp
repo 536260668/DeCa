@@ -146,7 +146,7 @@ std::shared_ptr<uint8_t[]> AssemblyRegion::getReference(ReferenceCache *referenc
 	return referenceReader->getSubsequenceAt(header->getSequenceDictionary().getSequenceIndex(contig),
 	                                         std::max(0, genomeLoc->getStart() - padding),
 	                                         std::min(header->getSequenceDictionary().getSequence(
-			                                                  contig).getSequenceLength(),
+			                                                  contig).getSequenceLength() - 1,
 	                                                  genomeLoc->getEnd() + padding), length);
 }
 

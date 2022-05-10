@@ -290,8 +290,8 @@ ReadThreadingAssembler::createGraph(const std::vector<std::shared_ptr<SAMRecord>
 		rtgraph->addRead(read);
 
 	rtgraph->buildGraphIfNecessary();
-	std::cout << "1: " + std::to_string(rtgraph->getEdgeSet().size()) + " " +
-	             std::to_string(rtgraph->getVertexSet().size()) + '\n';
+	//std::cout << "1: " + std::to_string(rtgraph->getEdgeSet().size()) + " " +
+	//             std::to_string(rtgraph->getVertexSet().size()) + '\n';
 	/*std::ofstream outfile1("./graph1.dot");
 	outfile1 << "digraph G{" << std::endl;
 	for (auto &v: rtgraph->getVertexSet()) {
@@ -313,8 +313,8 @@ ReadThreadingAssembler::createGraph(const std::vector<std::shared_ptr<SAMRecord>
 	outfile1.close();*/
 
 	chainPruner->pruneLowWeightChains(rtgraph);
-	std::cout << "2: " + std::to_string(rtgraph->getEdgeSet().size()) + " " +
-	             std::to_string(rtgraph->getVertexSet().size()) + '\n';
+	//std::cout << "2: " + std::to_string(rtgraph->getEdgeSet().size()) + " " +
+	//             std::to_string(rtgraph->getVertexSet().size()) + '\n';
 	/*std::ofstream outfile2("./graph2.dot");
 		outfile2 << "digraph G{" << std::endl;
 		for (auto &edge: rtgraph->edgeMap) {
@@ -335,15 +335,15 @@ ReadThreadingAssembler::createGraph(const std::vector<std::shared_ptr<SAMRecord>
 	//    outfile.close();
 
 	if (rtgraph->hasCycles()) {
-		std::cout << std::to_string(kmerSize) + " failed because hasCycles" + '\n';
+		//std::cout << std::to_string(kmerSize) + " failed because hasCycles" + '\n';
 		return nullptr;
 	}
 
 	if (!allowLowComplexityGraphs && rtgraph->isLowComplexity()) {
-		std::cout << std::to_string(kmerSize) + " failed because isLowComplexity" + '\n';
+		//std::cout << std::to_string(kmerSize) + " failed because isLowComplexity" + '\n';
 		return nullptr;
 	}
-	std::cout << std::to_string(kmerSize) + '\n';
+	//std::cout << std::to_string(kmerSize) + '\n';
 	return getAssemblyResult(refHaplotype, rtgraph);
 }
 

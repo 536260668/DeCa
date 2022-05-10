@@ -446,7 +446,7 @@ bool ReadUtils::isUnmapped(bam1_t *read, sam_hdr_t * hdr)
     const char * refName = getReferenceName(read, hdr);
     return (read->core.flag & BAM_FUNMAP) != 0 ||
     strcmp(refName, SAMRecord::NO_ALIGNMENT_REFERENCE_NAME.c_str()) == 0 ||
-    read->core.pos == SAMRecord::NO_ALIGNMENT_START;
+    read->core.pos + 1 == SAMRecord::NO_ALIGNMENT_START;
 }
 
 bool ReadUtils::isProperlyPaired(bam1_t * read)

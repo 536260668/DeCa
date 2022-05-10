@@ -86,8 +86,10 @@ static int usage() {
     fprintf(stderr, "\n");
     fprintf(stderr, "--normal-table                 Recalibration table for normal reads, generated in the BaseRecalibrator part\n");
     fprintf(stderr, "\n");
-	fprintf(stderr, "-T:Int                         size of thread pool\n");
+	fprintf(stderr, "-T:Int                         Size of thread pool\n");
     fprintf(stderr, "\n");
+	fprintf(stderr, "-L:String                      Specifies the name of the chromosome to be processed\n");
+	fprintf(stderr, "\n");
                     return EXIT_FAILURE;
 }
 
@@ -115,6 +117,7 @@ struct Shared{
 	std::vector<std::shared_ptr<ReferenceCache>> refCaches;
 	std::vector<char*> input_bam;
 	SAMFileHeader* header{};
+	std::string chromosomeName;
 	M2ArgumentCollection MTAC;
 	bool bqsr_within_mutect = false;
 	std::shared_ptr<BQSRReadTransformer> tumorTransformer = nullptr;
@@ -134,13 +137,16 @@ void threadFunc(Shared *w, char *ref, int n, int nref) {
 	queue<std::shared_ptr<AssemblyRegion>> pendingRegions;
 	ActivityProfile *activityProfile = new BandPassActivityProfile(w->MTAC.maxProbPropagationDistance, w->MTAC.activeProbThreshold, BandPassActivityProfile::MAX_FILTER_SIZE, BandPassActivityProfile::DEFAULT_SIGMA,true , w->header);
 	Mutect2Engine m2Engine(w->MTAC, ref, w->header);
+	std::vector<SAMSequenceRecord> headerSequences = w->header->getSequenceDictionary().getSequences();
 
 	std::cout << "thread start\n";
 
 	// create all refCaches
 	// This operation is thread safe
 	for (int k = w->indexOfRefCache++; k < nref; k = w->indexOfRefCache++) {
-		std::cout << "creating refCache \t" + std::to_string(k) + '\n';
+		if (!w->chromosomeName.empty() && headerSequences[k].getSequenceName() != w->chromosomeName)
+			continue;
+		std::cout << "creating refCache \t" + headerSequences[k].getSequenceName() + "\n";
 		w->refCaches[k] = std::make_shared<ReferenceCache>(ref, w->header, k);
 		w->numOfRefCache++;
 	}
@@ -158,7 +164,12 @@ void threadFunc(Shared *w, char *ref, int n, int nref) {
 	}
 
 	// make sure all refCaches have been created
-	while (w->numOfRefCache != nref) std::this_thread::yield();
+	if (!w->chromosomeName.empty()) {
+		while (w->numOfRefCache != 1) std::this_thread::yield();
+	}
+	else {
+		while (w->numOfRefCache != nref) std::this_thread::yield();
+	}
 
 	Region tmpRegion(0, 0, 0);
 	int start, end, k;
@@ -179,13 +190,16 @@ void threadFunc(Shared *w, char *ref, int n, int nref) {
 		start = tmpRegion.getStart();
 		end =  tmpRegion.getEnd();
 		k = tmpRegion.getK();
-		std::cout << "solving " + std::to_string(start) + " " + std::to_string(end) + " " + std::to_string(k) + '\n';
+		std::cout << "solving " + std::to_string(start) + " " + std::to_string(end) + " " + headerSequences[k].getSequenceName() + '\n';
 		std::string contig = std::string(sam_hdr_tid2name(data[0]->hdr, k));
 		ReadCache cache(data, w->input_bam, k, start, end, w->MTAC.maxAssemblyRegionSize, w->refCaches[k], w->bqsr_within_mutect, w->tumorTransformer.get(), w->normalTransformer.get());
 		m2Engine.setReferenceCache(w->refCaches[k].get());
 
 		while(cache.hasNextPos()) {
 			AlignmentContext pileup = cache.getAlignmentContext();
+			/*if (pileup.getReadNum() != 0 && pileup.getPosition() >= start && pileup.getPosition() <= end){
+				std::cout<<pileup.getLocation().getStart()+1<<" "<<pileup.getReadNum()<<std::endl;
+			}*/
 			if(!activityProfile->isEmpty()){
 				bool forceConversion = pileup.getPosition() != activityProfile->getEnd() + 1;
 				vector<std::shared_ptr<AssemblyRegion>> * ReadyAssemblyRegions = activityProfile->popReadyAssemblyRegions(w->MTAC.assemblyRegionPadding, w->MTAC.minAssemblyRegionSize, w->MTAC.maxAssemblyRegionSize, forceConversion);
@@ -214,12 +228,11 @@ void threadFunc(Shared *w, char *ref, int n, int nref) {
 				std::shared_ptr<AssemblyRegion> nextRegion = pendingRegions.front();
 
 				//---print the region
-				//std::cout << *nextRegion;
-
+				//std::cout << nextRegion->getContig() + " " + to_string(nextRegion->getStart()+1) + " " + to_string(nextRegion->getEnd()+1) + '\n';
 				pendingRegions.pop();
 
 				Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
-				//std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext);
+				std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext);
 			}
 		}
 
@@ -240,7 +253,7 @@ void threadFunc(Shared *w, char *ref, int n, int nref) {
 			std::shared_ptr<AssemblyRegion> nextRegion = pendingRegions.front();
 
 			//---print the region
-			//std::cout << *nextRegion;
+			//std::cout << nextRegion->getContig() + " " + to_string(nextRegion->getStart()+1) + " " + to_string(nextRegion->getEnd()+1) + '\n';
 
 			pendingRegions.pop();
 			Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
@@ -269,12 +282,11 @@ int main(int argc, char *argv[])
     int c, n=0, reg_tid, tid;
     hts_pos_t beg, end, pos = -1, last_pos = -1;
     char * reg;
-    char *in = nullptr, *output = nullptr, *ref = nullptr;
+    char *output = nullptr, *ref = nullptr;
 	aux_t **data;
 	Shared sharedData;
 
 	//---Maybe these parameters can make a struct
-    int read_num = 0;
     char * tumor_table = nullptr, * normal_table = nullptr;
 	int thread_num = 1;
 
@@ -286,6 +298,7 @@ int main(int argc, char *argv[])
             {"output",      required_argument, nullptr, 'O'},
             {"reference",   required_argument, nullptr, 'R'},
             {"thread",      required_argument, nullptr, 'T'},
+            {"chromosome",  required_argument, nullptr, 'L'},
             {"callable-depth", required_argument, nullptr, 1000},
             {"max-prob-propagation-distance", required_argument, nullptr, 1001},
             {"active-probability-threshold", required_argument, nullptr, 1002},
@@ -302,7 +315,7 @@ int main(int argc, char *argv[])
     if (argc == 1 && isatty(STDIN_FILENO))
         return usage();
 
-    while((c = getopt_long(argc, argv, "I:O:R:r:T:", loptions, nullptr)) >= 0){
+    while((c = getopt_long(argc, argv, "I:O:R:r:T:L:", loptions, nullptr)) >= 0){
         switch (c) {
             case 'I':
 	            sharedData.input_bam.emplace_back(strdup(optarg));
@@ -316,6 +329,9 @@ int main(int argc, char *argv[])
                 break;
 	        case 'T':
 				thread_num = atoi(optarg);
+		        break;
+	        case 'L':
+		        sharedData.chromosomeName = std::string (optarg);
 		        break;
             case 'r':
                 reg = strdup(optarg);
@@ -395,8 +411,11 @@ int main(int argc, char *argv[])
 		threads.emplace_back(&threadFunc, &sharedData, ref, n, nref);
 	}
 
-    for(int k = 0; k < nref; k++)
+	std::vector<SAMSequenceRecord> headerSequences = sharedData.header->getSequenceDictionary().getSequences();
+    for(int k = nref -1 ; k >= 0; k--)
     {
+	    if (!sharedData.chromosomeName.empty() && headerSequences[k].getSequenceName() != sharedData.chromosomeName)
+		    continue;
         hts_pos_t ref_len = sam_hdr_tid2len(data[0]->hdr, k);   // the length of reference sequence
         int start = 0;
         int end = ref_len < REGION_SIZE - 1 ? ref_len : REGION_SIZE - 1;

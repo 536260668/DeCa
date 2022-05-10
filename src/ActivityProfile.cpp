@@ -52,11 +52,10 @@ vector<std::shared_ptr<ActivityProfileState>> * ActivityProfile::processState(co
 optional<SimpleInterval> ActivityProfile::getLocForOffset(const SimpleInterval& relativeLoc, int offset)
 {
     int start = relativeLoc.getStart() + offset;
-    if(start < 1 || start > contigLength)
+    if(start < 0 || start >= contigLength)
         return std::nullopt;
     else
         return std::optional<SimpleInterval>{SimpleInterval(regionStartLoc.getContig(), start, start)};
-
 }
 
 void ActivityProfile::incorporateSingleState(const std::shared_ptr<ActivityProfileState> &stateToAdd)
@@ -122,8 +121,7 @@ std::shared_ptr<AssemblyRegion> ActivityProfile::popReadyAssemblyRegion(int asse
         return nullptr;
     }
 
-    vector<std::shared_ptr<ActivityProfileState>> sub;
-    sub.resize(offsetOfNextRegionEnd + 1);
+    vector<std::shared_ptr<ActivityProfileState>> sub(offsetOfNextRegionEnd + 1);
     std::copy(stateList.begin(), stateList.begin() + offsetOfNextRegionEnd + 1, sub.begin());
     std::vector<std::shared_ptr<ActivityProfileState>> tmp;
     tmp.resize(stateList.size() - offsetOfNextRegionEnd - 1);
@@ -170,6 +168,7 @@ int ActivityProfile::findFirstActivityBoundary(bool isActiveRegion, int maxRegio
     int endOfActiveRegion = 0;
 
     while (endOfActiveRegion < nStates && endOfActiveRegion < maxRegionSize){
+		//std::cout << endOfActiveRegion<<" "<<stateList[endOfActiveRegion]->isActiveProb()<<std::endl;
         if(stateList[endOfActiveRegion]->isActiveProb() > activeProbThreshold != isActiveRegion)
             break;
         endOfActiveRegion++;
