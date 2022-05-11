@@ -102,7 +102,7 @@ public:
      * Simple interface to create an assembly region that isActive without any profile state
      */
     AssemblyRegion(SimpleInterval const &activeRegionLoc, int extension);
-    virtual ~AssemblyRegion();
+    ~AssemblyRegion();
 
     std::string getContig() const override {return activeRegionLoc->getContig();}
 

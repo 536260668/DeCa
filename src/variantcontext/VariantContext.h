@@ -28,7 +28,7 @@ enum VariantContextType{VariantContext_NO_VARIATION,
 enum Validation{ALLELES,
     GENOTYPES};
 
-//TODO: add GenoTypesContext class 2021.11.11
+
 class VariantContext {
 private:
     std::string contig;

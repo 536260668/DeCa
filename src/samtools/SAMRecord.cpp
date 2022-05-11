@@ -305,13 +305,13 @@ void SAMRecord::setAttribute(short tag, void *value, Void_Type type, int length,
             } else {
                 tmp = std::shared_ptr<SAMBinaryTagAndValue>(new SAMBinaryTagAndValue(tag, value, type, length));
             }
-            if(mAttributes == nullptr) {
-                mAttributes = tmp;
-            } else {
-                mAttributes = SAMBinaryTagAndValue::insert(mAttributes, tmp);
-            }
         }
 
+        if(mAttributes == nullptr) {
+            mAttributes = tmp;
+        } else {
+            mAttributes = SAMBinaryTagAndValue::insert(mAttributes, tmp);
+        }
     }
 }
 
@@ -319,7 +319,7 @@ void *SAMRecord::getAttribute(short tag) {
     if(mAttributes == nullptr) {
         return nullptr;
     } else {
-        std::shared_ptr<SAMBinaryTagAndValue> tmp = mAttributes->find(tag);
+        SAMBinaryTagAndValue* tmp = mAttributes->find(tag);
         return tmp != nullptr ? tmp->value : nullptr;
     }
 }
@@ -360,7 +360,9 @@ std::string SAMRecord::getAttributeAsString(std::string &attributeName) {
     if(mAttributes == nullptr) {
         return "";
     } else {
-        std::shared_ptr<SAMBinaryTagAndValue> tmp = mAttributes->find(SAMUtils::makeBinaryTag(attributeName));
+        SAMBinaryTagAndValue* tmp = mAttributes->find(SAMUtils::makeBinaryTag(attributeName));
+        if(tmp == nullptr)
+            return "";
         std::string ret;
         switch (tmp->type) {
             case Uint8_t_Array_Type:

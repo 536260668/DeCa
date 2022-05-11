@@ -49,7 +49,13 @@ void AssemblyRegion::checkStates(SimpleInterval &activeRegion) {
 	}
 }
 
-AssemblyRegion::~AssemblyRegion() = default;
+AssemblyRegion::~AssemblyRegion()
+{
+/*    for(int i=0; i<reads.size(); i++)
+    {
+        std::cout << i << " " << reads[i].use_count() << std::endl;
+    }*/
+}
 
 std::ostream &operator<<(std::ostream &os, AssemblyRegion &assemblyRegion) {
 	os << "AssemblyRegion " << *assemblyRegion.activeRegionLoc << "active:   " << assemblyRegion.isActive << std::endl;

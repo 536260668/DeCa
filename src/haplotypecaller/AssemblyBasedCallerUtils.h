@@ -11,6 +11,8 @@
 #include "Mutect2/AssemblyResultSet.h"
 #include "M2ArgumentCollection.h"
 #include "ReadThreadingAssembler.h"
+#include "PairHMMLikelihoodCalculationEngine.h"
+#include "LikelihoodEngineArgumentCollection.h"
 
 class AssemblyBasedCallerUtils {
 public:
@@ -33,6 +35,28 @@ public:
     static void finalizeRegion(const std::shared_ptr<AssemblyRegion>& region, bool errorCorrectReads, bool dontUseSoftClippedBases, uint8_t minTailQuality, SAMFileHeader* header, bool correctOverlappingBaseQualities);
 
     static std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>> splitReadsBySample(const std::vector<std::shared_ptr<SAMRecord>> & reads);
+
+    /**
+     * Instantiates the appropriate likelihood calculation engine.
+     */
+    static PairHMMLikelihoodCalculationEngine * createLikelihoodCalculationEngine(LikelihoodEngineArgumentCollection& likelihoodArgs);
+
+    /**
+     *  Modify base qualities when paired reads overlap to account for the possibility of PCR error.
+     *
+     *  Overlapping mates provded independent evidence as far as sequencing error is concerned, but their PCR errors
+     *  are correlated.  The base qualities are thus limited by the sequencing base quality as well as half of the PCR
+     *  quality.  We use half of the PCR quality because downstream we treat read pairs as independent, and summing two halves
+     *  effectively gives the PCR quality of the pairs when taken together.
+     *
+     * @param reads the list of reads to consider
+     * @param samplesList   list of samples|
+     * @param readsHeader   bam header of reads' source
+     * @param setConflictingToZero if true, set base qualities to zero when mates have different base at overlapping position
+     * @param halfOfPcrSnvQual half of phred-scaled quality of substitution errors from PCR
+     * @param halfOfPcrIndelQual half of phred-scaled quality of indel errors from PCR
+     */
+    static void cleanOverlappingReadPairs(vector<shared_ptr<SAMRecord>>& reads, string sample, bool setConflictingToZero, int halfOfPcrSnvQual = 0, int halfOfPcrIndelQual = 0);
 };
 
 

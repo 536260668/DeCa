@@ -76,7 +76,7 @@ ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, const
     if(!normalReads.empty())
         normalStart = normalReads.front()->read->getStart();
 
-    currentPose = std::max(std::min(tumorStart, normalStart) - START_GAP, 0);
+    currentPose = std::max(std::min(tumorStart, normalStart) - START_GAP, 0) - 1;
 
     if(bqsr_within_mutect)
     {

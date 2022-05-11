@@ -7,6 +7,7 @@
 #include <cstring>
 #include <vector>
 #include <queue>
+#include <cassert>
 #include "getopt.h"
 #include "unistd.h"
 #include "htslib/sam.h"
@@ -154,6 +155,7 @@ int main(int argc, char *argv[])
                 break;
             case 1006:
                 MTAC.normalSample = string(optarg);
+                assert(MTAC.normalSample != "");
                 break;
             case 1007:
                 bqsr_within_mutect = true;
@@ -210,7 +212,7 @@ int main(int argc, char *argv[])
 
     int count = 0;
     // TODO: add multi-thread mode here
-    for(int k=0; k<nref; k++)
+    for(int k=18; k<nref; k++)
     {
         hts_pos_t ref_len = sam_hdr_tid2len(data[0]->hdr, k);   // the length of reference sequence
 
@@ -249,10 +251,10 @@ int main(int argc, char *argv[])
 
                 std::shared_ptr<AssemblyRegion> nextRegion = pendingRegions.front();
 
-                //if(count % 2000 == 0) {
+                /*if(count > 20) {
                     //std::cout << *nextRegion;
-                //    break;
-                //}
+                    break;
+                }*/
                 pendingRegions.pop();
 
                 Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
@@ -282,7 +284,7 @@ int main(int argc, char *argv[])
             Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
             //std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext); // TODO: callRegion() needs pileupRefContext
         }
-        //break;
+        break;
     }
 
     //std::cout << "read_num : " << read_num << std::endl;

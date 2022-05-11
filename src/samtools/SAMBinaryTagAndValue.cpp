@@ -5,6 +5,7 @@
 #include "SAMBinaryTagAndValue.h"
 #include "SAMUtils.h"
 #include <stdexcept>
+#include <iostream>
 
 SAMBinaryTagAndValue::SAMBinaryTagAndValue(short tag, void *value, Void_Type voidType, int length) : tag(tag), value(value), type(voidType){
     if(value == nullptr) {
@@ -80,20 +81,15 @@ std::shared_ptr<SAMBinaryTagAndValue> SAMBinaryTagAndValue::insert(std::shared_p
     }
 }
 
-std::shared_ptr<SAMBinaryTagAndValue> SAMBinaryTagAndValue::find(short tag) {
-    SAMBinaryTagAndValue* iter = this;
-    std::shared_ptr<SAMBinaryTagAndValue> res = nullptr;
-    while(iter != nullptr && iter->tag <= tag) {
-        if(iter->tag == tag) {
-            return res;
-        } else {
-            res = iter->next;
-            iter = iter->next.get();
-        }
-    }
-    return nullptr;
+SAMBinaryTagAndValue* SAMBinaryTagAndValue::find(short tag) {
+    if(this->tag == tag)
+        return this;
+    else if(this->tag > tag || this->next == nullptr)
+        return nullptr;
+    else
+        return this->next->find(tag);
 }
 
 SAMBinaryTagAndValue::~SAMBinaryTagAndValue() {
-    delete value;
+    delete (std::string *)value;
 }

@@ -2,6 +2,7 @@
 // Created by 梦想家xixi on 2021/12/20.
 //
 
+#include <iostream>
 #include "SAMUtils.h"
 
 int SAMUtils::getUnclippedStart(int alignmentStart, std::shared_ptr<Cigar> cigar) {
@@ -82,7 +83,8 @@ std::string SAMUtils::phredToFastq(std::shared_ptr<uint8_t[]>buffer, int offset,
     for(int i = 0; i < length; ++i) {
         chars[i] = phredToFastq(buffer_[offset + i] & 255);
     }
-    std::string ret(chars);
+
+    std::string ret(chars, length);
     delete[] chars;
     return ret;
 }

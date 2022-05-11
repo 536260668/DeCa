@@ -52,7 +52,7 @@ class AssemblyResultSet {
 private:
 	std::map<int, std::shared_ptr<AssemblyResult>> assemblyResultByKmerSize;
 	std::set<std::shared_ptr<Haplotype>, HaplotypeComp> haplotypes;
-	std::map<std::shared_ptr<Haplotype>, std::shared_ptr<AssemblyResult>> assemblyResultByHaplotype;
+	std::map<std::shared_ptr<Haplotype>, std::shared_ptr<AssemblyResult>, HaplotypeComp> assemblyResultByHaplotype;
 	std::shared_ptr<AssemblyRegion> regionForGenotyping;
 	std::shared_ptr<uint8_t[]> fullReferenceWithPadding;
 	int fullReferenceWithPaddingLength{};

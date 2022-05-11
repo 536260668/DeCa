@@ -5,18 +5,24 @@
 #ifndef MUTECT2CPP_MASTER_VECTORLOGLESSPAIRHMM_H
 #define MUTECT2CPP_MASTER_VECTORLOGLESSPAIRHMM_H
 
+#include "PairHMM.h"
 #include "haplotype/Haplotype.h"
 #include "samtools/SAMRecord.h"
 #include "HaplotypeDataHolder.h"
 #include "AssemblyResultSet.h"
+#include "haplotypecaller/PairHMMNativeArgumentCollection.h"
 
-class VectorLoglessPairHMM {
+class VectorLoglessPairHMM : public PairHMM{
 private:
-    std::shared_ptr<std::shared_ptr<HaplotypeDataHolder>[]> mHaplotypeDataArray;
+    //---two-dimensional array ?
+    //std::shared_ptr<std::shared_ptr<HaplotypeDataHolder>[]> mHaplotypeDataArray;
+    vector<HaplotypeDataHolder> mHaplotypeDataArray;
     std::unordered_map<std::shared_ptr<Haplotype>, int, hash_Haplotype, equal_Haplotype> haplotypeToHaplotypeListIdxMap;
     unsigned mHaplotypeDataArrayLength;
 
 public:
+    VectorLoglessPairHMM(PairHMMNativeArgumentCollection& args);
+
     /**
      * Create a VectorLoglessPairHMM
      *
@@ -24,8 +30,12 @@ public:
      * @param args              arguments to the native GKL implementation
      */
     void initialize(const std::vector<std::shared_ptr<Haplotype>> & haplotypes,
-                    const std::map<std::string, std::vector<SAMRecord>> & perSampleReadList,
+                    const std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>> & perSampleReadList,
                     int readMaxLength, int haplotypeMaxLength);
+
+    void computeLog10Likelihoods(SampleMatrix<SAMRecord, Haplotype>* logLikelihoods,
+                                 vector<shared_ptr<SAMRecord>>& processedReads,
+                                 unordered_map<SAMRecord*, shared_ptr<char[]>>* gcp);
 };
 
 

@@ -10,8 +10,8 @@
 
 class QualityUtils {
 private:
+    static double errorProbabilityByPhredScore[101];
     static double qualToErrorProbCache[255];
-
 
 public:
     const static char MIN_USABLE_Q_SCORE = 6;
@@ -51,7 +51,26 @@ public:
     static uint8_t boundQual(int qual, uint8_t maxQual);
     static double qualToErrorProb(double qual);
     static double qualToErrorProb(uint8_t qual);
+
+    /**
+     * Convert a phred-scaled quality score to its log10 probability of being wrong (Q30 => log10(0.001))
+     *
+     * This is the Phred-style conversion, *not* the Illumina-style conversion.
+     *
+     * The calculation is extremely efficient
+     *
+     * @param qual a phred-scaled quality score encoded as a double
+     * @return log of probability (0.0-1.0)
+     */
+    static double qualToErrorProbLog10(double qual);
+
     static void initial();
+
+
+    /** Gets the phred score for any given probability of error. */
+    static int getPhredScoreFromErrorProbability(double probability);
+
+
 };
 
 

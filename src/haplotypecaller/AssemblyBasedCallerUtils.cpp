@@ -2,10 +2,14 @@
 // Created by 梦想家xixi on 2021/12/8.
 //
 
+#include <limits>
 #include "AssemblyBasedCallerUtils.h"
 #include "haplotypecaller/ReferenceConfidenceModel.h"
 #include "clipping/ReadClipper.h"
 #include "read/ReadUtils.h"
+#include "QualityUtils.h"
+#include "utils/fragments/FragmentCollection.h"
+#include "utils/fragments/FragmentUtils.h"
 
 std::shared_ptr<Haplotype>
 AssemblyBasedCallerUtils::createReferenceHaplotype(const std::shared_ptr<AssemblyRegion> &region,
@@ -83,7 +87,7 @@ std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>>
 AssemblyBasedCallerUtils::splitReadsBySample(const std::vector<std::shared_ptr<SAMRecord>> &reads) {
 	std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>> res = std::make_shared<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>>();
 	std::string normal = "normal";
-	std::string tumor = "tumor";
+	std::string tumor = "case";     // TODO: make it a parameter, not a constant string
 	res->insert({normal, std::vector<std::shared_ptr<SAMRecord>>()});
 	res->insert({tumor, std::vector<std::shared_ptr<SAMRecord>>()});
 	std::vector<std::shared_ptr<SAMRecord>> &normalReads = res->at(normal);
@@ -98,4 +102,25 @@ AssemblyBasedCallerUtils::splitReadsBySample(const std::vector<std::shared_ptr<S
 	return res;
 }
 
+PairHMMLikelihoodCalculationEngine *
+AssemblyBasedCallerUtils::createLikelihoodCalculationEngine(LikelihoodEngineArgumentCollection& likelihoodArgs)
+{
+    double log10GlobalReadMismappingRate = likelihoodArgs.phredScaledGlobalReadMismappingRate < 0 ? (-1) * std::numeric_limits<double>::infinity()
+            : QualityUtils::qualToErrorProbLog10(likelihoodArgs.phredScaledGlobalReadMismappingRate);
+    return new PairHMMLikelihoodCalculationEngine((char)likelihoodArgs.gcpHMM, likelihoodArgs.pairHMMNativeArgs, log10GlobalReadMismappingRate, likelihoodArgs.pcrErrorModel, likelihoodArgs.BASE_QUALITY_SCORE_THRESHOLD);
+}
 
+void AssemblyBasedCallerUtils::cleanOverlappingReadPairs(vector<shared_ptr<SAMRecord>> &reads, string sample,
+                                                         bool setConflictingToZero, int halfOfPcrSnvQual,
+                                                         int halfOfPcrIndelQual) {
+    auto MappedReads = splitReadsBySample(reads);
+    for(auto iter = MappedReads->begin(); iter != MappedReads->end(); iter++)
+    {
+        FragmentCollection<SAMRecord> * fragmentCollection = FragmentCollection<SAMRecord>::create(iter->second);
+        for(std::pair<std::shared_ptr<SAMRecord>, std::shared_ptr<SAMRecord>>& overlappingPair : fragmentCollection->getOverlappingPairs())
+        {
+            FragmentUtils::adjustQualsOfOverlappingPairedFragments(overlappingPair, setConflictingToZero, halfOfPcrSnvQual, halfOfPcrIndelQual);
+        }
+        delete fragmentCollection;
+    }
+}
