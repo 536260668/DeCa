@@ -97,7 +97,7 @@ public:
     std::string & getID();
     double getLog10PError();
     std::string  & getSource();
-    bool isFullyDecoded();
+    bool isFullyDecoded() const;
 
     VariantContext(std::string &source,
                    std::string &ID,

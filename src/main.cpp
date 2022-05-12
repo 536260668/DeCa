@@ -251,7 +251,7 @@ int main(int argc, char *argv[])
 
                 std::shared_ptr<AssemblyRegion> nextRegion = pendingRegions.front();
 
-                /*if(count > 20) {
+/*                if(count > 20) {
                     //std::cout << *nextRegion;
                     break;
                 }*/

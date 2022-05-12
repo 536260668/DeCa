@@ -328,7 +328,7 @@ std::string &VariantContext::getSource() {
     return commonInfo.getName();
 }
 
-bool VariantContext::isFullyDecoded() {
+bool VariantContext::isFullyDecoded() const {
     return fullyDecoded;
 }
 
