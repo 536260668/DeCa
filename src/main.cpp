@@ -7,8 +7,6 @@
 #include <cstring>
 #include <thread>
 #include <atomic>
-#include <condition_variable>
-#include <mutex>
 #include "getopt.h"
 #include "unistd.h"
 #include "htslib/sam.h"
@@ -31,6 +29,12 @@ struct Region{
     int _start;
     int _end;
 	int _k;
+
+	Region() {
+		_start = 0;
+		_end = 0;
+		_k = 0;
+	}
 
 	Region(int start, int end, int k)
     {
@@ -123,18 +127,16 @@ struct Shared{
 	std::shared_ptr<BQSRReadTransformer> tumorTransformer = nullptr;
 	std::shared_ptr<BQSRReadTransformer> normalTransformer = nullptr;
 
-	bool exitFlag = false;
-	std::queue<struct Region> RegionQueue;
-	std::mutex queueMutex;
-	std::condition_variable queueCond;
-	std::atomic<int> count{0};
-	std::atomic<int> numOfFreeThreads{};
+	bool startFlag = false;
+	std::vector<Region> regions;
+	std::atomic<int> indexOfRegion{0};
+	std::atomic<int> activeRegioncount{0};
 	std::atomic<int> indexOfRefCache{0};
 	std::atomic<int> numOfRefCache{0};
 };
 
 void threadFunc(Shared *w, char *ref, int n, int nref) {
-	queue<std::shared_ptr<AssemblyRegion>> pendingRegions;
+	std::queue<std::shared_ptr<AssemblyRegion>> pendingRegions;
 	ActivityProfile *activityProfile = new BandPassActivityProfile(w->MTAC.maxProbPropagationDistance, w->MTAC.activeProbThreshold, BandPassActivityProfile::MAX_FILTER_SIZE, BandPassActivityProfile::DEFAULT_SIGMA,true , w->header);
 	Mutect2Engine m2Engine(w->MTAC, ref, w->header);
 	std::vector<SAMSequenceRecord> headerSequences = w->header->getSequenceDictionary().getSequences();
@@ -146,7 +148,7 @@ void threadFunc(Shared *w, char *ref, int n, int nref) {
 	for (int k = w->indexOfRefCache++; k < nref; k = w->indexOfRefCache++) {
 		if (!w->chromosomeName.empty() && headerSequences[k].getSequenceName() != w->chromosomeName)
 			continue;
-		std::cout << "creating refCache \t" + headerSequences[k].getSequenceName() + "\n";
+		//std::cout << "creating refCache \t" + headerSequences[k].getSequenceName() + "\n";
 		w->refCaches[k] = std::make_shared<ReferenceCache>(ref, w->header, k);
 		w->numOfRefCache++;
 	}
@@ -164,34 +166,25 @@ void threadFunc(Shared *w, char *ref, int n, int nref) {
 	}
 
 	// make sure all refCaches have been created
-	if (!w->chromosomeName.empty()) {
+	while (BOOST_UNLIKELY(!w->startFlag)) std::this_thread::yield();
+	if (BOOST_UNLIKELY(!w->chromosomeName.empty())) {
 		while (w->numOfRefCache != 1) std::this_thread::yield();
 	}
 	else {
 		while (w->numOfRefCache != nref) std::this_thread::yield();
 	}
 
-	Region tmpRegion(0, 0, 0);
+	Region tmpRegion;
 	int start, end, k;
-	while (true) {
-		while (true) {
-			std::unique_lock<std::mutex> lock(w->queueMutex);
-			w->queueCond.wait(lock, [w] { return w->exitFlag || !w->RegionQueue.empty(); });
-			if (w->exitFlag) break;
-			tmpRegion = w->RegionQueue.front();
-			w->RegionQueue.pop();
-			std::cout << "queue size: " + std::to_string(w->RegionQueue.size()) + '\n';
-			w->numOfFreeThreads--;
-			break;
-		}
-		if (w->exitFlag) break;
-
+	for (int currentTask = w->indexOfRegion++; currentTask < w->regions.size(); currentTask = w->indexOfRegion++) {
 		// running the task
+		tmpRegion = w->regions[currentTask];
 		start = tmpRegion.getStart();
 		end =  tmpRegion.getEnd();
 		k = tmpRegion.getK();
-		std::cout << "solving " + std::to_string(start) + " " + std::to_string(end) + " " + headerSequences[k].getSequenceName() + '\n';
-		std::string contig = std::string(sam_hdr_tid2name(data[0]->hdr, k));
+		std::string contig = headerSequences[k].getSequenceName();
+		std::cout << "solving " + std::to_string(currentTask) + ' ' + contig + ' ' + std::to_string(start) + ' ' + std::to_string(end) + '\n';
+
 		ReadCache cache(data, w->input_bam, k, start, end, w->MTAC.maxAssemblyRegionSize, w->refCaches[k], w->bqsr_within_mutect, w->tumorTransformer.get(), w->normalTransformer.get());
 		m2Engine.setReferenceCache(w->refCaches[k].get());
 
@@ -223,7 +216,7 @@ void threadFunc(Shared *w, char *ref, int n, int nref) {
 			activityProfile->add(profile);
 
 			if(!pendingRegions.empty() && IntervalUtils::isAfter(pileup.getLocation(), *pendingRegions.front()->getExtendedSpan(), w->header->getSequenceDictionary())) {
-				w->count++;
+				w->activeRegioncount++;
 
 				std::shared_ptr<AssemblyRegion> nextRegion = pendingRegions.front();
 
@@ -249,7 +242,7 @@ void threadFunc(Shared *w, char *ref, int n, int nref) {
 
 		while(!pendingRegions.empty())
 		{
-			w->count++;
+			w->activeRegioncount++;
 			std::shared_ptr<AssemblyRegion> nextRegion = pendingRegions.front();
 
 			//---print the region
@@ -259,13 +252,9 @@ void threadFunc(Shared *w, char *ref, int n, int nref) {
 			Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
 			//std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext); // TODO: callRegion() needs pileupRefContext
 		}
-
-		w->numOfFreeThreads++;
-		w->queueCond.notify_all();
 	}
 
 	// free the space
-	std::cout << "thread exit\n";
 	delete activityProfile;
 	for(int i = 0; i < n; i++)
 	{
@@ -274,6 +263,7 @@ void threadFunc(Shared *w, char *ref, int n, int nref) {
 		free(data[i]);
 	}
 	free(data);
+	std::cout << "thread exit\n";
 }
 
 int main(int argc, char *argv[])
@@ -328,7 +318,7 @@ int main(int argc, char *argv[])
                 ref = strdup(optarg);
                 break;
 	        case 'T':
-				thread_num = atoi(optarg);
+				thread_num = std::max(1, atoi(optarg));
 		        break;
 	        case 'L':
 		        sharedData.chromosomeName = std::string (optarg);
@@ -405,7 +395,6 @@ int main(int argc, char *argv[])
 
 	//start threads
 	std::vector<std::thread> threads;
-	sharedData.numOfFreeThreads = thread_num;
 	sharedData.refCaches.resize(nref);
 	for (int i = 0; i < thread_num; ++i) {
 		threads.emplace_back(&threadFunc, &sharedData, ref, n, nref);
@@ -421,31 +410,16 @@ int main(int argc, char *argv[])
         int end = ref_len < REGION_SIZE - 1 ? ref_len : REGION_SIZE - 1;
         while(end != ref_len)
         {
-			sharedData.queueMutex.lock();
-            sharedData.RegionQueue.emplace(Region(start, end, k));
-	        std::cout << "queue size: " + std::to_string(sharedData.RegionQueue.size()) + '\n';
-	        sharedData.queueMutex.unlock();
-			sharedData.queueCond.notify_one();
+	        sharedData.regions.emplace_back(start, end, k);
             start += REGION_SIZE;
             end = end + REGION_SIZE < ref_len ? end + REGION_SIZE : ref_len;
         }
-	    sharedData.queueMutex.lock();
-	    sharedData.RegionQueue.emplace(Region(start, end, k));
-	    std::cout << "queue size: " + std::to_string(sharedData.RegionQueue.size()) + '\n';
-	    sharedData.queueMutex.unlock();
-	    sharedData.queueCond.notify_one();
+	    sharedData.regions.emplace_back(start, end, k);
     }
 
-	while (true) {
-		std::unique_lock<std::mutex> lock(sharedData.queueMutex);
-		sharedData.queueCond.wait(lock, [&sharedData, thread_num] {
-			return sharedData.RegionQueue.empty() && sharedData.numOfFreeThreads == thread_num;
-		});
-		break;
-	}
+	std::cout << "count of regions: " + std::to_string(sharedData.regions.size()) << std::endl;
+	sharedData.startFlag = true;
 
-	sharedData.exitFlag = true;
-	sharedData.queueCond.notify_all();
 	for(auto &thread : threads) {
 		thread.join();
 	}
