@@ -417,7 +417,7 @@ int main(int argc, char *argv[])
 	    sharedData.regions.emplace_back(start, end, k);
     }
 
-	std::cout << "count of regions: " + std::to_string(sharedData.regions.size()) << std::endl;
+	std::cout << "count of regions: " + std::to_string(sharedData.regions.size()) + "\n";
 	sharedData.startFlag = true;
 
 	for(auto &thread : threads) {

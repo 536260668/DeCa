@@ -111,33 +111,30 @@ public:
          std::shared_ptr<T> source = graph->getEdgeSource(edgesInOrder[0]);
          std::shared_ptr<uint8_t[]> bases = graph->getAdditionalSequence(source);
          int basesLength = graph->getAdditionalSequenceLength(source);
-         std::shared_ptr<uint8_t[]> res(new uint8_t[600]);
-         memcpy(res.get(), bases.get(), basesLength);
-         int length = basesLength;
-         int start = basesLength;
+		 std::vector<uint8_t> res_vec;
+	     for (int ind = 0; ind < basesLength; ++ind) {
+			 res_vec.push_back(bases.get()[ind]);
+		 }
          for(int i = 0; i < edgesInOrder.size(); i++) {
              std::shared_ptr<T> target = graph->getEdgeTarget(edgesInOrder[i]);
-//             if(length <= start) {
-//                 length *= 2;
-//                 std::shared_ptr<uint8_t[]> tmp(new uint8_t[length]);
-//                 memcpy(tmp.get(), res.get(), start);
-//                 res = tmp;
-//             }
              bases = graph->getAdditionalSequence(target);
              basesLength = graph->getAdditionalSequenceLength(target);
-             memcpy(res.get()+start, bases.get(), basesLength);
-             start += basesLength;
+	         for (int ind = 0; ind < basesLength; ++ind) {
+		         res_vec.push_back(bases.get()[ind]);
+	         }
          }
-         std::shared_ptr<uint8_t[]> tmp1(new uint8_t[start]);
-         memcpy(tmp1.get(), res.get(), start);
-//         std::shared_ptr<uint8_t> test = res;
-         reslength = start;
-//         std::cout << start << std::endl;
-//         for(int i = 0; i < reslength; i++) {
-//             std::cout << tmp.get()[i];
-//         }
-//         std::cout << std::endl;
-         return tmp1;
+
+         std::shared_ptr<uint8_t[]> res(new uint8_t[res_vec.size()]);
+	     for (int ind = 0; ind < res_vec.size(); ++ind) {
+			 res.get()[ind] = res_vec[ind];
+		 }
+         reslength = (int) res_vec.size();
+//		 std::cout << res_vec.size() << std::endl;
+//		 for(int i = 0; i < reslength; i++) {
+//			 std::cout << res.get()[i];
+//		 }
+//		 std::cout << std::endl;
+         return res;
      }
 
     std::shared_ptr<T> getLastVertex() {return lastVertex;}

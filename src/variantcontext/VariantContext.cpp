@@ -328,8 +328,15 @@ std::string &VariantContext::getSource() {
     return commonInfo.getName();
 }
 
-bool VariantContext::isFullyDecoded() {
+bool VariantContext::isFullyDecoded() const {
     return fullyDecoded;
+}
+
+VariantContext::~VariantContext() {
+	//todo: delete genotypes?
+	//std::cout<<"~VariantContext in: "<<start<<std::endl;
+	//delete genotypes;
+	//std::cout<<"~VariantContext out: "<<start<<std::endl;
 }
 
 //std::vector<Allele> *VariantContext::makeAlleles(std::vector<Allele> &alleles)

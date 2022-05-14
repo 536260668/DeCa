@@ -28,7 +28,7 @@ void ReadThreadingGraph::addRead(std::shared_ptr<SAMRecord> &read) {
 
 	int lastGood = -1, length = read->getLength();
 	for (int end = 0; end <= length; end++) {
-		if (!baseIsUsableForAssembly(sequence[end], qualities[end]) || end == length) {
+		if (end == length || !baseIsUsableForAssembly(sequence[end], qualities[end])) {
 			int start = lastGood, len = end - start;
 			if (start != -1 && len >= kmerSize) {
 				std::string name = read->getName() + '_' + std::to_string(start) + '_' + std::to_string(end);
@@ -377,11 +377,11 @@ void ReadThreadingGraph::buildGraphIfNecessary() {
 
 	determineNonUniques();
 	//if (!nonUniqueKmers.empty()) {
-		//std::cout << "[buildGraphIfNecessary] " + std::to_string(nonUniqueKmers.size()) + '\n';
-		/*for(const auto& nonnnnn : nonUniqueKmers){
-			std::string s = reinterpret_cast<const char *>(nonnnnn->getBases().get());
-			std::cout<<s.substr(0,nonnnnn->getLength())<<std::endl;
-		}*/
+	//std::cout << "[buildGraphIfNecessary] " + std::to_string(nonUniqueKmers.size()) + '\n';
+	/*for(const auto& nonnnnn : nonUniqueKmers){
+		std::string s = reinterpret_cast<const char *>(nonnnnn->getBases().get());
+		std::cout<<s.substr(0,nonnnnn->getLength())<<std::endl;
+	}*/
 	//}
 
 	for (auto &miter: pending) {

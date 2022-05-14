@@ -158,6 +158,14 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion>& originalAssembl
 //    std::shared_ptr<AssemblyRegion> regionForGenotyping = assemblyResult->getRegionForGenotyping();
 //    removeReadStubs(regionForGenotyping);
 
+	// Break the circular reference of pointer
+	auto haplotypesToReleased = *untrimmedAssemblyResult->getHaplotypeList();
+	for (auto &item: haplotypesToReleased) {
+		if (item->getEventMap() != nullptr){
+			delete item->getEventMap();
+			item->setEventMap(nullptr);
+		}
+	}
     return  {allVariationEvents.begin(), allVariationEvents.end()};
 }
 

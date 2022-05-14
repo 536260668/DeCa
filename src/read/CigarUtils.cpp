@@ -50,6 +50,7 @@ std::shared_ptr<Cigar> CigarUtils::calculateCigar(const std::shared_ptr<uint8_t[
     SmithWatermanAlignment* alignment = wrapper.align(paddedRef, paddedRefLength, paddedPath, paddedPathLength,
                                                       const_cast<SWParameters *>(&NEW_SW_PARAMETERS), SOFTCLIP);
     if ( isSWFailure(alignment) ) {
+		delete alignment;
         return nullptr;
     }
 

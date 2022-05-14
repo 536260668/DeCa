@@ -4,6 +4,7 @@
 
 #include "AlignmentUtils.h"
 
+#include <memory>
 #include <utility>
 #include <cstring>
 #include "Mutect2Utils.h"
@@ -173,7 +174,7 @@ std::shared_ptr<Cigar> AlignmentUtils::removeTrailingDeletions(std::shared_ptr<C
     if(elements.at(elements.size()-1).getOperator() != D)
         return c;
     std::vector<CigarElement> newElements(elements.begin(), elements.end()-1);
-    return std::shared_ptr<Cigar>(new Cigar(newElements));
+    return std::make_shared<Cigar>(newElements);
 }
 
 std::shared_ptr<Cigar> AlignmentUtils::trimCigarByBases(const std::shared_ptr<Cigar>&cigar, int start, int end) {
@@ -215,7 +216,13 @@ AlignmentUtils::leftAlignSingleIndel(std::shared_ptr<Cigar> cigar, std::shared_p
 
     int indelLength = cigar->getCigarElement(indexOfIndel).getLength();
     int altStringLength = 0;
-    std::shared_ptr<uint8_t[]> altString = createIndelString(cigar, indexOfIndel, refSeq, refLength, readSeq, readLength, refIndex, refIndex, altStringLength);
+	/*std::cout<<std::string ((char*)refSeq.get()).substr(0,refLength)<<std::endl;
+	std::cout<<std::string ((char*)readSeq.get()).substr(0,readLength)<<std::endl;
+	for (const auto &item: cigar->getCigarElements()){
+		std::cout<<item.getLength()<<CigarOperatorUtils::enumToCharacter(item.getOperator());
+	}
+	std::cout<<" refLength:"<<refLength<<" readLength:"<<readLength<<" refIndex:"<<refIndex<<" readIndex:"<<readIndex<<std::endl;*/
+	std::shared_ptr<uint8_t[]> altString = createIndelString(cigar, indexOfIndel, refSeq, refLength, readSeq, readLength, refIndex, readIndex, altStringLength);
     if(altString == nullptr)
         return cigar;
     std::shared_ptr<Cigar> newCigar(new Cigar(*cigar));
@@ -337,7 +344,7 @@ std::shared_ptr<Cigar> AlignmentUtils::moveCigarLeft(const std::shared_ptr<Cigar
     for (int i = indexOfIndel + 2; i < cigar->numCigarElements(); i++)
         elements.emplace_back(cigar->getCigarElement(i));
 
-    return std::shared_ptr<Cigar>(new Cigar(elements));
+    return std::make_shared<Cigar>(elements);
 }
 
 bool AlignmentUtils::isIndelAlignedTooFarLeft(const std::shared_ptr<Cigar>&cigar, int leftmostAllowedAlignment) {
@@ -369,5 +376,5 @@ std::shared_ptr<Cigar> AlignmentUtils::cleanUpCigar(const std::shared_ptr<Cigar>
         }
     }
 
-    return std::shared_ptr<Cigar>(new Cigar(elements));
+    return std::make_shared<Cigar>(elements);
 }

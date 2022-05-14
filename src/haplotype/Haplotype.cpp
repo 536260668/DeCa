@@ -9,8 +9,7 @@
 #include "SimpleInterval.h"
 
 Haplotype::Haplotype(const std::shared_ptr<uint8_t[]>& bases, int length, bool isRef) : Allele(copyArray(bases, length),
-                                                                                        length, isRef), eventMap(
-		nullptr) {}
+                                                                                        length, isRef), eventMap(nullptr) {}
 
 std::shared_ptr<uint8_t[]> Haplotype::copyArray(const std::shared_ptr<uint8_t[]>& base, int length) {
 	std::shared_ptr<uint8_t[]> res{new uint8_t[length + 1]{0}};
@@ -75,12 +74,12 @@ int Haplotype::getAlignmentStartHapwrtRef() const {
 	return alignmentStartHapwrtRef;
 }
 
-std::shared_ptr<EventMap> Haplotype::getEventMap() {
+EventMap* Haplotype::getEventMap() {
 	return eventMap;
 }
 
-void Haplotype::setEventMap(const std::shared_ptr<EventMap> &eventMap) {
-	this->eventMap = eventMap;
+void Haplotype::setEventMap(EventMap *_eventMap) {
+	this->eventMap = _eventMap;
 }
 
 bool Haplotype::operator<(const Haplotype &other) const {
