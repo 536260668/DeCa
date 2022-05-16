@@ -146,12 +146,12 @@ void Mutect2Engine::fillNextAssemblyRegionWithReads(const std::shared_ptr<Assemb
 
 std::vector<std::shared_ptr<VariantContext>>
 Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion>& originalAssemblyRegion, ReferenceContext &referenceContext) {
-    if(originalAssemblyRegion->getStart() == 359408) {
-//        for(const std::shared_ptr<SAMRecord>& read : originalAssemblyRegion->getReads()) {
-//            std::cout << read->getName() << " : " << read->getStart() + 1 << "~" << read->getEnd() + 1 << std::endl;
-//        }
-        std::cout << "hello" << std::endl;
-    }
+//    if(originalAssemblyRegion->getStart() == 359408) {
+////        for(const std::shared_ptr<SAMRecord>& read : originalAssemblyRegion->getReads()) {
+////            std::cout << read->getName() << " : " << read->getStart() + 1 << "~" << read->getEnd() + 1 << std::endl;
+////        }
+//        std::cout << "hello" << std::endl;
+//    }
 
     // divide PCR qual by two in order to get the correct total qual when treating paired reads as independent
     AssemblyBasedCallerUtils::cleanOverlappingReadPairs(originalAssemblyRegion->getReads(), normalSample, false, MTAC.pcrSnvQual/2, MTAC.pcrIndelQual/2);
@@ -178,7 +178,7 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion>& originalAssembl
 
     auto reads = splitReadsBySample(regionForGenotyping->getReads());
 
-    cerr << *originalAssemblyRegion;
+    //cerr << *originalAssemblyRegion;
     likelihoodCalculationEngine->computeReadLikelihoods(*assemblyResult, samplesList, *reads);
 
     return  {allVariationEvents.begin(), allVariationEvents.end()};

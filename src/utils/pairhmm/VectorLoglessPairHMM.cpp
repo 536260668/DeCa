@@ -111,10 +111,27 @@ void VectorLoglessPairHMM::computeLog10Likelihoods(SampleMatrix<SAMRecord, Haplo
     mLogLikelihoodArray.reserve(numReads * mHaplotypeDataArrayLength);
     computeLikelihoodsNative(testcases, mLogLikelihoodArray);
 
-    for(double & likelihood: mLogLikelihoodArray)
+    //---print the likelihoods calculated by PairHMM algorithm
+/*    for(double & likelihood: mLogLikelihoodArray)
     {
         cerr.setf(ios::fixed);
         cerr << setprecision(5) << likelihood << " ";
     }
-    cerr << endl;
+    cerr << endl;*/
+
+    int readIdx = 0;
+    for(int r=0; r<numReads; r++)
+    {
+        int hapIdx = 0;
+        for(auto & haplotype: logLikelihoods->alleles())
+        {
+            //Since the order of haplotypes in the List<Haplotype> and alleleHaplotypeMap is different,
+            //get idx of current haplotype in the list and use this idx to get the right likelihoodValue
+            int idxInsideHaplotypeList = haplotypeToHaplotypeListIdxMap.at(haplotype);
+            logLikelihoods->set(logLikelihoods->getLikelihoods(), hapIdx, r, mLogLikelihoodArray[readIdx + idxInsideHaplotypeList]);
+            hapIdx++;
+        }
+        readIdx += mHaplotypeDataArrayLength;
+    }
+
 }

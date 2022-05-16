@@ -86,6 +86,7 @@ void PairHMMLikelihoodCalculationEngine::computeReadLikelihoods(AssemblyResultSe
         computeReadLikelihoods(result->sampleMatrix(i));
     }
 
+
     delete result;
 }
 

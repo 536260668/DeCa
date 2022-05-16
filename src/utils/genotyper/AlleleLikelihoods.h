@@ -8,6 +8,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <cmath>
 #include <cassert>
 #include "Allele.h"
 #include "samtools/SAMRecord.h"
@@ -54,8 +55,14 @@ private:
 
             int sampleEvidenceCount = evidenceBySampleIndex[s].size();
 
-            valuesBySampleIndex.emplace_back(vector<vector<double>>(alleleCount));
+            valuesBySampleIndex.emplace_back(vector<vector<double>>(alleleCount, vector<double>(sampleEvidenceCount, 0.0)));
         }
+    }
+
+    // Does the normalizeLikelihoods job for each piece of evidence.
+    void normalizeLikelihoodsPerEvidence(double maximumBestAltLikelihoodDifference, vector<vector<double>>& sampleValues, int sampleIndex, int evidenceIndex){
+        //allow the best allele to be the reference because asymmetry leads to strange artifacts like het calls with >90% alt reads
+        // TODO: finish this method 2022.5.16
     }
 
 protected:
@@ -118,7 +125,51 @@ public:
         return &sampleMatrices[sampleIndex];
     }
 
+    /**
+     * Returns the samples in this evidence-likelihood collection.
+     * <p>
+     *     Samples are sorted by their index in the collection.
+     * </p>
+     *
+     * <p>
+     *     The returned list is an unmodifiable. It will not be updated if the collection
+     *     allele list changes.
+     * </p>
+     *
+     * @return never {@code null}.
+     */
+    vector<shared_ptr<A>>& getAlleles(){
+        return alleles;
+    }
 
+    /**
+     * Adjusts likelihoods so that for each unit of evidence, the best allele likelihood is 0 and caps the minimum likelihood
+     * of any allele for each unit of evidence based on the maximum alternative allele likelihood.
+     *
+     * @param maximumLikelihoodDifferenceCap maximum difference between the best alternative allele likelihood
+     *                                           and any other likelihood.
+     *
+     * @throws IllegalArgumentException if {@code maximumDifferenceWithBestAlternative} is not 0 or less.
+     */
+    void normalizeLikelihoods(double maximumLikelihoodDifferenceCap){
+        assert(!isnan(maximumLikelihoodDifferenceCap) && maximumLikelihoodDifferenceCap >= 0.0);
+
+        if(isinf(maximumLikelihoodDifferenceCap))
+            return;
+
+        int alleleCount = alleles.size();
+        if(alleleCount == 0 || alleleCount == 1)
+            return;
+
+        for(int s=0; s<valuesBySampleIndex.size(); s++){
+            auto& sampleValues = valuesBySampleIndex[s];
+            int evidenceCount = evidenceBySampleIndex[s].size();
+            for(int r=0; r<evidenceCount; r++)
+            {
+
+            }
+        }
+    }
 };
 
 template <typename E, typename A>
@@ -154,6 +205,18 @@ public:
         return likelihood->sampleEvidence(sampleIndex);
     }
 
+    vector<shared_ptr<A>>& alleles(){
+        return likelihood->getAlleles();
+    }
+
+    AlleleLikelihoods<E, A>& getLikelihoods(){
+        assert(likelihood != nullptr);
+        return *likelihood;
+    }
+
+    int numberOfAlleles(){
+        return alleles().size();
+    }
 };
 
 
