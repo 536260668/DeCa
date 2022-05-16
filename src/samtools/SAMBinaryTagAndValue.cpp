@@ -56,27 +56,23 @@ std::shared_ptr<SAMBinaryTagAndValue> SAMBinaryTagAndValue::insert(std::shared_p
         return root;
     else if (attr->next != nullptr) {
         throw std::invalid_argument("Can only insert single tag/value combinations.");
-    } else if (attr->tag <= root->tag){
+    }
+
+    if (attr->tag < root->tag){
+        // attr joins the list ahead of this element
         attr->next = root;
         return attr;
+    } else if(attr->tag == root->tag){
+        // attr replaces this in the list
+        attr->next = root->next;
+        return attr;
+    } else if(root->next == nullptr) {
+        // attr gets stuck on the end
+        root->next = attr;
+        return root;
     } else {
-        std::shared_ptr<SAMBinaryTagAndValue> iter = root;
-        bool flag = false;
-        while(iter->next != nullptr) {
-            if(iter->next->tag > attr->tag) {
-                std::shared_ptr<SAMBinaryTagAndValue> tmp = iter->next;
-                iter->next = attr;
-                attr->next = tmp;
-                flag = true;
-                break;
-            } else {
-                iter = iter->next;
-            }
-        }
-        if(!flag) {
-            iter->next = attr;
-            attr->next = nullptr;
-        }
+        // attr gets inserted somewhere in the tail
+        root->next = root->next->insert(root->next, attr);
         return root;
     }
 }

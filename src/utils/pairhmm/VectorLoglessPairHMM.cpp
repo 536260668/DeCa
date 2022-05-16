@@ -2,11 +2,12 @@
 // Created by 梦想家xixi on 2022/3/1.
 //
 
+#include <iomanip>
 #include "VectorLoglessPairHMM.h"
 #include "intel/pairhmm/IntelPairHmm.h"
 #include "ReadUtils.h"
 
-VectorLoglessPairHMM::VectorLoglessPairHMM(PairHMMNativeArgumentCollection& args)
+VectorLoglessPairHMM::VectorLoglessPairHMM(PairHMMNativeArgumentCollection& args): mHaplotypeDataArrayLength(0)
 {
     initNative(args.useDoublePrecision, args.pairHmmNativeThreads);
 }
@@ -67,47 +68,53 @@ void VectorLoglessPairHMM::computeLog10Likelihoods(SampleMatrix<SAMRecord, Haplo
     }
 
     //---for debugging
-/*
-    for(int r=0; r<numReads; r++)
+/*    for(int i=0; i<testcases.size(); i++)
     {
-        for(int i=0; i<testcases[r].rslen; i++)
+        for(int r=0; r<numReads; r++)
         {
-            cout << testcases[r].rs[i];
+            for(int i=0; i<testcases[r].rslen; i++)
+            {
+                cerr << testcases[r].rs[i];
+            }
+            cerr << endl;
+            for(int i=0; i<testcases[r].rslen; i++)
+            {
+                cerr << (int)testcases[r].q[i] << " ";
+            }
+            cerr << endl;
+            for(int i=0; i<testcases[r].rslen; i++)
+            {
+                cerr << (int)testcases[r].i[i] << " ";
+            }
+            cerr << endl;
+            for(int i=0; i<testcases[r].rslen; i++)
+            {
+                cerr << (int)testcases[r].d[i] << " ";
+            }
+            cerr << endl;
+            for(int i=0; i<testcases[r].rslen; i++)
+            {
+                cerr << (int)testcases[r].c[i] << " ";
+            }
+            cerr << endl;
+            for(int i=0; i<testcases[r].haplen; i++)
+            {
+                cerr << testcases[r].hap[i];
+            }
+            cerr << endl;
+            cerr << endl;
         }
-        cout << endl;
-        for(int i=0; i<testcases[r].rslen; i++)
-        {
-            cout << (int)testcases[r].q[i];
-        }
-        cout << endl;
-        for(int i=0; i<testcases[r].rslen; i++)
-        {
-            cout << (int)testcases[r].i[i];
-        }
-        cout << endl;
-        for(int i=0; i<testcases[r].rslen; i++)
-        {
-            cout << (int)testcases[r].d[i];
-        }
-        cout << endl;
-        for(int i=0; i<testcases[r].rslen; i++)
-        {
-            cout << (int)testcases[r].c[i];
-        }
-        cout << endl;
-        for(int i=0; i<testcases[r].haplen; i++)
-        {
-            cout << testcases[r].hap[i];
-        }
-        cout << endl;
-    }
-*/
-
+    }*/
 
     // TODO: finish this method 2022.5.3
     mLogLikelihoodArray.clear();
     mLogLikelihoodArray.reserve(numReads * mHaplotypeDataArrayLength);
     computeLikelihoodsNative(testcases, mLogLikelihoodArray);
 
-
+    for(double & likelihood: mLogLikelihoodArray)
+    {
+        cerr.setf(ios::fixed);
+        cerr << setprecision(5) << likelihood << " ";
+    }
+    cerr << endl;
 }

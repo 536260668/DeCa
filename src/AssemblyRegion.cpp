@@ -3,7 +3,7 @@
 //
 
 #include "AssemblyRegion.h"
-
+#include <cassert>
 #include <utility>
 #include "IntervalUtils.h"
 #include "clipping/ReadClipper.h"
@@ -160,4 +160,19 @@ void AssemblyRegion::removeAll(const std::vector<std::shared_ptr<SAMRecord>> &re
 	for (const auto &read: readsToRemove) {
 		reads.erase(std::find(reads.begin(), reads.end(), read));
 	}
+}
+
+void AssemblyRegion::add(std::shared_ptr<SAMRecord> &read) {
+    assert(read != nullptr);
+    assert(readOverlapsRegion(read));
+
+    spanIncludingReads = spanIncludingReads->mergeWithContiguous(read->getLoc());
+
+    if(!reads.empty())
+    {
+        std::shared_ptr<SAMRecord> & lastRead = reads.back();
+        assert(lastRead->getContig() == read->getContig());
+        //assert(read->getStart() >= lastRead->getStart());  // TODO: Is this line necessary?
+    }
+    reads.emplace_back(std::make_shared<SAMRecord>(*read));
 }

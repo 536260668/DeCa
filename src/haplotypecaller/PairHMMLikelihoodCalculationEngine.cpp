@@ -75,7 +75,6 @@ void PairHMMLikelihoodCalculationEngine::computeReadLikelihoods(AssemblyResultSe
 {
     std::shared_ptr<std::vector<std::shared_ptr<Haplotype>>> haplotypeList = assemblyResultSet.getHaplotypeList();
 
-    // TODO: finish this method 2022.4.23
     initializePairHMM(*haplotypeList, perSampleReadList);
 
     // Add likelihoods for each sample's reads to our result

@@ -124,3 +124,14 @@ void AssemblyBasedCallerUtils::cleanOverlappingReadPairs(vector<shared_ptr<SAMRe
         delete fragmentCollection;
     }
 }
+
+std::shared_ptr<AssemblyRegion> AssemblyBasedCallerUtils::assemblyRegionWithWellMappedReads(const std::shared_ptr<AssemblyRegion>& originalAssemblyRegion, int minMappingQuality, SAMFileHeader * header)
+{
+    auto result = make_shared<AssemblyRegion>(*originalAssemblyRegion->getSpan(), originalAssemblyRegion->getSupportingStates(), originalAssemblyRegion->getIsActive(), originalAssemblyRegion->getExtension(), header);
+    for(auto & read : originalAssemblyRegion->getReads())
+    {
+        if(read->getMappingQuality() >= minMappingQuality)
+            result->add(read);
+    }
+    return result;
+}
