@@ -269,14 +269,11 @@ void threadFunc(Shared *w, char *ref, int n, int nref) {
 int main(int argc, char *argv[])
 {
     CigarOperatorUtils::initial();
-    int c, n=0, reg_tid, tid;
-    hts_pos_t beg, end, pos = -1, last_pos = -1;
-    char * reg;
+    int c, n = 0;
+	char * reg;
     char *output = nullptr, *ref = nullptr;
 	aux_t **data;
 	Shared sharedData;
-
-	//---Maybe these parameters can make a struct
     char * tumor_table = nullptr, * normal_table = nullptr;
 	int thread_num = 1;
 
@@ -362,7 +359,6 @@ int main(int argc, char *argv[])
     adjust_input_bam(sharedData.input_bam, sharedData.MTAC.normalSample);
 
 	data = static_cast<aux_t **>(calloc(n, sizeof(aux_t *))); // data[i] for the i-th input
-    reg_tid = 0; beg = 0; end = HTS_POS_MAX;  // set the default region
     vector<sam_hdr_t *> headers;// used to contain headers
 
     for (int i = 0; i < n; ++i) {
