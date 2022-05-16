@@ -102,7 +102,7 @@ public:
      * Simple interface to create an assembly region that isActive without any profile state
      */
     AssemblyRegion(SimpleInterval const &activeRegionLoc, int extension);
-    virtual ~AssemblyRegion();
+    ~AssemblyRegion();
 
     std::string getContig() const override {return activeRegionLoc->getContig();}
 
@@ -254,6 +254,17 @@ public:
      * @param readsToRemove the set of reads we want to remove
      */
     void removeAll(const std::vector<std::shared_ptr<SAMRecord>>& readsToRemove);
+
+    /**
+    * Add read to this region
+    *
+    * Read must have alignment start >= than the last read currently in this active region.
+    *
+    * @throws IllegalArgumentException if read doesn't overlap the extended region of this active region
+    *
+    * @param read a non-null GATKRead
+    */
+    void add(std::shared_ptr<SAMRecord>& read);
 };
 
 

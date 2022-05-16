@@ -237,6 +237,8 @@ std::vector<std::shared_ptr<SAMRecord>> ReadCache::getReadsForRegion(AssemblyReg
 
     while(iter != tumorReadsForRegion.end()) {
         std::shared_ptr<SimpleInterval> readLoc = (*iter)->getLoc();
+
+
         if((*iter)->getEndAfterFliter() < loc->getStart()) {
             tumorReadsForRegion.erase(iter++);
         } else {

@@ -10,9 +10,11 @@
 #include <utility>
 
 struct HaplotypeDataHolder {
-    std::shared_ptr<uint8_t[]> haplotypeBases;
+    uint8_t* haplotypeBases;
     unsigned length;
-    HaplotypeDataHolder(std::shared_ptr<uint8_t[]>  haplotypeBases, unsigned length) : haplotypeBases(std::move(haplotypeBases)), length(length) {};
+    HaplotypeDataHolder(uint8_t*  haplotypeBases, unsigned length) : haplotypeBases(haplotypeBases), length(length) {
+        assert(haplotypeBases != nullptr);
+    };
 };
 
 

@@ -153,8 +153,10 @@ AssemblyResultSet::trimDownHaplotypes(const std::shared_ptr<AssemblyRegion> &tri
 			if (iter != originalByTrimmedHaplotypes->end()) {
 				if (trimmed->getIsReference()) {
 					originalByTrimmedHaplotypes->erase(iter);
+					originalByTrimmedHaplotypes->insert({trimmed, h});
 				}
-				originalByTrimmedHaplotypes->insert({trimmed, h});
+			} else {
+			    originalByTrimmedHaplotypes->insert({trimmed, h});
 			}
 		} else if (h->getIsReference())
 			throw std::invalid_argument("trimming eliminates the reference haplotype");
@@ -189,11 +191,11 @@ AssemblyResultSet::trimTo(const std::shared_ptr<AssemblyRegion> &trimmedAssembly
 		if (original == nullptr)
 			throw std::invalid_argument("all trimmed haplotypes must have an original one");
 
-		std::shared_ptr<AssemblyResult> &as = assemblyResultByHaplotype.at(original);
-		if (as == nullptr) {
-			result->add(trimmed);
-		} else {
-			result->add(trimmed, as);
+		if(assemblyResultByHaplotype.find(original) == assemblyResultByHaplotype.end())
+		    result->add(trimmed);
+		else {
+		    std::shared_ptr<AssemblyResult> &as = assemblyResultByHaplotype.at(original);
+		    result->add(trimmed, as);
 		}
 	}
 

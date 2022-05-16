@@ -20,15 +20,18 @@
 #include "ReadThreadingAssembler.h"
 #include "haplotypecaller/MutectReadThreadingAssemblerArgumentCollection.h"
 #include "haplotypecaller/AssemblyRegionTrimmer.h"
+#include "haplotypecaller/PairHMMLikelihoodCalculationEngine.h"
 
 class Mutect2Engine {
 private:
     int minCallableDepth;
+    std::vector<string> samplesList;
     std::string & normalSample;
     SAMFileHeader * header;
-    M2ArgumentCollection & MATC;
+    M2ArgumentCollection & MTAC;
     ReadThreadingAssembler assemblyEngine;
     MutectReadThreadingAssemblerArgumentCollection assemblerArgs;
+    PairHMMLikelihoodCalculationEngine* likelihoodCalculationEngine;
     AssemblyRegionTrimmer trimmer;
 
     std::shared_ptr<std::vector<char>> altQuals(ReadPileup & pileup, char refBase, int pcrErrorQual);
@@ -65,6 +68,8 @@ public:
     ReferenceCache * refCache;
 
     Mutect2Engine(M2ArgumentCollection & MTAC, char* ref, SAMFileHeader*);
+
+    ~Mutect2Engine();
 
     std::shared_ptr<ActivityProfileState> isActive(AlignmentContext& context);
 

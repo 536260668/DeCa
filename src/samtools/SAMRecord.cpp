@@ -305,13 +305,13 @@ void SAMRecord::setAttribute(short tag, void *value, Void_Type type, int length,
             } else {
                 tmp = std::shared_ptr<SAMBinaryTagAndValue>(new SAMBinaryTagAndValue(tag, value, type, length));
             }
-            if(mAttributes == nullptr) {
-                mAttributes = tmp;
-            } else {
-                mAttributes = SAMBinaryTagAndValue::insert(mAttributes, tmp);
-            }
         }
 
+        if(mAttributes == nullptr) {
+            mAttributes = tmp;
+        } else {
+            mAttributes = SAMBinaryTagAndValue::insert(mAttributes, tmp);
+        }
     }
 }
 
@@ -319,7 +319,7 @@ void *SAMRecord::getAttribute(short tag) {
     if(mAttributes == nullptr) {
         return nullptr;
     } else {
-        std::shared_ptr<SAMBinaryTagAndValue> tmp = mAttributes->find(tag);
+        SAMBinaryTagAndValue* tmp = mAttributes->find(tag);
         return tmp != nullptr ? tmp->value : nullptr;
     }
 }
@@ -330,6 +330,7 @@ std::string &SAMRecord::getReadGroup() {
 
 void SAMRecord::setAttribute(std::string &attributeName, const std::string& attributeValue) {
     ReadUtils::assertAttributeNameIsLegal(attributeName);
+    //std::cout << attributeName << " " << attributeValue << std::endl;
     setAttribute(attributeName, new std::string(attributeValue), String_Type, 0);
 }
 
@@ -360,7 +361,9 @@ std::string SAMRecord::getAttributeAsString(std::string &attributeName) {
     if(mAttributes == nullptr) {
         return "";
     } else {
-        std::shared_ptr<SAMBinaryTagAndValue> tmp = mAttributes->find(SAMUtils::makeBinaryTag(attributeName));
+        SAMBinaryTagAndValue* tmp = mAttributes->find(SAMUtils::makeBinaryTag(attributeName));
+        if(tmp == nullptr)
+            return "";
         std::string ret;
         switch (tmp->type) {
             case Uint8_t_Array_Type:
@@ -597,7 +600,12 @@ int SAMRecord::getAdaptorBoundary() {
 SAMRecord::SAMRecord(const SAMRecord &other) : mFlags(other.mFlags), baseLength(other.baseLength), baseQualitiesLength(other.baseQualitiesLength),
 mAlignmentStart(other.mAlignmentStart), mAlignmentEnd(other.mAlignmentEnd), mMateAlignmentStart(other.mMateAlignmentStart), mMappingQuality(other.mMappingQuality), mInferredInsertSize(other.mInferredInsertSize),
 mReferenceName(other.mReferenceName), mMateReferenceName(other.mMateReferenceName), mReadName(other.mReadName), readGroup(other.readGroup){
-    mAttributes = nullptr;
+    if(other.mAttributes != nullptr)
+        mAttributes = other.mAttributes;
+    else
+        mAttributes = nullptr;
+
+    //---why use deep copy here?
     if(other.mReadBases != nullptr){
         mReadBases = std::shared_ptr<uint8_t[]>(new uint8_t [baseLength+1]{0});
         memcpy(mReadBases.get(), other.mReadBases.get(), baseLength);

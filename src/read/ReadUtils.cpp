@@ -12,6 +12,20 @@ std::string ReadUtils::BQSR_BASE_DELETION_QUALITIES = "BD";
 std::string ReadUtils::BQSR_BASE_INSERTION_QUALITIES = "BI";
 const int ReadUtils::CLIPPING_GOAL_NOT_REACHED = -1;
 
+std::shared_ptr<SAMRecord> ReadUtils::emptyRead(SAMRecord &read)
+{
+    std::shared_ptr<SAMRecord> emptyRead(new SAMRecord(read));
+    emptyRead->setIsUnmapped();
+    emptyRead->setMappingQuality(0);
+    std::shared_ptr<Cigar> newCigar(new Cigar());
+    emptyRead->setCigar(newCigar);
+    emptyRead->setBases(nullptr, 0);
+    emptyRead->setBaseQualities(nullptr, 0);
+    emptyRead->clearAttributes();
+
+    return emptyRead;
+}
+
 std::shared_ptr<SAMRecord> ReadUtils::emptyRead(std::shared_ptr<SAMRecord> & read) {
     std::shared_ptr<SAMRecord> emptyRead(new SAMRecord(*read));
     emptyRead->setIsUnmapped();
@@ -48,6 +62,11 @@ ReadUtils::getReadCoordinateForReferenceCoordinate(int alignmentStart, std::shar
         readCoord = std::min(firstElementIsInsertion->getLength(), cigar->getReadLength() - 1);
     }
     return readCoord;
+}
+
+std::pair<int, bool> ReadUtils::getReadCoordinateForReferenceCoordinate(std::shared_ptr<SAMRecord> &read, int refCoord)
+{
+    return getReadCoordinateForReferenceCoordinate(read->getSoftStart(), read->getCigar(), refCoord, false);
 }
 
 std::pair<int, bool> ReadUtils::getReadCoordinateForReferenceCoordinate(int alignmentStart, std::shared_ptr<Cigar> cigar, int refCoord,
@@ -200,8 +219,22 @@ bool ReadUtils::hasBaseIndelQualities(std::shared_ptr<SAMRecord> & read) {
     return read->getAttribute(SAMUtils::makeBinaryTag(BQSR_BASE_INSERTION_QUALITIES)) || read->getAttribute(SAMUtils::makeBinaryTag(BQSR_BASE_DELETION_QUALITIES));
 }
 
+std::shared_ptr<uint8_t[]> ReadUtils::getExistingBaseInsertionQualities(SAMRecord &read, int &length)
+{
+    std::string str = read.getAttributeAsString(BQSR_BASE_INSERTION_QUALITIES);
+    length = str.length();
+    return SAMUtils::fastqToPhred(str);
+}
+
 std::shared_ptr<uint8_t[]> ReadUtils::getExistingBaseInsertionQualities(std::shared_ptr<SAMRecord> & read, int &length) {
     std::string str = read->getAttributeAsString(BQSR_BASE_INSERTION_QUALITIES);
+    length = str.length();
+    return SAMUtils::fastqToPhred(str);
+}
+
+std::shared_ptr<uint8_t[]> ReadUtils::getExistingBaseDeletionQualities(SAMRecord &read, int &length)
+{
+    std::string str = read.getAttributeAsString(BQSR_BASE_DELETION_QUALITIES);
     length = str.length();
     return SAMUtils::fastqToPhred(str);
 }
@@ -216,7 +249,18 @@ std::shared_ptr<uint8_t[]> ReadUtils::getBaseInsertionQualities(std::shared_ptr<
     std::shared_ptr<uint8_t[]> quals = getExistingBaseInsertionQualities(read, length);
     if(quals == nullptr) {
         length = read->getBaseQualitiesLength();
-        quals = std::shared_ptr<uint8_t[]>(new uint8_t[length]{45});
+        quals = std::shared_ptr<uint8_t[]>(new uint8_t[length]);
+        memset(quals.get(), DEFAULT_INSERTION_DELETION_QUAL, length);
+    }
+    return quals;
+}
+
+std::shared_ptr<uint8_t[]> ReadUtils::getBaseInsertionQualities(SAMRecord &read, int &length) {
+    std::shared_ptr<uint8_t[]> quals = getExistingBaseInsertionQualities(read, length);
+    if(quals == nullptr) {
+        length = read.getBaseQualitiesLength();
+        quals = std::shared_ptr<uint8_t[]>(new uint8_t[length]);
+        memset(quals.get(), DEFAULT_INSERTION_DELETION_QUAL, length);
     }
     return quals;
 }
@@ -225,7 +269,18 @@ std::shared_ptr<uint8_t[]> ReadUtils::getBaseDeletionQualities(std::shared_ptr<S
     std::shared_ptr<uint8_t[]> quals = getExistingBaseDeletionQualities(read, length);
     if(quals == nullptr) {
         length = read->getBaseQualitiesLength();
-        quals = std::shared_ptr<uint8_t[]>(new uint8_t[length]{45});
+        quals = std::shared_ptr<uint8_t[]>(new uint8_t[length]);
+        memset(quals.get(), DEFAULT_INSERTION_DELETION_QUAL, length);
+    }
+    return quals;
+}
+
+std::shared_ptr<uint8_t[]> ReadUtils::getBaseDeletionQualities(SAMRecord &read, int &length){
+    std::shared_ptr<uint8_t[]> quals = getExistingBaseDeletionQualities(read, length);
+    if(quals == nullptr) {
+        length = read.getBaseQualitiesLength();
+        quals = std::shared_ptr<uint8_t[]>(new uint8_t[length]);
+        memset(quals.get(), DEFAULT_INSERTION_DELETION_QUAL, length);
     }
     return quals;
 }

@@ -7,6 +7,7 @@
 #include <cmath>
 #include <assert.h>
 
+double QualityUtils::errorProbabilityByPhredScore[101]{0};
 double QualityUtils::qualToErrorProbCache[255] {0};
 
 uint8_t QualityUtils::errorProbToQual(double errorRate, uint8_t maxQual)
@@ -31,6 +32,11 @@ void QualityUtils::initial() {
     for(int i = 0; i < 255; i++) {
         qualToErrorProbCache[i] = qualToErrorProb((double) i);
     }
+
+    for(int i=0; i<101; i++)
+    {
+        errorProbabilityByPhredScore[i] = 1.0 / pow(10.0, i/10.0);
+    }
 }
 
 double QualityUtils::qualToErrorProb(double qual) {
@@ -40,4 +46,15 @@ double QualityUtils::qualToErrorProb(double qual) {
 
 double QualityUtils::qualToErrorProb(uint8_t qual) {
     return qualToErrorProbCache[(int)qual & 0xff];
+}
+
+double QualityUtils::qualToErrorProbLog10(double qual)
+{
+    assert(qual >= 0.0);
+    return qual / (-10.0);
+}
+
+int QualityUtils::getPhredScoreFromErrorProbability(double probability)
+{
+    return (int) round(-10.0 * log10(probability));
 }

@@ -32,7 +32,7 @@ public:
     SAMBinaryTagAndValue(short tag, void* value, Void_Type voidType, int length);
     static std::shared_ptr<SAMBinaryTagAndValue> remove(std::shared_ptr<SAMBinaryTagAndValue> root, short tag);
     static std::shared_ptr<SAMBinaryTagAndValue> insert(std::shared_ptr<SAMBinaryTagAndValue> root, std::shared_ptr<SAMBinaryTagAndValue> attr);
-    std::shared_ptr<SAMBinaryTagAndValue> find(short tag);
+    SAMBinaryTagAndValue* find(short tag);
     ~SAMBinaryTagAndValue();
 
 protected:

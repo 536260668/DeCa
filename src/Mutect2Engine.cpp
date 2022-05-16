@@ -15,15 +15,25 @@
 #include "AssemblyResultSet.h"
 #include "haplotypecaller/AssemblyBasedCallerUtils.h"
 
-Mutect2Engine::Mutect2Engine(M2ArgumentCollection & MTAC, char * ref, SAMFileHeader* samFileHeader):MATC(MTAC), minCallableDepth(MTAC.callableDepth),
+Mutect2Engine::Mutect2Engine(M2ArgumentCollection & MTAC, char * ref, SAMFileHeader* samFileHeader):MTAC(MTAC), minCallableDepth(MTAC.callableDepth),
                                                             normalSample(MTAC.normalSample) ,callableSites(0), refCache(nullptr) ,header(samFileHeader),
                                                                                                     assemblyEngine(0, 1, 128, false, false, {10, 25}),
+                                                                                                    likelihoodCalculationEngine(AssemblyBasedCallerUtils::createLikelihoodCalculationEngine(MTAC.likelihoodArgs)),
                                                                                                     trimmer(&assemblerArgs, &header->getSequenceDictionary(), false,
                                                                                                             false)
 {
+    std::vector<SAMReadGroupRecord> & mReadGroups = samFileHeader->getReadGroupRecord();
+    for(auto & readGroup : mReadGroups)
+    {
+        samplesList.emplace_back(readGroup.getReadGroupId());
+    }
     NaturalLogUtils::initial();
 }
 
+Mutect2Engine::~Mutect2Engine()
+{
+    delete likelihoodCalculationEngine;
+}
 
 
 std::shared_ptr<ActivityProfileState> Mutect2Engine::isActive(AlignmentContext& context)
@@ -46,7 +56,7 @@ std::shared_ptr<ActivityProfileState> Mutect2Engine::isActive(AlignmentContext& 
 
     if(tumorLogOdds < M2ArgumentCollection::getInitialLogOdds()) {
         return std::make_shared<ActivityProfileState>(refName.c_str(), pos, 0.0);
-    } else if (hasNormal() && !MATC.genotypeGermlineSites) {
+    } else if (hasNormal() && !MTAC.genotypeGermlineSites) {
         ReadPileup normalPileup = context.makeNormalPileup();
         std::shared_ptr<std::vector<char>> normalAltQuals = altQuals(normalPileup, refBase, 40);
         int normalAltCount = normalAltQuals->size();
@@ -136,27 +146,40 @@ void Mutect2Engine::fillNextAssemblyRegionWithReads(const std::shared_ptr<Assemb
 
 std::vector<std::shared_ptr<VariantContext>>
 Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion>& originalAssemblyRegion, ReferenceContext &referenceContext) {
-//    if(originalAssemblyRegion->getStart() == 33665991) {
-//        for(const std::shared_ptr<SAMRecord>& read : originalAssemblyRegion->getReads()) {
-//            std::cout << read->getName() << " : " << read->getStart() + 1 << "~" << read->getEnd() + 1 << std::endl;
-//        }
-//        //std::cout << "hello" << std::endl;
+//    if(originalAssemblyRegion->getStart() == 359408) {
+////        for(const std::shared_ptr<SAMRecord>& read : originalAssemblyRegion->getReads()) {
+////            std::cout << read->getName() << " : " << read->getStart() + 1 << "~" << read->getEnd() + 1 << std::endl;
+////        }
+//        std::cout << "hello" << std::endl;
 //    }
+
+    // divide PCR qual by two in order to get the correct total qual when treating paired reads as independent
+    AssemblyBasedCallerUtils::cleanOverlappingReadPairs(originalAssemblyRegion->getReads(), normalSample, false, MTAC.pcrSnvQual/2, MTAC.pcrIndelQual/2);
+
     removeUnmarkedDuplicates(originalAssemblyRegion);
     if(originalAssemblyRegion->getReads().empty())
         return {};
-    std::shared_ptr<AssemblyResultSet> untrimmedAssemblyResult = AssemblyBasedCallerUtils::assembleReads(originalAssemblyRegion, MATC, header, *refCache, assemblyEngine);
+
+    auto assemblyActiveRegion = AssemblyBasedCallerUtils::assemblyRegionWithWellMappedReads(originalAssemblyRegion, READ_QUALITY_FILTER_THRESHOLD, header);
+    std::shared_ptr<AssemblyResultSet> untrimmedAssemblyResult = AssemblyBasedCallerUtils::assembleReads(assemblyActiveRegion, MTAC, header, *refCache, assemblyEngine);
     std::set<std::shared_ptr<VariantContext>, VariantContextComparator> & allVariationEvents = untrimmedAssemblyResult->getVariationEvents(1);
-//    std::shared_ptr<AssemblyRegionTrimmer_Result> trimmingResult = trimmer.trim(originalAssemblyRegion, allVariationEvents);
-//    if(!trimmingResult->isVariationPresent()) {
-//        return {};
-//    }
-//    std::shared_ptr<AssemblyResultSet> assemblyResult = trimmingResult->getNeedsTrimming() ? untrimmedAssemblyResult->trimTo(trimmingResult->getCallableRegion()) : untrimmedAssemblyResult;
-//    if(!assemblyResult->isisVariationPresent()) {
-//        return {};
-//    }
-//    std::shared_ptr<AssemblyRegion> regionForGenotyping = assemblyResult->getRegionForGenotyping();
-//    removeReadStubs(regionForGenotyping);
+
+    std::shared_ptr<AssemblyRegionTrimmer_Result> trimmingResult = trimmer.trim(originalAssemblyRegion, allVariationEvents);
+    if(!trimmingResult->isVariationPresent()) {
+        return {};
+    }
+
+    std::shared_ptr<AssemblyResultSet> assemblyResult = trimmingResult->getNeedsTrimming() ? untrimmedAssemblyResult->trimTo(trimmingResult->getCallableRegion()) : untrimmedAssemblyResult;
+    if(!assemblyResult->isisVariationPresent()) {
+        return {};
+    }
+    std::shared_ptr<AssemblyRegion> regionForGenotyping = assemblyResult->getRegionForGenotyping();
+    removeReadStubs(regionForGenotyping);
+
+    auto reads = splitReadsBySample(regionForGenotyping->getReads());
+
+    //cerr << *originalAssemblyRegion;
+    likelihoodCalculationEngine->computeReadLikelihoods(*assemblyResult, samplesList, *reads);
 
 	// Break the circular reference of pointer
 	auto haplotypesToReleased = *untrimmedAssemblyResult->getHaplotypeList();

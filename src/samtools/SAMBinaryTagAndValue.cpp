@@ -5,6 +5,7 @@
 #include "SAMBinaryTagAndValue.h"
 #include "SAMUtils.h"
 #include <stdexcept>
+#include <iostream>
 
 SAMBinaryTagAndValue::SAMBinaryTagAndValue(short tag, void *value, Void_Type voidType, int length) : tag(tag), value(value), type(voidType){
     if(value == nullptr) {
@@ -55,45 +56,36 @@ std::shared_ptr<SAMBinaryTagAndValue> SAMBinaryTagAndValue::insert(std::shared_p
         return root;
     else if (attr->next != nullptr) {
         throw std::invalid_argument("Can only insert single tag/value combinations.");
-    } else if (attr->tag <= root->tag){
+    }
+
+    if (attr->tag < root->tag){
+        // attr joins the list ahead of this element
         attr->next = root;
         return attr;
+    } else if(attr->tag == root->tag){
+        // attr replaces this in the list
+        attr->next = root->next;
+        return attr;
+    } else if(root->next == nullptr) {
+        // attr gets stuck on the end
+        root->next = attr;
+        return root;
     } else {
-        std::shared_ptr<SAMBinaryTagAndValue> iter = root;
-        bool flag = false;
-        while(iter->next != nullptr) {
-            if(iter->next->tag > attr->tag) {
-                std::shared_ptr<SAMBinaryTagAndValue> tmp = iter->next;
-                iter->next = attr;
-                attr->next = tmp;
-                flag = true;
-                break;
-            } else {
-                iter = iter->next;
-            }
-        }
-        if(!flag) {
-            iter->next = attr;
-            attr->next = nullptr;
-        }
+        // attr gets inserted somewhere in the tail
+        root->next = root->next->insert(root->next, attr);
         return root;
     }
 }
 
-std::shared_ptr<SAMBinaryTagAndValue> SAMBinaryTagAndValue::find(short tag) {
-    SAMBinaryTagAndValue* iter = this;
-    std::shared_ptr<SAMBinaryTagAndValue> res = nullptr;
-    while(iter != nullptr && iter->tag <= tag) {
-        if(iter->tag == tag) {
-            return res;
-        } else {
-            res = iter->next;
-            iter = iter->next.get();
-        }
-    }
-    return nullptr;
+SAMBinaryTagAndValue* SAMBinaryTagAndValue::find(short tag) {
+    if(this->tag == tag)
+        return this;
+    else if(this->tag > tag || this->next == nullptr)
+        return nullptr;
+    else
+        return this->next->find(tag);
 }
 
 SAMBinaryTagAndValue::~SAMBinaryTagAndValue() {
-    delete value;
+    delete (std::string *)value;
 }

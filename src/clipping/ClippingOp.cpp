@@ -40,6 +40,7 @@ std::shared_ptr<SAMRecord> ClippingOp::applyHardClipBases(std::shared_ptr<SAMRec
         std::shared_ptr<uint8_t[]> newBaseDeletionQuals(new uint8_t[newLength]);
         int length;
         std::shared_ptr<uint8_t[]> new_base = ReadUtils::getBaseInsertionQualities(read, length);
+
         memcpy(newBaseInsertionQuals.get(), new_base.get()+copyStart, newLength);
         new_base = ReadUtils::getBaseDeletionQualities(read, length);
         memcpy(newBaseDeletionQuals.get(), new_base.get()+copyStart, newLength);

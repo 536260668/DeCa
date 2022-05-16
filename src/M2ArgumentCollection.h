@@ -4,7 +4,9 @@
 
 #ifndef MUTECT2CPP_MASTER_M2ARGUMENTCOLLECTION_H
 #define MUTECT2CPP_MASTER_M2ARGUMENTCOLLECTION_H
+
 #include <set>
+#include "haplotypecaller/LikelihoodEngineArgumentCollection.h"
 
 typedef struct M2ArgumentCollection{
     int callableDepth;
@@ -16,6 +18,9 @@ typedef struct M2ArgumentCollection{
     //std::set<std::string> normalSamples;
     std::string normalSample;
     bool genotypeGermlineSites = false;
+    LikelihoodEngineArgumentCollection likelihoodArgs;
+    int pcrSnvQual = 40;
+    int pcrIndelQual = 40;
 
     static double getInitialLogOdds() {
 		// A constant should not be returned, it caused a bug sometimes, one over a billion
