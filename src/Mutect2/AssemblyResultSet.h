@@ -101,6 +101,8 @@ public:
 
 	bool isisVariationPresent();
 
+	void deleteEventMap();
+
 	~AssemblyResultSet() = default;
 
 	/**
