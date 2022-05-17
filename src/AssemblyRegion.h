@@ -265,6 +265,12 @@ public:
     * @param read a non-null GATKRead
     */
     void add(std::shared_ptr<SAMRecord>& read);
+
+	void printRegionInfo();
+
+	void printReadsInfo();
+
+	void sortReadsByCoordinate();
 };
 
 

@@ -7,6 +7,7 @@
 #include <utility>
 #include "IntervalUtils.h"
 #include "clipping/ReadClipper.h"
+#include "read/ReadUtils.h"
 
 AssemblyRegion::AssemblyRegion(SimpleInterval const &activeRegionLoc,
                                std::vector<std::shared_ptr<ActivityProfileState>> supportingStates, const bool isActive,
@@ -49,13 +50,7 @@ void AssemblyRegion::checkStates(SimpleInterval &activeRegion) {
 	}
 }
 
-AssemblyRegion::~AssemblyRegion()
-{
-/*    for(int i=0; i<reads.size(); i++)
-    {
-        std::cout << i << " " << reads[i].use_count() << std::endl;
-    }*/
-}
+AssemblyRegion::~AssemblyRegion() = default;
 
 std::ostream &operator<<(std::ostream &os, AssemblyRegion &assemblyRegion) {
 	os << "AssemblyRegion " << *assemblyRegion.activeRegionLoc << "active:   " << assemblyRegion.isActive << std::endl;
@@ -162,17 +157,91 @@ void AssemblyRegion::removeAll(const std::vector<std::shared_ptr<SAMRecord>> &re
 	}
 }
 
-void AssemblyRegion::add(std::shared_ptr<SAMRecord> &read) {
-    assert(read != nullptr);
-    assert(readOverlapsRegion(read));
 
-    spanIncludingReads = spanIncludingReads->mergeWithContiguous(read->getLoc());
-
-    if(!reads.empty())
-    {
-        std::shared_ptr<SAMRecord> & lastRead = reads.back();
-        assert(lastRead->getContig() == read->getContig());
-        //assert(read->getStart() >= lastRead->getStart());  // TODO: Is this line necessary?
-    }
-    reads.emplace_back(std::make_shared<SAMRecord>(*read));
+void AssemblyRegion::printRegionInfo() {
+	std::cout << "contig: " << activeRegionLoc->getContig() << std::endl;
+	std::cout << "activeRegionLoc\t" << activeRegionLoc->getStart() + 1 << " " << activeRegionLoc->getEnd() + 1
+	          << std::endl;
+	std::cout << "extendedLoc\t" << extendedLoc->getStart() + 1 << " " << extendedLoc->getEnd() + 1 << std::endl;
+	std::cout << "spanIncludingReads\t" << spanIncludingReads->getStart() + 1 << " " << spanIncludingReads->getEnd() + 1
+	          << std::endl;
+	std::cout << "reads count: " << reads.size() << std::endl;
 }
+
+void AssemblyRegion::add(std::shared_ptr<SAMRecord> &read) {
+	assert(read != nullptr);
+	assert(readOverlapsRegion(read));
+
+	spanIncludingReads = spanIncludingReads->mergeWithContiguous(read->getLoc());
+
+	if (!reads.empty()) {
+		std::shared_ptr<SAMRecord> &lastRead = reads.back();
+		assert(lastRead->getContig() == read->getContig());
+		//assert(read->getStart() >= lastRead->getStart());  // TODO: Is this line necessary?
+	}
+	reads.emplace_back(std::make_shared<SAMRecord>(*read));
+}
+
+void AssemblyRegion::sortReadsByCoordinate() {
+	std::sort(reads.begin(), reads.end(), [this](std::shared_ptr<SAMRecord> &a, std::shared_ptr<SAMRecord> &b) -> bool {
+		// res == 1 in JAVA ==> return false in CPP
+		// res == -1 in JAVA ==> return true in CPP
+		int result_a = ReadUtils::getAssignedReferenceIndex(a, this->header);
+		int result_b = ReadUtils::getAssignedReferenceIndex(b, this->header);
+
+		if (result_a == -1 && result_b != -1)
+			return true;
+		if (result_a != -1 && result_b == -1)
+			return false;
+
+		if (result_a != result_b)
+			return result_a < result_b;
+
+		result_a = a->getAssignedStart();
+		result_b = b->getAssignedStart();
+		if (result_a != result_b)
+			return result_a < result_b;
+
+		//This is done to mimic SAMRecordCoordinateComparator's behavior
+		if (a->isReverseStrand() != b->isReverseStrand())
+			return !a->isReverseStrand();
+
+		std::string name_a = a->getName();
+		std::string name_b = b->getName();
+		if (!name_a.empty() && !name_b.empty())
+			if (name_a != name_b)
+				return name_a < name_b;
+
+		result_a = ReadUtils::getSAMFlagsForRead(a);
+		result_b = ReadUtils::getSAMFlagsForRead(b);
+		if (result_a != result_b)
+			return result_a < result_b;
+
+		result_a = a->getMappingQuality();
+		result_b = b->getMappingQuality();
+		if (result_a != result_b)
+			return result_a < result_b;
+
+		if (a->isPaired() && b->isPaired()) {
+			result_a = ReadUtils::getMateReferenceIndex(a, this->header);
+			result_b = ReadUtils::getMateReferenceIndex(b, this->header);
+			if (result_a != result_b)
+				return result_a < result_b;
+			result_a = a->getMateStart();
+			result_b = b->getMateStart();
+			if (result_a != result_b)
+				return result_a < result_b;
+		}
+
+		return a->getFragmentLength() < b->getFragmentLength();
+	});
+}
+
+void AssemblyRegion::printReadsInfo() {
+	std::cout << activeRegionLoc->getContig() << " " << activeRegionLoc->getStart() + 1 << " "
+	          << activeRegionLoc->getEnd() + 1 << std::endl;
+	for (const auto &read: reads) {
+		std::cout << read->getName() << "\t" << read->getStart() + 1 << " " << read->getEnd() + 1 << std::endl;
+	}
+}
+

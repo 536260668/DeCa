@@ -141,7 +141,10 @@ bool Mutect2Engine::hasNormal() {
 
 void Mutect2Engine::fillNextAssemblyRegionWithReads(const std::shared_ptr<AssemblyRegion>& region, ReadCache &readCache) {
     std::vector<std::shared_ptr<SAMRecord>> toAdd = readCache.getReadsForRegion(*region);
-    region->setRead(toAdd);
+	for (auto read : toAdd){
+		region->add(read);
+	}
+	region->sortReadsByCoordinate();
 }
 
 std::vector<std::shared_ptr<VariantContext>>

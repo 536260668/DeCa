@@ -13,11 +13,11 @@ IntervalUtils::trimIntervalToContig(const std::string &contig, const int start, 
 	if (contigLength < 1)
 		throw std::invalid_argument("ContigLength should be at least 1.");
 
-	const int boundedStart = std::max(1, start);
-	const int boundedStop = std::min(contigLength, stop);
+	const int boundedStart = std::max(0, start);
+	const int boundedStop = std::min(contigLength -1, stop);
 
 	// there's no meaningful way to create this interval, as the start and stop are off the contig
-	if (boundedStart > contigLength || boundedStop < 1)
+	if (boundedStart >= contigLength || boundedStop < 0)
 		return nullptr;
 	return std::make_shared<SimpleInterval>(contig, boundedStart, boundedStop);
 }

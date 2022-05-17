@@ -46,6 +46,7 @@ std::shared_ptr<Haplotype> Haplotype::trim(const std::shared_ptr<Locatable> &loc
 
 	int newStart = loc->getStart() - this->genomeLocation->getStart();
 	int newStop = newStart + loc->getEnd() - loc->getStart();
+	//std::cout << loc->getStart() + 1 << " " << loc->getEnd() + 1 << std::endl;
 	std::pair<int, std::shared_ptr<uint8_t[]>> newBases = AlignmentUtils::getBasesCoveringRefInterval(newStart, newStop,
 	                                                                                                  getBases(),
 	                                                                                                  getBasesLength(),
