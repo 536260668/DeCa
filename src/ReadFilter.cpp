@@ -86,7 +86,7 @@ bool ReadFilter::WellformedTest(std::shared_ptr<SAMRecord> & originalRead, SAMFi
 
 bool ReadFilter::WellformedTest(bam1_t * read, sam_hdr_t * hdr)
 {
-    return (ReadUtils::isUnmapped(read, hdr) || read->core.pos > 0) &&
+    return (ReadUtils::isUnmapped(read, hdr) || read->core.pos + 1 > 0) &&
     (ReadUtils::isUnmapped(read, hdr) || (ReadUtils::getEnd(read) - read->core.pos + 1 >= 0) ) &&
     ReadUtils::alignmentAgreesWithHeader(hdr, read) &&
     read->core.l_qseq == bam_cigar2qlen(read->core.n_cigar, bam_get_cigar(read)) &&
@@ -97,6 +97,17 @@ bool ReadFilter::WellformedTest(bam1_t * read, sam_hdr_t * hdr)
 
 bool ReadFilter::test(bam1_t * read, sam_hdr_t * hdr)
 {
+//	bool ret1 = ReadLengthTest(read);
+//	bool ret2 = NonZeroReferenceLengthAlignmentTest(read);
+//	bool ret3 = NotDuplicateTest(read);
+//	bool ret4 = NotSecondaryAlignmentTest(read);
+//	bool ret5 = GoodCigarTest(read);
+//	bool ret6 = PassesVendorQualityCheck(read);
+//	bool ret7 = MappedReadTest(read, hdr);
+//	bool ret8 = MappingQualityAvailableTest(read);
+//	bool ret9 = MappingQualityNotZeroTest(read);
+//	bool ret10 = MappingQualityTest(read);
+//	bool ret11 = WellformedTest(read, hdr);
     return ReadLengthTest(read) && NonZeroReferenceLengthAlignmentTest(read) && NotDuplicateTest(read) &&
             NotSecondaryAlignmentTest(read) && GoodCigarTest(read) && PassesVendorQualityCheck(read) && MappedReadTest(read, hdr) &&
             MappingQualityAvailableTest(read) && MappingQualityNotZeroTest(read) && MappingQualityTest(read) &&

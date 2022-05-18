@@ -221,9 +221,7 @@ std::set<int> EventMap::buildEventMapsForHaplotypes(std::vector<std::shared_ptr<
 	std::set<int> startPosKeySet;
 	int hapNumber = 0;
 	for (auto &h: haplotypes) {
-		std::shared_ptr<EventMap> newEventMap = std::make_shared<EventMap>(h, ref, refLength, refLoc,
-		                                                                   "HC" + std::to_string(hapNumber),
-		                                                                   maxMnpDistance);
+		auto* newEventMap = new EventMap(h, ref, refLength, refLoc, "HC" + std::to_string(hapNumber),maxMnpDistance);
 		h->setEventMap(newEventMap);
 		for (int i: newEventMap->getStartPositions()) {
 			startPosKeySet.insert(i);

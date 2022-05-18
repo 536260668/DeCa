@@ -28,7 +28,7 @@ void ReadThreadingGraph::addRead(std::shared_ptr<SAMRecord> &read) {
 
 	int lastGood = -1, length = read->getLength();
 	for (int end = 0; end <= length; end++) {
-	    if ( end == length || !baseIsUsableForAssembly(sequence[end], qualities[end])) {
+		if (end == length || !baseIsUsableForAssembly(sequence[end], qualities[end])) {
 			int start = lastGood, len = end - start;
 			if (start != -1 && len >= kmerSize) {
 				std::string name = read->getName() + '_' + std::to_string(start) + '_' + std::to_string(end);
@@ -70,47 +70,111 @@ void ReadThreadingGraph::determineNonUniques() {
 	nonUniqueKmers.clear();
 	std::vector<std::pair<std::shared_ptr<uint8_t[]>, int>> nonUniqueKmersPair;
 
-	if (kmerSize <= 30) {  //when kmerSize_ <= 30, use Bit Operation (long long)
-		std::set<long long> nonUniquesFromSeqSet;
-		std::unordered_set<long long> seqAllKmers;
-
-		for (auto &iter: pending) {
-			for (auto &withNonUnique: iter.second) {
-				int len = withNonUnique.stop - withNonUnique.start;
-				seqAllKmers.clear();
-				seqAllKmers.reserve(len - kmerSize + 1);
-
-				//std::string str = reinterpret_cast<const char *>(withNonUnique.sequence.get());
-				//sequence[start, stop)
-				uint8_t *s = withNonUnique.sequence.get();
-				uint8_t charToU8[len];
-				for (int i = 0; i < len; ++i) {
-					uint8_t ch = s[withNonUnique.start + i];
-					if (ch == 'A') charToU8[i] = 0;
-					else if (ch == 'C') charToU8[i] = 1;
-					else if (ch == 'G') charToU8[i] = 2;
-					else if (ch == 'T') charToU8[i] = 3;
-					else throw std::invalid_argument("Found N in sequence when determining NonUniques!");
+	// check justACGT
+	bool justACGT = true;
+	for (auto &iter: pending) {
+		for (auto &withNonUnique: iter.second) {
+			uint8_t *s = withNonUnique.sequence.get();
+			int len = withNonUnique.stop - withNonUnique.start;
+			for (int i = 0; i < len; ++i) {
+				uint8_t ch = s[withNonUnique.start + i];
+				if (BOOST_UNLIKELY(ch != 'G' && ch != 'T' && ch != 'A' && ch != 'C')) {
+					justACGT = false;
+					break;
 				}
+			}
+			if (!justACGT) break;
+		}
+		if (!justACGT) break;
+	}
+	//std::cout<<"justACGT "+std::to_string(justACGT)+'\n';
 
-				long long val = 0L, mask = (1L << (kmerSize * 2)) - 1;
-				for (int i = 0; i < kmerSize - 1; ++i) val = (val << 2) | charToU8[i];
-				for (int i = kmerSize - 1; i < len; i++) {
-					val = ((val << 2) & mask) | charToU8[i];
-					//std::cout << val << std::endl;
-					if (!seqAllKmers.insert(val).second) {   // is nonUnique in the sequence
-						if (nonUniquesFromSeqSet.insert(val).second) {   //and first appearance
-							nonUniqueKmersPair.emplace_back(withNonUnique.sequence,
-							                                withNonUnique.start + i - kmerSize + 1);
-							//std::cout << withNonUnique.start << " " << withNonUnique.stop << " "
-							//          << str.substr(withNonUnique.start, len) << std::endl;
-							//std::cout << str.substr(withNonUnique.start + i - kmerSize_ + 1, kmerSize_) << std::endl;
+	if (justACGT) {
+		if (kmerSize <= 30) {  //when kmerSize_ <= 30, use Bit Operation (long long)
+			std::set<long long> nonUniquesFromSeqSet;
+			std::unordered_set<long long> seqAllKmers;
+
+			for (auto &iter: pending) {
+				for (auto &withNonUnique: iter.second) {
+					int len = withNonUnique.stop - withNonUnique.start;
+					seqAllKmers.clear();
+					seqAllKmers.reserve(len - kmerSize + 1);
+
+					//std::string str = reinterpret_cast<const char *>(withNonUnique.sequence.get());
+					//sequence[start, stop)
+					uint8_t *s = withNonUnique.sequence.get();
+					uint8_t charToU8[len];
+					for (int i = 0; i < len; ++i) {
+						uint8_t ch = s[withNonUnique.start + i];
+						if (ch == 'A') charToU8[i] = 0;
+						else if (ch == 'C') charToU8[i] = 1;
+						else if (ch == 'G') charToU8[i] = 2;
+						else if (ch == 'T') charToU8[i] = 3;
+						else throw std::invalid_argument("Found N in sequence when determining NonUniques!");
+					}
+
+					long long val = 0L, mask = (1L << (kmerSize * 2)) - 1;
+					for (int i = 0; i < kmerSize - 1; ++i) val = (val << 2) | charToU8[i];
+					for (int i = kmerSize - 1; i < len; i++) {
+						val = ((val << 2) & mask) | charToU8[i];
+						//std::cout << val << std::endl;
+						if (!seqAllKmers.insert(val).second) {   // is nonUnique in the sequence
+							if (nonUniquesFromSeqSet.insert(val).second) {   //and first appearance
+								nonUniqueKmersPair.emplace_back(withNonUnique.sequence,
+								                                withNonUnique.start + i - kmerSize + 1);
+								//std::cout << withNonUnique.start << " " << withNonUnique.stop << " "
+								//          << str.substr(withNonUnique.start, len) << std::endl;
+								//std::cout << str.substr(withNonUnique.start + i - kmerSize_ + 1, kmerSize_) << std::endl;
+							}
+						}
+					}
+				}
+			}
+		} else {    //when kmerSize_ > 30, use dynamic bitset
+			std::set<boost::dynamic_bitset<>> nonUniquesFromSeqSet;
+			std::unordered_set<boost::dynamic_bitset<>> seqAllKmers;
+
+			for (auto &iter: pending) {
+				for (auto &withNonUnique: iter.second) {
+					int len = withNonUnique.stop - withNonUnique.start;
+					seqAllKmers.clear();
+					seqAllKmers.reserve(len - kmerSize + 1);
+
+					//std::string str = reinterpret_cast<const char *>(withNonUnique.sequence.get());
+					uint8_t *s = withNonUnique.sequence.get();
+					uint8_t charToBitH[len], charToBitL[len];
+					for (int i = 0; i < len; ++i) {
+						uint8_t ch = s[withNonUnique.start + i];
+						if (ch == 'A') charToBitH[i] = 0, charToBitL[i] = 0;
+						else if (ch == 'C') charToBitH[i] = 0, charToBitL[i] = 1;
+						else if (ch == 'G') charToBitH[i] = 1, charToBitL[i] = 0;
+						else if (ch == 'T') charToBitH[i] = 1, charToBitL[i] = 1;
+						else throw std::invalid_argument("Found N in sequence when determining NonUniques!");
+					}
+
+					boost::dynamic_bitset<> bitSeq(2 * kmerSize);
+					for (int i = 0; i < kmerSize - 1; ++i) {
+						bitSeq <<= 2;
+						bitSeq[1] = charToBitH[i], bitSeq[0] = charToBitL[i];
+					}
+					for (int i = kmerSize - 1; i < len; i++) {
+						bitSeq <<= 2;
+						bitSeq[1] = charToBitH[i], bitSeq[0] = charToBitL[i];
+						//std::cout << bitSeq << std::endl;
+						if (!seqAllKmers.insert(bitSeq).second) {   // is nonUnique in the sequence
+							if (nonUniquesFromSeqSet.insert(bitSeq).second) {   //and first appearance
+								nonUniqueKmersPair.emplace_back(withNonUnique.sequence,
+								                                withNonUnique.start + i - kmerSize + 1);
+								//std::cout << withNonUnique.start << " " << withNonUnique.stop << " "
+								//          << str.substr(withNonUnique.start, len) << std::endl;
+								//std::cout << str.substr(withNonUnique.start + i - kmerSize_ + 1, kmerSize_) << std::endl;
+							}
 						}
 					}
 				}
 			}
 		}
-	} else {    //when kmerSize_ > 30, use dynamic bitset
+	} else {   // not justACGT, use 4 bits to solve
 		std::set<boost::dynamic_bitset<>> nonUniquesFromSeqSet;
 		std::unordered_set<boost::dynamic_bitset<>> seqAllKmers;
 
@@ -122,24 +186,35 @@ void ReadThreadingGraph::determineNonUniques() {
 
 				//std::string str = reinterpret_cast<const char *>(withNonUnique.sequence.get());
 				uint8_t *s = withNonUnique.sequence.get();
-				uint8_t charToBitH[len], charToBitL[len];
+				uint8_t charToBit1[len], charToBit2[len], charToBit3[len], charToBit4[len]; //1 is highest, 2 is lowest
 				for (int i = 0; i < len; ++i) {
 					uint8_t ch = s[withNonUnique.start + i];
-					if (ch == 'A') charToBitH[i] = 0, charToBitL[i] = 0;
-					else if (ch == 'C') charToBitH[i] = 0, charToBitL[i] = 1;
-					else if (ch == 'G') charToBitH[i] = 1, charToBitL[i] = 0;
-					else if (ch == 'T') charToBitH[i] = 1, charToBitL[i] = 1;
-					else throw std::invalid_argument("Found N in sequence when determining NonUniques!");
+					if (ch == 'A') charToBit1[i] = 0, charToBit2[i] = 0, charToBit3[i] = 0, charToBit4[i] = 0;
+					else if (ch == 'C') charToBit1[i] = 0, charToBit2[i] = 0, charToBit3[i] = 0, charToBit4[i] = 1;
+					else if (ch == 'G') charToBit1[i] = 0, charToBit2[i] = 0, charToBit3[i] = 1, charToBit4[i] = 0;
+					else if (ch == 'T') charToBit1[i] = 0, charToBit2[i] = 0, charToBit3[i] = 1, charToBit4[i] = 1;
+					else if (ch == 'R') charToBit1[i] = 0, charToBit2[i] = 1, charToBit3[i] = 0, charToBit4[i] = 0;
+					else if (ch == 'Y') charToBit1[i] = 0, charToBit2[i] = 1, charToBit3[i] = 0, charToBit4[i] = 1;
+					else if (ch == 'M') charToBit1[i] = 0, charToBit2[i] = 1, charToBit3[i] = 1, charToBit4[i] = 0;
+					else if (ch == 'K') charToBit1[i] = 0, charToBit2[i] = 1, charToBit3[i] = 1, charToBit4[i] = 1;
+					else if (ch == 'S') charToBit1[i] = 1, charToBit2[i] = 0, charToBit3[i] = 0, charToBit4[i] = 0;
+					else if (ch == 'W') charToBit1[i] = 1, charToBit2[i] = 0, charToBit3[i] = 0, charToBit4[i] = 1;
+					else if (ch == 'H') charToBit1[i] = 1, charToBit2[i] = 0, charToBit3[i] = 1, charToBit4[i] = 0;
+					else if (ch == 'B') charToBit1[i] = 1, charToBit2[i] = 0, charToBit3[i] = 1, charToBit4[i] = 1;
+					else if (ch == 'V') charToBit1[i] = 1, charToBit2[i] = 1, charToBit3[i] = 0, charToBit4[i] = 0;
+					else if (ch == 'D') charToBit1[i] = 1, charToBit2[i] = 1, charToBit3[i] = 0, charToBit4[i] = 1;
+					else if (ch == 'N') charToBit1[i] = 1, charToBit2[i] = 1, charToBit3[i] = 1, charToBit4[i] = 0;
+					else charToBit1[i] = 1, charToBit2[i] = 1, charToBit3[i] = 1, charToBit4[i] = 1;
 				}
 
-				boost::dynamic_bitset<> bitSeq(2 * kmerSize);
+				boost::dynamic_bitset<> bitSeq(4 * kmerSize);
 				for (int i = 0; i < kmerSize - 1; ++i) {
-					bitSeq <<= 2;
-					bitSeq[1] = charToBitH[i], bitSeq[0] = charToBitL[i];
+					bitSeq <<= 4;
+					bitSeq[3] = charToBit1[i], bitSeq[2] = charToBit2[i], bitSeq[1] = charToBit3[i], bitSeq[0] = charToBit4[i];
 				}
 				for (int i = kmerSize - 1; i < len; i++) {
-					bitSeq <<= 2;
-					bitSeq[1] = charToBitH[i], bitSeq[0] = charToBitL[i];
+					bitSeq <<= 4;
+					bitSeq[3] = charToBit1[i], bitSeq[2] = charToBit2[i], bitSeq[1] = charToBit3[i], bitSeq[0] = charToBit4[i];
 					//std::cout << bitSeq << std::endl;
 					if (!seqAllKmers.insert(bitSeq).second) {   // is nonUnique in the sequence
 						if (nonUniquesFromSeqSet.insert(bitSeq).second) {   //and first appearance
@@ -301,13 +376,13 @@ void ReadThreadingGraph::buildGraphIfNecessary() {
 //    }
 
 	determineNonUniques();
-	if (!nonUniqueKmers.empty()) {
-		std::cout << "[buildGraphIfNecessary] " << nonUniqueKmers.size() << std::endl;
-		/*for(const auto& nonnnnn : nonUniqueKmers){
-			std::string s = reinterpret_cast<const char *>(nonnnnn->getBases().get());
-			std::cout<<s.substr(0,nonnnnn->getLength())<<std::endl;
-		}*/
-	}
+	//if (!nonUniqueKmers.empty()) {
+	//std::cout << "[buildGraphIfNecessary] " + std::to_string(nonUniqueKmers.size()) + '\n';
+	/*for(const auto& nonnnnn : nonUniqueKmers){
+		std::string s = reinterpret_cast<const char *>(nonnnnn->getBases().get());
+		std::cout<<s.substr(0,nonnnnn->getLength())<<std::endl;
+	}*/
+	//}
 
 	for (auto &miter: pending) {
 		for (auto &viter: miter.second) {

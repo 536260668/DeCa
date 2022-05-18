@@ -166,11 +166,13 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion>& originalAssembl
 
     std::shared_ptr<AssemblyRegionTrimmer_Result> trimmingResult = trimmer.trim(originalAssemblyRegion, allVariationEvents);
     if(!trimmingResult->isVariationPresent()) {
+	    untrimmedAssemblyResult->deleteEventMap();
         return {};
     }
 
     std::shared_ptr<AssemblyResultSet> assemblyResult = trimmingResult->getNeedsTrimming() ? untrimmedAssemblyResult->trimTo(trimmingResult->getCallableRegion()) : untrimmedAssemblyResult;
     if(!assemblyResult->isisVariationPresent()) {
+		untrimmedAssemblyResult->deleteEventMap();
         return {};
     }
     std::shared_ptr<AssemblyRegion> regionForGenotyping = assemblyResult->getRegionForGenotyping();
@@ -181,6 +183,9 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion>& originalAssembl
     //cerr << *originalAssemblyRegion;
     likelihoodCalculationEngine->computeReadLikelihoods(*assemblyResult, samplesList, *reads);
 
+	// Break the circular reference of pointer
+	untrimmedAssemblyResult->deleteEventMap();
+	assemblyResult->deleteEventMap();
     return  {allVariationEvents.begin(), allVariationEvents.end()};
 }
 

@@ -220,3 +220,12 @@ std::shared_ptr<AssemblyRegion> AssemblyResultSet::getRegionForGenotyping() {
 	return regionForGenotyping;
 }
 
+void AssemblyResultSet::deleteEventMap() {
+	auto haplotypesToReleased = *this->getHaplotypeList();
+	for (auto &item: haplotypesToReleased) {
+		if (item->getEventMap() != nullptr){
+			delete item->getEventMap();
+			item->setEventMap(nullptr);
+		}
+	}
+}

@@ -4,6 +4,7 @@
 
 #include <cstring>
 #include <algorithm>
+#include <memory>
 #include <htslib/sam.h>
 #include "CigarUtils.h"
 #include "Mutect2Utils.h"
@@ -18,7 +19,7 @@ std::shared_ptr<Cigar> CigarUtils::calculateCigar(const std::shared_ptr<uint8_t[
     if(altLength == 0) {
         std::vector<CigarElement> elements;
         elements.emplace_back(CigarElement(refLength, D));
-        return std::shared_ptr<Cigar>(new Cigar(elements));
+        return std::make_shared<Cigar>(elements);
     }
     if(altLength == refLength) {
         int mismatchCount = 0;
@@ -49,6 +50,7 @@ std::shared_ptr<Cigar> CigarUtils::calculateCigar(const std::shared_ptr<uint8_t[
     SmithWatermanAlignment* alignment = wrapper.align(paddedRef, paddedRefLength, paddedPath, paddedPathLength,
                                                       const_cast<SWParameters *>(&NEW_SW_PARAMETERS), SOFTCLIP);
     if ( isSWFailure(alignment) ) {
+		delete alignment;
         return nullptr;
     }
 

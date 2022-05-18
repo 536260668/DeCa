@@ -8,17 +8,18 @@
 #include "read/AlignmentUtils.h"
 #include "SimpleInterval.h"
 
-Haplotype::Haplotype(const std::shared_ptr<uint8_t[]>& bases, int length, bool isRef) : Allele(copyArray(bases, length),
-                                                                                        length, isRef), eventMap(
-		nullptr) {}
+Haplotype::Haplotype(const std::shared_ptr<uint8_t[]> &bases, int length, bool isRef) : Allele(copyArray(bases, length),
+                                                                                               length, isRef),
+                                                                                        eventMap(nullptr) {}
 
-std::shared_ptr<uint8_t[]> Haplotype::copyArray(const std::shared_ptr<uint8_t[]>& base, int length) {
+std::shared_ptr<uint8_t[]> Haplotype::copyArray(const std::shared_ptr<uint8_t[]> &base, int length) {
 	std::shared_ptr<uint8_t[]> res{new uint8_t[length + 1]{0}};
 	memcpy(res.get(), base.get(), length);
 	return res;
 }
 
-Haplotype::Haplotype(const std::shared_ptr<uint8_t[]>& bases, int length) : Allele(copyArray(bases, length), length, false) {}
+Haplotype::Haplotype(const std::shared_ptr<uint8_t[]> &bases, int length) : Allele(copyArray(bases, length), length,
+                                                                                   false), eventMap(nullptr) {}
 
 void Haplotype::setCigar(std::shared_ptr<Cigar> &cigar) {
 	this->cigar = AlignmentUtils::consolidateCigar(cigar);
@@ -26,14 +27,15 @@ void Haplotype::setCigar(std::shared_ptr<Cigar> &cigar) {
 	                          "Read length is not equal to the read length of the cigar");
 }
 
-Haplotype::Haplotype(const std::shared_ptr<uint8_t[]>& bases, bool isRef, int length, int alignmentStartHapwrtRef,
+Haplotype::Haplotype(const std::shared_ptr<uint8_t[]> &bases, bool isRef, int length, int alignmentStartHapwrtRef,
                      std::shared_ptr<Cigar> &cigar) : Allele(copyArray(bases, length), length, false),
-                                                      alignmentStartHapwrtRef(alignmentStartHapwrtRef) {
+                                                      alignmentStartHapwrtRef(alignmentStartHapwrtRef),
+                                                      eventMap(nullptr) {
 	setCigar(cigar);
 }
 
-Haplotype::Haplotype(const std::shared_ptr<uint8_t[]>& bases, int length, std::shared_ptr<Locatable> loc) : Allele(
-		copyArray(bases, length), length, false), genomeLocation(std::move(loc)) {}
+Haplotype::Haplotype(const std::shared_ptr<uint8_t[]> &bases, int length, std::shared_ptr<Locatable> loc) : Allele(
+		copyArray(bases, length), length, false), genomeLocation(std::move(loc)), eventMap(nullptr) {}
 
 std::shared_ptr<Haplotype> Haplotype::trim(const std::shared_ptr<Locatable> &loc) {
 	Mutect2Utils::validateArg(loc != nullptr, "Loc cannot be null");
@@ -44,8 +46,10 @@ std::shared_ptr<Haplotype> Haplotype::trim(const std::shared_ptr<Locatable> &loc
 
 	int newStart = loc->getStart() - this->genomeLocation->getStart();
 	int newStop = newStart + loc->getEnd() - loc->getStart();
-	std::pair<int, std::shared_ptr<uint8_t[]>> newBases = AlignmentUtils::getBasesCoveringRefInterval(newStart, newStop, getBases(),
-	                                                                                  getBasesLength(), 0, getCigar());
+	std::pair<int, std::shared_ptr<uint8_t[]>> newBases = AlignmentUtils::getBasesCoveringRefInterval(newStart, newStop,
+	                                                                                                  getBases(),
+	                                                                                                  getBasesLength(),
+	                                                                                                  0, getCigar());
 	std::shared_ptr<Cigar> newCigar = AlignmentUtils::trimCigarByReference(getCigar(), newStart, newStop);
 
 	if (newBases.second == nullptr || AlignmentUtils::startsOrEndsWithInsertionOrDeletion(newCigar))
@@ -75,12 +79,12 @@ int Haplotype::getAlignmentStartHapwrtRef() const {
 	return alignmentStartHapwrtRef;
 }
 
-std::shared_ptr<EventMap> Haplotype::getEventMap() {
+EventMap *Haplotype::getEventMap() {
 	return eventMap;
 }
 
-void Haplotype::setEventMap(const std::shared_ptr<EventMap> &eventMap) {
-	this->eventMap = eventMap;
+void Haplotype::setEventMap(EventMap *_eventMap) {
+	this->eventMap = _eventMap;
 }
 
 bool Haplotype::operator<(const Haplotype &other) const {
