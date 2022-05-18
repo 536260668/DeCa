@@ -27,8 +27,6 @@ VariantContext::VariantContext(std::string &source,
 
     this->alleles = std::move(makeAlleles(*alleles));
 
-    // TODO: finish this method 2021.11.13
-
     if(genotypes != nullptr && genotypes != &GenoTypesContext::NO_GENOTYPES) {
         this->genotypes = &genotypes->setImmutable();
     } else {
