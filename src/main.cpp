@@ -210,7 +210,7 @@ void threadFunc(Shared *w, char *ref, int n, int nref) {
 			}
 			std::shared_ptr<SimpleInterval> pileupInterval = std::make_shared<SimpleInterval>(contig, (int)pileup.getPosition(), (int)pileup.getPosition());
 			char refBase = w->refCaches[k]->getBase(pileup.getPosition());
-			ReferenceContext pileupRefContext(pileupInterval, refBase);
+			ReferenceContext pileupRefContext(pileupInterval, refBase); //---is this variable necessary?
 
 			std::shared_ptr<ActivityProfileState> profile = m2Engine.isActive(pileup);
 			activityProfile->add(profile);
@@ -250,7 +250,8 @@ void threadFunc(Shared *w, char *ref, int n, int nref) {
 
 			pendingRegions.pop();
 			Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
-			//std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext); // TODO: callRegion() needs pileupRefContext
+			ReferenceContext tempRefContext(nullptr, 'N');
+			std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, tempRefContext); // TODO: callRegion() needs pileupRefContext
 		}
 	}
 

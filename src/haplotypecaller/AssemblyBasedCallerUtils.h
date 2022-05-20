@@ -13,6 +13,7 @@
 #include "ReadThreadingAssembler.h"
 #include "PairHMMLikelihoodCalculationEngine.h"
 #include "LikelihoodEngineArgumentCollection.h"
+#include "SmithWatermanAligner.h"
 
 class AssemblyBasedCallerUtils {
 public:
@@ -61,6 +62,17 @@ public:
     // create the assembly using just high quality reads (eg Q20 or higher).  We may want to use lower
     // quality reads in the PairHMM downstream, so we can't use a ReadFilter
     static std::shared_ptr<AssemblyRegion> assemblyRegionWithWellMappedReads(const std::shared_ptr<AssemblyRegion>& originalAssemblyRegion, int minMappingQuality, SAMFileHeader * header);
+
+    /**
+     * Returns a map with the original read as a key and the realigned read as the value.
+     * <p>
+     *     Missing keys or equivalent key and value pairs mean that the read was not realigned.
+     * </p>
+     * @return never {@code null}
+     */
+    static shared_ptr<unordered_map<shared_ptr<SAMRecord>, shared_ptr<SAMRecord>>> realignReadsToTheirBestHaplotype(AlleleLikelihoods<SAMRecord, Haplotype>& originalReadLikelihoods, shared_ptr<Haplotype>& refHaplotype, shared_ptr<SimpleInterval>& paddedReferenceLoc, SmithWatermanAligner* aligner);
+
+    static double HAPLOTYPE_ALIGNMENT_TIEBREAKING_PRIORITY(shared_ptr<Haplotype> h);
 };
 
 

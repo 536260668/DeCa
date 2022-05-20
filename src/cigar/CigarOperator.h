@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <map>
 
-enum CigarOperator {M, I, D, N, S, H, P, X, EQ};
+enum CigarOperator {M, I, D, N, S, H, P, X, EQ, _NULL}; // _NULL is added to represent null
 
 class CigarOperatorUtils {
 private:

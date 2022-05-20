@@ -157,8 +157,8 @@ public:
      *
      * @return never {@code null}, and with at least one entry for input sample (keys in {@code perSampleReadList}.
      *    The value maps can be potentially empty though.
-     */ // TODO: change the type of returned value
-    void computeReadLikelihoods(AssemblyResultSet & assemblyResultSet, std::vector<std::string>& samples, std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>& perSampleReadList);
+     */
+    AlleleLikelihoods<SAMRecord, Haplotype>* computeReadLikelihoods(AssemblyResultSet & assemblyResultSet, std::vector<std::string>& samples, std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>& perSampleReadList);
 
 
 };

@@ -21,6 +21,7 @@
 #include "haplotypecaller/MutectReadThreadingAssemblerArgumentCollection.h"
 #include "haplotypecaller/AssemblyRegionTrimmer.h"
 #include "haplotypecaller/PairHMMLikelihoodCalculationEngine.h"
+#include "SmithWatermanAligner.h"
 
 class Mutect2Engine {
 private:
@@ -33,6 +34,7 @@ private:
     MutectReadThreadingAssemblerArgumentCollection assemblerArgs;
     PairHMMLikelihoodCalculationEngine* likelihoodCalculationEngine;
     AssemblyRegionTrimmer trimmer;
+    SmithWatermanAligner* aligner;
 
     std::shared_ptr<std::vector<char>> altQuals(ReadPileup & pileup, char refBase, int pcrErrorQual);
 

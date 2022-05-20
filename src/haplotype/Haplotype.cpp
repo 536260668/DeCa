@@ -4,6 +4,7 @@
 
 #include <cstring>
 #include <utility>
+#include <cassert>
 #include "Haplotype.h"
 #include "read/AlignmentUtils.h"
 #include "SimpleInterval.h"
@@ -108,4 +109,12 @@ bool Haplotype::operator<(const Haplotype &other) const {
 	}
 }
 
-
+std::shared_ptr<Cigar> Haplotype::getConsolidatedPaddedCigar(int padSize)
+{
+    assert(padSize >= 0);
+    auto extendedHaplotypeCigar = std::make_shared<Cigar>(getCigar()->getCigarElements());
+    if ( padSize > 0 ) {
+        extendedHaplotypeCigar->add(CigarElement(padSize, CigarOperator::M));
+    }
+    return AlignmentUtils::consolidateCigar(extendedHaplotypeCigar);
+}

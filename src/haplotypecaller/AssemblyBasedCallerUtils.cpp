@@ -10,6 +10,7 @@
 #include "QualityUtils.h"
 #include "utils/fragments/FragmentCollection.h"
 #include "utils/fragments/FragmentUtils.h"
+#include "AlignmentUtils.h"
 
 std::shared_ptr<Haplotype>
 AssemblyBasedCallerUtils::createReferenceHaplotype(const std::shared_ptr<AssemblyRegion> &region,
@@ -134,4 +135,30 @@ std::shared_ptr<AssemblyRegion> AssemblyBasedCallerUtils::assemblyRegionWithWell
             result->add(read);
     }
     return result;
+}
+
+shared_ptr<unordered_map<shared_ptr<SAMRecord>, shared_ptr<SAMRecord>>> AssemblyBasedCallerUtils::realignReadsToTheirBestHaplotype(
+        AlleleLikelihoods<SAMRecord, Haplotype> &originalReadLikelihoods, shared_ptr<Haplotype> &refHaplotype, shared_ptr<SimpleInterval>& paddedReferenceLoc,
+        SmithWatermanAligner *aligner) {
+    auto bestAlleles = originalReadLikelihoods.bestAllelesBreakingTies(&AssemblyBasedCallerUtils::HAPLOTYPE_ALIGNMENT_TIEBREAKING_PRIORITY);
+    auto result = std::make_shared<unordered_map<shared_ptr<SAMRecord>, shared_ptr<SAMRecord>>>(bestAlleles->size());
+
+    for(auto & bestAllele : *bestAlleles)
+    {
+        auto & originalRead = bestAllele->evidence;
+        auto & bestHaplotype = bestAllele->allele;
+        bool isInformative = bestAllele->isInformative();
+        shared_ptr<SAMRecord> realignedRead = AlignmentUtils::createReadAlignedToRef(originalRead, bestHaplotype, refHaplotype, paddedReferenceLoc->getStart(), isInformative, aligner);
+        result->insert(pair<shared_ptr<SAMRecord>, shared_ptr<SAMRecord>>(originalRead, realignedRead));
+    }
+    return result;
+}
+
+double AssemblyBasedCallerUtils::HAPLOTYPE_ALIGNMENT_TIEBREAKING_PRIORITY(shared_ptr<Haplotype> h) {
+    assert(h != nullptr);
+    auto cigar = h->getCigar();
+    int referenceTerm = h->getIsReference() ? 1 : 0;
+    int cigarTerm = cigar == nullptr ? 0 : 1-cigar->numCigarElements();
+
+    return (double)(referenceTerm + cigarTerm);
 }

@@ -17,8 +17,16 @@ public:
     static SWParameters ORIGINAL_DEFAULT;
     static SWParameters STANDARD_NGS;
 
+    enum Implementation{
+        FASTEST_AVAILABLE,
+        JAVA
+    };
+
+    static SmithWatermanAligner* getAligner(Implementation type);
+
     virtual SmithWatermanAlignment* align(std::shared_ptr<uint8_t[]> ref, int refLength, std::shared_ptr<uint8_t[]> alt, int altLength, SWParameters* parameters, SWOverhangStrategy overhangStrategy) = 0;
 
+    virtual ~SmithWatermanAligner() = default;
 };
 
 

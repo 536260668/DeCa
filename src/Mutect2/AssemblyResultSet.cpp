@@ -220,6 +220,15 @@ std::shared_ptr<AssemblyRegion> AssemblyResultSet::getRegionForGenotyping() {
 	return regionForGenotyping;
 }
 
+std::shared_ptr<Haplotype>& AssemblyResultSet::getReferenceHaplotype() {
+    return refHaplotype;
+}
+
+std::shared_ptr<SimpleInterval>& AssemblyResultSet::getPaddedReferenceLoc() {
+    return paddedReferenceLoc;
+}
+
+
 void AssemblyResultSet::deleteEventMap() {
 	auto haplotypesToReleased = *this->getHaplotypeList();
 	for (auto &item: haplotypesToReleased) {

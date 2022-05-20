@@ -55,6 +55,8 @@ public:
 
 	Haplotype(const std::shared_ptr<uint8_t[]> &bases, int length, std::shared_ptr<Locatable> loc);
 
+	~Haplotype() = default;
+
 	/**
 	* Set the cigar of this haplotype to cigar.
 	*
@@ -103,7 +105,13 @@ public:
 
 	bool operator<(const Haplotype &other) const;
 
-	~Haplotype() = default;
+	/**
+    * Get the haplotype cigar extended by padSize M at the tail, consolidated into a clean cigar
+    *
+    * @param padSize how many additional Ms should be appended to the end of this cigar.  Must be >= 0
+    * @return a newly allocated Cigar that consolidate(getCigar + padSize + M)
+    */
+	std::shared_ptr<Cigar> getConsolidatedPaddedCigar(int padSize);
 };
 
 

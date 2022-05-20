@@ -20,7 +20,7 @@ Mutect2Engine::Mutect2Engine(M2ArgumentCollection & MTAC, char * ref, SAMFileHea
                                                                                                     assemblyEngine(0, 1, 128, false, false, {10, 25}),
                                                                                                     likelihoodCalculationEngine(AssemblyBasedCallerUtils::createLikelihoodCalculationEngine(MTAC.likelihoodArgs)),
                                                                                                     trimmer(&assemblerArgs, &header->getSequenceDictionary(), false,
-                                                                                                            false)
+                                                                                                            false), aligner(SmithWatermanAligner::getAligner(SmithWatermanAligner::FASTEST_AVAILABLE))
 {
     std::vector<SAMReadGroupRecord> & mReadGroups = samFileHeader->getReadGroupRecord();
     for(auto & readGroup : mReadGroups)
@@ -28,11 +28,13 @@ Mutect2Engine::Mutect2Engine(M2ArgumentCollection & MTAC, char * ref, SAMFileHea
         samplesList.emplace_back(readGroup.getReadGroupId());
     }
     NaturalLogUtils::initial();
+    assert(aligner != nullptr);
 }
 
 Mutect2Engine::~Mutect2Engine()
 {
     delete likelihoodCalculationEngine;
+    delete aligner;
 }
 
 
@@ -146,7 +148,7 @@ void Mutect2Engine::fillNextAssemblyRegionWithReads(const std::shared_ptr<Assemb
 
 std::vector<std::shared_ptr<VariantContext>>
 Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion>& originalAssemblyRegion, ReferenceContext &referenceContext) {
-//    if(originalAssemblyRegion->getStart() == 359408) {
+//    if(originalAssemblyRegion->getStart() == 560011) {
 ////        for(const std::shared_ptr<SAMRecord>& read : originalAssemblyRegion->getReads()) {
 ////            std::cout << read->getName() << " : " << read->getStart() + 1 << "~" << read->getEnd() + 1 << std::endl;
 ////        }
@@ -181,11 +183,18 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion>& originalAssembl
     auto reads = splitReadsBySample(regionForGenotyping->getReads());
 
     //cerr << *originalAssemblyRegion;
-    likelihoodCalculationEngine->computeReadLikelihoods(*assemblyResult, samplesList, *reads);
+    auto readLikelihoods = likelihoodCalculationEngine->computeReadLikelihoods(*assemblyResult, samplesList, *reads);
+    readLikelihoods->switchToNaturalLog();
+
+    shared_ptr<unordered_map<shared_ptr<SAMRecord>, shared_ptr<SAMRecord>>> readRealignments = AssemblyBasedCallerUtils::realignReadsToTheirBestHaplotype(*readLikelihoods, assemblyResult->getReferenceHaplotype(), assemblyResult->getPaddedReferenceLoc(), aligner);
+    readLikelihoods->changeEvidence(readRealignments);
+
+
 
 	// Break the circular reference of pointer
 	untrimmedAssemblyResult->deleteEventMap();
 	assemblyResult->deleteEventMap();
+	delete readLikelihoods;
     return  {allVariationEvents.begin(), allVariationEvents.end()};
 }
 

@@ -124,6 +124,19 @@ public:
 	 * @return might be {@code null}.
 	 */
 	std::shared_ptr<AssemblyRegion> getRegionForGenotyping();
+
+	/**
+    * Query the reference haplotype in the result set.
+    * @return {@code null} if none wasn't yet added, otherwise a reference haplotype.
+    */
+	std::shared_ptr<Haplotype>& getReferenceHaplotype();
+
+	/**
+    * Returns the padded reference location.
+    *
+    * @return might be {@code null}
+    */
+	std::shared_ptr<SimpleInterval>& getPaddedReferenceLoc();
 };
 
 

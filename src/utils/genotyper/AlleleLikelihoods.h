@@ -83,7 +83,7 @@ private:
      * if non-could be found.
      */
     shared_ptr<BestAllele<E, A>> searchBestAllele(int sampleIndex, int evidenceIndex, bool canBeReference, double* priorities){
-        int alleleCount = alleles.size();
+        int alleleCount = alleles->size();
         if (alleleCount == 0 || (alleleCount == 1 && referenceAlleleIndex == 0 && !canBeReference)) {
             return make_shared<BestAllele<E, A>>(this, sampleIndex, evidenceIndex, -1, -numeric_limits<double>::infinity(), -numeric_limits<double>::infinity());
         }
@@ -149,7 +149,7 @@ private:
 
         double worstLikelihoodCap = bestAllele->likelihood + maximumBestAltLikelihoodDifference;
 
-        int alleleCount = alleles.size();
+        int alleleCount = alleles->size();
 
         // Guarantee to be the case by enclosing code.
         for (int a = 0; a < alleleCount; a++) {
@@ -171,12 +171,12 @@ protected:
 
     std::vector<std::string>& samples;
 
-    vector<shared_ptr<A>>& alleles;
+    shared_ptr<vector<shared_ptr<A>>> alleles;
 
 
     double maximumLikelihoodOverAllAlleles(int sampleIndex, int evidenceIndex) {
         double result = -numeric_limits<double>::infinity();
-        int alleleCount = alleles.size();
+        int alleleCount = alleles->size();
         auto & sampleValues = valuesBySampleIndex[sampleIndex];
         for (int a = 0; a < alleleCount; a++) {
             if (sampleValues[a][evidenceIndex] > result) {
@@ -190,15 +190,15 @@ public:
     constexpr static double LOG_10_INFORMATIVE_THRESHOLD = 0.2;
     static double NATURAL_LOG_INFORMATIVE_THRESHOLD;
 
-    AlleleLikelihoods(vector<string>& samples, vector<shared_ptr<A>>& alleles, map<string, vector<std::shared_ptr<SAMRecord>>>& evidenceBySample) :
+    AlleleLikelihoods(vector<string>& samples, shared_ptr<vector<shared_ptr<A>>>& alleles, map<string, vector<std::shared_ptr<SAMRecord>>>& evidenceBySample) :
          samples(samples), alleles(alleles)
     {
         int sampleCount = samples.size();
-        int alleleCount = alleles.size();
+        int alleleCount = alleles->size();
 
         evidenceBySampleIndex.reserve(sampleCount);
         valuesBySampleIndex.reserve(sampleCount);
-        referenceAlleleIndex = findReferenceAllele(alleles);
+        referenceAlleleIndex = findReferenceAllele(*alleles);
 
         setupIndexes(evidenceBySample, sampleCount, alleleCount);
         sampleMatrices.reserve(sampleCount);
@@ -245,7 +245,7 @@ public:
      * @return never {@code null}.
      */
     vector<shared_ptr<A>>& getAlleles(){
-        return alleles;
+        return *alleles;
     }
 
     /**
@@ -263,7 +263,7 @@ public:
         if(isinf(maximumLikelihoodDifferenceCap))
             return;
 
-        int alleleCount = alleles.size();
+        int alleleCount = alleles->size();
         if(alleleCount == 0 || alleleCount == 1)
             return;
 
@@ -290,7 +290,7 @@ public:
    * @throws IllegalArgumentException if {@code maximumErrorPerBase} is negative.
    */   // TODO: validate this method
     void filterPoorlyModeledEvidence(function<double(shared_ptr<SAMRecord>, double)> log10MinTrueLikelihood, double maximumErrorPerBase){
-        assert(alleles.size() > 0);
+        assert(alleles->size() > 0);
         int numberOfSamples = samples.size();
         for (int s = 0; s < numberOfSamples; s++) {
             auto & sampleEvidence = evidenceBySampleIndex[s];
@@ -302,7 +302,7 @@ public:
                     indexesToRemove.push_back(e);
                 }
             }
-            removeSampleEvidence(s, indexesToRemove, alleles.size());
+            removeSampleEvidence(s, indexesToRemove, alleles->size());
         }
     }
 
@@ -322,7 +322,7 @@ public:
             if(index >= indexesToRemove.size())
                 break;
 
-            if(indexesToRemove[index] != indexesToRemove[i])
+            if(indexesToRemove[index] != i)
             {
                 IndicesToKeep.push_back(i);
             } else {
@@ -350,6 +350,92 @@ public:
         evidenceBySampleIndex[sampleIndex] = newSampleEvidence;
     }
 
+    void switchToNaturalLog(){
+        assert(!isNaturalLog);
+        int sampleCount = samples.size();
+        int alleleCount = alleles->size();
+
+        for (int s = 0; s < sampleCount; s++) {
+            int evidenceCount = sampleEvidenceCount(s);
+            for (int a = 0; a < alleleCount; a++) {
+                for (int e = 0; e < evidenceCount; e++) {
+                    valuesBySampleIndex[s][a][e] = MathUtils::log10ToLog(valuesBySampleIndex[s][a][e]);
+                }
+            }
+        }
+        isNaturalLog = true;
+    }
+
+    /**
+    * Returns the quantity of evidence that belongs to a sample in the evidence-likelihood collection.
+    * @param sampleIndex the query sample index.
+    *
+    * @return 0 or greater.
+    */
+    int sampleEvidenceCount(int sampleIndex) {
+        assert(sampleIndex >= 0 && sampleIndex < samples.size());
+        return evidenceBySampleIndex[sampleIndex].size();
+    }
+
+    /**
+    * Returns the collection of best allele estimates for the evidence based on the evidence-likelihoods.
+    * "Ties" where the ref likelihood is within {@code AlleleLikelihoods.INFORMATIVE_THRESHOLD} of the greatest likelihood
+    * are broken by the {@code tieBreakingPriority} function.
+    *
+    * @return never {@code null}, one element per unit fo evidence in the evidence-likelihoods collection.
+    */
+    shared_ptr<vector<shared_ptr<BestAllele<E, A>>>> bestAllelesBreakingTies(function<double(shared_ptr<A>)> tieBreakingPriority)
+    {
+        vector<double> priorities;
+        if(!alleles->empty())
+        {
+            for(shared_ptr<A> h : *alleles)
+            {
+                assert(h != nullptr);
+                double tmp = tieBreakingPriority(h);
+                priorities.push_back(tmp);
+
+            }
+
+        }
+
+        shared_ptr<vector<shared_ptr<BestAllele<E, A>>>> result = shared_ptr<vector<shared_ptr<BestAllele<E, A>>>>(new vector<shared_ptr<BestAllele<E, A>>>);
+        for(int sampleIndex = 0; sampleIndex < samples.size(); sampleIndex++)
+        {
+            int evidenceCount = evidenceBySampleIndex[sampleIndex].size();
+
+            for(int r=0; r<evidenceCount; r++)
+            {
+                result->template emplace_back(searchBestAllele(sampleIndex, r, true, priorities.data()));
+            }
+        }
+
+        return result;
+    }
+
+    // TODO: is evidenceIndexBySampleIndex useful ?
+    void changeEvidence(shared_ptr<unordered_map<shared_ptr<E>, shared_ptr<E>>> evidenceReplacements)
+    {
+        int sampleCount = samples.size();
+        for(int s = 0; s < sampleCount; s++)
+        {
+            auto & sampleEvidence = evidenceBySampleIndex[s];
+            // Object2IntMap<EVIDENCE> evidenceIndex = evidenceIndexBySampleIndex.get(s);
+            int sampleEvidenceCount = sampleEvidence.size();
+            for (int r = 0; r < sampleEvidenceCount; r++) {
+                shared_ptr<E>& evidence = sampleEvidence[r];
+                shared_ptr<E>& replacement = evidenceReplacements->at(evidence);
+                if(replacement == nullptr)
+                    continue;
+
+                sampleEvidence[r] = replacement;
+               /* if (evidenceIndex != null) {
+                    evidenceIndex.remove(evidence);
+                    evidenceIndex.put(replacement, r);
+                }*/
+            }
+        }
+    }
 };
 
 template <typename E, typename A>
@@ -432,7 +518,7 @@ public:
 
     BestAllele(AlleleLikelihoods<E, A> * likelihoods, int sampleIndex, int evidenceIndex, int bestAlleleIndex,
                double likelihood, double secondBestLikelihood){
-        allele = bestAlleleIndex == -1 ? nullptr : likelihoods->alleles[bestAlleleIndex];
+        allele = bestAlleleIndex == -1 ? nullptr : likelihoods->alleles->operator[](bestAlleleIndex);
         this->likelihood = likelihood;
         sample = likelihoods->samples[sampleIndex];
         evidence = likelihoods->evidenceBySampleIndex[sampleIndex][evidenceIndex];
@@ -440,7 +526,9 @@ public:
         alleleLikelihoods = likelihoods;
     }
 
-
+    bool isInformative() {
+        return confidence > AlleleLikelihoods<E, A>::LOG_10_INFORMATIVE_THRESHOLD;
+    }
 };
 
 #endif //MUTECT2CPP_MASTER_ALLELELIKELIHOODS_H
