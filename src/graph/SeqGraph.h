@@ -87,7 +87,9 @@ public:
 
 	void simplifyGraph(int maxCycles);
 
-	std::shared_ptr<SeqGraph> clone();
+	SeqGraph* clone();
+
+	void printGraphSize(const std::string &info);
 
 };
 

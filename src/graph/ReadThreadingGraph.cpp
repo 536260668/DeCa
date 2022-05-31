@@ -32,7 +32,7 @@ void ReadThreadingGraph::addRead(std::shared_ptr<SAMRecord> &read) {
 			int start = lastGood, len = end - start;
 			if (start != -1 && len >= kmerSize) {
 				std::string name = read->getName() + '_' + std::to_string(start) + '_' + std::to_string(end);
-				std::string sampleName = read->getGroup() == 0 ? "tumor" : "normal";
+				std::string sampleName = read->getGroup() == 0 ? "normal" : "tumor";
 				addSequence(name, sampleName, sequence_, start, end, 1, false);
 			}
 			lastGood = -1;
@@ -364,82 +364,25 @@ void ReadThreadingGraph::buildGraphIfNecessary() {
 	if (alreadyBuilt)
 		return;
 
-	//test
-//    for(std::pair<std::string, std::vector<SequenceForKmers>> iter : pending) {
-//        for(SequenceForKmers kmer : iter.second) {
-//            uint8_t * sequence = kmer.sequence.get();
-//            for(int i = 0; i < kmer.stop - kmer.start; i++) {
-//                std::cout << sequence[i];
-//            }
-//            std::cout << std::endl;
-//        }
-//    }
-
 	determineNonUniques();
-	//if (!nonUniqueKmers.empty()) {
-	//std::cout << "[buildGraphIfNecessary] " + std::to_string(nonUniqueKmers.size()) + '\n';
-	/*for(const auto& nonnnnn : nonUniqueKmers){
-		std::string s = reinterpret_cast<const char *>(nonnnnn->getBases().get());
-		std::cout<<s.substr(0,nonnnnn->getLength())<<std::endl;
-	}*/
-	//}
 
-	for (auto &miter: pending) {
-		for (auto &viter: miter.second) {
-			threadSequence(viter);
-		}
-		for (auto &eiter: edgeMap) {
-			eiter.first->flushSingleSampleMultiplicity();
+	int cnt = 0;
+	std::string keys[3] = {ANONYMOUS_SAMPLE, "normal", "tumor"};
+	for (const auto &key: keys) {
+		if (pending.find(key) != pending.end()) {
+			for (auto &viter: pending[key]) {
+				threadSequence(viter);
+				//outputDotFile("./CPP_" + std::to_string(cnt) + ".dot");
+				//printGraphSize();
+			}
+			for (auto &eiter: edgeMap) {
+				eiter.first->flushSingleSampleMultiplicity();
+			}
 		}
 	}
 
-//    std::map<std::string, std::vector<SequenceForKmers>>::iterator miter = pending.begin();
-//
-//    for(std::vector<SequenceForKmers>::iterator viter = miter->second.begin(); viter != miter->second.end(); viter++) {
-//        threadSequence(*viter);
-//        std::cout << getVertexSet().size() << ", "<< getEdgeSet().size() << std::endl;
-//    }
-//    std::unordered_map<std::shared_ptr<MultiSampleEdge>, IntrusiveEdge<MultiDeBruijnVertex>>::iterator eiter;
-//    for(eiter = edgeMap.begin(); eiter != edgeMap.end(); eiter++) {
-//        (*eiter->first).flushSingleSampleMultiplicity();
-//    }
-//
-//    miter++;
-//    miter++;
-//
-//    if(miter != pending.end()) {
-//        for(std::vector<SequenceForKmers>::iterator viter = miter->second.begin(); viter != miter->second.end(); viter++) {
-//            threadSequence(*viter);
-//            std::cout << getVertexSet().size() << ", "<< getEdgeSet().size() << std::endl;
-//        }
-//        for(eiter = edgeMap.begin(); eiter != edgeMap.end(); eiter++) {
-//            (*eiter->first).flushSingleSampleMultiplicity();
-//        }
-//    }
-//
-//
-//    miter--;
-//
-//    for(std::vector<SequenceForKmers>::iterator viter = miter->second.begin(); viter != miter->second.end(); viter++) {
-//        threadSequence(*viter);
-//        std::cout << getVertexSet().size() << ", "<< getEdgeSet().size() << std::endl;
-//    }
-//    for(eiter = edgeMap.begin(); eiter != edgeMap.end(); eiter++) {
-//        (*eiter->first).flushSingleSampleMultiplicity();
-//    }
-
-
 	pending.clear();
 	alreadyBuilt = true;
-
-	//test
-//    for(std::shared_ptr<MultiDeBruijnVertex> multiDeBruijnVertex : DirectedSpecifics<MultiDeBruijnVertex, MultiSampleEdge>::getVertexSet()) {
-//        uint8_t * sequence = multiDeBruijnVertex->getSequence().get();
-//        for(int i = 0; i < multiDeBruijnVertex->getLength(); i++) {
-//            std::cout << sequence[i];
-//        }
-//        std::cout << std::endl;
-//    }
 
 	for (auto &uniqueKmer: uniqueKmers) {
 		uniqueKmer.second->additionalInfoAppendPlusSign();
@@ -478,7 +421,7 @@ void ReadThreadingGraph::removeSingletonOrphanVertices() {
 void ReadThreadingGraph::recoverDanglingTails(int pruneFactor, int minDanglingBranchLength, bool recoverAll) {
 	//int attempted = 0, nRecovered = 0;
 	DanglingChainMergeHelper *danglingTailMergeResult = nullptr;
-	for (const std::shared_ptr<MultiDeBruijnVertex> &v: getVertexSet()) {
+	for (const std::shared_ptr<MultiDeBruijnVertex> &v: getSortedVertexList()) {
 		if (outDegreeOf(v) == 0 && !isRefSink(v)) {
 			//attempted++;
 			//nRecovered += recoverDanglingTail(v, pruneFactor, minDanglingBranchLength, recoverAll);
@@ -603,9 +546,9 @@ ReadThreadingGraph::getBasesForPath(const std::vector<std::shared_ptr<MultiDeBru
 			std::shared_ptr<uint8_t[]> seq = v->getSequence();
 			int seqLength = v->getLength();
 			while (start + seqLength > tmpLength) {
-				tmpLength *= 2;
-				std::shared_ptr<uint8_t[]> newtmp(new uint8_t[tmpLength]);
+				std::shared_ptr<uint8_t[]> newtmp(new uint8_t[2 * tmpLength]);
 				memcpy(newtmp.get(), tmp.get(), tmpLength);
+				tmpLength *= 2;
 				tmp = newtmp;
 			}
 			for (int i = 0; i < seqLength; i++) {
@@ -697,7 +640,7 @@ int ReadThreadingGraph::longestSuffixMatch(const std::shared_ptr<uint8_t[]> &seq
 
 void ReadThreadingGraph::recoverDanglingHeads(int pruneFactor, int minDanglingBranchLength, bool recoverAll) {
 	DanglingChainMergeHelper *danglingHeadMergeResult = nullptr;
-	for (const std::shared_ptr<MultiDeBruijnVertex> &v: getVertexSet()) {
+	for (const std::shared_ptr<MultiDeBruijnVertex> &v: getSortedVertexList()) {
 		if (inDegreeOf(v) == 0 && !isRefSource(v)) {
 			danglingHeadMergeResult = generateCigarAgainstUpwardsReferencePath(v, pruneFactor, minDanglingBranchLength,
 			                                                                   recoverAll);
@@ -728,8 +671,8 @@ ReadThreadingGraph::generateCigarAgainstUpwardsReferencePath(std::shared_ptr<Mul
 	std::reverse(altPath.begin(), altPath.end());
 	std::vector<std::shared_ptr<MultiDeBruijnVertex>> refPath = getReferencePath(altPath[0], upwards, nullptr);
 	int refLength, altLength;
-	std::shared_ptr<uint8_t[]> refBases = getBasesForPath(refPath, refLength, false);
-	std::shared_ptr<uint8_t[]> altBases = getBasesForPath(altPath, altLength, false);
+	std::shared_ptr<uint8_t[]> refBases = getBasesForPath(refPath, refLength, true);
+	std::shared_ptr<uint8_t[]> altBases = getBasesForPath(altPath, altLength, true);
 	SWNativeAlignerWrapper wrapper = SWNativeAlignerWrapper();
 	SmithWatermanAlignment *alignment = wrapper.align(refBases, refLength, altBases, altLength,
 	                                                  &SmithWatermanAligner::STANDARD_NGS, LEADING_INDEL);
@@ -950,8 +893,46 @@ bool ReadThreadingGraph::ifAlreadyBuilt() const {
 	return alreadyBuilt;
 }
 
+void ReadThreadingGraph::printPendingInfo() {
+	std::string keys[3] = {ANONYMOUS_SAMPLE, "normal", "tumor"};
+	for (const auto &key: keys) {
+		if (pending.find(key) != pending.end()) {
+			std::cout << key << " " << pending[key].size() << std::endl;
+			for (const auto &item: pending[key]) {
+				int len = item.stop - item.start;
+				char tmp[len + 1];
+				memcpy(tmp, item.sequence.get() + item.start, len);
+				tmp[len] = '\0';
+				std::cout << item.name << std::endl << std::string(tmp) << std::endl;
+			}
+		}
+	}
+}
 
+void ReadThreadingGraph::printGraphSize(const std::string &info) {
+	if (!info.empty())
+		std::cout << info << "\t";
+	std::cout << "E: " << edgeMap.size() << "\t" << "V: " << vertexMapDirected.size() << "\t" << "uniqueKmers: "
+	          << uniqueKmers.size() << std::endl;
+}
 
-
-
+void ReadThreadingGraph::sortPendingBySequence() {
+	std::string keys[3] = {ANONYMOUS_SAMPLE, "normal", "tumor"};
+	for (const auto &key: keys) {
+		if (pending.find(key) != pending.end()) {
+			std::sort(pending[key].begin(), pending[key].end(), [](SequenceForKmers &k1, SequenceForKmers &k2) -> bool {
+				int len1 = k1.stop - k1.start, len2 = k2.stop - k2.start;
+				if (len1 != len2)
+					return len1 > len2;
+				uint8_t *seq1 = k1.sequence.get() + k1.start;
+				uint8_t *seq2 = k2.sequence.get() + k2.start;
+				for (int i = 0; i < len1; ++i) {
+					if (seq1[i] == seq2[i]) continue;
+					return seq1[i] < seq2[i];
+				}
+				return k1.name < k2.name;
+			});
+		}
+	}
+}
 

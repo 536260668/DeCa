@@ -155,17 +155,10 @@ void AssemblyRegion::removeAll(const std::vector<std::shared_ptr<SAMRecord>> &re
 	for (const auto &read: readsToRemove) {
 		reads.erase(std::find(reads.begin(), reads.end(), read));
 	}
-}
-
-
-void AssemblyRegion::printRegionInfo() {
-	std::cout << "contig: " << activeRegionLoc->getContig() << std::endl;
-	std::cout << "activeRegionLoc\t" << activeRegionLoc->getStart() + 1 << " " << activeRegionLoc->getEnd() + 1
-	          << std::endl;
-	std::cout << "extendedLoc\t" << extendedLoc->getStart() + 1 << " " << extendedLoc->getEnd() + 1 << std::endl;
-	std::cout << "spanIncludingReads\t" << spanIncludingReads->getStart() + 1 << " " << spanIncludingReads->getEnd() + 1
-	          << std::endl;
-	std::cout << "reads count: " << reads.size() << std::endl;
+	spanIncludingReads = extendedLoc;
+	for (auto & read : reads) {
+		spanIncludingReads = spanIncludingReads->mergeWithContiguous(read->getLoc());
+	}
 }
 
 void AssemblyRegion::add(std::shared_ptr<SAMRecord> &read) {
@@ -237,11 +230,19 @@ void AssemblyRegion::sortReadsByCoordinate() {
 	});
 }
 
-void AssemblyRegion::printReadsInfo() {
-	std::cout << activeRegionLoc->getContig() << " " << activeRegionLoc->getStart() + 1 << " "
-	          << activeRegionLoc->getEnd() + 1 << std::endl;
+void AssemblyRegion::printRegionInfo() {
+	activeRegionLoc->printInfo();
+	std::cout << "extendedLoc\t";
+	extendedLoc->printInfo();
+	std::cout << "spanIncludingReads\t";
+	spanIncludingReads->printInfo();
+	std::cout << "reads count: " << reads.size() << std::endl;
 	for (const auto &read: reads) {
-		std::cout << read->getName() << "\t" << read->getStart() + 1 << " " << read->getEnd() + 1 << std::endl;
+		std::cout << read->getName() << "\t" << read->getStart() + 1 << " " << read->getEnd() + 1 << "\t";
+		for (const auto &ce: read->getCigarElements()){
+			std::cout << ce.getLength() << CigarOperatorUtils::enumToCharacter(ce.getOperator());
+		}
+		std::cout << std::endl;
 	}
 }
 

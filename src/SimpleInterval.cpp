@@ -156,7 +156,11 @@ std::shared_ptr<SimpleInterval> SimpleInterval::expandWithinContig(int padding, 
     return expandWithinContig(padding, contigRecord.getSequenceLength());
 }
 
-SimpleInterval::SimpleInterval() : start(0), end(0), contig(""){
+SimpleInterval::SimpleInterval() : start(0), end(0) {
 
+}
+
+void SimpleInterval::printInfo() const {
+	std::cout << getContig() << " " << getStart() +1 << " " << getEnd() +1 << std::endl;
 }
 

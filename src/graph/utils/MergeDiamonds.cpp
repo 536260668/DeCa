@@ -7,14 +7,14 @@
 
 bool MergeDiamonds::tryToTransform(std::shared_ptr<SeqVertex> top) {
     Mutect2Utils::validateArg(top != nullptr, "Null is not allowed there");
-    std::shared_ptr<SeqGraph> graph1 = getGraph();
+	SeqGraph* graph1 = getGraph();
     std::unordered_set<std::shared_ptr<SeqVertex>> middles = graph1->outgoingVerticesOf(top);
     if(middles.size() <= 1) {
         return false;
     }
 
     std::shared_ptr<SeqVertex> bottom = nullptr;
-    for(std::shared_ptr<SeqVertex> mi : middles) {
+    for(const std::shared_ptr<SeqVertex>& mi : middles) {
         if(graph1->outDegreeOf(mi) < 1) {
             return false;
         }
@@ -22,7 +22,7 @@ bool MergeDiamonds::tryToTransform(std::shared_ptr<SeqVertex> top) {
             return false;
         }
 
-        for(std::shared_ptr<SeqVertex> mt : graph1->outgoingVerticesOf(mi)) {
+        for(const std::shared_ptr<SeqVertex>& mt : graph1->outgoingVerticesOf(mi)) {
             if(bottom == nullptr) {
                 bottom = mt;
             } else if (bottom != mt) {
@@ -37,6 +37,6 @@ bool MergeDiamonds::tryToTransform(std::shared_ptr<SeqVertex> top) {
     if(getDontModifyGraphEvenIfPossible()) {
         return true;
     }
-    SharedVertexSequenceSplitter splitter = SharedVertexSequenceSplitter(getGraph(), middles);
+    SharedVertexSequenceSplitter splitter = SharedVertexSequenceSplitter(graph1, middles);
     return splitter.meetsMinMergableSequenceForEitherPrefixOrSuffix(1) && splitter.splitAndUpdate(top, bottom);
 }

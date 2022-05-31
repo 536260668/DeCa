@@ -10,12 +10,14 @@
 #include "DirectedEdgeContainer.h"
 #include "BaseGraphIterator.h"
 #include <stdexcept>
-#include <string>
+#include <cstring>
 #include <deque>
 #include <list>
 #include <map>
 #include <unordered_set>
 #include <unordered_map>
+#include <fstream>
+#include <algorithm>
 #include "DFS_CycleDetect.h"
 
 static const std::string NOT_IN_DIRECTED_GRAPH = "no such operation in a directed graph";
@@ -33,8 +35,6 @@ private:
 	static const long serialVersionUID = 3258408452177932855L;
 	std::shared_ptr<V> source;
 	std::shared_ptr<V> target;
-	bool allowingMultipleEdges;
-
 
 public:
 	IntrusiveEdge(std::shared_ptr<V> source, std::shared_ptr<V> target) : source(source), target(target) {};
@@ -57,8 +57,8 @@ private:
 		return miter->second;
 	}
 
-	bool allowingLoops{};
-	bool allowingMultipleEdges{};
+	bool allowingLoops = true;
+	bool allowingMultipleEdges = false;
 	std::unordered_set<std::shared_ptr<V>> VertexSet;
 	std::unordered_set<std::shared_ptr<E>> EdgeSet;
 
@@ -69,6 +69,9 @@ public:
 	std::unordered_map<std::shared_ptr<E>, IntrusiveEdge<V>> edgeMap;
 
 	DirectedSpecifics() = default;
+
+	DirectedSpecifics(const std::unordered_set<std::shared_ptr<V>> &vertexSet,
+	                  const std::unordered_set<std::shared_ptr<E>> &edgeSet) : VertexSet(vertexSet), EdgeSet(edgeSet) {}
 
 	~DirectedSpecifics() = default;
 
@@ -81,6 +84,71 @@ public:
 			return;
 		vertexMapDirected.insert(std::make_pair(v, DirectedEdgeContainer<E>()));
 		VertexSet.insert(v);
+	}
+
+	std::vector<std::shared_ptr<V>> sortedVerticesOf(std::unordered_set<std::shared_ptr<V>> vertices){
+		std::vector<std::shared_ptr<V>> ret;
+		for (auto &v: vertices) {
+			ret.push_back(v);
+		}
+		std::sort(ret.begin(), ret.end(), [this](std::shared_ptr<V> v1, std::shared_ptr<V> v2) -> bool {
+			int len1 = v1->getLength();
+			int len2 = v2->getLength();
+			if (len1 != len2)
+				return len1 > len2;
+			uint8_t *seq1 = v1->getSequence().get();
+			uint8_t *seq2 = v2->getSequence().get();
+			for (int i = 0; i < len1; ++i) {
+				if (seq1[i] == seq2[i]) continue;
+				return seq1[i] < seq2[i];
+			}
+
+			std::unordered_set<std::shared_ptr<E>> in1 = incomingEdgesOf(v1);
+			std::unordered_set<std::shared_ptr<E>> in2 = incomingEdgesOf(v2);
+			if (in1.size() != in2.size())
+				return in1.size() > in2.size();
+
+			std::unordered_set<std::shared_ptr<E>> out1 = outgoingEdgesOf(v1);
+			std::unordered_set<std::shared_ptr<E>> out2 = outgoingEdgesOf(v2);
+			if (out1.size() != out2.size())
+				return out1.size() > out2.size();
+
+			int val1 = 0, val2 = 0;
+			for (auto &e: in1)
+				val1 += getEdgeSource(e)->getLength() * e->getMultiplicity();
+			for (auto &e: in2)
+				val2 += getEdgeSource(e)->getLength() * e->getMultiplicity();
+			if (val1 != val2)
+				return val1 < val2;
+
+			val1 = 0, val2 = 0;
+			for (auto &e: out1)
+				val1 += getEdgeTarget(e)->getLength() * e->getMultiplicity();
+			for (auto &e: out2)
+				val2 += getEdgeTarget(e)->getLength() * e->getMultiplicity();
+			if (val1 != val2)
+				return val1 < val2;
+
+			val1 = 0, val2 = 0;
+			for (auto &e: in1)
+				val1 += getEdgeSource(e)->getSequence().get()[0] * e->getMultiplicity();
+			for (auto &e: in2)
+				val2 += getEdgeSource(e)->getSequence().get()[0] * e->getMultiplicity();
+			if (val1 != val2)
+				return val1 < val2;
+
+			val1 = 0, val2 = 0;
+			for (auto &e: out1)
+				val1 += getEdgeTarget(e)->getSequence().get()[0] * e->getMultiplicity();
+			for (auto &e: out2)
+				val2 += getEdgeTarget(e)->getSequence().get()[0] * e->getMultiplicity();
+			return val1 < val2;
+		});
+		return ret;
+	}
+
+	std::vector<std::shared_ptr<V>> getSortedVertexList() {
+		return sortedVerticesOf(VertexSet);
 	}
 
 	std::unordered_set<std::shared_ptr<V>> &getVertexSet() {
@@ -163,6 +231,34 @@ public:
 		return res;
 	}
 
+	void outputDotFile(const std::string &fileName) {
+		std::ofstream outfile1(fileName);
+		outfile1 << "digraph G{" << std::endl;
+		for (auto &v: getVertexSet()) {
+			std::string s(reinterpret_cast<const char *>(v->getSequence().get()), v->getLength());
+			outfile1 << "    " << s;
+			if (isReferenceNode(v))
+				outfile1 << "[color=Red]";
+			outfile1 << ";" << std::endl;
+		}
+		for (auto &edge: edgeMap) {
+			auto *a = edge.second.getSource().get(), *b = edge.second.getTarget().get();
+			int len1 = a->getLength(), len2 = b->getLength();
+			char seq1[len1 + 1], seq2[len2 + 1];
+			memcpy(seq1, a->getSequence().get(), len1);
+			memcpy(seq2, b->getSequence().get(), len2);
+			seq1[len1] = '\0', seq2[len2] = '\0';
+			std::string s1(seq1);
+			std::string s2(seq2);
+			outfile1 << "    " << s1 << " -> " << s2 << "[label=\"" << edge.first->getMultiplicity() << "\"";
+			if (edge.first->getIsRef())
+				outfile1 << ",color=Red";
+			outfile1 << "];" << std::endl;
+		}
+		outfile1 << "}" << std::endl;
+		outfile1.close();
+	}
+
 	int inDegreeOf(const std::shared_ptr<V> &vertex) {
 		return getEdgeContainer(vertex).incoming.size();
 	}
@@ -233,12 +329,12 @@ public:
 		return outDegreeOf(v) == 0;
 	}
 
-	std::shared_ptr<uint8_t[]> getAdditionalSequence(const std::shared_ptr<V> &v) {
-		return v->getAdditionalSequence(isSource(v));
+	std::shared_ptr<uint8_t[]> getAdditionalSequence(const std::shared_ptr<V> &v, bool isSource) {
+		return v->getAdditionalSequence(isSource);
 	}
 
-	int getAdditionalSequenceLength(const std::shared_ptr<V> &v) {
-		return v->getAdditionalSequenceLength(isSource(v));
+	int getAdditionalSequenceLength(const std::shared_ptr<V> &v, bool isSource) {
+		return v->getAdditionalSequenceLength(isSource);
 	}
 
 	bool removeEdge(const std::shared_ptr<E> &e) {
@@ -419,13 +515,11 @@ public:
 	std::shared_ptr<V> getPrevReferenceVertex(const std::shared_ptr<V> &v) {
 		if (v == nullptr)
 			return nullptr;
-		std::vector<std::shared_ptr<V>> allVertexs;
 		for (const std::shared_ptr<E> &edge: incomingEdgesOf(v)) {
-			std::shared_ptr<V> v = getEdgeSource(edge);
-			if (isReferenceNode(v))
-				allVertexs.template emplace_back(v);
+			if (edge->getIsRef())
+				return getEdgeSource(edge);
 		}
-		return allVertexs.size() > 0 ? allVertexs.at(0) : nullptr;
+		return nullptr;
 	}
 
 	bool isReferenceNode(const std::shared_ptr<V> &v) {

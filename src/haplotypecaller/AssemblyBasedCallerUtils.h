@@ -56,7 +56,7 @@ public:
      * @param halfOfPcrSnvQual half of phred-scaled quality of substitution errors from PCR
      * @param halfOfPcrIndelQual half of phred-scaled quality of indel errors from PCR
      */
-    static void cleanOverlappingReadPairs(vector<shared_ptr<SAMRecord>>& reads, string sample, bool setConflictingToZero, int halfOfPcrSnvQual = 0, int halfOfPcrIndelQual = 0);
+    static void cleanOverlappingReadPairs(vector<shared_ptr<SAMRecord>>& reads, const string& sample, bool setConflictingToZero, int halfOfPcrSnvQual = 0, int halfOfPcrIndelQual = 0);
 
     // create the assembly using just high quality reads (eg Q20 or higher).  We may want to use lower
     // quality reads in the PairHMM downstream, so we can't use a ReadFilter

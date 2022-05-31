@@ -41,7 +41,7 @@ KBestHaplotypeFinder::removeCyclesAndVerticesThatDontLeadToSinks(const std::shar
 	Mutect2Utils::validateArg(!(edgesToRemove.empty() && vertexToRemove.empty()),
 	                          "cannot find a way to remove the cycles");
 
-	std::shared_ptr<SeqGraph> result = original->clone();
+	std::shared_ptr<SeqGraph> result = std::shared_ptr<SeqGraph>(original->clone());
 
 	result->removeAllEdges(edgesToRemove);
 	result->removeAllVertices(vertexToRemove);
@@ -101,21 +101,23 @@ std::vector<std::shared_ptr<KBestHaplotype>> KBestHaplotypeFinder::findBestHaplo
 	while (!queue.empty() && result.size() < maxNumberOfHaplotypes) {
 		std::shared_ptr<KBestHaplotype> pathToExtend = queue.top();
 		queue.pop();
+		/*int len;
+		std::string tmp((char *) pathToExtend->getBases(len).get());
+		std::cout.precision(16);
+		std::cout.flags(std::ostream::fixed);
+		std::cout << pathToExtend->getScore() << "\t" << len << std::endl;
+		std::cout << tmp.substr(0, len) << std::endl;*/
 		std::shared_ptr<SeqVertex> vertexToExtend = pathToExtend->getLastVertex();
 		if (sinks.find(vertexToExtend) != sinks.end()) {
 			result.emplace_back(pathToExtend);
 		} else {
-			std::unordered_set<std::shared_ptr<BaseEdge>> outgoingEdges = graph->outgoingEdgesOf(vertexToExtend);
-			int totalOutgoingMultiplicity = 0;
-			for (const auto &edge: outgoingEdges) {
-				totalOutgoingMultiplicity += edge->getMultiplicity();
-			}
-			for (const auto &edge: outgoingEdges) {
-				std::shared_ptr<SeqVertex> targetVertex = graph->getEdgeTarget(edge);
-				int num = vertexCounts.at(targetVertex);
-				num++;
-				vertexCounts.find(targetVertex)->second = num;
-				if (num < maxNumberOfHaplotypes) {
+			if (vertexCounts[vertexToExtend]++ < maxNumberOfHaplotypes) {
+				std::unordered_set<std::shared_ptr<BaseEdge>> outgoingEdges = graph->outgoingEdgesOf(vertexToExtend);
+				int totalOutgoingMultiplicity = 0;
+				for (const auto &edge: outgoingEdges) {
+					totalOutgoingMultiplicity += edge->getMultiplicity();
+				}
+				for (const auto &edge: outgoingEdges) {
 					queue.push(std::make_shared<KBestHaplotype>(pathToExtend, edge, totalOutgoingMultiplicity));
 				}
 			}

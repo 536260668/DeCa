@@ -3,7 +3,9 @@
 //
 
 #include "ClippingOp.h"
+#include <memory>
 #include <stack>
+#include <utility>
 #include "ReadUtils.h"
 
 ClippingOp::ClippingOp(int start, int stop) : start(start), stop(stop){
@@ -14,8 +16,8 @@ std::shared_ptr<SAMRecord> ClippingOp::applyHardClipBases(std::shared_ptr<SAMRec
     std::shared_ptr<Cigar> tmp = nullptr;
     std::shared_ptr<ClippingOp::CigarShift> cigarShift;
     if(read->isUnmapped()) {
-        tmp = std::shared_ptr<Cigar>(new Cigar());
-        cigarShift = std::shared_ptr<ClippingOp::CigarShift>(new CigarShift(tmp, 0, 0));
+        tmp = std::make_shared<Cigar>();
+        cigarShift = std::make_shared<ClippingOp::CigarShift>(tmp, 0, 0);
     } else {
         cigarShift = hardClipCigar(cigar, start, stop);
     }
@@ -213,7 +215,7 @@ std::shared_ptr<ClippingOp::CigarShift> ClippingOp::cleanHardClippedCigar(std::s
             shiftFromStart = shift;
         }
     }
-    return std::shared_ptr<ClippingOp::CigarShift>(new CigarShift(cleanCigar, shiftFromStart, shiftFromEnd));
+    return std::make_shared<ClippingOp::CigarShift>(cleanCigar, shiftFromStart, shiftFromEnd);
 }
 
 int ClippingOp::calculateAlignmentStartShift(std::shared_ptr<Cigar> oldCigar, std::shared_ptr<Cigar> newCigar) {
@@ -271,12 +273,12 @@ std::shared_ptr<SAMRecord> ClippingOp::applyRevertSoftClippedBases(const std::sh
     }
     unclipped->setCigar(unclippedCigar);
     int newStart = read->getStart() + calculateAlignmentStartShift(read->getCigar(), unclippedCigar);
-    if(newStart <= 0) {
-        unclipped->setPosition(unclipped->getContig(), 1);
-        unclipped = applyHardClipBases(unclipped, 0, -newStart);
+    if(newStart < 0) {
+        unclipped->setPosition(unclipped->getContig(), 0);
+        unclipped = applyHardClipBases(unclipped, 0, (-newStart) - 1);
 
         if(! unclipped->isUnmapped()) {
-            unclipped->setPosition(unclipped->getContig(), 1);
+            unclipped->setPosition(unclipped->getContig(), 0);
         }
         return unclipped;
     }
@@ -286,5 +288,5 @@ std::shared_ptr<SAMRecord> ClippingOp::applyRevertSoftClippedBases(const std::sh
     }
 }
 
-ClippingOp::CigarShift::CigarShift(std::shared_ptr<Cigar> cigar, int shiftFromStart, int shiftFromEnd) : cigar(cigar), shiftFromStart(shiftFromStart), shiftFromEnd(shiftFromEnd){
+ClippingOp::CigarShift::CigarShift(std::shared_ptr<Cigar> cigar, int shiftFromStart, int shiftFromEnd) : cigar(std::move(cigar)), shiftFromStart(shiftFromStart), shiftFromEnd(shiftFromEnd){
 }

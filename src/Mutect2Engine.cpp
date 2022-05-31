@@ -158,43 +158,50 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion>& originalAssembl
 
     // divide PCR qual by two in order to get the correct total qual when treating paired reads as independent
     AssemblyBasedCallerUtils::cleanOverlappingReadPairs(originalAssemblyRegion->getReads(), normalSample, false, MTAC.pcrSnvQual/2, MTAC.pcrIndelQual/2);
+	if(originalAssemblyRegion->getReads().empty())
+		return {};
 
     removeUnmarkedDuplicates(originalAssemblyRegion);
-    if(originalAssemblyRegion->getReads().empty())
-        return {};
 
-    auto assemblyActiveRegion = AssemblyBasedCallerUtils::assemblyRegionWithWellMappedReads(originalAssemblyRegion, READ_QUALITY_FILTER_THRESHOLD, header);
-    std::shared_ptr<AssemblyResultSet> untrimmedAssemblyResult = AssemblyBasedCallerUtils::assembleReads(assemblyActiveRegion, MTAC, header, *refCache, assemblyEngine);
-    std::set<std::shared_ptr<VariantContext>, VariantContextComparator> & allVariationEvents = untrimmedAssemblyResult->getVariationEvents(1);
+	std::shared_ptr<AssemblyRegion> assemblyActiveRegion = AssemblyBasedCallerUtils::assemblyRegionWithWellMappedReads(originalAssemblyRegion, READ_QUALITY_FILTER_THRESHOLD, header);
+	//if (assemblyActiveRegion->getStart() + 1 != 3062) return {};
+	std::shared_ptr<AssemblyResultSet> untrimmedAssemblyResult = AssemblyBasedCallerUtils::assembleReads(assemblyActiveRegion, MTAC, header, *refCache, assemblyEngine);
+	std::set<std::shared_ptr<VariantContext>, VariantContextComparator> & allVariationEvents = untrimmedAssemblyResult->getVariationEvents(1);
+	/*std::cout << "region: " << assemblyActiveRegion->getStart() + 1 << " " << assemblyActiveRegion->getEnd() + 1 << std::endl;
+	std::cout << "allVariationEvents " << allVariationEvents.size() << std::endl;
+	for (const auto &ve: allVariationEvents) {
+		std::cout << ve->getStart() + 1 <<  " " << ve->getEnd() + 1 << std::endl;
+	}*/
 
-    std::shared_ptr<AssemblyRegionTrimmer_Result> trimmingResult = trimmer.trim(originalAssemblyRegion, allVariationEvents);
-    if(!trimmingResult->isVariationPresent()) {
-	    untrimmedAssemblyResult->deleteEventMap();
-        return {};
-    }
-
-    std::shared_ptr<AssemblyResultSet> assemblyResult = trimmingResult->getNeedsTrimming() ? untrimmedAssemblyResult->trimTo(trimmingResult->getCallableRegion()) : untrimmedAssemblyResult;
-    if(!assemblyResult->isisVariationPresent()) {
+	std::shared_ptr<AssemblyRegionTrimmer_Result> trimmingResult = trimmer.trim(originalAssemblyRegion, allVariationEvents);
+	if(!trimmingResult->isVariationPresent()) {
 		untrimmedAssemblyResult->deleteEventMap();
-        return {};
-    }
-    std::shared_ptr<AssemblyRegion> regionForGenotyping = assemblyResult->getRegionForGenotyping();
-    removeReadStubs(regionForGenotyping);
+		return {};
+	}
 
-    auto reads = splitReadsBySample(regionForGenotyping->getReads());
+	std::shared_ptr<AssemblyResultSet> assemblyResult = trimmingResult->getNeedsTrimming() ? untrimmedAssemblyResult->trimTo(trimmingResult->getCallableRegion()) : untrimmedAssemblyResult;
+	if(!assemblyResult->isisVariationPresent()) {
+		untrimmedAssemblyResult->deleteEventMap();
+		return {};
+	}
+	std::shared_ptr<AssemblyRegion> regionForGenotyping = assemblyResult->getRegionForGenotyping();
+	removeReadStubs(regionForGenotyping);
+	std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>> reads = splitReadsBySample(regionForGenotyping->getReads());
 
-    //cerr << *originalAssemblyRegion;
-    likelihoodCalculationEngine->computeReadLikelihoods(*assemblyResult, samplesList, *reads);
+	//cerr << *originalAssemblyRegion;
+	likelihoodCalculationEngine->computeReadLikelihoods(*assemblyResult, samplesList, *reads);
 
 	// Break the circular reference of pointer
 	untrimmedAssemblyResult->deleteEventMap();
 	assemblyResult->deleteEventMap();
-    return  {allVariationEvents.begin(), allVariationEvents.end()};
+	return  {allVariationEvents.begin(), allVariationEvents.end()};
 }
 
 void Mutect2Engine::removeUnmarkedDuplicates(const std::shared_ptr<AssemblyRegion>& assemblyRegion) {
+	// The order of reads may causes a diffrent result. at present, it seems to have little impact
+	// Therefore, we also sorted the gatk version's reads here in advance to facilitate program comparison
     std::map<std::pair<std::string, int> ,std::vector<std::shared_ptr<SAMRecord>>> possibleDuplicates;
-    for(const std::shared_ptr<SAMRecord>& read : assemblyRegion->getReads()) {
+    for(auto & read : assemblyRegion->getReads()) {
         if(read->isPaired() && !read->mateIsUnmapped() &&
                 (read->getMateContig() != read->getContig() || (std::abs(read->getFragmentLength()) > HUGE_FRAGMENT_LENGTH))) {
             std::string sampleName = read->getGroup() == 0 ? "normal" : "tumor";
@@ -204,16 +211,14 @@ void Mutect2Engine::removeUnmarkedDuplicates(const std::shared_ptr<AssemblyRegio
             } else {
                 possibleDuplicates.insert({toAdd, {read}});
             }
-        } else {
-            continue;
-        }
+        } else continue;
     }
 
     std::vector<std::shared_ptr<SAMRecord>> duplicates;
 
-    for(std::pair<std::pair<std::string, int> ,std::vector<std::shared_ptr<SAMRecord>>> group : possibleDuplicates) {
+    for(const auto& group : possibleDuplicates) {
         std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>> readsByContig;
-        for(const std::shared_ptr<SAMRecord>& read : group.second) {
+        for(const auto& read : group.second) {
             if(readsByContig.find(read->getMateContig()) != readsByContig.end()) {
                 readsByContig.find(read->getMateContig())->second.emplace_back(read);
             } else {
@@ -221,7 +226,7 @@ void Mutect2Engine::removeUnmarkedDuplicates(const std::shared_ptr<AssemblyRegio
             }
         }
 
-        for(std::pair<std::string, std::vector<std::shared_ptr<SAMRecord>>> contigReads : readsByContig) {
+        for(const auto& contigReads : readsByContig) {
             int skip = contigReads.second.size() > group.second.size() / 2 ? 1 : 0;
             for(const std::shared_ptr<SAMRecord>& read : contigReads.second) {
                 if(skip > 0) {

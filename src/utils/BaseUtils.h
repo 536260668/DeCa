@@ -14,12 +14,12 @@ private:
     static int baseIndexMap[256];
 
 public:
-    void initial();
+    static void initial();
     static bool isRegularBase(uint8_t base);
     static int simpleBaseToBaseIndex(uint8_t base);
-    static bool isAllRegularBases(std::shared_ptr<uint8_t[]> bases, int length);
-    static uint8_t getComplement(const uint8_t base);
-    static uint8_t getUpper(const uint8_t base);
+    static bool isAllRegularBases(const std::shared_ptr<uint8_t[]>& bases, int length);
+    static uint8_t getComplement(uint8_t base);
+    static uint8_t getUpper(uint8_t base);
 };
 
 

@@ -24,6 +24,7 @@
 #include "read/ReadCache.h"
 #include "intel/smithwaterman/IntelSmithWaterman.h"
 #include "ReferenceCache.h"
+#include "utils/BaseUtils.h"
 
 struct Region{
     int _start;
@@ -250,7 +251,10 @@ void threadFunc(Shared *w, char *ref, int n, int nref) {
 
 			pendingRegions.pop();
 			Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
-			//std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext); // TODO: callRegion() needs pileupRefContext
+			// ReferenceContext is not needed for the time being
+			std::shared_ptr<SimpleInterval> pileupInterval = std::make_shared<SimpleInterval>(contig, 0, 0);
+			ReferenceContext tmp{pileupInterval, N};
+			std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, tmp); // TODO: callRegion() needs pileupRefContext
 		}
 	}
 
@@ -381,6 +385,7 @@ int main(int argc, char *argv[])
 
     smithwaterman_initial();
     QualityUtils::initial();
+	BaseUtils::initial();
 
     if(sharedData.bqsr_within_mutect)
     {

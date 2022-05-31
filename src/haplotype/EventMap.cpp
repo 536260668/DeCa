@@ -214,15 +214,19 @@ bool EventMap::empty() {
 }
 
 std::set<int> EventMap::buildEventMapsForHaplotypes(std::vector<std::shared_ptr<Haplotype>> &haplotypes,
-                                                    std::shared_ptr<uint8_t[]> ref, int refLength,
-                                                    const std::shared_ptr<Locatable> &refLoc, bool debug,
-                                                    int maxMnpDistance) {
+                                                    const std::shared_ptr<uint8_t[]>& ref, int refLength,
+                                                    const std::shared_ptr<Locatable> &refLoc, int maxMnpDistance) {
 	Mutect2Utils::validateArg(maxMnpDistance >= 0, "maxMnpDistance may not be negative.");
 	std::set<int> startPosKeySet;
 	int hapNumber = 0;
 	for (auto &h: haplotypes) {
-		auto* newEventMap = new EventMap(h, ref, refLength, refLoc, "HC" + std::to_string(hapNumber),maxMnpDistance);
+		auto *newEventMap = new EventMap(h, ref, refLength, refLoc, "HC" + std::to_string(hapNumber), maxMnpDistance);
 		h->setEventMap(newEventMap);
+		/*std::cout << h->getBasesLength() << " " << h->getBaseString() << std::endl;
+		std::cout << "variantMap size " << newEventMap->variantMap.size() << std::endl;
+		for (const auto &ve: newEventMap->variantMap) {
+			std::cout << ve.second->getStart() + 1 << " " << ve.second->getEnd() + 1 << std::endl;
+		}*/
 		for (int i: newEventMap->getStartPositions()) {
 			startPosKeySet.insert(i);
 		}

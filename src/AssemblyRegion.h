@@ -268,8 +268,6 @@ public:
 
 	void printRegionInfo();
 
-	void printReadsInfo();
-
 	void sortReadsByCoordinate();
 };
 

@@ -7,17 +7,12 @@
 #include <climits>
 #include <cstring>
 #include <memory>
+#include <algorithm>
 #include "utils/MergeCommonSuffices.h"
 #include "utils/MergeDiamonds.h"
 #include "utils/MergeTails.h"
 #include "utils/SplitCommonSuffices.h"
 #include "utils/GraphUtils.h"
-
-/*
-std::shared_ptr<BaseEdge>
-SeqGraph::createEdge(std::shared_ptr<SeqVertex> sourceVertex, std::shared_ptr<SeqVertex> targetVertrx) {
-	return std::make_shared<BaseEdge>(false, 1);
-}*/
 
 bool SeqGraph::zipLinearChains() {
 	std::vector<std::shared_ptr<SeqVertex>> zipStarts;
@@ -129,28 +124,48 @@ void SeqGraph::simplifyGraph(int maxCycles) {
 		if (i > 5) {
 			if (prevGraph != nullptr && GraphUtils::graphEquals(prevGraph.get(), this))
 				break;
+			prevGraph = std::shared_ptr<SeqGraph>(clone());
 		}
-		prevGraph = std::make_shared<SeqGraph>(*this);
 	}
 }
 
 bool SeqGraph::simplifyGraphOnce(int iteration) {
-	bool didSomeWork = false;
-	std::shared_ptr<SeqGraph> graph(new SeqGraph(*this));
-	didSomeWork |= MergeDiamonds(graph).transformUntilComplete();
-	didSomeWork |= MergeTails(graph).transformUntilComplete();
-	didSomeWork |= SplitCommonSuffices(graph).transformUntilComplete();
-	didSomeWork |= MergeCommonSuffices(graph).transformUntilComplete();
+	bool didSomeWork = MergeDiamonds(this).transformUntilComplete();
+	//printGraphSize(std::to_string(iteration) + " MergeDiamonds");
+	//outputDotFile("CPP_MergeDiamonds.dot");
+
+	didSomeWork |= MergeTails(this).transformUntilComplete();
+	//printGraphSize(std::to_string(iteration) + " MergeTails");
+	//outputDotFile("CPP_MergeTails.dot");
+
+	didSomeWork |= SplitCommonSuffices(this).transformUntilComplete();
+	//printGraphSize(std::to_string(iteration) + " SplitCommonSuffices");
+	//outputDotFile("CPP_SplitCommonSuffices.dot");
+
+	didSomeWork |= MergeCommonSuffices(this).transformUntilComplete();
+	//printGraphSize(std::to_string(iteration) + " MergeCommonSuffices");
+	//outputDotFile("CPP_MergeCommonSuffices.dot");
+
 	didSomeWork |= zipLinearChains();
+	//printGraphSize(std::to_string(iteration) + " zipLinearChains");
+	//outputDotFile("CPP_zipLinearChains.dot");
 	return didSomeWork;
 }
 
-SeqGraph::SeqGraph(SeqGraph &seqGraph) : kmerSize(seqGraph.kmerSize), DirectedSpecifics<SeqVertex, BaseEdge>() {
+SeqGraph::SeqGraph(SeqGraph &seqGraph) : kmerSize(seqGraph.kmerSize),
+                                         DirectedSpecifics<SeqVertex, BaseEdge>(seqGraph.getVertexSet(),
+                                                                                seqGraph.getEdgeSet()) {
 	vertexMapDirected = seqGraph.vertexMapDirected;
 	edgeMap = seqGraph.edgeMap;
 }
 
-std::shared_ptr<SeqGraph> SeqGraph::clone() {
-	return std::make_shared<SeqGraph>(*this);
+SeqGraph *SeqGraph::clone() {
+	return new SeqGraph(*this);
+}
+
+void SeqGraph::printGraphSize(const std::string &info) {
+	if (!info.empty())
+		std::cout << info << "\t";
+	std::cout << "E: " << edgeMap.size() << "\t" << "V: " << vertexMapDirected.size() << std::endl;
 }
 

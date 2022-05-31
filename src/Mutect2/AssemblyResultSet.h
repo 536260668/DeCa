@@ -15,7 +15,16 @@
 struct HaplotypeComp {
 public:
 	bool operator()(const std::shared_ptr<Haplotype> &left, const std::shared_ptr<Haplotype> &right) const {
-		return (*left) < (*right);
+		if (left->getLength() != right->getLength())
+			return left->getLength() > right->getLength();
+		int len = left->getLength();
+		std::shared_ptr<uint8_t[]> bases1 = left->getBases();
+		std::shared_ptr<uint8_t[]> bases2 = right->getBases();
+		for (int i = 0; i < len; ++i) {
+			if (bases1[i] != bases2[i])
+				return bases1[i] < bases2[i];
+		}
+		return false;
 	}
 };
 
@@ -99,6 +108,8 @@ public:
 
 	std::shared_ptr<std::vector<std::shared_ptr<Haplotype>>> getHaplotypeList();
 
+	std::shared_ptr<std::vector<std::shared_ptr<Haplotype>>> getSortedHaplotypeList();
+
 	bool isisVariationPresent();
 
 	void deleteEventMap();
@@ -124,6 +135,8 @@ public:
 	 * @return might be {@code null}.
 	 */
 	std::shared_ptr<AssemblyRegion> getRegionForGenotyping();
+
+	void printSortedHaplotypes();
 };
 
 

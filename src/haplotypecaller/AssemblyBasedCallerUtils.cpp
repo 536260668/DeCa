@@ -3,6 +3,7 @@
 //
 
 #include <limits>
+#include <memory>
 #include "AssemblyBasedCallerUtils.h"
 #include "haplotypecaller/ReferenceConfidenceModel.h"
 #include "clipping/ReadClipper.h"
@@ -62,10 +63,10 @@ AssemblyBasedCallerUtils::finalizeRegion(const std::shared_ptr<AssemblyRegion> &
 	std::vector<std::shared_ptr<SAMRecord>> readsToUse;
 	for (const std::shared_ptr<SAMRecord> &myRead: region->getReads()) {
 		uint8_t minTailQualityToUse = errorCorrectReads ? 6 : minTailQuality;
-		std::shared_ptr<SAMRecord> clippedRead = ReadClipper::hardClipLowQualEnds(myRead, minTailQuality);
+		std::shared_ptr<SAMRecord> clippedRead = ReadClipper::hardClipLowQualEnds(myRead, minTailQualityToUse);
 		clippedRead = dontUseSoftClippedBases || !ReadUtils::hasWellDefinedFragmentSize(clippedRead) ?
-		              ReadClipper::hardClipSoftClippedBases(clippedRead) : ReadClipper::revertSoftClippedBases(
-						clippedRead);
+		              ReadClipper::hardClipSoftClippedBases(clippedRead) :
+		              ReadClipper::revertSoftClippedBases(clippedRead);
 
 		clippedRead = clippedRead->isUnmapped() ? clippedRead : ReadClipper::hardClipAdaptorSequence(clippedRead);
 		if (!clippedRead->isEmpty() && clippedRead->getCigar()->getReadLength() > 0) {
@@ -73,13 +74,14 @@ AssemblyBasedCallerUtils::finalizeRegion(const std::shared_ptr<AssemblyRegion> &
 			                                            region->getExtendedSpan()->getEnd());
 			if (region->readOverlapsRegion(clippedRead) && clippedRead->getLength() > 0) {
 				readsToUse.emplace_back(
-						(clippedRead == myRead) ? std::shared_ptr<SAMRecord>(new SAMRecord(*clippedRead))
+						(clippedRead == myRead) ? std::make_shared<SAMRecord>(*clippedRead)
 						                        : clippedRead);
 			}
 		}
 	}
 	region->clearReads();
 	region->addAll(readsToUse);
+	region->sortReadsByCoordinate();
 	region->setFinalized(true);
 }
 
@@ -103,35 +105,40 @@ AssemblyBasedCallerUtils::splitReadsBySample(const std::vector<std::shared_ptr<S
 }
 
 PairHMMLikelihoodCalculationEngine *
-AssemblyBasedCallerUtils::createLikelihoodCalculationEngine(LikelihoodEngineArgumentCollection& likelihoodArgs)
-{
-    double log10GlobalReadMismappingRate = likelihoodArgs.phredScaledGlobalReadMismappingRate < 0 ? (-1) * std::numeric_limits<double>::infinity()
-            : QualityUtils::qualToErrorProbLog10(likelihoodArgs.phredScaledGlobalReadMismappingRate);
-    return new PairHMMLikelihoodCalculationEngine((char)likelihoodArgs.gcpHMM, likelihoodArgs.pairHMMNativeArgs, log10GlobalReadMismappingRate, likelihoodArgs.pcrErrorModel, likelihoodArgs.BASE_QUALITY_SCORE_THRESHOLD);
+AssemblyBasedCallerUtils::createLikelihoodCalculationEngine(LikelihoodEngineArgumentCollection &likelihoodArgs) {
+	double log10GlobalReadMismappingRate =
+			likelihoodArgs.phredScaledGlobalReadMismappingRate < 0 ? (-1) * std::numeric_limits<double>::infinity()
+			                                                       : QualityUtils::qualToErrorProbLog10(
+					likelihoodArgs.phredScaledGlobalReadMismappingRate);
+	return new PairHMMLikelihoodCalculationEngine((char) likelihoodArgs.gcpHMM, likelihoodArgs.pairHMMNativeArgs,
+	                                              log10GlobalReadMismappingRate, likelihoodArgs.pcrErrorModel,
+	                                              likelihoodArgs.BASE_QUALITY_SCORE_THRESHOLD);
 }
 
-void AssemblyBasedCallerUtils::cleanOverlappingReadPairs(vector<shared_ptr<SAMRecord>> &reads, string sample,
+void AssemblyBasedCallerUtils::cleanOverlappingReadPairs(vector<shared_ptr<SAMRecord>> &reads, const string &sample,
                                                          bool setConflictingToZero, int halfOfPcrSnvQual,
                                                          int halfOfPcrIndelQual) {
-    auto MappedReads = splitReadsBySample(reads);
-    for(auto iter = MappedReads->begin(); iter != MappedReads->end(); iter++)
-    {
-        FragmentCollection<SAMRecord> * fragmentCollection = FragmentCollection<SAMRecord>::create(iter->second);
-        for(std::pair<std::shared_ptr<SAMRecord>, std::shared_ptr<SAMRecord>>& overlappingPair : fragmentCollection->getOverlappingPairs())
-        {
-            FragmentUtils::adjustQualsOfOverlappingPairedFragments(overlappingPair, setConflictingToZero, halfOfPcrSnvQual, halfOfPcrIndelQual);
-        }
-        delete fragmentCollection;
-    }
+	auto MappedReads = splitReadsBySample(reads);
+	for (auto &iter: *MappedReads) {
+		FragmentCollection<SAMRecord> *fragmentCollection = FragmentCollection<SAMRecord>::create(iter.second);
+		for (auto &overlappingPair: fragmentCollection->getOverlappingPairs()) {
+			FragmentUtils::adjustQualsOfOverlappingPairedFragments(overlappingPair, setConflictingToZero,
+			                                                       halfOfPcrSnvQual, halfOfPcrIndelQual);
+		}
+		delete fragmentCollection;
+	}
 }
 
-std::shared_ptr<AssemblyRegion> AssemblyBasedCallerUtils::assemblyRegionWithWellMappedReads(const std::shared_ptr<AssemblyRegion>& originalAssemblyRegion, int minMappingQuality, SAMFileHeader * header)
-{
-    auto result = make_shared<AssemblyRegion>(*originalAssemblyRegion->getSpan(), originalAssemblyRegion->getSupportingStates(), originalAssemblyRegion->getIsActive(), originalAssemblyRegion->getExtension(), header);
-    for(auto & read : originalAssemblyRegion->getReads())
-    {
-        if(read->getMappingQuality() >= minMappingQuality)
-            result->add(read);
-    }
-    return result;
+std::shared_ptr<AssemblyRegion> AssemblyBasedCallerUtils::assemblyRegionWithWellMappedReads(
+		const std::shared_ptr<AssemblyRegion> &originalAssemblyRegion, int minMappingQuality, SAMFileHeader *header) {
+	auto result = make_shared<AssemblyRegion>(*originalAssemblyRegion->getSpan(),
+	                                          originalAssemblyRegion->getSupportingStates(),
+	                                          originalAssemblyRegion->getIsActive(),
+	                                          originalAssemblyRegion->getExtension(), header);
+	for (auto &read: originalAssemblyRegion->getReads()) {
+		if (read->getMappingQuality() >= minMappingQuality)
+			result->add(read);
+	}
+	result->sortReadsByCoordinate();
+	return result;
 }

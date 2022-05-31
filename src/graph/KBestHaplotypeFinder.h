@@ -12,7 +12,24 @@
 
 struct KBestHaplotypeComp {
 	bool operator()(const std::shared_ptr<KBestHaplotype> &a, const std::shared_ptr<KBestHaplotype> &b) {
-		return a->getScore() > b->getScore();
+		double aScore = a->getScore(), bScore = b->getScore();
+		if (abs(aScore - bScore) > 0.000001)  // a->getScore() != b->getScore();
+			return aScore < bScore;
+		// convert double to uint64_t
+		uint64_t aL, bL;
+		memcpy(&aL, &aScore, sizeof(uint64_t));
+		memcpy(&bL, &bScore, sizeof(uint64_t));
+		if (aL != bL)
+			return aL > bL;
+		int len1, len2;
+		std::shared_ptr<uint8_t[]> base1 = a->getBases(len1);
+		std::shared_ptr<uint8_t[]> base2 = b->getBases(len2);
+		int len = std::min(len1, len2);
+		for (int i = 0; i < len; ++i) {
+			if (base1[i] == base2[i]) continue;
+			return base1[i] < base2[i];
+		}
+		return len1 > len2;
 	}
 };
 
