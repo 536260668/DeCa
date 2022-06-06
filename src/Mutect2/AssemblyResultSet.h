@@ -76,17 +76,12 @@ private:
 
 	void updateReferenceHaplotype(const std::shared_ptr<Haplotype> &newHaplotype);
 
-	std::shared_ptr<std::unordered_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype>>
-	calculateOriginalByTrimmedHaplotypes(const std::shared_ptr<AssemblyRegion> &trimmedAssemblyRegion);
+	std::vector<std::pair<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>>> calculateOriginalByTrimmedHaplotypes(
+			const std::shared_ptr<AssemblyRegion> &trimmedAssemblyRegion);
 
 	static std::shared_ptr<std::unordered_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype>>
 	trimDownHaplotypes(const std::shared_ptr<AssemblyRegion> &trimmedAssemblyRegion,
 	                   const std::shared_ptr<std::vector<std::shared_ptr<Haplotype>>> &haplotypeList);
-
-	static std::shared_ptr<std::unordered_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype>>
-	mapOriginalToTrimmed(
-			const std::shared_ptr<std::unordered_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype>> &originalByTrimmedHaplotypes,
-			const std::vector<std::shared_ptr<Haplotype>> &trimmedHaplotypes);
 
 public:
 	AssemblyResultSet() = default;

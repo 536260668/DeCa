@@ -29,15 +29,16 @@ private:
     bool emitReferenceConfidence;
 
 public:
-    AssemblyRegionTrimmer_Result(bool emitReferenceConfidence, bool needsTrimming, const std::shared_ptr<AssemblyRegion> & originalRegion, int padding, int extension,
+    AssemblyRegionTrimmer_Result(bool emitReferenceConfidence, bool needsTrimming, std::shared_ptr<AssemblyRegion>  originalRegion, int padding, int extension,
                                  std::vector<std::shared_ptr<VariantContext>> * overlappingEvents, std::shared_ptr<std::pair<std::shared_ptr<SimpleInterval>, std::shared_ptr<SimpleInterval>>>  nonVariantFlanks,
-                                 const std::shared_ptr<SimpleInterval>& extendedSpan, const std::shared_ptr<SimpleInterval>& idealSpan, const std::shared_ptr<SimpleInterval>& maximumSpan, const std::shared_ptr<SimpleInterval>& callableSpan);
-    static std::shared_ptr<AssemblyRegionTrimmer_Result> noVariation(bool emitReferenceConfidence, std::shared_ptr<AssemblyRegion> targetRegion, int padding, int usableExtension);
+                                 const std::shared_ptr<SimpleInterval>& extendedSpan, std::shared_ptr<SimpleInterval>  idealSpan, std::shared_ptr<SimpleInterval>  maximumSpan, const std::shared_ptr<SimpleInterval>& callableSpan);
+    static std::shared_ptr<AssemblyRegionTrimmer_Result> noVariation(bool emitReferenceConfidence, const std::shared_ptr<AssemblyRegion>& targetRegion, int padding, int usableExtension);
     ~AssemblyRegionTrimmer_Result();
     static std::shared_ptr<AssemblyRegionTrimmer_Result> noTrimming(bool emitReferenceConfidence, const std::shared_ptr<AssemblyRegion>& targetRegion, int padding, int usableExtension, std::vector<std::shared_ptr<VariantContext>> * events);
     bool isVariationPresent();
     std::shared_ptr<AssemblyRegion> getCallableRegion();
-    bool getNeedsTrimming();
+    bool getNeedsTrimming() const;
+	void printInfo();
 };
 
 

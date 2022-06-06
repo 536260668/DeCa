@@ -168,12 +168,15 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion>& originalAssembl
 		untrimmedAssemblyResult->deleteEventMap();
 		return {};
 	}
+	// trimmingResult->printInfo();
 
 	std::shared_ptr<AssemblyResultSet> assemblyResult = trimmingResult->getNeedsTrimming() ? untrimmedAssemblyResult->trimTo(trimmingResult->getCallableRegion()) : untrimmedAssemblyResult;
 	if(!assemblyResult->isisVariationPresent()) {
 		untrimmedAssemblyResult->deleteEventMap();
 		return {};
 	}
+	//assemblyResult->printSortedHaplotypes();
+
 	std::shared_ptr<AssemblyRegion> regionForGenotyping = assemblyResult->getRegionForGenotyping();
 	removeReadStubs(regionForGenotyping);
 	std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>> reads = splitReadsBySample(regionForGenotyping->getReads());

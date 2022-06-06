@@ -34,18 +34,15 @@ std::shared_ptr<AssemblyRegionTrimmer_Result> AssemblyRegionTrimmer::trim(const 
         return AssemblyRegionTrimmer_Result::noVariation(emitReferenceConfidence, originalRegion, assemblyArgs->snpPadding, usableExtension);
     }
     std::vector<std::shared_ptr<VariantContext>> withinActiveRegion;
+	withinActiveRegion.reserve(allVariantsWithinExtendedRegion.size());
     std::shared_ptr<SimpleInterval> originalRegionRange = originalRegion->getSpan();
     bool foundNonSnp = false;
-    std::shared_ptr<SimpleInterval> variantSpan;
-    bool flag = false;
+    std::shared_ptr<SimpleInterval> variantSpan = nullptr;
     for(const std::shared_ptr<VariantContext>& vc : allVariantsWithinExtendedRegion) {
         std::shared_ptr<SimpleInterval> vcLoc = std::make_shared<SimpleInterval>(vc->getContig(), vc->getStart(), vc->getEnd());
         if(originalRegionRange->overlaps(vcLoc)) {
             foundNonSnp = foundNonSnp || !vc->isSNP();
-            variantSpan = !flag ? vcLoc : variantSpan->spanWith(vcLoc);
-            if(!flag){
-                flag = true;
-            }
+            variantSpan = variantSpan == nullptr ? vcLoc : variantSpan->spanWith(vcLoc);
             withinActiveRegion.emplace_back(vc);
         }
     }
@@ -62,9 +59,8 @@ std::shared_ptr<AssemblyRegionTrimmer_Result> AssemblyRegionTrimmer::trim(const 
     std::shared_ptr<SimpleInterval> finalSpan = maximumSpan->intersect(idealSpan)->mergeWithContiguous(variantSpan);
     std::shared_ptr<SimpleInterval> callableSpan = emitReferenceConfidence ? variantSpan->intersect(originalRegionRange) : variantSpan;
     std::shared_ptr<std::pair<std::shared_ptr<SimpleInterval>, std::shared_ptr<SimpleInterval>>>  nonVariantRegions = nonVariantTargetRegions(originalRegion, callableSpan);
-    std::shared_ptr<AssemblyRegionTrimmer_Result> ret = std::make_shared<AssemblyRegionTrimmer_Result>(emitReferenceConfidence, true, originalRegion, padding, usableExtension, &withinActiveRegion, nonVariantRegions, finalSpan, idealSpan, maximumSpan, variantSpan);
 
-    return ret;
+    return std::make_shared<AssemblyRegionTrimmer_Result>(emitReferenceConfidence, true, originalRegion, padding, usableExtension, &withinActiveRegion, nonVariantRegions, finalSpan, idealSpan, maximumSpan, variantSpan);
 }
 
 std::shared_ptr<std::pair<std::shared_ptr<SimpleInterval>, std::shared_ptr<SimpleInterval>>>
