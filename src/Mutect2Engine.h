@@ -16,11 +16,13 @@
 #include "engine/AlignmentContext.h"
 #include "utils/ReadPileup.h"
 #include "ReadCache.h"
+#include "model/model.h"
 #include "variantcontext/VariantContext.h"
 #include "ReadThreadingAssembler.h"
 #include "haplotypecaller/MutectReadThreadingAssemblerArgumentCollection.h"
 #include "haplotypecaller/AssemblyRegionTrimmer.h"
 #include "haplotypecaller/PairHMMLikelihoodCalculationEngine.h"
+
 
 class Mutect2Engine {
 private:
@@ -33,6 +35,7 @@ private:
     MutectReadThreadingAssemblerArgumentCollection assemblerArgs;
     PairHMMLikelihoodCalculationEngine* likelihoodCalculationEngine;
     AssemblyRegionTrimmer trimmer;
+    model mymodel;
 
     std::shared_ptr<std::vector<char>> altQuals(ReadPileup & pileup, char refBase, int pcrErrorQual);
 

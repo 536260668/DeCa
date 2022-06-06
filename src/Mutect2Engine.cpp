@@ -28,6 +28,7 @@ Mutect2Engine::Mutect2Engine(M2ArgumentCollection & MTAC, char * ref, SAMFileHea
         samplesList.emplace_back(readGroup.getReadGroupId());
     }
     NaturalLogUtils::initial();
+    mymodel.Initial();
 }
 
 Mutect2Engine::~Mutect2Engine()
@@ -176,6 +177,12 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion>& originalAssembl
 	std::shared_ptr<AssemblyRegion> regionForGenotyping = assemblyResult->getRegionForGenotyping();
 	removeReadStubs(regionForGenotyping);
 	std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>> reads = splitReadsBySample(regionForGenotyping->getReads());
+
+    if(regionForGenotyping->getReads().size() > 120) {
+        std::set<std::shared_ptr<VariantContext>, VariantContextComparator> & VariationEvents = assemblyResult ->getVariationEvents(1);
+        if(!mymodel.modelRefer(reads, VariationEvents, regionForGenotyping, refCache))
+            return {};
+    }
 
 	//cerr << *originalAssemblyRegion;
 	likelihoodCalculationEngine->computeReadLikelihoods(*assemblyResult, samplesList, *reads);
