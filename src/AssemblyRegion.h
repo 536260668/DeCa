@@ -269,6 +269,8 @@ public:
 	void printRegionInfo();
 
 	void sortReadsByCoordinate();
+
+    std::shared_ptr<uint8_t[]>  getFullReference(ReferenceCache * cache, int padding, int & length);
 };
 
 

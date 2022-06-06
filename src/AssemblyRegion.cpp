@@ -246,3 +246,7 @@ void AssemblyRegion::printRegionInfo() {
 	}
 }
 
+std::shared_ptr<uint8_t[]>  AssemblyRegion::getFullReference(ReferenceCache *cache, int padding, int & length) {
+    return getReference(cache, padding, spanIncludingReads, length);
+}
+
