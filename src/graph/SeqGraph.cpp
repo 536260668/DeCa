@@ -16,7 +16,7 @@
 
 bool SeqGraph::zipLinearChains() {
 	std::vector<std::shared_ptr<SeqVertex>> zipStarts;
-	for (auto &source: getVertexSet()) {
+	for (auto &source: getSortedVertexList()) {
 		if (isLinearChainStart(source)) {
 			zipStarts.emplace_back(source);
 		}

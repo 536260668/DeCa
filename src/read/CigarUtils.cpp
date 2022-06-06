@@ -58,7 +58,7 @@ std::shared_ptr<Cigar> CigarUtils::calculateCigar(const std::shared_ptr<uint8_t[
     int baseEnd = paddedPathLength - SW_PAD - 1;
     nonStandard = AlignmentUtils::trimCigarByBases(alignment->getCigar(), baseStart, baseEnd);
     if(nonStandard->getReferenceLength() != refLength) {
-        nonStandard->add(CigarElement(refLength = nonStandard->getReferenceLength(), D));
+        nonStandard->add(CigarElement(refLength - nonStandard->getReferenceLength(), D));
     }
 
 	delete alignment;

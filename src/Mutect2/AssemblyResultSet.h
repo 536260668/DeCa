@@ -10,7 +10,6 @@
 #include "Haplotype.h"
 #include "AssemblyRegion.h"
 #include "VariantContext.h"
-//#include "ReadThreadingAssembler.h"
 
 struct HaplotypeComp {
 public:

@@ -103,7 +103,7 @@ std::vector<std::shared_ptr<KBestHaplotype>> KBestHaplotypeFinder::findBestHaplo
 		queue.pop();
 		/*int len;
 		std::string tmp((char *) pathToExtend->getBases(len).get());
-		std::cout.precision(16);
+		std::cout.precision(10);
 		std::cout.flags(std::ostream::fixed);
 		std::cout << pathToExtend->getScore() << "\t" << len << std::endl;
 		std::cout << tmp.substr(0, len) << std::endl;*/

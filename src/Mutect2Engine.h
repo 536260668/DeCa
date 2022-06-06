@@ -79,6 +79,7 @@ public:
 
     // Maybe this variable can be removed in the multi-thread mode
     void setReferenceCache(ReferenceCache * cache);
+	void printVariationEvents(const std::shared_ptr<AssemblyRegion>& region, const std::set<std::shared_ptr<VariantContext>, VariantContextComparator>& ves);
 protected:
     std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>> splitReadsBySample (const std::vector<std::shared_ptr<SAMRecord>> & reads);
 

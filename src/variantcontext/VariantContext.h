@@ -138,6 +138,8 @@ public:
 
 	bool isFullyDecoded() const;
 
+	std::string getTypeString();
+
 	VariantContext(std::string &source,
 	               std::string &ID,
 	               std::string &contig,

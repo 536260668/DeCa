@@ -213,9 +213,8 @@ bool VariantContext::hasAllele(const std::shared_ptr<Allele> &allele, bool ignor
     }
 }
 
-//TODO:验证写法是否正确
 std::vector<std::shared_ptr<Allele>> VariantContext::getAlternateAlleles() {
-    return {alleles.begin()++, alleles.end()};
+    return {alleles.begin() + 1, alleles.end()};
 }
 
 int VariantContext::getStart() {
@@ -337,6 +336,26 @@ VariantContext::~VariantContext() {
 	//std::cout<<"~VariantContext in: "<<start<<std::endl;
 	//delete genotypes;
 	//std::cout<<"~VariantContext out: "<<start<<std::endl;
+}
+
+std::string VariantContext::getTypeString() {
+	switch(getType()){
+		case VariantContext_NO_VARIATION:
+			return "NO_VARIATION";
+		case VariantContext_SNP:
+			return "SNP";
+		case VariantContext_MNP:
+			return "MNP";
+		case VariantContext_INDEL:
+			return "INDEL";
+		case VariantContext_SYMBOLIC:
+			return "SYMBOLIC";
+		case VariantContext_MIXED:
+			return "MIXED";
+		case VariantContext_NULL:
+		default:
+			return "NULL";
+	}
 }
 
 //std::vector<Allele> *VariantContext::makeAlleles(std::vector<Allele> &alleles)

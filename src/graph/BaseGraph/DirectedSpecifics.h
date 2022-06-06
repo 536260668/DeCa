@@ -86,10 +86,11 @@ public:
 		VertexSet.insert(v);
 	}
 
-	std::vector<std::shared_ptr<V>> sortedVerticesOf(std::unordered_set<std::shared_ptr<V>> vertices){
+	std::vector<std::shared_ptr<V>> sortedVerticesOf(std::unordered_set<std::shared_ptr<V>> vertices) {
 		std::vector<std::shared_ptr<V>> ret;
+		ret.reserve(vertices.size());
 		for (auto &v: vertices) {
-			ret.push_back(v);
+			ret.emplace_back(v);
 		}
 		std::sort(ret.begin(), ret.end(), [this](std::shared_ptr<V> v1, std::shared_ptr<V> v2) -> bool {
 			int len1 = v1->getLength();
@@ -234,26 +235,23 @@ public:
 	void outputDotFile(const std::string &fileName) {
 		std::ofstream outfile1(fileName);
 		outfile1 << "digraph G{" << std::endl;
-		for (auto &v: getVertexSet()) {
+		for (auto &v: getSortedVertexList()) {
 			std::string s(reinterpret_cast<const char *>(v->getSequence().get()), v->getLength());
 			outfile1 << "    " << s;
 			if (isReferenceNode(v))
 				outfile1 << "[color=Red]";
 			outfile1 << ";" << std::endl;
 		}
-		for (auto &edge: edgeMap) {
-			auto *a = edge.second.getSource().get(), *b = edge.second.getTarget().get();
-			int len1 = a->getLength(), len2 = b->getLength();
-			char seq1[len1 + 1], seq2[len2 + 1];
-			memcpy(seq1, a->getSequence().get(), len1);
-			memcpy(seq2, b->getSequence().get(), len2);
-			seq1[len1] = '\0', seq2[len2] = '\0';
-			std::string s1(seq1);
-			std::string s2(seq2);
-			outfile1 << "    " << s1 << " -> " << s2 << "[label=\"" << edge.first->getMultiplicity() << "\"";
-			if (edge.first->getIsRef())
-				outfile1 << ",color=Red";
-			outfile1 << "];" << std::endl;
+		for (auto &v: getSortedVertexList()) {
+			std::string s1(reinterpret_cast<const char *>(v->getSequence().get()), v->getLength());
+			for (auto &edge: outgoingEdgesOf(v)) {
+				std::shared_ptr<V> target = getEdgeTarget(edge);
+				std::string s2(reinterpret_cast<const char *>(target->getSequence().get()), target->getLength());
+				outfile1 << "    " << s1 << " -> " << s2 << "[label=\"" << edge->getMultiplicity() << "\"";
+				if (edge->getIsRef())
+					outfile1 << ",color=Red";
+				outfile1 << "];" << std::endl;
+			}
 		}
 		outfile1 << "}" << std::endl;
 		outfile1.close();

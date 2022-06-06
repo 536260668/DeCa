@@ -402,7 +402,7 @@ int main(int argc, char *argv[])
 	}
 
 	std::vector<SAMSequenceRecord> headerSequences = sharedData.header->getSequenceDictionary().getSequences();
-    for(int k = nref -1 ; k >= 0; k--)
+    for(int k = 0; k < nref; k++)
     {
 	    if (!sharedData.chromosomeName.empty() && headerSequences[k].getSequenceName() != sharedData.chromosomeName)
 		    continue;

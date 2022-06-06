@@ -149,13 +149,6 @@ void Mutect2Engine::fillNextAssemblyRegionWithReads(const std::shared_ptr<Assemb
 
 std::vector<std::shared_ptr<VariantContext>>
 Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion>& originalAssemblyRegion, ReferenceContext &referenceContext) {
-//    if(originalAssemblyRegion->getStart() == 359408) {
-////        for(const std::shared_ptr<SAMRecord>& read : originalAssemblyRegion->getReads()) {
-////            std::cout << read->getName() << " : " << read->getStart() + 1 << "~" << read->getEnd() + 1 << std::endl;
-////        }
-//        std::cout << "hello" << std::endl;
-//    }
-
     // divide PCR qual by two in order to get the correct total qual when treating paired reads as independent
     AssemblyBasedCallerUtils::cleanOverlappingReadPairs(originalAssemblyRegion->getReads(), normalSample, false, MTAC.pcrSnvQual/2, MTAC.pcrIndelQual/2);
 	if(originalAssemblyRegion->getReads().empty())
@@ -164,14 +157,10 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion>& originalAssembl
     removeUnmarkedDuplicates(originalAssemblyRegion);
 
 	std::shared_ptr<AssemblyRegion> assemblyActiveRegion = AssemblyBasedCallerUtils::assemblyRegionWithWellMappedReads(originalAssemblyRegion, READ_QUALITY_FILTER_THRESHOLD, header);
-	//if (assemblyActiveRegion->getStart() + 1 != 3062) return {};
+	//if (assemblyActiveRegion->getStart() + 1 != 210416389) return {};
 	std::shared_ptr<AssemblyResultSet> untrimmedAssemblyResult = AssemblyBasedCallerUtils::assembleReads(assemblyActiveRegion, MTAC, header, *refCache, assemblyEngine);
 	std::set<std::shared_ptr<VariantContext>, VariantContextComparator> & allVariationEvents = untrimmedAssemblyResult->getVariationEvents(1);
-	/*std::cout << "region: " << assemblyActiveRegion->getStart() + 1 << " " << assemblyActiveRegion->getEnd() + 1 << std::endl;
-	std::cout << "allVariationEvents " << allVariationEvents.size() << std::endl;
-	for (const auto &ve: allVariationEvents) {
-		std::cout << ve->getStart() + 1 <<  " " << ve->getEnd() + 1 << std::endl;
-	}*/
+	//printVariationEvents(assemblyActiveRegion, allVariationEvents);
 
 	std::shared_ptr<AssemblyRegionTrimmer_Result> trimmingResult = trimmer.trim(originalAssemblyRegion, allVariationEvents);
 	if(!trimmingResult->isVariationPresent()) {
@@ -262,4 +251,16 @@ void Mutect2Engine::setReferenceCache(ReferenceCache *cache)
 {
     assert(cache != nullptr);
     refCache = cache;
+}
+
+void Mutect2Engine::printVariationEvents(const std::shared_ptr<AssemblyRegion>& region, const std::set<std::shared_ptr<VariantContext>, VariantContextComparator>& ves) {
+	std::cout << "region: " << region->getStart() + 1 << " " << region->getEnd() + 1 << std::endl;
+	std::cout << "allVariationEvents " << ves.size() << std::endl;
+	for (const auto &ve: ves) {
+		std::cout << ve->getStart() + 1 <<  " " << ve->getEnd() + 1 << " " << ve->getTypeString() << "\t";
+		for (const auto &alt: ve->getAlternateAlleles()) {
+			std::cout << ve->getReference()->getBaseString() << "==>" << alt->getBaseString() << " ";
+		}
+		std::cout << std::endl;
+	}
 }

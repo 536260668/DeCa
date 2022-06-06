@@ -103,6 +103,8 @@ public:
 
 	bool operator<(const Haplotype &other) const;
 
+	double getScore() const;
+
 	~Haplotype() = default;
 };
 

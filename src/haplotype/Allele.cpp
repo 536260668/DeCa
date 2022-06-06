@@ -249,10 +249,10 @@ bool Allele::operator==(const Allele &other) const {
 }
 
 std::string Allele::getBaseString() {
-    char* tmp = new char[length+1]{0};
+    char tmp[length+1];
     memcpy(tmp, bases.get(), length);
-    std::string ret = tmp;
-    delete[] tmp;
+	tmp[length] = '\0';
+	std::string ret(tmp,length);
     return ret;
 }
 

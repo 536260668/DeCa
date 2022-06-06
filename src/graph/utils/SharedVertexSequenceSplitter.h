@@ -29,10 +29,10 @@ private:
 	void addEdgesToBottomNode(const std::shared_ptr<SeqVertex>& botForConnect);
 
 public:
-	SharedVertexSequenceSplitter(SeqGraph *graph, std::unordered_set<std::shared_ptr<SeqVertex>> toSplitsArg);
+	SharedVertexSequenceSplitter(SeqGraph *graph, const std::unordered_set<std::shared_ptr<SeqVertex>>& toSplitsArg);
 
-	static std::pair<std::shared_ptr<SeqVertex>, std::shared_ptr<SeqVertex>>
-	commonPrefixAndSuffixOfVertices(std::unordered_set<std::shared_ptr<SeqVertex>> middleVertices);
+	std::pair<std::shared_ptr<SeqVertex>, std::shared_ptr<SeqVertex>>
+	commonPrefixAndSuffixOfVertices(const std::unordered_set<std::shared_ptr<SeqVertex>>& middleVertices);
 
 	bool meetsMinMergableSequenceForEitherPrefixOrSuffix(int minCommonSequence);
 

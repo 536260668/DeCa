@@ -8,10 +8,10 @@
 #include "GraphUtils.h"
 
 std::pair<std::shared_ptr<SeqVertex> , std::shared_ptr<SeqVertex>>
-SharedVertexSequenceSplitter::commonPrefixAndSuffixOfVertices(std::unordered_set<std::shared_ptr<SeqVertex>> middleVertices){
+SharedVertexSequenceSplitter::commonPrefixAndSuffixOfVertices(const std::unordered_set<std::shared_ptr<SeqVertex>>& middleVertices){
     std::list<std::pair<std::shared_ptr<uint8_t[]>, int>> kmers;
     int min = INT32_MAX;
-    for(std::shared_ptr<SeqVertex> v : middleVertices) {
+    for(const std::shared_ptr<SeqVertex>& v : outer->sortedVerticesOf(middleVertices)) {
         std::pair<std::shared_ptr<uint8_t[]>, int> tmp;
         tmp.first = v->getSequence();
         tmp.second = v->getLength();
@@ -31,10 +31,10 @@ SharedVertexSequenceSplitter::commonPrefixAndSuffixOfVertices(std::unordered_set
     return std::pair<std::shared_ptr<SeqVertex>, std::shared_ptr<SeqVertex>>(new SeqVertex(prefix, prefixLength), new SeqVertex(suffix, suffixLength));
 }
 
-SharedVertexSequenceSplitter::SharedVertexSequenceSplitter(SeqGraph* graph, std::unordered_set<std::shared_ptr<SeqVertex>> toSplitsArg) : outer(graph), toSplits(toSplitsArg){
+SharedVertexSequenceSplitter::SharedVertexSequenceSplitter(SeqGraph* graph, const std::unordered_set<std::shared_ptr<SeqVertex>>& toSplitsArg) : outer(graph), toSplits(toSplitsArg){
     Mutect2Utils::validateArg(graph, "graph cannot be null");
     Mutect2Utils::validateArg(toSplitsArg.size() > 1, "Can only split at least 2 vertices");
-    for(std::shared_ptr<SeqVertex> v : toSplitsArg) {
+    for(const std::shared_ptr<SeqVertex>& v : toSplitsArg) {
         std::unordered_set<std::shared_ptr<SeqVertex>>& allVertex = graph->getVertexSet();
         if(allVertex.find(v) == allVertex.end())
             throw std::invalid_argument("graph doesn't contain all of the vertices to split");
@@ -67,7 +67,7 @@ void SharedVertexSequenceSplitter::split() {
     splitGraph = new SeqGraph(outer->getKmerSize());
     splitGraph->addVertex(getPrefixV());
     splitGraph->addVertex(getSuffixV());
-    for(std::shared_ptr<SeqVertex> mid : toSplits) {
+    for(const std::shared_ptr<SeqVertex>& mid : outer->sortedVerticesOf(toSplits)) {
         std::shared_ptr<BaseEdge> toMid = processEdgeToRemove(mid, outer->incomingEdgeOf(mid));
         std::shared_ptr<BaseEdge> fromMid = processEdgeToRemove(mid, outer->outgoingEdgeOf(mid));
 

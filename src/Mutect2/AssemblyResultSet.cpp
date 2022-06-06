@@ -121,9 +121,20 @@ AssemblyResultSet::getSortedHaplotypeList() {
 	}
 	std::sort(res->begin(), res->end(),
 	          [](const std::shared_ptr<Haplotype> &h1, const std::shared_ptr<Haplotype> &h2) -> bool {
-		          if (h1->getLength() != h2->getLength())
-			          return h1->getLength() > h2->getLength();
-		          return h1->getBaseString() < h2->getBaseString();
+		          double score1 = h1->getScore(), score2 = h2->getScore();
+		          if (score1 - score2 > 0.0000000001)
+			          return true;
+		          if (score2 - score1 > 0.0000000001)
+			          return false;
+		          int len1 = h1->getBasesLength(), len2 = h2->getBasesLength();
+		          if (len1 != len2)
+			          return len1 > len2;
+		          std::shared_ptr<uint8_t[]> base1 = h1->getBases(), base2 = h2->getBases();
+		          for (int i = 0; i < len1; ++i) {
+			          if (base1[i] == base2[i]) continue;
+			          return base1[i] > base2[i];
+		          }
+		          return false;
 	          });
 	return res;
 }
@@ -249,16 +260,15 @@ void AssemblyResultSet::deleteEventMap() {
 }
 
 void AssemblyResultSet::printSortedHaplotypes() {
-	std::cout << "Haplotypes\t" << haplotypes.size() << std::endl;
-	std::vector<std::shared_ptr<Haplotype>> tmp;
-	for (const auto &haplotype: haplotypes)
-		tmp.push_back(haplotype);
-	std::sort(tmp.begin(), tmp.end(), [](std::shared_ptr<Haplotype> &h1, std::shared_ptr<Haplotype> &h2) -> bool {
-		if (h1->getLength() != h2->getLength())
-			return h1->getLength() > h2->getLength();
-		return h1->getBaseString() < h2->getBaseString();
-	});
-	for (const auto &haplotype: tmp) {
-		std::cout << haplotype->getLength() << " " << haplotype->getBaseString() << std::endl;
+	std::shared_ptr<std::vector<std::shared_ptr<Haplotype>>> ret = getSortedHaplotypeList();
+	std::cout << "Haplotypes\t" << ret->size() << std::endl;
+	std::cout << "nonRefHaplotypes:" << std::endl;
+	for (const auto &h: *ret) {
+		if (h->getIsReference()) continue;
+		std::string baseStr = h->getBaseString();
+		std::cout.precision(10);
+		std::cout.flags(std::ostream::fixed);
+		std::cout << h->getScore() << "\t" << baseStr.length() << std::endl;
+		std::cout << baseStr << std::endl;
 	}
 }

@@ -18,7 +18,7 @@ bool CommonSuffixSplitter::split(SeqGraph *graph, std::shared_ptr<SeqVertex> v) 
 		return false;
 	}
 	std::list<std::shared_ptr<BaseEdge>> edgesToRemove;
-	for (const std::shared_ptr<SeqVertex> &mid: toSplit) {
+	for (const std::shared_ptr<SeqVertex> &mid: graph->sortedVerticesOf(toSplit)) {
 		std::shared_ptr<SeqVertex> suffixV = std::make_shared<SeqVertex>(suffixVTemplate->getSequence(),
 		                                                                 suffixVTemplate->getLength());
 		graph->addVertex(suffixV);

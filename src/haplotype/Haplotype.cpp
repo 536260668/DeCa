@@ -109,4 +109,8 @@ bool Haplotype::operator<(const Haplotype &other) const {
 	}
 }
 
+double Haplotype::getScore() const {
+	return score;
+}
+
 

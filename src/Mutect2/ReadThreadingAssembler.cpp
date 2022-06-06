@@ -376,15 +376,6 @@ void ReadThreadingAssembler::findBestPaths(const std::vector<std::shared_ptr<Seq
 			}
 		}
 	}
-	/*
-	 * return value is never used?
-	 *
-	if (returnHaplotypes.find(refHaplotype) == returnHaplotypes.end()) {
-		returnHaplotypes.insert(refHaplotype);
-	}
-
-	//TODO:验证
-	return {returnHaplotypes.begin(), returnHaplotypes.end()};*/
 }
 
 ReadThreadingAssembler::ReadThreadingAssembler(int pruneFactor, int numPruningSamples, int numBestHaplotypesPerGraph,
