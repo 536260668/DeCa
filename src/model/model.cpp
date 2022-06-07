@@ -411,22 +411,22 @@ bool model::modelRefer(const std::shared_ptr<std::map<std::string, std::vector<s
 	if (allVariantsWithinExtendedRegion.empty()) // no variants,
 		return false;
 
-	std::vector<std::shared_ptr<VariantContext>> withinActiveRegion;
-	std::shared_ptr<SimpleInterval> originalRegionRange = regionForGenotyping->getSpan();
+	std::vector <std::shared_ptr<VariantContext>> withinActiveRegion;
+	std::shared_ptr <SimpleInterval> originalRegionRange = regionForGenotyping->getSpan();
 
-	std::vector<std::shared_ptr<SAMRecord>> caseReads = reads->at("case");
-	std::vector<std::shared_ptr<SAMRecord>> normalReads = reads->at("normal");
+	std::vector <std::shared_ptr<SAMRecord>> caseReads = reads->at("case");
+	std::vector <std::shared_ptr<SAMRecord>> normalReads = reads->at("normal");
 	int referenceStart = regionForGenotyping->getExtendedSpan()->getStart() - 15;
 	int ref_len = 0;
-	std::shared_ptr<uint8_t[]> referenceBases = regionForGenotyping->getFullReference(cache, 15, ref_len);
-	for (const std::shared_ptr<VariantContext> &vc: allVariantsWithinExtendedRegion) {
-		std::shared_ptr<SimpleInterval> vcLoc = std::make_shared<SimpleInterval>(vc->getContig(), vc->getStart(),
-		                                                                         vc->getEnd());
+	std::shared_ptr < uint8_t[] > referenceBases = regionForGenotyping->getFullReference(cache, 15, ref_len);
+	for (const std::shared_ptr <VariantContext> &vc: allVariantsWithinExtendedRegion) {
+		std::shared_ptr <SimpleInterval> vcLoc = std::make_shared<SimpleInterval>(vc->getContig(), vc->getStart(),
+		                                                                          vc->getEnd());
 		if (originalRegionRange->overlaps(vcLoc))
 			withinActiveRegion.emplace_back(vc);
 	}
 	int position = 0;
-	for (const std::shared_ptr<VariantContext> &vc: withinActiveRegion) {
+	for (const std::shared_ptr <VariantContext> &vc: withinActiveRegion) {
 		if (position > vc->getEnd())
 			continue;
 		int vcStart = vc->getStart() - 15;
@@ -435,18 +435,19 @@ bool model::modelRefer(const std::shared_ptr<std::map<std::string, std::vector<s
 			vcStart = 0;
 			vcEnd = 30;
 		}
-		std::vector<std::shared_ptr<SAMRecord>> trimCaseReads = readTrim(caseReads, vcStart, vcEnd);
-		std::vector<std::shared_ptr<SAMRecord>> trimNormalReads = readTrim(normalReads, vcStart, vcEnd);
-		std::vector<std::shared_ptr<SAMRecord>> allReads;
+		std::vector <std::shared_ptr<SAMRecord>> trimCaseReads = readTrim(caseReads, vcStart, vcEnd);
+		std::vector <std::shared_ptr<SAMRecord>> trimNormalReads = readTrim(normalReads, vcStart, vcEnd);
+		std::vector <std::shared_ptr<SAMRecord>> allReads;
 		for (const auto &read: caseReads) {
 			allReads.emplace_back(read);
 		}
 		for (const auto &read: normalReads) {
 			allReads.emplace_back(read);
 		}
-		std::vector<std::vector<std::vector<int>>> result = generateData(trimCaseReads, trimNormalReads, allReads,
-		                                                                 referenceStart, referenceBases.get(), ref_len,
-		                                                                 vcStart, vcEnd, vc);
+		std::vector < std::vector < std::vector < int>>> result = generateData(trimCaseReads, trimNormalReads, allReads,
+		                                                                       referenceStart, referenceBases.get(),
+		                                                                       ref_len,
+		                                                                       vcStart, vcEnd, vc);
 		int count2 = 15;
 		int index2 = 15;
 		while (count2 < 30) {
@@ -482,7 +483,8 @@ bool model::modelRefer(const std::shared_ptr<std::map<std::string, std::vector<s
 			for (int j = 0; j < 6; j++) {
 				for (int k = 0; k < 31; k++) {
 					inputs[i][j][k] = static_cast<float>(result[i - 2][j][k]) /
-					                  (static_cast<float>(result[1][j][k]) + static_cast<float>(result[2][j][k]));
+					                  (static_cast<float>(result[1][j][k]) + static_cast<float>(result[2][j][k]
+					                                                                            + 0.00000000001f));
 				}
 			}
 		}
@@ -496,6 +498,7 @@ bool model::modelRefer(const std::shared_ptr<std::map<std::string, std::vector<s
 void model::Initial(const std::string &modelPath) {
 	try {
 		n_model = torch::jit::load(modelPath);
+		at::set_num_threads(1);
 		initialized = true;
 	}
 	catch (const c10::Error &e) {
