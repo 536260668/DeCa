@@ -137,6 +137,15 @@ public:
     * @return might be {@code null}
     */
 	std::shared_ptr<SimpleInterval>& getPaddedReferenceLoc();
+
+	/**
+    * Returns the current full reference with padding.
+    *
+    * @return might be {@code null}. The result must not be modified by the caller.
+    */
+	std::shared_ptr<uint8_t[]>& getFullReferenceWithPadding();
+
+	int getFullReferenceWithPaddingLength();
 };
 
 

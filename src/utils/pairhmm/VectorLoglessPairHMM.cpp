@@ -106,7 +106,6 @@ void VectorLoglessPairHMM::computeLog10Likelihoods(SampleMatrix<SAMRecord, Haplo
         }
     }*/
 
-    // TODO: finish this method 2022.5.3
     mLogLikelihoodArray.clear();
     mLogLikelihoodArray.reserve(numReads * mHaplotypeDataArrayLength);
     computeLikelihoodsNative(testcases, mLogLikelihoodArray);
@@ -128,7 +127,7 @@ void VectorLoglessPairHMM::computeLog10Likelihoods(SampleMatrix<SAMRecord, Haplo
             //Since the order of haplotypes in the List<Haplotype> and alleleHaplotypeMap is different,
             //get idx of current haplotype in the list and use this idx to get the right likelihoodValue
             int idxInsideHaplotypeList = haplotypeToHaplotypeListIdxMap.at(haplotype);
-            logLikelihoods->set(logLikelihoods->getLikelihoods(), hapIdx, r, mLogLikelihoodArray[readIdx + idxInsideHaplotypeList]);
+            logLikelihoods->set(hapIdx, r, mLogLikelihoodArray[readIdx + idxInsideHaplotypeList]);
             hapIdx++;
         }
         readIdx += mHaplotypeDataArrayLength;

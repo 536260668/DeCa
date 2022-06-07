@@ -12,9 +12,12 @@
 #include <cassert>
 #include <functional>
 #include <unordered_set>
+#include <cassert>
 #include "Allele.h"
 #include "samtools/SAMRecord.h"
 #include "MathUtils.h"
+#include "Fragment.h"
+#include "Haplotype.h"
 
 using namespace std;
 
@@ -25,7 +28,7 @@ class BestAllele;
 
 template <typename E, typename A>
 class AlleleLikelihoods {
-    friend class SampleMatrix<E,A>;
+    friend class SampleMatrix<E, A>;
     friend class BestAllele<E, A>;
 
 private:
@@ -40,6 +43,8 @@ private:
      * Sample matrices lazily initialized (the elements not the array) by invoking {@link #sampleMatrix(int)}.
      */
     vector<SampleMatrix<E, A>> sampleMatrices;
+
+
 
     double getInformativeThreshold() {
         return isNaturalLog ? NATURAL_LOG_INFORMATIVE_THRESHOLD : LOG_10_INFORMATIVE_THRESHOLD;
@@ -61,11 +66,11 @@ private:
         {
             std::string& sample = samples[s];
 
-            evidenceBySampleIndex.emplace_back(evidenceBySample[sample]);
+            evidenceBySampleIndex->emplace_back(evidenceBySample[sample]);
 
-            int sampleEvidenceCount = evidenceBySampleIndex[s].size();
+            int sampleEvidenceCount = (*evidenceBySampleIndex)[s].size();
 
-            valuesBySampleIndex.emplace_back(vector<vector<double>>(alleleCount, vector<double>(sampleEvidenceCount, 0.0)));
+            valuesBySampleIndex->emplace_back(vector<vector<double>>(alleleCount, vector<double>(sampleEvidenceCount, 0.0)));
         }
     }
 
@@ -82,13 +87,13 @@ private:
      * @return never {@code null}, but with {@link BestAllele#allele allele} == {@code null}
      * if non-could be found.
      */
-    shared_ptr<BestAllele<E, A>> searchBestAllele(int sampleIndex, int evidenceIndex, bool canBeReference, double* priorities){
+    shared_ptr<BestAllele<E, A>> searchBestAllele(int sampleIndex, int evidenceIndex, bool canBeReference, const double* priorities){
         int alleleCount = alleles->size();
         if (alleleCount == 0 || (alleleCount == 1 && referenceAlleleIndex == 0 && !canBeReference)) {
             return make_shared<BestAllele<E, A>>(this, sampleIndex, evidenceIndex, -1, -numeric_limits<double>::infinity(), -numeric_limits<double>::infinity());
         }
 
-        auto & sampleValues = valuesBySampleIndex[sampleIndex];
+        auto & sampleValues = (*valuesBySampleIndex)[sampleIndex];
         int bestAlleleIndex = canBeReference || referenceAlleleIndex != 0 ? 0 : 1;
 
         int secondBestIndex = 0;
@@ -159,25 +164,52 @@ private:
         }
     }
 
+    map<shared_ptr<E>, int>& getEvidenceIndexBySampleIndex(int sampleIndex)
+    {
+        if(evidenceIndexBySampleIndex.size() <= sampleIndex)
+        {
+            for(int i = evidenceIndexBySampleIndex.size()-1; i<sampleIndex+1; i++)
+                evidenceIndexBySampleIndex.push_back({});
+        }
+
+        if(evidenceIndexBySampleIndex[sampleIndex].empty()){
+            auto& sampleEvidence = evidenceBySampleIndex->operator[](sampleIndex);
+            int sampleEvidenceCount = sampleEvidence.size();
+            evidenceIndexBySampleIndex[sampleIndex] = map<shared_ptr<E>, int>();
+            for(int r=0; r<sampleEvidenceCount; r++)
+            {
+                evidenceIndexBySampleIndex[sampleIndex].template insert(pair<shared_ptr<E>, int>(sampleEvidence[r], r));
+            }
+        }
+        return evidenceIndexBySampleIndex[sampleIndex];
+    }
+
 protected:
     bool isNaturalLog = false;
 
     /**
      * Evidence by sample index. Each sub array contains reference to the evidence of the ith sample.
      */
-    std::vector<std::vector<std::shared_ptr<E>>> evidenceBySampleIndex;
+    shared_ptr<std::vector<std::vector<std::shared_ptr<E>>>> evidenceBySampleIndex;
 
-    std::vector<std::vector<std::vector<double>>> valuesBySampleIndex;
+    shared_ptr<std::vector<std::vector<std::vector<double>>>> valuesBySampleIndex;
 
-    std::vector<std::string>& samples;
+    std::vector<std::string> samples;
 
     shared_ptr<vector<shared_ptr<A>>> alleles;
 
+    /**
+    * Maps from each unit of evidence to its index within the sample.
+    *
+    * <p>In order to save CPU time the indices contained in this array (not the array itself) is
+    * lazily initialized by invoking {@link #evidenceIndexBySampleIndex(int)}.</p>
+    */
+    vector<map<shared_ptr<E>, int>> evidenceIndexBySampleIndex;
 
     double maximumLikelihoodOverAllAlleles(int sampleIndex, int evidenceIndex) {
         double result = -numeric_limits<double>::infinity();
         int alleleCount = alleles->size();
-        auto & sampleValues = valuesBySampleIndex[sampleIndex];
+        auto & sampleValues = (*valuesBySampleIndex)[sampleIndex];
         for (int a = 0; a < alleleCount; a++) {
             if (sampleValues[a][evidenceIndex] > result) {
                 result = sampleValues[a][evidenceIndex];
@@ -190,14 +222,14 @@ public:
     constexpr static double LOG_10_INFORMATIVE_THRESHOLD = 0.2;
     static double NATURAL_LOG_INFORMATIVE_THRESHOLD;
 
-    AlleleLikelihoods(vector<string>& samples, shared_ptr<vector<shared_ptr<A>>>& alleles, map<string, vector<std::shared_ptr<SAMRecord>>>& evidenceBySample) :
-         samples(samples), alleles(alleles)
+    AlleleLikelihoods(vector<string>& samples, shared_ptr<vector<shared_ptr<A>>>& alleles, map<string, vector<std::shared_ptr<E>>>& evidenceBySample) :
+    samples(samples), alleles(alleles), evidenceBySampleIndex(new std::vector<std::vector<std::shared_ptr<E>>>()), valuesBySampleIndex(new std::vector<std::vector<std::vector<double>>>())
     {
         int sampleCount = samples.size();
         int alleleCount = alleles->size();
 
-        evidenceBySampleIndex.reserve(sampleCount);
-        valuesBySampleIndex.reserve(sampleCount);
+        evidenceBySampleIndex->reserve(sampleCount);
+        valuesBySampleIndex->reserve(sampleCount);
         referenceAlleleIndex = findReferenceAllele(*alleles);
 
         setupIndexes(evidenceBySample, sampleCount, alleleCount);
@@ -209,6 +241,13 @@ public:
 
     }
 
+    AlleleLikelihoods(std::shared_ptr<std::vector<shared_ptr<A>>> alleles, std::vector<std::string>& samples, shared_ptr<vector<vector<shared_ptr<E>>>> evidenceBySampleIndex, shared_ptr<vector<vector<vector<double>>>> values)
+        : samples(samples), alleles(alleles), evidenceBySampleIndex(evidenceBySampleIndex), valuesBySampleIndex(values)
+    {
+        int sampleCount = samples.size();
+
+    }
+
     /**
      * Returns the units of evidence that belong to a sample sorted by their index (within that sample).
      *
@@ -217,7 +256,7 @@ public:
      *   the array will be null.
      */
     vector<shared_ptr<E>>& sampleEvidence(int sampleIndex){
-        return evidenceBySampleIndex[sampleIndex];
+        return (*evidenceBySampleIndex)[sampleIndex];
     }
 
 
@@ -248,6 +287,60 @@ public:
         return *alleles;
     }
 
+    shared_ptr<vector<shared_ptr<A>>> getAlleleList()
+    {
+        return alleles;
+    }
+
+    /**
+    * Returns the allele given its index.
+    *
+    * @param alleleIndex the allele index.
+    *
+    * @throws IllegalArgumentException the allele index is {@code null}.
+    *
+    * @return never {@code null}.
+    */
+    shared_ptr<A> getAllele(int alleleIndex)
+    {
+        assert(alleleIndex >= 0 && alleleIndex < alleles->size());
+        return alleles->operator[](alleleIndex);
+    }
+
+    void setIsNaturalLog(bool isNaturalLog)
+    {
+        this->isNaturalLog = isNaturalLog;
+    }
+
+    int indexOfSamples(string& sample)
+    {
+        for(int i=0; i<samples.size(); i++)
+        {
+            if(sample == samples[i])
+                return i;
+        }
+        throw "Sample not found";
+    }
+
+    /**
+    * Number of samples included in the likelihood collection.
+    * @return 0 or greater.
+    */
+    int numberOfSamples()
+    {
+        return samples.size();
+    }
+
+    int numberOfAlleles()
+    {
+        return alleles->size();
+    }
+
+    string & getSample(int sampleIndex)
+    {
+        return samples[sampleIndex];
+    }
+
     /**
      * Adjusts likelihoods so that for each unit of evidence, the best allele likelihood is 0 and caps the minimum likelihood
      * of any allele for each unit of evidence based on the maximum alternative allele likelihood.
@@ -267,9 +360,9 @@ public:
         if(alleleCount == 0 || alleleCount == 1)
             return;
 
-        for(int s=0; s<valuesBySampleIndex.size(); s++){
-            auto& sampleValues = valuesBySampleIndex[s];
-            int evidenceCount = evidenceBySampleIndex[s].size();
+        for(int s=0; s<valuesBySampleIndex->size(); s++){
+            auto& sampleValues = (*valuesBySampleIndex)[s];
+            int evidenceCount = (*evidenceBySampleIndex)[s].size();
             for(int r=0; r<evidenceCount; r++)
             {
                 normalizeLikelihoodsPerEvidence(maximumLikelihoodDifferenceCap, sampleValues, s, r);
@@ -293,7 +386,7 @@ public:
         assert(alleles->size() > 0);
         int numberOfSamples = samples.size();
         for (int s = 0; s < numberOfSamples; s++) {
-            auto & sampleEvidence = evidenceBySampleIndex[s];
+            auto & sampleEvidence = (*evidenceBySampleIndex)[s];
             vector<int> indexesToRemove;
 
             int numberOfEvidence = sampleEvidence.size();
@@ -312,7 +405,7 @@ public:
         if(indexesToRemove.empty())
             return;
 
-        auto& sampleEvidence = evidenceBySampleIndex[sampleIndex];
+        auto& sampleEvidence = (*evidenceBySampleIndex)[sampleIndex];
 
         vector<int> IndicesToKeep;
         int numberOfEvidence = sampleEvidence.size();
@@ -331,7 +424,7 @@ public:
         }
 
         // Then we skim out the likelihoods of the removed evidence.
-        auto & oldSampleValues = valuesBySampleIndex[sampleIndex];
+        auto & oldSampleValues = (*valuesBySampleIndex)[sampleIndex];
         vector<vector<double>> newSampleValues(alleleCount, vector<double>(IndicesToKeep.size(), 0.0));
 
         for (int a = 0; a < alleleCount; a++) {
@@ -346,8 +439,8 @@ public:
             newSampleEvidence.template emplace_back(sampleEvidence[i]);
         }
 
-        valuesBySampleIndex[sampleIndex] = newSampleValues;
-        evidenceBySampleIndex[sampleIndex] = newSampleEvidence;
+        (*valuesBySampleIndex)[sampleIndex] = newSampleValues;
+        (*evidenceBySampleIndex)[sampleIndex] = newSampleEvidence;
     }
 
     void switchToNaturalLog(){
@@ -359,7 +452,7 @@ public:
             int evidenceCount = sampleEvidenceCount(s);
             for (int a = 0; a < alleleCount; a++) {
                 for (int e = 0; e < evidenceCount; e++) {
-                    valuesBySampleIndex[s][a][e] = MathUtils::log10ToLog(valuesBySampleIndex[s][a][e]);
+                    (*valuesBySampleIndex)[s][a][e] = MathUtils::log10ToLog((*valuesBySampleIndex)[s][a][e]);
                 }
             }
         }
@@ -374,7 +467,21 @@ public:
     */
     int sampleEvidenceCount(int sampleIndex) {
         assert(sampleIndex >= 0 && sampleIndex < samples.size());
-        return evidenceBySampleIndex[sampleIndex].size();
+        return (*evidenceBySampleIndex)[sampleIndex].size();
+    }
+
+    /**
+     * Default version where ties are broken in favor of the reference allele
+     */
+    shared_ptr<vector<shared_ptr<BestAllele<E, A>>>> bestAllelesBreakingTies(std::string sample)
+    {
+        int sampleIndex= indexOfSamples(sample);
+        return bestAllelesBreakingTies(sampleIndex);
+    }
+
+    shared_ptr<vector<shared_ptr<BestAllele<E, A>>>> bestAllelesBreakingTies(int sampleIndex)
+    {
+        return bestAllelesBreakingTies(sampleIndex, [](shared_ptr<A> a){return a->getIsReference() ? 1.0 : 0.0;});
     }
 
     /**
@@ -402,7 +509,7 @@ public:
         shared_ptr<vector<shared_ptr<BestAllele<E, A>>>> result = shared_ptr<vector<shared_ptr<BestAllele<E, A>>>>(new vector<shared_ptr<BestAllele<E, A>>>);
         for(int sampleIndex = 0; sampleIndex < samples.size(); sampleIndex++)
         {
-            int evidenceCount = evidenceBySampleIndex[sampleIndex].size();
+            int evidenceCount = (*evidenceBySampleIndex)[sampleIndex].size();
 
             for(int r=0; r<evidenceCount; r++)
             {
@@ -413,13 +520,36 @@ public:
         return result;
     }
 
+    shared_ptr<vector<shared_ptr<BestAllele<E, A>>>> bestAllelesBreakingTies(int sampleIndex, function<double(shared_ptr<A>)> tieBreakingPriority)
+    {
+        //TODO: this currently just does ref vs alt.  Really we want CIGAR complexity.
+        double * priorities = nullptr;
+        if(alleles != nullptr)
+        {
+            priorities = new double[alleles->size()];
+            for(int i=0; i<alleles->size(); i++)
+            {
+                priorities[i] = tieBreakingPriority(alleles->operator[](i));
+            }
+        }
+
+        int evidenceCount = evidenceBySampleIndex->operator[](sampleIndex).size();
+        auto result = make_shared<vector<shared_ptr<BestAllele<E, A>>>>();
+        result->reserve(evidenceCount);
+        for(int r=0; r<evidenceCount; r++)
+            result->template emplace_back(searchBestAllele(sampleIndex, r, true, priorities));
+
+        delete[] priorities;
+        return result;
+    }
+
     // TODO: is evidenceIndexBySampleIndex useful ?
     void changeEvidence(shared_ptr<unordered_map<shared_ptr<E>, shared_ptr<E>>> evidenceReplacements)
     {
         int sampleCount = samples.size();
         for(int s = 0; s < sampleCount; s++)
         {
-            auto & sampleEvidence = evidenceBySampleIndex[s];
+            auto & sampleEvidence = (*evidenceBySampleIndex)[s];
             // Object2IntMap<EVIDENCE> evidenceIndex = evidenceIndexBySampleIndex.get(s);
             int sampleEvidenceCount = sampleEvidence.size();
             for (int r = 0; r < sampleEvidenceCount; r++) {
@@ -435,6 +565,355 @@ public:
                 }*/
             }
         }
+    }
+
+    int evidenceIndex(int sampleIndex, shared_ptr<E>& evidence)
+    {
+        /*if(evidenceIndexBySampleIndex[sampleIndex].template find(evidence) != evidenceIndexBySampleIndex[sampleIndex].end())
+        {
+            return evidenceIndexBySampleIndex[sampleIndex].at(evidence);
+        }
+        return -1;*/
+        auto map = getEvidenceIndexBySampleIndex(sampleIndex);
+        if(map.template find(evidence) != map.end())
+            return map.at(evidence);
+        return -1;
+    }
+
+    /**
+     * Group evidence into lists of evidence -- for example group by read name to force read pairs to support a single haplotype.
+     *
+     * Log Likelihoods are summed over all evidence
+     * in a group, corresponding to an independent evidence assumption.  Since this container's likelihoods generally pertain to
+     * sequencing only (and not sample prep etc) this is usually a good assumption.
+     *
+     * @param groupingFunction Attribute function for grouping evidence, for example GATKRead::getName
+     * @param gather Transformation applied to collections of evidence with same value of groupingFunction.  For example, Fragment::new
+     *               to construct a fragment out of a pair of reads with the same name
+     *
+     * @return a new AlleleLikelihoods based on the grouped, transformed evidence.
+     */
+    AlleleLikelihoods<Fragment, A>* groupEvidence(function<std::string&(shared_ptr<E>)> groupingFunction, function<shared_ptr<Fragment>(vector<shared_ptr<E>>&)> gather)
+     {
+         int sampleCount = samples.size();
+         auto newLikelihoodValues = make_shared<vector<vector<vector<double>>>>();
+         int alleleCount = alleles->size();
+
+         auto newEvidenceBySampleIndex = make_shared<vector<vector<shared_ptr<Fragment>>>>();
+         newEvidenceBySampleIndex->reserve(sampleCount);
+
+         for(int s = 0; s < sampleCount; s++)
+         {
+             vector<vector<shared_ptr<E>>> evidenceGroups;
+             vector<shared_ptr<E>> & sampleEvidence = (*evidenceBySampleIndex)[s];
+             unordered_map<string, vector<shared_ptr<E>>> map;
+             for(auto& evidence : sampleEvidence)
+             {
+                 map[groupingFunction(evidence)].emplace_back(evidence);
+             }
+
+             for(auto& kv: map)
+                 evidenceGroups.push_back(std::move(kv.second));
+
+
+             int newEvidenceCount = evidenceGroups.size();
+             auto& oldSampleValues = (*valuesBySampleIndex)[s];
+             newLikelihoodValues->template emplace_back(vector<vector<double>>(alleleCount, vector<double>(newEvidenceCount, 0.0)));
+
+             // For each old allele and read we update the new table keeping the maximum likelihood.
+             for (int newEvidenceIndex = 0; newEvidenceIndex < newEvidenceCount; newEvidenceIndex++) {
+                 for (int a = 0; a < alleleCount; a++) {
+                     for(auto& evidence : evidenceGroups[newEvidenceIndex])
+                     {
+                         int oldEvidenceIndex = evidenceIndex(s, evidence);
+                         assert(oldEvidenceIndex != -1);
+                         newLikelihoodValues->operator[](s)[a][newEvidenceIndex] += oldSampleValues[a][oldEvidenceIndex];
+                     }
+                 }
+             }
+
+             vector<shared_ptr<Fragment>> temp;
+             for(auto& group : evidenceGroups)
+             {
+                 temp.template emplace_back(gather(group));
+             }
+             newEvidenceBySampleIndex->template emplace_back(temp);
+         }
+
+         // Finally we create the new read-likelihood
+         AlleleLikelihoods<Fragment, A>* result = new AlleleLikelihoods<Fragment, A>(alleles, samples, newEvidenceBySampleIndex, newLikelihoodValues);
+
+         return result;
+     }
+
+     /**
+     * Perform marginalization from an allele set to another (smaller one) taking the maximum value
+     * for each unit of evidence in the original allele subset.
+     *
+     * @param newToOldAlleleMap map where the keys are the new alleles and the value list the original
+     *                          alleles that correspond to the new one.
+     * @return never {@code null}. The result will have the requested set of new alleles (keys in {@code newToOldAlleleMap}, and
+     * the same set of samples and evidence as the original.
+     *
+     * @param overlap if not {@code null}, only units of evidence that overlap the location (with unclipping) will be present in
+     *                        the output evidence-collection.
+     *
+     * @throws IllegalArgumentException is {@code newToOldAlleleMap} is {@code null} or contains {@code null} values,
+     *  or its values contain reference to non-existing alleles in this evidence-likelihood collection. Also no new allele
+     *  can have zero old alleles mapping nor two new alleles can make reference to the same old allele.
+     */
+     AlleleLikelihoods<E, Allele>* marginalize(shared_ptr<std::map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Haplotype>>>>> newToOldAlleleMap, shared_ptr<SimpleInterval> overlap)
+     {
+         assert(newToOldAlleleMap != nullptr);
+         if(overlap == nullptr)
+             return marginalize(newToOldAlleleMap);
+
+         shared_ptr<vector<shared_ptr<Allele>>> newAlleles(new vector<shared_ptr<Allele>>);
+         for(auto & iter : *newToOldAlleleMap)
+         {
+             newAlleles->template emplace_back(iter.first);
+         }
+         int oldAlleleCount = alleles->size();
+         int newAlleleCount = newAlleles->size();
+
+         // we get the index correspondence between new old -> new allele, -1 entries mean that the old
+         // allele does not map to any new; supported but typically not the case.
+         auto oldToNewIndexMap = oldToNewAlleleIndexMap(newToOldAlleleMap, oldAlleleCount, *newAlleles);
+
+         // We calculate the marginal likelihoods.
+         auto evidenceToKeep = overlappingEvidenceIndicesBySampleIndex(overlap);
+         shared_ptr<vector<vector<vector<double>>>> newLikelihoodValues = marginalLikelihoods(oldAlleleCount, newAlleleCount, *oldToNewIndexMap, evidenceToKeep);
+         int sampleCount = samples.size();
+
+         shared_ptr<vector<vector<shared_ptr<E>>>> newEvidenceBySampleIndex(new vector<vector<shared_ptr<E>>>());
+
+         for (int s = 0; s < sampleCount; s++) {
+             vector<int>& sampleEvidenceToKeep = (*evidenceToKeep)[s];
+             vector<shared_ptr<E>>& oldSampleEvidence = (*evidenceBySampleIndex)[s];
+             int oldSampleEvidenceCount = oldSampleEvidence.size();
+             int newSampleEvidenceCount = sampleEvidenceToKeep.size();
+
+             vector<shared_ptr<E>> newSampleEvidence;
+             if(newSampleEvidenceCount == oldSampleEvidenceCount)
+             {
+                 newEvidenceBySampleIndex->template emplace_back(oldSampleEvidence);
+             } else {
+                 for(int i=0; i<sampleEvidenceToKeep.size(); i++)
+                 {
+                     newSampleEvidence.emplace_back(oldSampleEvidence[i]);
+                 }
+                 newEvidenceBySampleIndex->template emplace_back(newSampleEvidence);
+             }
+         }
+
+         // Finally we create the new evidence-likelihood
+         AlleleLikelihoods<E, Allele> * result = new AlleleLikelihoods<E, Allele>(newAlleles, samples, newEvidenceBySampleIndex, newLikelihoodValues);
+         result->setIsNaturalLog(isNaturalLog);
+         return result;
+     }
+
+
+     AlleleLikelihoods<E, Allele>* marginalize(shared_ptr<std::map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Haplotype>>>>> newToOldAlleleMap)
+     {
+        assert(newToOldAlleleMap != nullptr);
+        shared_ptr<vector<shared_ptr<Allele>>> newAlleles = make_shared<vector<shared_ptr<Allele>>>();
+        for(auto & iter : *newToOldAlleleMap)
+        {
+            newAlleles->emplace_back(iter.first);
+        }
+        int oldAlleleCount = alleles->size();
+        int newAlleleCount = newAlleles->size();
+
+        // we get the index correspondence between new old -> new allele, -1 entries mean that the old
+        // allele does not map to any new; supported but typically not the case.
+        auto _oldToNewAlleleIndexMap = oldToNewAlleleIndexMap(newToOldAlleleMap, oldAlleleCount, *newAlleles);
+
+        // We calculate the marginal likelihoods.
+        auto newLikelihoodValues = marginalLikelihoods(oldAlleleCount, newAlleleCount, *_oldToNewAlleleIndexMap, nullptr);
+        int sampleCount = samples.size();
+
+        auto newEvidenceBySampleIndex = make_shared<vector<vector<shared_ptr<E>>>>(sampleCount, vector<shared_ptr<E>>());
+
+        for (int s = 0; s < sampleCount; s++) {
+            newEvidenceBySampleIndex->template emplace_back(evidenceBySampleIndex->operator[](s));
+        }
+
+        // Finally we create the new evidence-likelihood
+        AlleleLikelihoods<E, Allele>* result = new AlleleLikelihoods<E, Allele>(
+                newAlleles,
+                samples,
+                newEvidenceBySampleIndex,
+                newLikelihoodValues);
+        result->setIsNaturalLog(isNaturalLog);
+        return result;
+     }
+
+     // pay attention! The data type of parameters is different from the methods above
+     AlleleLikelihoods<E, Allele>* marginalize(shared_ptr<std::map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Allele>>>>> newToOldAlleleMap)
+     {
+         assert(newToOldAlleleMap != nullptr);
+         shared_ptr<vector<shared_ptr<Allele>>> newAlleles = make_shared<vector<shared_ptr<Allele>>>();
+         for(auto & iter : *newToOldAlleleMap)
+         {
+             newAlleles->emplace_back(iter.first);
+         }
+         int oldAlleleCount = alleles->size();
+         int newAlleleCount = newAlleles->size();
+
+         // we get the index correspondence between new old -> new allele, -1 entries mean that the old
+         // allele does not map to any new; supported but typically not the case.
+         auto _oldToNewAlleleIndexMap = oldToNewAlleleIndexMap(newToOldAlleleMap, oldAlleleCount, *newAlleles);
+
+         // We calculate the marginal likelihoods.
+         auto newLikelihoodValues = marginalLikelihoods(oldAlleleCount, newAlleleCount, *_oldToNewAlleleIndexMap, nullptr);
+         int sampleCount = samples.size();
+
+         auto newEvidenceBySampleIndex = make_shared<vector<vector<shared_ptr<E>>>>(sampleCount, vector<shared_ptr<E>>());
+
+         for (int s = 0; s < sampleCount; s++) {
+             newEvidenceBySampleIndex->template emplace_back(evidenceBySampleIndex->operator[](s));
+         }
+
+         // Finally we create the new evidence-likelihood
+         AlleleLikelihoods<E, Allele>* result = new AlleleLikelihoods<E, Allele>(
+                 newAlleles,
+                 samples,
+                 newEvidenceBySampleIndex,
+                 newLikelihoodValues);
+         result->setIsNaturalLog(isNaturalLog);
+         return result;
+     }
+
+     // calculates an old to new allele index map array.
+     shared_ptr<vector<int>> oldToNewAlleleIndexMap(shared_ptr<std::map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Haplotype>>>>> newToOldAlleleMap, int oldAlleleCount,  vector<shared_ptr<Allele>>& newAlleles)
+     {
+         for(auto& h : newAlleles)
+             assert(h);
+
+         auto oldToNewAlleleIndexMap = make_shared<vector<int>>(oldAlleleCount, -1); // -1 indicate that there is no new allele that make reference to that old one.
+         for(int newIndex = 0; newIndex < newAlleles.size(); newIndex++)
+         {
+            auto newAllele = newAlleles[newIndex];
+            for(shared_ptr<Haplotype> oldAllele : *newToOldAlleleMap->at(newAllele))
+            {
+                int oldAlleleIndex = indexOfAllele(oldAllele);
+                if(oldAlleleIndex == -1)
+                    throw "missing old allele in likelihood collection";
+                if(oldToNewAlleleIndexMap->operator[](oldAlleleIndex) != -1)
+                    throw "collision: two new alleles make reference to the same old allele";
+                oldToNewAlleleIndexMap->operator[](oldAlleleIndex) = newIndex;
+            }
+         }
+         return oldToNewAlleleIndexMap;
+     }
+
+     // pay attention! The data type of parameters is different from the methods above
+     shared_ptr<vector<int>> oldToNewAlleleIndexMap(shared_ptr<std::map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Allele>>>>> newToOldAlleleMap, int oldAlleleCount,  vector<shared_ptr<Allele>>& newAlleles)
+     {
+         for(auto& h : newAlleles)
+             assert(h);
+
+         auto oldToNewAlleleIndexMap = make_shared<vector<int>>(oldAlleleCount, -1); // -1 indicate that there is no new allele that make reference to that old one.
+         for(int newIndex = 0; newIndex < newAlleles.size(); newIndex++)
+         {
+             auto newAllele = newAlleles[newIndex];
+             for(shared_ptr<Allele> oldAllele : *newToOldAlleleMap->at(newAllele))
+             {
+                 int oldAlleleIndex = indexOfAllele(oldAllele);
+                 if(oldAlleleIndex == -1)
+                     throw "missing old allele in likelihood collection";
+                 if(oldToNewAlleleIndexMap->operator[](oldAlleleIndex) != -1)
+                     throw "collision: two new alleles make reference to the same old allele";
+                 oldToNewAlleleIndexMap->operator[](oldAlleleIndex) = newIndex;
+             }
+         }
+         return oldToNewAlleleIndexMap;
+     }
+
+     /**
+   * Returns the index of an allele within the likelihood collection.
+   *
+   * @param allele the query allele.
+   *
+   * @throws IllegalArgumentException if {@code allele} is {@code null}.
+   *
+   * @return -1 if the allele is not included, 0 or greater otherwise.
+   */
+    int indexOfAllele(shared_ptr<Allele>& allele)
+    {
+        for(int i=0; i<alleles->size(); i++)
+        {
+            if(allele.get() == alleles->operator[](i).get())
+                return i;
+        }
+        return -1;
+    }
+
+    int indexOfAllele(shared_ptr<Allele>&& allele)
+    {
+        for(int i=0; i<alleles->size(); i++)
+        {
+            if(allele.get() == alleles->operator[](i).get())
+                return i;
+        }
+        return -1;
+    }
+
+    shared_ptr<vector<vector<int>>> overlappingEvidenceIndicesBySampleIndex(shared_ptr<SimpleInterval>& overlap)
+    {
+        if(overlap == nullptr)
+            return nullptr;
+
+        int sampleCount = samples.size();
+        auto result = make_shared<vector<vector<int>>>(sampleCount, vector<int>());
+
+
+        for(int s=0; s < sampleCount; s++)
+        {
+            auto& buffer = result->operator[](s);
+            buffer.clear();
+            vector<shared_ptr<E>>& sampleEvidence = evidenceBySampleIndex->operator[](s);
+            int sampleEvidenceCount = sampleEvidence.size();
+            buffer.reserve(sampleEvidenceCount);
+            for (int r = 0; r < sampleEvidenceCount; r++) {
+                if (sampleEvidence[r]->overlaps(overlap)) {
+                    buffer.template emplace_back(r);
+                }
+            }
+        }
+        return result;
+    }
+
+    // Calculate the marginal likelihoods considering the old -> new allele index mapping.
+    shared_ptr<vector<vector<vector<double>>>> marginalLikelihoods(int oldAlleleCount, int newAlleleCount, vector<int>& oldToNewAlleleIndexMap, shared_ptr<vector<vector<int>>> evidenceToKeep)
+    {
+        int sampleCount = samples.size();
+        shared_ptr<vector<vector<vector<double>>>> result = make_shared<vector<vector<vector<double>>>>(sampleCount, vector<vector<double>>());
+
+        for (int s = 0; s < sampleCount; s++) {
+            int sampleEvidenceCount = evidenceBySampleIndex->operator[](s).size();
+            auto& oldSampleValues = valuesBySampleIndex->operator[](s);
+            vector<int>* sampleEvidenceToKeep = evidenceToKeep == nullptr || evidenceToKeep->operator[](s).size() == sampleEvidenceCount ? nullptr : &(evidenceToKeep->operator[](s));
+            int newSampleEvidenceCount = sampleEvidenceToKeep == nullptr ? sampleEvidenceCount : sampleEvidenceToKeep->size();
+            result->operator[](s) = vector<vector<double>>(newAlleleCount, vector<double>(newSampleEvidenceCount, -std::numeric_limits<double>::infinity()));
+            auto& newSampleValues = result->operator[](s);
+
+            // For each old allele and unit of evidence we update the new table keeping the maximum likelihood.
+            for (int r = 0; r < newSampleEvidenceCount; r++) {
+                for (int a = 0; a < oldAlleleCount; a++) {
+                    int oldEvidenceIndex = newSampleEvidenceCount == sampleEvidenceCount ? r : (*sampleEvidenceToKeep)[r];
+                    int newAlleleIndex = oldToNewAlleleIndexMap[a];
+                    if (newAlleleIndex == -1) {
+                        continue;
+                    }
+                    double likelihood = oldSampleValues[a][oldEvidenceIndex];
+                    if (likelihood > newSampleValues[newAlleleIndex][r]) {
+                        newSampleValues[newAlleleIndex][r] = likelihood;
+                    }
+                }
+            }
+        }
+        return result;
     }
 };
 
@@ -457,14 +936,16 @@ public:
         this->likelihood = likelihoods;
     }
 
-    //std::vector<E> evidence()
-
-    void set(AlleleLikelihoods<E, A> &a,int alleleIndex, int evidenceIndex, double value){
-        a.valuesBySampleIndex[sampleIndex][alleleIndex][evidenceIndex] = value;
+    void set(int alleleIndex, int evidenceIndex, double value){
+        assert(likelihood != nullptr);
+        auto& valuesBySampleIndex = *(likelihood->valuesBySampleIndex);
+        valuesBySampleIndex[sampleIndex][alleleIndex][evidenceIndex] = value;
     }
 
-    double get(AlleleLikelihoods<E, A> &a, int alleleIndex, int evidenceIndex){
-        return a.valuesBySampleIndex[sampleIndex][alleleIndex][evidenceIndex];
+    double get(int alleleIndex, int evidenceIndex){
+        assert(likelihood != nullptr);
+        auto& valuesBySampleIndex = *(likelihood->valuesBySampleIndex);
+        return valuesBySampleIndex[sampleIndex][alleleIndex][evidenceIndex];
     }
 
     vector<shared_ptr<E>> & evidence(){
@@ -475,6 +956,22 @@ public:
         return likelihood->getAlleles();
     }
 
+    // different from alleles(), this method returns a shared_ptr
+    shared_ptr<vector<shared_ptr<A>>> getAlleles()
+    {
+        return likelihood->getAlleleList();
+    }
+
+    shared_ptr<A> getAllele(int alleleIndex)
+    {
+        return likelihood->getAllele(alleleIndex);
+    }
+
+    int indexOfAllele(shared_ptr<A> allele)
+    {
+        return likelihood->indexOfAllele(allele);
+    }
+
     AlleleLikelihoods<E, A>& getLikelihoods(){
         assert(likelihood != nullptr);
         return *likelihood;
@@ -482,6 +979,15 @@ public:
 
     int numberOfAlleles(){
         return alleles().size();
+    }
+
+    int evidenceCount(){
+        return likelihood->evidenceBySampleIndex->operator[](sampleIndex).size();
+    }
+
+    const vector<vector<double>>& getValuseBySampleIndex()
+    {
+        return likelihood->valuesBySampleIndex->operator[](sampleIndex);
     }
 };
 
@@ -521,7 +1027,7 @@ public:
         allele = bestAlleleIndex == -1 ? nullptr : likelihoods->alleles->operator[](bestAlleleIndex);
         this->likelihood = likelihood;
         sample = likelihoods->samples[sampleIndex];
-        evidence = likelihoods->evidenceBySampleIndex[sampleIndex][evidenceIndex];
+        evidence = (*likelihoods->evidenceBySampleIndex)[sampleIndex][evidenceIndex];
         confidence = likelihood == secondBestLikelihood ? 0 : likelihood - secondBestLikelihood;
         alleleLikelihoods = likelihoods;
     }

@@ -24,6 +24,7 @@ private:
     std::shared_ptr<uint8_t[]> bases;
     int length;
 
+public:
     static std::shared_ptr<Allele> REF_A;
     static std::shared_ptr<Allele> ALT_A;
     static std::shared_ptr<Allele> REF_C;
@@ -44,8 +45,6 @@ private:
     static Allele SV_SIMPLE_CNV;
     static Allele SV_SIMPLE_DUP;
 
-
-public:
     static const std::string NO_CALL_STRING;
     static const std::string SPAN_DEL_STRING;
     static const std::string NON_REF_STRING;

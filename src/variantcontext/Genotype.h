@@ -10,6 +10,7 @@
 #include "Allele.h"
 #include "GenotypeLikelihoods.h"
 #include "GenotypeType.h"
+#include "AttributeValue.h"
 
 
 class GenotypeLikelihoods;
@@ -53,14 +54,15 @@ public:
     bool operator<(const Genotype & other) const;
     bool sameGenotype(Genotype* other, bool ignorePhase);
     bool sameGenotype(Genotype* other);
-    virtual std::map<std::string, void*> &getExtendedAttributes() = 0;
+    virtual std::map<std::string, AttributeValue> &getExtendedAttributes() = 0;
     bool hasExtendedAttribute(const std::string &key);
-    void* getExtendedAttribute(const std::string&, void* defaultValue);
-    void* getExtendedAttribute(const std::string&);
+    AttributeValue getExtendedAttribute(const std::string&, void* defaultValue);
+    AttributeValue getExtendedAttribute(const std::string&);
     std::string getFilters() {return filters;}
     bool isFiltered() {return !filters.empty();}
-    void* getAnyAttribute(const std::string& key);
+    AttributeValue getAnyAttribute(const std::string& key);
     bool hasAnyAttribute(std::string key);
+    virtual ~Genotype();
 
 private:
     std::string sampleName;

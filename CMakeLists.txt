@@ -29,6 +29,7 @@ include_directories("${PROJECT_SOURCE_DIR}/src/intel/pairhmm")
 include_directories("${PROJECT_SOURCE_DIR}/src/smithwaterman")
 include_directories("${PROJECT_SOURCE_DIR}/src/Mutect2")
 include_directories("${PROJECT_SOURCE_DIR}/src/variantcontext")
+include_directories("${PROJECT_SOURCE_DIR}/src/annotator")
 
 add_subdirectory(./src/cache)
 add_subdirectory(./src/cigar)
@@ -48,6 +49,7 @@ add_subdirectory(./src/tools)
 add_subdirectory(./src/samtools)
 add_subdirectory(./src/param)
 add_subdirectory(./src/clipping)
+add_subdirectory(./src/annotator)
 
 add_executable(Mutect2Cpp_master ${DIR_SRCS} src/engine/ReferenceContext.cpp src/engine/ReferenceContext.h src/engine/AlignmentContext.cpp src/engine/AlignmentContext.h src/pileRead.h src/collection/IndexedSet.h src/collection/IndexedAlleleList.h)
 
@@ -75,6 +77,6 @@ target_link_libraries(Mutect2Cpp_master SamtoolsFunctions)
 target_link_libraries(Mutect2Cpp_master ParamFunctions)
 target_link_libraries(Mutect2Cpp_master ClippingFunctions)
 target_link_libraries(Mutect2Cpp_master gkl_pairhmm)
-
+target_link_libraries(Mutect2Cpp_master AnnotatorFunctions)
 
 

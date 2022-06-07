@@ -22,6 +22,7 @@
 #include "haplotypecaller/AssemblyRegionTrimmer.h"
 #include "haplotypecaller/PairHMMLikelihoodCalculationEngine.h"
 #include "SmithWatermanAligner.h"
+#include "SomaticGenotypeEngine.h"
 
 class Mutect2Engine {
 private:
@@ -35,6 +36,7 @@ private:
     PairHMMLikelihoodCalculationEngine* likelihoodCalculationEngine;
     AssemblyRegionTrimmer trimmer;
     SmithWatermanAligner* aligner;
+    SomaticGenotypeEngine genotypingEngine;
 
     std::shared_ptr<std::vector<char>> altQuals(ReadPileup & pileup, char refBase, int pcrErrorQual);
 
@@ -69,7 +71,7 @@ public:
     int callableSites;  // in GATK4, this variable is a MutableInt class object
     ReferenceCache * refCache;
 
-    Mutect2Engine(M2ArgumentCollection & MTAC, char* ref, SAMFileHeader*);
+    Mutect2Engine(M2ArgumentCollection & MTAC, char* ref, SAMFileHeader* samFileHeader, VaraintAnnotatiorEngine& annotatorEngine);
 
     ~Mutect2Engine();
 

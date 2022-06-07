@@ -599,3 +599,7 @@ bool ReadUtils::isInsideRead(std::shared_ptr<SAMRecord> &read, int referenceCoor
     return referenceCoordinate >= read->getStart() && referenceCoordinate <= read->getEnd();
 }
 
+bool ReadUtils::isF2R1(std::shared_ptr<SAMRecord> read) {
+    return read->isReverseStrand() == read->isFirstOfPair();
+}
+

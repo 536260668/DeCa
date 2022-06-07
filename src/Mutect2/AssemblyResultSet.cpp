@@ -228,6 +228,13 @@ std::shared_ptr<SimpleInterval>& AssemblyResultSet::getPaddedReferenceLoc() {
     return paddedReferenceLoc;
 }
 
+std::shared_ptr<uint8_t[]>& AssemblyResultSet::getFullReferenceWithPadding() {
+    return fullReferenceWithPadding;
+}
+
+int AssemblyResultSet::getFullReferenceWithPaddingLength() {
+    return fullReferenceWithPaddingLength;
+}
 
 void AssemblyResultSet::deleteEventMap() {
 	auto haplotypesToReleased = *this->getHaplotypeList();

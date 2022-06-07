@@ -3,6 +3,7 @@
 //
 
 #include <limits>
+#include <builder/GenotypeBuilder.h>
 #include "AssemblyBasedCallerUtils.h"
 #include "haplotypecaller/ReferenceConfidenceModel.h"
 #include "clipping/ReadClipper.h"
@@ -11,6 +12,12 @@
 #include "utils/fragments/FragmentCollection.h"
 #include "utils/fragments/FragmentUtils.h"
 #include "AlignmentUtils.h"
+#include "LocationAndAlleles.h"
+#include "utils/variant/GATKVariantContextUtils.h"
+#include "variantcontext/builder/VariantContextBuilder.h"
+
+std::string AssemblyBasedCallerUtils::phase01 = "0|1";
+std::string AssemblyBasedCallerUtils::phase10 = "1|0";
 
 std::shared_ptr<Haplotype>
 AssemblyBasedCallerUtils::createReferenceHaplotype(const std::shared_ptr<AssemblyRegion> &region,
@@ -161,4 +168,362 @@ double AssemblyBasedCallerUtils::HAPLOTYPE_ALIGNMENT_TIEBREAKING_PRIORITY(shared
     int cigarTerm = cigar == nullptr ? 0 : 1-cigar->numCigarElements();
 
     return (double)(referenceTerm + cigarTerm);
+}
+
+shared_ptr<vector<shared_ptr<VariantContext>>>
+AssemblyBasedCallerUtils::getVariantContextsFromActiveHaplotypes(int loc, vector<shared_ptr<Haplotype>> &haplotypes,
+                                                                 bool includeSpanningEvents) {
+    shared_ptr<vector<shared_ptr<VariantContext>>> results = make_shared<vector<shared_ptr<VariantContext>>>();
+    set<shared_ptr<LocationAndAlleles>, equal_LocationAndAlleles> uniqueLocationsAndAlleles;
+
+    // transform a haplotype to a stream of VariantContext
+
+    vector<shared_ptr<VariantContext>> temp;
+    for(auto& h : haplotypes)
+    {
+        auto events = h->getEventMap()->getOverlappingEvents(loc);
+        for(shared_ptr<VariantContext>& event : *events)
+        {
+            temp.emplace_back(event);
+        }
+    }
+
+    for(auto& v : temp)
+    {
+        if(v->getStart() == loc)
+        {
+            shared_ptr<LocationAndAlleles> locationAndAlleles = make_shared<LocationAndAlleles>(v->getStart(), v->getAlleles());
+            if(uniqueLocationsAndAlleles.find(locationAndAlleles) != uniqueLocationsAndAlleles.end())
+            {
+                uniqueLocationsAndAlleles.insert(locationAndAlleles);
+                results->emplace_back(v);
+            }
+        }
+    }
+    return results;
+}
+
+shared_ptr<VariantContext>
+AssemblyBasedCallerUtils::makeMergedVariantContext(shared_ptr<vector<shared_ptr<VariantContext>>> vcs) {
+    if(vcs->empty())
+        return nullptr;
+
+    vector<string> haplotypeSources;
+    for(auto& variant : *vcs)
+    {
+        haplotypeSources.emplace_back(variant->getSource());
+    }
+    return GATKVariantContextUtils::simpleMerge(vcs, haplotypeSources, FilteredRecordMergeType::KEEP_IF_ANY_UNFILTERED, GenotypeMergeType::PRIORITIZE, false);
+}
+
+shared_ptr<std::map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Haplotype>>>>>
+AssemblyBasedCallerUtils::createAlleleMapper(shared_ptr<VariantContext> mergedVC, int loc,
+                                             vector<shared_ptr<Haplotype>> &haplotypes) {
+    auto result = make_shared<std::map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Haplotype>>>>>();
+
+    auto ref = mergedVC->getReference();
+    result->insert({ref, make_shared<vector<shared_ptr<Haplotype>>>()});
+
+    //Note: we can't use the alleles implied by eventsAtThisLoc because they are not yet merged to a common reference
+    //For example, a homopolymer AAAAA reference with a single and double deletion would yield (i) AA* A and (ii) AAA* A
+    //in eventsAtThisLoc, when in mergedVC it would yield AAA* AA A
+    auto AlternateAlleles = mergedVC->getAlternateAlleles();
+    for(auto& allele : AlternateAlleles)
+    {
+        if(!allele->getIsSymbolic())
+            result->insert({allele, make_shared<vector<shared_ptr<Haplotype>>>()});
+    }
+
+    for(auto& h : haplotypes)
+    {
+        auto spanningEvents = h->getEventMap()->getOverlappingEvents(loc);
+        if(spanningEvents->empty()){    //no events --> this haplotype supports the reference at this locus
+            result->at(ref)->emplace_back(h);
+            continue;
+        }
+
+        for(auto& spanningEvent : *spanningEvents)
+        {
+            if (spanningEvent->getStart() == loc) {
+                // the event starts at the current location
+
+                if (spanningEvent->getReference()->getLength() == mergedVC->getReference()->getLength()) {
+                    // reference allele lengths are equal; we can just use the spanning event's alt allele
+                    // in the case of GGA mode the spanning event might not match an allele in the mergedVC
+                    if(result->find(spanningEvent->getAlternateAllele(0)) != result->end())
+                        result->at(spanningEvent->getAlternateAllele(0))->emplace_back(h);
+                } else if(spanningEvent->getReference()->getLength() < mergedVC->getReference()->getLength())
+                {
+                    // spanning event has shorter ref allele than merged VC; we need to pad out its alt allele
+                    std::unordered_set<std::shared_ptr<Allele>> currentAlleles;
+                    auto spanningEventAlleleMappingToMergedVc = GATKVariantContextUtils::createAlleleMapping(mergedVC->getReference(), spanningEvent, currentAlleles);
+                    auto remappedSpanningEventAltAllele = spanningEventAlleleMappingToMergedVc->at(spanningEvent->getAlternateAllele(0));
+                    // in the case of GGA mode the spanning event might not match an allele in the mergedVC
+                    if(result->find(remappedSpanningEventAltAllele) != result->end())
+                    {
+                        result->at(remappedSpanningEventAltAllele)->emplace_back(h);
+                    }
+                } else {
+                    // the process of creating the merged VC in AssemblyBasedCallerUtils::makeMergedVariantContext should have
+                    // already padded out the reference allele, therefore this spanning VC must not be in events at this site
+                    // because we're in GGA mode and it's not an allele we want
+                    continue;
+                }
+            } else {
+                // the event starts prior to the current location, so it's a spanning deletion
+                if(result->find(Allele::SPAN_DEL) == result->end())
+                    result->insert({Allele::SPAN_DEL, make_shared<vector<shared_ptr<Haplotype>>>()});
+                result->at(Allele::SPAN_DEL)->emplace_back(h);
+                break;
+            }
+        }
+    }
+    return result;
+
+}
+
+shared_ptr<vector<shared_ptr<VariantContext>>>
+AssemblyBasedCallerUtils::phaseCalls(vector<shared_ptr<VariantContext>> &calls,
+                                     unordered_set<shared_ptr<Haplotype>> &calledHaplotypes) {
+    // construct a mapping from alternate allele to the set of haplotypes that contain that allele
+    auto haplotypeMap = constructHaplotypeMapping(calls, calledHaplotypes);
+
+    map<VariantContext*, pair<int, string>> phaseSetMapping;
+    int uniqueCounterEndValue = constructPhaseSetMapping(calls, *haplotypeMap, calledHaplotypes.size() - 1, phaseSetMapping);
+
+    return constructPhaseGroups(calls, phaseSetMapping, uniqueCounterEndValue);
+}
+
+// ---a helper method
+bool contains(vector<shared_ptr<Allele>> alleles, shared_ptr<Allele> alt)
+{
+
+    for(auto allele : alleles)
+    {
+        if(*allele == *alt)
+            return true;
+    }
+    return false;
+}
+
+shared_ptr<map<VariantContext*, shared_ptr<unordered_set<Haplotype*>>>>
+AssemblyBasedCallerUtils::constructHaplotypeMapping(vector<shared_ptr<VariantContext>> &originalCalls,
+                                                    unordered_set<shared_ptr<Haplotype>> &calledHaplotypes) {
+    auto haplotypeMap = make_shared<map<VariantContext*, shared_ptr<unordered_set<Haplotype*>>>>();
+    for(auto call : originalCalls)
+    {
+        // don't try to phase if there is not exactly 1 alternate allele
+        if(!isBiallelic(call)){
+            haplotypeMap->insert({call.get(), nullptr});
+            continue;
+        }
+
+        // keep track of the haplotypes that contain this particular alternate allele
+        auto alt = call->getAlternateAllele(0);
+
+        shared_ptr<unordered_set<Haplotype*>> hapsWithAllele = make_shared<unordered_set<Haplotype*>>();
+        for(auto h : calledHaplotypes)
+        {
+            bool match = false;
+            auto VariantContexts = h->getEventMap()->getVariantContexts();
+            for(auto & varaint : VariantContexts)
+            {
+                if(varaint->getStart() == call->getStart() && contains(varaint->getAlternateAlleles(), alt))
+                    match = true;
+                if(*alt == *Allele::SPAN_DEL && varaint->getStart() < call->getStart() && varaint->getEnd() >= call->getStart())
+                    match = true;
+                if(match)
+                    break;
+            }
+            if(match)
+                hapsWithAllele->insert(h.get());
+        }
+        haplotypeMap->insert({call.get(), hapsWithAllele});
+    }
+    return haplotypeMap;
+}
+
+bool AssemblyBasedCallerUtils::isBiallelic(shared_ptr<VariantContext> vc) {
+    if(vc->isBiallelic())
+        return true;
+
+    if(vc->getNAlleles() == 3)
+    {
+        for (auto& allele: vc->getAlternateAlleles()) {
+            if(*allele == *Allele::NON_REF_ALLELE)
+                return true;
+        }
+        return false;
+    }
+    return false;
+}
+
+//---whether set1 contain all of the elements of set2
+bool containAll(unordered_set<Haplotype*>& set1, unordered_set<Haplotype*>& set2)
+{
+    for(auto h : set2)
+    {
+        if(set1.find(h) == set1.end())
+            return false;
+    }
+    return true;
+}
+
+//---just like Java set retainAll
+void retainAll(unordered_set<Haplotype*>& set1, unordered_set<Haplotype*>& set2)
+{
+    for(Haplotype* h : set1)
+    {
+        if(set2.find(h) == set2.end())
+        {
+            set1.erase(h);
+        }
+    }
+}
+
+int AssemblyBasedCallerUtils::constructPhaseSetMapping(vector<shared_ptr<VariantContext>> &originalCalls,
+                                                       map<VariantContext*, shared_ptr<unordered_set<Haplotype*>>> &haplotypeMap,
+                                                       int totalAvailableHaplotypes,
+                                                       map<VariantContext*, pair<int, string>> &phaseSetMapping) {
+    int numCalls = originalCalls.size();
+    int uniqueCounter = 0;
+
+    // use the haplotype mapping to connect variants that are always/never present on the same haplotypes
+    for ( int i = 0; i < numCalls - 1; i++ ) {
+        shared_ptr<VariantContext>& call = originalCalls[i];
+        auto haplotypesWithCall = haplotypeMap.at(call.get());
+        if(haplotypesWithCall->empty())
+            continue;
+
+        bool callIsOnAllHaps = haplotypesWithCall->size() == totalAvailableHaplotypes;
+        for ( int j = i+1; j < numCalls; j++ ) {
+            shared_ptr<VariantContext> comp = originalCalls[j];
+            auto haplotypesWithComp = haplotypeMap.at(comp.get());
+            if ( haplotypesWithComp->empty()) {
+                continue;
+            }
+
+            // if the variants are together on all haplotypes, record that fact.
+            // another possibility is that one of the variants is on all possible haplotypes (i.e. it is homozygous).
+            bool compIsOnAllHaps = haplotypesWithComp->size() == totalAvailableHaplotypes;
+            if ( (haplotypesWithCall->size() == haplotypesWithComp->size() && containAll(*haplotypesWithCall ,*haplotypesWithComp)) || callIsOnAllHaps || compIsOnAllHaps ) {
+                // create a new group if these are the first entries
+                if ( phaseSetMapping.find(call.get()) ==  phaseSetMapping.end() ) {
+                    // note that if the comp is already in the map then that is very bad because it means that there is
+                    // another variant that is in phase with the comp but not with the call.  Since that's an un-phasable
+                    // situation, we should abort if we encounter it.
+                    if ( phaseSetMapping.find(comp.get()) != phaseSetMapping.end() ) {
+                        phaseSetMapping.clear();
+                        return 0;
+                    }
+
+                    // An important note: even for homozygous variants we are setting the phase as "0|1" here.
+                    // We do this because we cannot possibly know for sure at this time that the genotype for this
+                    // sample will actually be homozygous downstream: there are steps in the pipeline that are liable
+                    // to change the genotypes.  Because we can't make those assumptions here, we have decided to output
+                    // the phase as if the call is heterozygous and then "fix" it downstream as needed.
+                    phaseSetMapping.insert({call.get(), {uniqueCounter, phase01}});
+                    phaseSetMapping.insert({comp.get(), {uniqueCounter, phase01}});
+                    uniqueCounter++;
+                }
+                // otherwise it's part of an existing group so use that group's unique ID
+                else if ( phaseSetMapping.find(comp.get()) ==  phaseSetMapping.end() ) {
+                    pair<int, string> callPhase = phaseSetMapping.at(call.get());
+                    phaseSetMapping.insert({comp.get(), {callPhase.first, callPhase.second}});
+                }
+            }
+            // if the variants are apart on *all* haplotypes, record that fact
+            else if ( haplotypesWithCall->size() + haplotypesWithComp->size() == totalAvailableHaplotypes ) {
+                unordered_set<Haplotype*> intersection;
+                intersection = *haplotypesWithCall;
+                retainAll(intersection, *haplotypesWithComp);
+                //intersection.retainAll(haplotypesWithComp);
+                if ( intersection.empty() ) {
+                    // create a new group if these are the first entries
+                    if ( phaseSetMapping.find(call.get()) ==  phaseSetMapping.end() ) {
+                        // note that if the comp is already in the map then that is very bad because it means that there is
+                        // another variant that is in phase with the comp but not with the call.  Since that's an un-phasable
+                        // situation, we should abort if we encounter it.
+                        if (phaseSetMapping.find(comp.get()) != phaseSetMapping.end()) {
+                            phaseSetMapping.clear();
+                            return 0;
+                        }
+
+                        phaseSetMapping.insert({call.get(), {uniqueCounter, phase01}});
+                        phaseSetMapping.insert({comp.get(), {uniqueCounter, phase10}});
+                        uniqueCounter++;
+                    }
+                    // otherwise it's part of an existing group so use that group's unique ID
+                    else if ( phaseSetMapping.find(comp.get()) == phaseSetMapping.end() ){
+                        auto callPhase = phaseSetMapping.at(call.get());
+                        phaseSetMapping.insert({comp.get(), {callPhase.first, callPhase.second == phase01 ? phase10 : phase01}});
+                    }
+                }
+            }
+        }
+    }
+    return uniqueCounter;
+
+}
+
+shared_ptr<vector<shared_ptr<VariantContext>>> AssemblyBasedCallerUtils::constructPhaseGroups(vector<shared_ptr<VariantContext>> &originalCalls, map<VariantContext*, pair<int, string>>& phaseSetMapping, int indexTo)
+{
+    auto phasedCalls = make_shared<vector<shared_ptr<VariantContext>>>();
+
+    // if we managed to find any phased groups, update the VariantContexts
+    for ( int count = 0; count < indexTo; count++ ) {
+        // get all of the (indexes of the) calls that belong in this group (keeping them in the original order)
+        vector<int> indexes;
+        for ( int index = 0; index < originalCalls.size(); index++ ) {
+            auto call = originalCalls[index];
+            if ( phaseSetMapping.find(call.get()) != phaseSetMapping.end() && phaseSetMapping.at(call.get()).first == count ) {
+                indexes.push_back(index);
+            }
+        }
+
+        if ( indexes.size() < 2 ) {
+            throw "Somehow we have a group of phased variants that has fewer than 2 members";
+        }
+
+        // create a unique ID based on the leftmost one
+        string uniqueID = createUniqueID(originalCalls[indexes[0]]);
+
+        // create the phase set identifier, which is the position of the first variant in the set
+        int phaseSetID = originalCalls[indexes[0]]->getStart();
+
+        // update the VCs
+        for ( int index : indexes ) {
+            auto originalCall = originalCalls[index];
+            auto phasedCall = phaseVC(originalCall, uniqueID, phaseSetMapping.at(originalCall.get()).second, phaseSetID);
+            phasedCalls->operator[](index) = phasedCall;
+        }
+    }
+    return phasedCalls;
+}
+
+// TODO: Allele::getDisplayString equals to Allele::getBaseString() ?
+string AssemblyBasedCallerUtils::createUniqueID(shared_ptr<VariantContext> vc) {
+    return to_string(vc->getStart()) + "_" + vc->getReference()->getBaseString() + "_" + vc->getAlternateAllele(0)->getBaseString();
+}
+
+shared_ptr<VariantContext>
+AssemblyBasedCallerUtils::phaseVC(shared_ptr<VariantContext> vc, string &ID, string &phaseGT, int phaseSetID) {
+    vector<Genotype*> phasedGenotypes;
+    for(auto g : *vc->getGenotypes()->getGenotypes())
+    {
+        std::vector<std::shared_ptr<Allele>> & alleles = g->getAlleles();
+        if (phaseGT == phase10 && g->isHet())
+        {
+            // reverse the list
+            int size = alleles.size();
+            for(int i=0; i<size/2; i++)
+            {
+                swap(alleles[i], alleles[size - i - 1]);
+            }
+        }
+
+        Genotype* genotype = GenotypeBuilder(g).setAlleles(alleles).phased(true).attribute(VCFConstants::HAPLOTYPE_CALLER_PHASING_ID_KEY, ID).attribute(VCFConstants::HAPLOTYPE_CALLER_PHASING_GT_KEY, phaseGT).attribute(VCFConstants::PHASE_SET_KEY, phaseSetID).make();
+        phasedGenotypes.push_back(genotype);
+    }
+    return VariantContextBuilder(vc).setGenotypes(phasedGenotypes)->make();
 }

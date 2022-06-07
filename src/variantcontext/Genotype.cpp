@@ -166,20 +166,20 @@ bool Genotype::sameGenotype(Genotype *other) {
 }
 
 bool Genotype::hasExtendedAttribute(const std::string &key) {
-    std::map<std::string, void*> tmp = getExtendedAttributes();
+    std::map<std::string, AttributeValue> tmp = getExtendedAttributes();
     return tmp.find(key) != tmp.end();
 }
 
-void *Genotype::getExtendedAttribute(const std::string& key, void *defaultValue) {
+AttributeValue Genotype::getExtendedAttribute(const std::string& key, void *defaultValue) {
     return hasExtendedAttribute(key) ? getExtendedAttributes().at(key) : defaultValue;
 }
 
-void *Genotype::getExtendedAttribute(const std::string & key) {
+AttributeValue Genotype::getExtendedAttribute(const std::string & key) {
     return getExtendedAttribute(key, nullptr);
 }
 
 //需要delete
-void *Genotype::getAnyAttribute(const std::string& key) {
+AttributeValue Genotype::getAnyAttribute(const std::string& key) {
     if(key == "GT") {
         std::vector<std::shared_ptr<Allele>> ret = getAlleles();
         return (new std::vector<std::shared_ptr<Allele>>(ret.begin(), ret.end()));
@@ -193,7 +193,7 @@ void *Genotype::getAnyAttribute(const std::string& key) {
         int i;
         if(key == "AD") {
             if(!hasAD()) {
-                return nullptr;
+                return AttributeValue::empty_value();
             } else {
                 int length;
                 var3 = getAD(length);
@@ -212,7 +212,7 @@ void *Genotype::getAnyAttribute(const std::string& key) {
                 return key == "FT" ? new std::string(getFilters()) : getExtendedAttribute(key);
             }
         }else if (!hasPL()) {
-            return nullptr;
+            return AttributeValue::empty_value();;
         } else {
             int length;
             var3 = getPL(length);
@@ -242,5 +242,7 @@ bool Genotype::hasAnyAttribute(std::string key) {
         return key == "FT" || hasExtendedAttribute(key);
     }
 }
+
+Genotype::~Genotype() = default;
 
 

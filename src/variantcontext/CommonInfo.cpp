@@ -4,15 +4,19 @@
 
 #include "CommonInfo.h"
 #include <cmath>
-#include "StringUtils.h"
 #include <stdexcept>
+#include "VCFConstants.h"
 
-CommonInfo::CommonInfo(std::string & name, double log10PError, std::set<std::string> * filters): name(name)
+CommonInfo::CommonInfo(std::string & name, double log10PError, std::set<std::string> * filters, std::map<std::string, AttributeValue>* attributes): name(name), attributes(attributes)
 {
     setLog10PError(log10PError);
     if(filters != nullptr){
         this->filters = *filters;
     }
+}
+
+CommonInfo::~CommonInfo() {
+    delete attributes;
 }
 
 void CommonInfo::setLog10PError(double log10PError)
@@ -26,25 +30,23 @@ void CommonInfo::setLog10PError(double log10PError)
     this->log10PError = log10PError;
 }
 
-bool CommonInfo::hasAttribute(std::string & key) {
-    return attributes.find(key) != attributes.end();
+bool CommonInfo::hasAttribute(const std::string & key) {
+    if(!attributes)
+        return false;
+    else
+        return attributes->find(key) != attributes->end();
 }
 
 int CommonInfo::getAttributeAsInt(std::string &key, int defaultValue) {
-    void* x = getAttribute(key);
-    if(x != nullptr && (attributeTotypeMap.at(x) == 4 && *((std::string*) x) != ".")) {
-        return attributeTotypeMap.at(x) == 1 ? *((int*) x) : StringUtils::parseInt(*((std::string*) x));
-    } else {
-        return defaultValue;
-    }
+    return attributes->at(key).getAttributeAsInt();
 }
 
-void *CommonInfo::getAttribute(std::string &key) {
-    return attributes.at(key);
+AttributeValue CommonInfo::getAttribute(std::string &key) {
+    return attributes->at(key);
 }
 
-std::map<std::string, void *> &CommonInfo::getAttributes(){
-    return attributes;
+std::map<std::string, AttributeValue> &CommonInfo::getAttributes(){
+    return *attributes;
 }
 
 std::set<std::string>* CommonInfo::getFiltersMaybeNull() {
@@ -52,6 +54,15 @@ std::set<std::string>* CommonInfo::getFiltersMaybeNull() {
         return nullptr;
     else
         return &filters;
+}
+
+std::set<std::string> &CommonInfo::getFilters()
+{
+    return filters;
+}
+
+bool CommonInfo::filtersWereApplied() {
+    return !filters.empty();
 }
 
 double CommonInfo::getLog10PError() const {

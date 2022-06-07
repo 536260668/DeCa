@@ -632,3 +632,7 @@ int SAMRecord::getEndAfterFliter() {
 }
 
 PositionToCigar::PositionToCigar(int cigarOffset, int currentStart, int offset):cigarOffset(cigarOffset), currentStart(currentStart), offset(offset) {}
+
+bool SAMRecord::overlaps(std::shared_ptr<Locatable> other) {
+    return getLoc()->overlaps(other);
+}

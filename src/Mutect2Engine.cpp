@@ -15,12 +15,14 @@
 #include "AssemblyResultSet.h"
 #include "haplotypecaller/AssemblyBasedCallerUtils.h"
 
-Mutect2Engine::Mutect2Engine(M2ArgumentCollection & MTAC, char * ref, SAMFileHeader* samFileHeader):MTAC(MTAC), minCallableDepth(MTAC.callableDepth),
+
+Mutect2Engine::Mutect2Engine(M2ArgumentCollection & MTAC, char * ref, SAMFileHeader* samFileHeader, VaraintAnnotatiorEngine& annotatorEngine):MTAC(MTAC), minCallableDepth(MTAC.callableDepth),
                                                             normalSample(MTAC.normalSample) ,callableSites(0), refCache(nullptr) ,header(samFileHeader),
                                                                                                     assemblyEngine(0, 1, 128, false, false, {10, 25}),
                                                                                                     likelihoodCalculationEngine(AssemblyBasedCallerUtils::createLikelihoodCalculationEngine(MTAC.likelihoodArgs)),
                                                                                                     trimmer(&assemblerArgs, &header->getSequenceDictionary(), false,
-                                                                                                            false), aligner(SmithWatermanAligner::getAligner(SmithWatermanAligner::FASTEST_AVAILABLE))
+                                                                                                            false), aligner(SmithWatermanAligner::getAligner(SmithWatermanAligner::FASTEST_AVAILABLE)),
+                                                                                                            genotypingEngine(MTAC, MTAC.normalSample, annotatorEngine)
 {
     std::vector<SAMReadGroupRecord> & mReadGroups = samFileHeader->getReadGroupRecord();
     for(auto & readGroup : mReadGroups)
@@ -164,7 +166,7 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion>& originalAssembl
 
     auto assemblyActiveRegion = AssemblyBasedCallerUtils::assemblyRegionWithWellMappedReads(originalAssemblyRegion, READ_QUALITY_FILTER_THRESHOLD, header);
     std::shared_ptr<AssemblyResultSet> untrimmedAssemblyResult = AssemblyBasedCallerUtils::assembleReads(assemblyActiveRegion, MTAC, header, *refCache, assemblyEngine);
-    std::set<std::shared_ptr<VariantContext>, VariantContextComparator> & allVariationEvents = untrimmedAssemblyResult->getVariationEvents(1);
+    std::set<std::shared_ptr<VariantContext>, VariantContextComparator> & allVariationEvents = untrimmedAssemblyResult->getVariationEvents(MTAC.maxMnpDistance);
 
     std::shared_ptr<AssemblyRegionTrimmer_Result> trimmingResult = trimmer.trim(originalAssemblyRegion, allVariationEvents);
     if(!trimmingResult->isVariationPresent()) {
@@ -189,7 +191,7 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion>& originalAssembl
     shared_ptr<unordered_map<shared_ptr<SAMRecord>, shared_ptr<SAMRecord>>> readRealignments = AssemblyBasedCallerUtils::realignReadsToTheirBestHaplotype(*readLikelihoods, assemblyResult->getReferenceHaplotype(), assemblyResult->getPaddedReferenceLoc(), aligner);
     readLikelihoods->changeEvidence(readRealignments);
 
-
+    CalledHaplotypes calledHaplotypes = genotypingEngine.callMutations(readLikelihoods, *assemblyResult, referenceContext, *regionForGenotyping->getSpan(), header);
 
 	// Break the circular reference of pointer
 	untrimmedAssemblyResult->deleteEventMap();

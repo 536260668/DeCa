@@ -14,10 +14,10 @@ VariantContext::VariantContext(std::string &source,
                                const std::shared_ptr<std::vector<std::shared_ptr<Allele>>> & alleles,
                                GenoTypesContext* genotypes,
                                double log10PError,
-                               std::set<std::string>* filters, std::map<std::string, void*> *attributes,
+                               std::set<std::string>* filters, std::map<std::string, AttributeValue> *attributes,
                                bool fullyDecoded,
                                const std::set<Validation>&  validationToPerform) : contig(contig), start(start), stop(stop), commonInfo(
-        CommonInfo(source, log10PError, filters))
+        CommonInfo(source, log10PError, filters, attributes))
 {
     type = VariantContext_NULL;
     if(ID.empty() || std::equal(ID.begin(), ID.end(), ""))
@@ -95,7 +95,7 @@ bool VariantContext::validate(const std::set<Validation>& validationToPerform) {
     return true;
 }
 
-bool VariantContext::hasAttribute(std::string &key) {
+bool VariantContext::hasAttribute(const std::string &key) {
     return commonInfo.hasAttribute(key);
 }
 
@@ -116,8 +116,8 @@ void VariantContext::validateStop() {
     }
 }
 
-int VariantContext::getAttributeAsInt(std::string &key, int defaultValue) {
-    return commonInfo.getAttributeAsInt(key, defaultValue);
+int VariantContext::getAttributeAsInt(const std::string &key, int defaultValue) {
+    return commonInfo.getAttributeAsInt(const_cast<std::string &>(key), defaultValue);
 }
 
 int VariantContext::getEnd() const {
@@ -298,12 +298,16 @@ bool VariantContext::isSimpleInsertion() {
     return isSimpleIndel() && getReference()->getLength() == 1;
 }
 
-std::map<std::string, void *> & VariantContext::getAttributes() {
+std::map<std::string,AttributeValue> & VariantContext::getAttributes() {
     return commonInfo.getAttributes();
 }
 
 std::string &VariantContext::getContig() {
     return contig;
+}
+
+std::set<std::string> &VariantContext::getFilter() {
+    return commonInfo.getFilters();
 }
 
 std::set<std::string> *VariantContext::getFiltersMaybeNull() {
@@ -316,6 +320,10 @@ GenoTypesContext *VariantContext::getGenotypes() {
 
 std::string &VariantContext::getID() {
     return ID;
+}
+
+bool VariantContext::hasID() {
+    return ID != VCFConstants::EMPTY_ID_FIELD;
 }
 
 double VariantContext::getLog10PError() {
@@ -331,10 +339,51 @@ bool VariantContext::isFullyDecoded() const {
 }
 
 VariantContext::~VariantContext() {
-	//todo: delete genotypes?
-	//std::cout<<"~VariantContext in: "<<start<<std::endl;
 	//delete genotypes;
-	//std::cout<<"~VariantContext out: "<<start<<std::endl;
+}
+
+bool VariantContext::isNotFiltered() {
+    return commonInfo.isNotFiltered();
+}
+
+bool VariantContext::isFiltered() {
+    return commonInfo.isFiltered();
+}
+
+bool VariantContext::isVariant() {
+    return getType() != VariantContext_NO_VARIATION;
+}
+
+bool VariantContext::filtersWereApplied() {
+    return commonInfo.filtersWereApplied();
+}
+
+int VariantContext::getCalledChrCount() {
+    std::set<std::string> noSamples;
+    return getCalledChrCount(noSamples);
+}
+
+int VariantContext::getCalledChrCount(std::set<std::string> &sampleIds) {
+    int n = 0;
+    auto genotypes = sampleIds.empty() ? getGenotypes(): nullptr;
+
+    for(int i=0; i<genotypes->getSize(); i++)
+    {
+        if(!genotypes->get(i)->isFiltered())
+        {
+            for(auto a : genotypes->get(i)->getAlleles())
+                n += a->getIsNoCall() ? 0 : 1;
+        }
+    }
+    return n;
+}
+
+bool VariantContext::hasGenotypes() {
+    return !genotypes->isEmpty();
+}
+
+int VariantContext::getNSamples() {
+    return genotypes->getSize();
 }
 
 //std::vector<Allele> *VariantContext::makeAlleles(std::vector<Allele> &alleles)

@@ -48,6 +48,11 @@ public:
 	static std::set<std::shared_ptr<VariantContext>, VariantContextComparator>
 	getAllVariantContexts(std::vector<std::shared_ptr<Haplotype>> &haplotypes);
 
+	/**
+     * Returns any events in the map that overlap loc, including spanning deletions and events that start at loc.
+     */
+	std::shared_ptr<std::vector<std::shared_ptr<VariantContext>>> getOverlappingEvents(int loc);
+
 protected:
 	static const int MIN_NUMBER_OF_EVENTS_TO_COMBINE_INTO_BLOCK_SUBSTITUTION = 3;
 

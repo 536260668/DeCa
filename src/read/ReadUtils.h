@@ -57,6 +57,7 @@ public:
     static int getAdaptorBoundary(SAMRecord * read);
     static bool isBaseInsideAdaptor(std::shared_ptr<SAMRecord> & read, long basePos);
     static bool isInsideRead(std::shared_ptr<SAMRecord> & read, int referenceCoordinate);
+    static bool isF2R1(std::shared_ptr<SAMRecord> read);
 
     // overrite some method without using SAMRecord class for performance
     static bool hasWellDefinedFragmentSize(bam1_t * read, sam_hdr_t * hdr);

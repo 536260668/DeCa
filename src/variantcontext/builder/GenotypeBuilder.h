@@ -6,8 +6,9 @@
 #define MUTECT2CPP_MASTER_GENOTYPEBUILDER_H
 
 #include <utility>
-
+#include "AttributeValue.h"
 #include "FastGenotype.h"
+
 class GenotypeBuilder {
 private:
     static std::vector<std::shared_ptr<Allele>> HAPLOID_NO_CALL;
@@ -21,19 +22,49 @@ private:
     int ADLength = 0;
     int* PL = nullptr;
     int PLLength = 0;
-    std::map<std::string, void*> extendedAttributes;
+    std::map<std::string, AttributeValue> extendedAttributes;
     std::string filters;
     int initialAttributeMapSize = 5;
-    static std::map<std::string, void*> NO_ATTRIBUTES;
+    static std::map<std::string, AttributeValue> NO_ATTRIBUTES;
 
 public:
     static Genotype* create(std::string sampleName, std::vector<std::shared_ptr<Allele>> alleles);
-    static Genotype* create(std::string sampleName, std::vector<std::shared_ptr<Allele>> alleles, const std::map<std::string, void*>& attributes);
+    static Genotype* create(std::string sampleName, std::vector<std::shared_ptr<Allele>> alleles, const std::map<std::string, AttributeValue>& attributes);
     static Genotype* create(const std::string& sampleName, const std::vector<std::shared_ptr<Allele>>& alleles, double * gls, int length);
+
+
     GenotypeBuilder(std::string sampleName, std::vector<std::shared_ptr<Allele>> alleles) : sampleName(std::move(sampleName)), alleles(std::move(alleles)){}
-    GenotypeBuilder attributes(const std::map<std::string, void*>& attributes);
+    GenotypeBuilder(Genotype* g, std::string name, std::vector<std::shared_ptr<Allele>>& alleles);
+    explicit GenotypeBuilder(Genotype* g);
+    GenotypeBuilder& setAD(int* AD, int ADLength);
+
+    GenotypeBuilder& setDP(int DP);
+
+    GenotypeBuilder& attributes(const std::map<std::string, AttributeValue>& attributes);
+
+    GenotypeBuilder& attribute(const std::string& key, std::string& value);
+
+    GenotypeBuilder& attribute(const std::string& key, int value);
+
+    GenotypeBuilder& attribute(const std::string& key, std::vector<double>& value);
+
+    GenotypeBuilder& attribute(const std::string& key, std::vector<int>& value);
+
+    GenotypeBuilder& attribute(const std::string& key, std::vector<int>&& value);
+
     GenotypeBuilder buildPL(double * GLs, int length);
     Genotype* make();
+
+    /**
+     * Set this genotype's alleles
+     * @param alleles
+     * @return
+     */
+    GenotypeBuilder& setAlleles(std::shared_ptr<std::vector<std::shared_ptr<Allele>>> alleles);
+
+    GenotypeBuilder& setAlleles(std::vector<std::shared_ptr<Allele>>& alleles);
+
+    GenotypeBuilder& phased(bool phased);
 };
 
 

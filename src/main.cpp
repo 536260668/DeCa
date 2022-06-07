@@ -138,7 +138,8 @@ struct Shared{
 void threadFunc(Shared *w, char *ref, int n, int nref) {
 	std::queue<std::shared_ptr<AssemblyRegion>> pendingRegions;
 	ActivityProfile *activityProfile = new BandPassActivityProfile(w->MTAC.maxProbPropagationDistance, w->MTAC.activeProbThreshold, BandPassActivityProfile::MAX_FILTER_SIZE, BandPassActivityProfile::DEFAULT_SIGMA,true , w->header);
-	Mutect2Engine m2Engine(w->MTAC, ref, w->header);
+	VaraintAnnotatiorEngine annotatiorEngine;   // TODO: make it more elegant
+	Mutect2Engine m2Engine(w->MTAC, ref, w->header, annotatiorEngine);
 	std::vector<SAMSequenceRecord> headerSequences = w->header->getSequenceDictionary().getSequences();
 
 	std::cout << "thread start\n";

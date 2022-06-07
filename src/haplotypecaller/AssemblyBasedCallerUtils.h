@@ -16,6 +16,13 @@
 #include "SmithWatermanAligner.h"
 
 class AssemblyBasedCallerUtils {
+private:
+    static std::string phase01;
+    static std::string phase10;
+
+
+    static bool isBiallelic(shared_ptr<VariantContext> vc);
+
 public:
     /**
      * Helper function to create the reference haplotype out of the active region and a padded loc
@@ -73,6 +80,73 @@ public:
     static shared_ptr<unordered_map<shared_ptr<SAMRecord>, shared_ptr<SAMRecord>>> realignReadsToTheirBestHaplotype(AlleleLikelihoods<SAMRecord, Haplotype>& originalReadLikelihoods, shared_ptr<Haplotype>& refHaplotype, shared_ptr<SimpleInterval>& paddedReferenceLoc, SmithWatermanAligner* aligner);
 
     static double HAPLOTYPE_ALIGNMENT_TIEBREAKING_PRIORITY(shared_ptr<Haplotype> h);
+
+    /**
+    * Returns the list of events discovered in assembled haplotypes that are active at this location. The results will
+    * include events that span the current location if includeSpanningEvents is set to true; otherwise it will only
+    * include events that have loc as their start position.
+    * @param loc The start position we are genotyping
+    * @param haplotypes list of active haplotypes at the current location
+    * @param includeSpanningEvents If true, will also return events that span loc
+    */
+    static shared_ptr<vector<shared_ptr<VariantContext>>> getVariantContextsFromActiveHaplotypes(int loc, vector<shared_ptr<Haplotype>>& haplotypes, bool includeSpanningEvents);
+
+    static shared_ptr<VariantContext> makeMergedVariantContext(shared_ptr<vector<shared_ptr<VariantContext>>> vcs);
+
+    /**
+     * Returns a mapping from Allele in the mergedVC, which represents all of the alleles being genotyped at loc,
+     * to a list of Haplotypes that support that allele. If the mergedVC includes a spanning deletion allele, all haplotypes
+     * that support spanning deletions will be assigned to that allele in the map.
+     *
+     * @param mergedVC The merged variant context for the locus, which includes all active alternate alleles merged to a single reference allele
+     * @param loc The active locus being genotyped
+     * @param haplotypes Haplotypes for the current active region
+     * @return
+     */
+    static shared_ptr<std::map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Haplotype>>>>> createAlleleMapper(shared_ptr<VariantContext> mergedVC, int loc, vector<shared_ptr<Haplotype>>& haplotypes);
+
+    /**
+     * Tries to phase the individual alleles based on pairwise comparisons to the other alleles based on all called haplotypes
+     *
+     * @param calls             the list of called alleles
+     * @param calledHaplotypes  the set of haplotypes used for calling
+     * @return a non-null list which represents the possibly phased version of the calls
+     */
+    static shared_ptr<vector<shared_ptr<VariantContext>>> phaseCalls(vector<shared_ptr<VariantContext>>& calls, unordered_set<shared_ptr<Haplotype>>& calledHaplotypes);
+
+    static shared_ptr<map<VariantContext*, shared_ptr<unordered_set<Haplotype*>>>> constructHaplotypeMapping(vector<shared_ptr<VariantContext>>& originalCalls, unordered_set<shared_ptr<Haplotype>>& calledHaplotypes);
+
+    /**
+    * Construct the mapping from call (variant context) to phase set ID
+    *
+    * @param originalCalls    the original unphased calls
+    * @param haplotypeMap     mapping from alternate allele to the set of haplotypes that contain that allele
+    * @param totalAvailableHaplotypes the total number of possible haplotypes used in calling
+    * @param phaseSetMapping  the map to populate in this method;
+    *                         note that it is okay for this method NOT to populate the phaseSetMapping at all (e.g. in an impossible-to-phase situation)
+    * @return the next incremental unique index
+    */
+    static int constructPhaseSetMapping(vector<shared_ptr<VariantContext>> &originalCalls, map<VariantContext*, shared_ptr<unordered_set<Haplotype*>>>& haplotypeMap, int totalAvailableHaplotypes, map<VariantContext*, pair<int, string>>& phaseSetMapping);
+
+    static shared_ptr<vector<shared_ptr<VariantContext>>> constructPhaseGroups(vector<shared_ptr<VariantContext>> &originalCalls, map<VariantContext*, pair<int, string>>& phaseSetMapping, int indexTo);
+
+    /**
+     * Create a unique identifier given the variant context
+     *
+     * @param vc   the variant context
+     * @return non-null String
+     */
+    static string createUniqueID(shared_ptr<VariantContext> vc);
+
+    /**
+     * Add physical phase information to the provided variant context
+     *
+     * @param vc   the variant context
+     * @param ID   the ID to use
+     * @param phaseGT the phase GT string to use
+     * @return phased non-null variant context
+     */
+    static shared_ptr<VariantContext> phaseVC(shared_ptr<VariantContext> vc, string& ID, string& phaseGT, int phaseSetID);
 };
 
 
