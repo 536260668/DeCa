@@ -97,6 +97,8 @@ static int usage() {
     fprintf(stderr, "\n");
 	fprintf(stderr, "-L:String                      Specifies the name of the chromosome to be processed\n");
 	fprintf(stderr, "\n");
+	fprintf(stderr, "-M:String                      ML model path\n");
+	fprintf(stderr, "\n");
                     return EXIT_FAILURE;
 }
 
@@ -126,6 +128,7 @@ struct Shared{
 	SAMFileHeader* header{};
 	std::string chromosomeName;
 	M2ArgumentCollection MTAC;
+	std::string modelPath;
 	bool bqsr_within_mutect = false;
 	std::shared_ptr<BQSRReadTransformer> tumorTransformer = nullptr;
 	std::shared_ptr<BQSRReadTransformer> normalTransformer = nullptr;
@@ -141,7 +144,7 @@ struct Shared{
 void threadFunc(Shared *w, char *ref, int n, int nref) {
 	std::queue<std::shared_ptr<AssemblyRegion>> pendingRegions;
 	ActivityProfile *activityProfile = new BandPassActivityProfile(w->MTAC.maxProbPropagationDistance, w->MTAC.activeProbThreshold, BandPassActivityProfile::MAX_FILTER_SIZE, BandPassActivityProfile::DEFAULT_SIGMA,true , w->header);
-	Mutect2Engine m2Engine(w->MTAC, ref, w->header);
+	Mutect2Engine m2Engine(w->MTAC, w->header, w->modelPath);
 	std::vector<SAMSequenceRecord> headerSequences = w->header->getSequenceDictionary().getSequences();
 
 	std::cout << "thread start\n";
@@ -292,6 +295,7 @@ int main(int argc, char *argv[])
             {"reference",   required_argument, nullptr, 'R'},
             {"thread",      required_argument, nullptr, 'T'},
             {"chromosome",  required_argument, nullptr, 'L'},
+            {"model",       required_argument, nullptr, 'M'},
             {"callable-depth", required_argument, nullptr, 1000},
             {"max-prob-propagation-distance", required_argument, nullptr, 1001},
             {"active-probability-threshold", required_argument, nullptr, 1002},
@@ -308,7 +312,7 @@ int main(int argc, char *argv[])
     if (argc == 1 && isatty(STDIN_FILENO))
         return usage();
 
-    while((c = getopt_long(argc, argv, "I:O:R:r:T:L:", loptions, nullptr)) >= 0){
+    while((c = getopt_long(argc, argv, "I:O:R:r:T:L:M:", loptions, nullptr)) >= 0){
         switch (c) {
             case 'I':
 	            sharedData.input_bam.emplace_back(strdup(optarg));
@@ -325,6 +329,9 @@ int main(int argc, char *argv[])
 		        break;
 	        case 'L':
 		        sharedData.chromosomeName = std::string (optarg);
+		        break;
+	        case 'M':
+		        sharedData.modelPath = std::string (optarg);
 		        break;
             case 'r':
                 reg = strdup(optarg);

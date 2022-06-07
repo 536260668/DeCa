@@ -493,9 +493,9 @@ bool model::modelRefer(const std::shared_ptr<std::map<std::string, std::vector<s
 	return false;
 }
 
-void model::Initial() {
+void model::Initial(const std::string &modelPath) {
 	try {
-		n_model = torch::jit::load("/home/cluster/Storage4/hlf/trans.pt");
+		n_model = torch::jit::load(modelPath);
 	}
 	catch (const c10::Error &e) {
 		std::cerr << "error loading the model\n";
