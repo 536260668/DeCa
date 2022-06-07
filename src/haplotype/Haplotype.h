@@ -105,6 +105,9 @@ public:
 
 	bool operator<(const Haplotype &other) const;
 
+	double getScore() const;
+
+
 	/**
     * Get the haplotype cigar extended by padSize M at the tail, consolidated into a clean cigar
     *

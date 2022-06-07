@@ -14,7 +14,8 @@ KBestHaplotype::KBestHaplotype(std::shared_ptr<SeqVertex> initialVertex,
 
 KBestHaplotype::KBestHaplotype(const std::shared_ptr<KBestHaplotype> &p, const std::shared_ptr<BaseEdge> &edge,
                                int totalOutgoingMultiplicity) : Path<SeqVertex, BaseEdge>(*p, edge) {
-	score = p->getScore() + std::log10(edge->getMultiplicity()) - std::log10(totalOutgoingMultiplicity);
+	score = p->getScore() + (double) (std::log10((long double) edge->getMultiplicity()) -
+	                                  std::log10((long double) totalOutgoingMultiplicity));
 	isReference &= edge->getIsRef();
 }
 

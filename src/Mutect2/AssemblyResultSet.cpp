@@ -5,6 +5,7 @@
 #include "AssemblyResultSet.h"
 
 #include <utility>
+#include <algorithm>
 #include "param/ParamUtils.h"
 
 bool AssemblyResultSet::add(const std::shared_ptr<Haplotype> &h, const std::shared_ptr<AssemblyResult> &ar) {
@@ -97,9 +98,9 @@ AssemblyResultSet::getVariationEvents(int maxMnpDistance) {
 }
 
 void AssemblyResultSet::regenerateVariationEvents(int maxMnpDistance) {
-	std::shared_ptr<std::vector<std::shared_ptr<Haplotype>>> haplotypeList = getHaplotypeList();
+	std::shared_ptr<std::vector<std::shared_ptr<Haplotype>>> haplotypeList = getSortedHaplotypeList();
 	EventMap::buildEventMapsForHaplotypes(*haplotypeList, fullReferenceWithPadding, fullReferenceWithPaddingLength,
-	                                      paddedReferenceLoc, false, maxMnpDistance);
+	                                      paddedReferenceLoc, maxMnpDistance);
 	variationEvents = EventMap::getAllVariantContexts(*haplotypeList);
 	lastMaxMnpDistanceUsed = maxMnpDistance;
 	for (const std::shared_ptr<Haplotype> &haplotype: *haplotypeList) {
@@ -108,6 +109,34 @@ void AssemblyResultSet::regenerateVariationEvents(int maxMnpDistance) {
 			break;
 		}
 	}
+}
+
+std::shared_ptr<std::vector<std::shared_ptr<Haplotype>>>
+AssemblyResultSet::getSortedHaplotypeList() {
+	std::shared_ptr<std::vector<std::shared_ptr<Haplotype>>>
+			res = std::make_shared<std::vector<std::shared_ptr<Haplotype>>>();
+	res->reserve(haplotypes.size());
+	for (const auto &haplotype: haplotypes) {
+		res->emplace_back(haplotype);
+	}
+	std::sort(res->begin(), res->end(),
+	          [](const std::shared_ptr<Haplotype> &h1, const std::shared_ptr<Haplotype> &h2) -> bool {
+		          double score1 = h1->getScore(), score2 = h2->getScore();
+		          if (score1 - score2 > 0.0000000001)
+			          return true;
+		          if (score2 - score1 > 0.0000000001)
+			          return false;
+		          int len1 = h1->getBasesLength(), len2 = h2->getBasesLength();
+		          if (len1 != len2)
+			          return len1 > len2;
+		          std::shared_ptr<uint8_t[]> base1 = h1->getBases(), base2 = h2->getBases();
+		          for (int i = 0; i < len1; ++i) {
+			          if (base1[i] == base2[i]) continue;
+			          return base1[i] > base2[i];
+		          }
+		          return false;
+	          });
+	return res;
 }
 
 std::shared_ptr<std::vector<std::shared_ptr<Haplotype>>>
@@ -121,22 +150,29 @@ AssemblyResultSet::getHaplotypeList() {
 	return res;
 }
 
-std::shared_ptr<std::unordered_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype>>
+std::vector<std::pair<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>>>
 AssemblyResultSet::calculateOriginalByTrimmedHaplotypes(const std::shared_ptr<AssemblyRegion> &trimmedAssemblyRegion) {
-	const std::shared_ptr<std::vector<std::shared_ptr<Haplotype>>> haplotypeList = getHaplotypeList();
-	std::shared_ptr<std::unordered_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype >> originalByTrimmedHaplotypes = trimDownHaplotypes(
-			trimmedAssemblyRegion, haplotypeList);
-	std::vector<std::shared_ptr<Haplotype>> trimmedHaplotypes;
-	trimmedHaplotypes.reserve(originalByTrimmedHaplotypes->size());
-	for (const auto &element: *originalByTrimmedHaplotypes) {
-		trimmedHaplotypes.emplace_back(element.first);
-	}
-	std::sort(trimmedHaplotypes.begin(), trimmedHaplotypes.end(),
-	          [](const std::shared_ptr<Haplotype> &left, const std::shared_ptr<Haplotype> &right) {
-		          return *left < *right;
-	          });
 	std::shared_ptr<std::unordered_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype >>
-			sortedOriginalByTrimmedHaplotypes = mapOriginalToTrimmed(originalByTrimmedHaplotypes, trimmedHaplotypes);
+			originalByTrimmedHaplotypes = trimDownHaplotypes(trimmedAssemblyRegion, getSortedHaplotypeList());
+	std::vector<std::pair<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>>> sortedOriginalByTrimmedHaplotypes;
+	sortedOriginalByTrimmedHaplotypes.reserve(originalByTrimmedHaplotypes->size());
+	for (const auto &element: *originalByTrimmedHaplotypes) {
+		sortedOriginalByTrimmedHaplotypes.emplace_back(std::make_pair(element.first, element.second));
+	}
+	std::sort(sortedOriginalByTrimmedHaplotypes.begin(), sortedOriginalByTrimmedHaplotypes.end(),
+	          [](const std::pair<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>> &left,
+	             const std::pair<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>> &right) {
+		          std::shared_ptr<Haplotype> ha = left.first, hb = right.first;
+		          int len1 = ha->getBasesLength(), len2 = hb->getBasesLength();
+		          if (len1 != len2)
+			          return len1 < len2;
+		          uint8_t *seq1 = ha->getBases().get(), *seq2 = hb->getBases().get();
+		          for (int k = 0; k < len1; ++k) {
+			          if (seq1[k] == seq2[k]) continue;
+			          return seq1[k] < seq2[k];
+		          }
+		          return false;
+	          });
 	return sortedOriginalByTrimmedHaplotypes;
 }
 
@@ -145,7 +181,6 @@ AssemblyResultSet::trimDownHaplotypes(const std::shared_ptr<AssemblyRegion> &tri
                                       const std::shared_ptr<std::vector<std::shared_ptr<Haplotype>>> &haplotypeList) {
 	std::shared_ptr<std::unordered_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype>>
 			originalByTrimmedHaplotypes = std::make_shared<std::unordered_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype>>();
-	//todo: memory leak here?
 	for (const auto &h: *haplotypeList) {
 		std::shared_ptr<Haplotype> trimmed = h->trim(trimmedAssemblyRegion->getExtendedSpan());
 		if (trimmed != nullptr) {
@@ -156,7 +191,7 @@ AssemblyResultSet::trimDownHaplotypes(const std::shared_ptr<AssemblyRegion> &tri
 					originalByTrimmedHaplotypes->insert({trimmed, h});
 				}
 			} else {
-			    originalByTrimmedHaplotypes->insert({trimmed, h});
+				originalByTrimmedHaplotypes->insert({trimmed, h});
 			}
 		} else if (h->getIsReference())
 			throw std::invalid_argument("trimming eliminates the reference haplotype");
@@ -164,38 +199,25 @@ AssemblyResultSet::trimDownHaplotypes(const std::shared_ptr<AssemblyRegion> &tri
 	return originalByTrimmedHaplotypes;
 }
 
-std::shared_ptr<std::unordered_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype>>
-AssemblyResultSet::mapOriginalToTrimmed(
-		const std::shared_ptr<std::unordered_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype>> &originalByTrimmedHaplotypes,
-		const std::vector<std::shared_ptr<Haplotype>> &trimmedHaplotypes) {
-	std::shared_ptr<std::unordered_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype>>
-			sortedOriginalByTrimmedHaplotypes = std::make_shared<std::unordered_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype>>();
-	sortedOriginalByTrimmedHaplotypes->reserve(trimmedHaplotypes.size());
-	for (const auto &trimmed: trimmedHaplotypes) {
-		sortedOriginalByTrimmedHaplotypes->insert({trimmed, originalByTrimmedHaplotypes->at(trimmed)});
-	}
-	return sortedOriginalByTrimmedHaplotypes;
-}
-
 std::shared_ptr<AssemblyResultSet>
 AssemblyResultSet::trimTo(const std::shared_ptr<AssemblyRegion> &trimmedAssemblyRegion) {
-	std::shared_ptr<std::unordered_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype >>
+	std::vector<std::pair<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>>>
 			originalByTrimmedHaplotypes = calculateOriginalByTrimmedHaplotypes(trimmedAssemblyRegion);
 	if (refHaplotype == nullptr)
 		throw std::invalid_argument("refHaplotype is null");
 
 	std::shared_ptr<AssemblyResultSet> result = std::make_shared<AssemblyResultSet>();
-	for (const auto &element: *originalByTrimmedHaplotypes) {
+	for (const auto &element: originalByTrimmedHaplotypes) {
 		const std::shared_ptr<Haplotype> &trimmed = element.first;
 		const std::shared_ptr<Haplotype> &original = element.second;
 		if (original == nullptr)
 			throw std::invalid_argument("all trimmed haplotypes must have an original one");
 
-		if(assemblyResultByHaplotype.find(original) == assemblyResultByHaplotype.end())
-		    result->add(trimmed);
+		if (assemblyResultByHaplotype.find(original) == assemblyResultByHaplotype.end())
+			result->add(trimmed);
 		else {
-		    std::shared_ptr<AssemblyResult> &as = assemblyResultByHaplotype.at(original);
-		    result->add(trimmed, as);
+			std::shared_ptr<AssemblyResult> &as = assemblyResultByHaplotype.at(original);
+			result->add(trimmed, as);
 		}
 	}
 
@@ -206,6 +228,7 @@ AssemblyResultSet::trimTo(const std::shared_ptr<AssemblyRegion> &trimmedAssembly
 	for (const auto &haplotype: haplotypes) {
 		if (haplotype->getIsNonReference()) {
 			result->variationPresent = true;
+			break;
 		}
 	}
 	result->wasTrimmed = true;
@@ -239,9 +262,26 @@ int AssemblyResultSet::getFullReferenceWithPaddingLength() {
 void AssemblyResultSet::deleteEventMap() {
 	auto haplotypesToReleased = *this->getHaplotypeList();
 	for (auto &item: haplotypesToReleased) {
-		if (item->getEventMap() != nullptr){
+		if (item->getEventMap() != nullptr) {
 			delete item->getEventMap();
 			item->setEventMap(nullptr);
 		}
+	}
+}
+
+void AssemblyResultSet::printSortedHaplotypes() {
+	std::shared_ptr<std::vector<std::shared_ptr<Haplotype>>> ret = getSortedHaplotypeList();
+	std::cout << "Haplotypes\t" << ret->size() << std::endl;
+	for (const auto &h: *ret) {
+		std::string baseStr = h->getBaseString();
+		if (h->getIsNonReference()) {
+			std::cout.precision(10);
+			std::cout.flags(std::ostream::fixed);
+			std::cout << h->getScore() << "\t";
+		} else {
+			std::cout << "ref\t";
+		}
+		std::cout << baseStr.length() << std::endl;
+		std::cout << baseStr << std::endl;
 	}
 }

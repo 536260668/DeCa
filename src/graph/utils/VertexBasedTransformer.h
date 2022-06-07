@@ -11,13 +11,13 @@
 class VertexBasedTransformer {
 private:
     bool dontModifyGraphEvenIfPossible = false;
-    std::shared_ptr<SeqGraph> graph;
+    SeqGraph* graph;
 
 public:
     bool getDontModifyGraphEvenIfPossible() const {return dontModifyGraphEvenIfPossible;}
     void setDontModifyGraphEvenIfPossible() {dontModifyGraphEvenIfPossible = true; }
-    VertexBasedTransformer(std::shared_ptr<SeqGraph> graph);
-    std::shared_ptr<SeqGraph> getGraph() {return graph;}
+    VertexBasedTransformer(SeqGraph* graph);
+	SeqGraph* getGraph() {return graph;}
 
     /**
      * Merge until the graph has no vertices that are candidates for merging

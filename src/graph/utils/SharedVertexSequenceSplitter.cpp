@@ -3,13 +3,15 @@
 //
 
 #include "SharedVertexSequenceSplitter.h"
+#include <memory>
+#include <utility>
 #include "GraphUtils.h"
 
 std::pair<std::shared_ptr<SeqVertex> , std::shared_ptr<SeqVertex>>
-SharedVertexSequenceSplitter::commonPrefixAndSuffixOfVertices(std::unordered_set<std::shared_ptr<SeqVertex>> middleVertices){
+SharedVertexSequenceSplitter::commonPrefixAndSuffixOfVertices(const std::unordered_set<std::shared_ptr<SeqVertex>>& middleVertices){
     std::list<std::pair<std::shared_ptr<uint8_t[]>, int>> kmers;
     int min = INT32_MAX;
-    for(std::shared_ptr<SeqVertex> v : middleVertices) {
+    for(const std::shared_ptr<SeqVertex>& v : outer->sortedVerticesOf(middleVertices)) {
         std::pair<std::shared_ptr<uint8_t[]>, int> tmp;
         tmp.first = v->getSequence();
         tmp.second = v->getLength();
@@ -29,10 +31,10 @@ SharedVertexSequenceSplitter::commonPrefixAndSuffixOfVertices(std::unordered_set
     return std::pair<std::shared_ptr<SeqVertex>, std::shared_ptr<SeqVertex>>(new SeqVertex(prefix, prefixLength), new SeqVertex(suffix, suffixLength));
 }
 
-SharedVertexSequenceSplitter::SharedVertexSequenceSplitter(std::shared_ptr<SeqGraph> graph, std::unordered_set<std::shared_ptr<SeqVertex>> toSplitsArg) : outer(graph), toSplits(toSplitsArg){
-    Mutect2Utils::validateArg(graph.get(), "graph cannot be null");
+SharedVertexSequenceSplitter::SharedVertexSequenceSplitter(SeqGraph* graph, const std::unordered_set<std::shared_ptr<SeqVertex>>& toSplitsArg) : outer(graph), toSplits(toSplitsArg){
+    Mutect2Utils::validateArg(graph, "graph cannot be null");
     Mutect2Utils::validateArg(toSplitsArg.size() > 1, "Can only split at least 2 vertices");
-    for(std::shared_ptr<SeqVertex> v : toSplitsArg) {
+    for(const std::shared_ptr<SeqVertex>& v : toSplitsArg) {
         std::unordered_set<std::shared_ptr<SeqVertex>>& allVertex = graph->getVertexSet();
         if(allVertex.find(v) == allVertex.end())
             throw std::invalid_argument("graph doesn't contain all of the vertices to split");
@@ -57,14 +59,15 @@ bool SharedVertexSequenceSplitter::meetsMinMergableSequenceForSuffix(int minComm
 bool SharedVertexSequenceSplitter::splitAndUpdate(std::shared_ptr<SeqVertex> top, std::shared_ptr<SeqVertex> bottom) {
     split();
     updateGraph(top, bottom);
+	delete splitGraph;
     return true;
 }
 
 void SharedVertexSequenceSplitter::split() {
-    splitGraph = std::shared_ptr<SeqGraph>(new SeqGraph(outer->getKmerSize()));
+    splitGraph = new SeqGraph(outer->getKmerSize());
     splitGraph->addVertex(getPrefixV());
     splitGraph->addVertex(getSuffixV());
-    for(std::shared_ptr<SeqVertex> mid : toSplits) {
+    for(const std::shared_ptr<SeqVertex>& mid : outer->sortedVerticesOf(toSplits)) {
         std::shared_ptr<BaseEdge> toMid = processEdgeToRemove(mid, outer->incomingEdgeOf(mid));
         std::shared_ptr<BaseEdge> fromMid = processEdgeToRemove(mid, outer->outgoingEdgeOf(mid));
 
@@ -84,15 +87,15 @@ void SharedVertexSequenceSplitter::split() {
 
 std::shared_ptr<BaseEdge> SharedVertexSequenceSplitter::processEdgeToRemove(std::shared_ptr<SeqVertex> v, std::shared_ptr<BaseEdge> e) {
     if (e == nullptr) {
-        return std::shared_ptr<BaseEdge>(new BaseEdge(outer->isReferenceNode(v), 0));
+        return std::make_shared<BaseEdge>(outer->isReferenceNode(v), 0);
     } else {
         edgesToRemove.emplace_back(e);
-        return std::shared_ptr<BaseEdge>(new BaseEdge(e->getIsRef(), e->getMultiplicity()));
+        return std::make_shared<BaseEdge>(e->getIsRef(), e->getMultiplicity());
     }
 }
 
-void SharedVertexSequenceSplitter::updateGraph(std::shared_ptr<SeqVertex> top, std::shared_ptr<SeqVertex> bot) {
-    for(std::shared_ptr<SeqVertex> v : toSplits) {
+void SharedVertexSequenceSplitter::updateGraph(const std::shared_ptr<SeqVertex>& top, const std::shared_ptr<SeqVertex>& bot) {
+    for(const std::shared_ptr<SeqVertex>& v : toSplits) {
         std::unordered_set<std::shared_ptr<SeqVertex>>& allVertex = outer->getVertexSet();
         if(allVertex.find(v) == allVertex.end())
             throw std::invalid_argument("graph doesn't contain all of the vertices to split");
@@ -106,12 +109,12 @@ void SharedVertexSequenceSplitter::updateGraph(std::shared_ptr<SeqVertex> top, s
 
     outer->removeAllVertices(toSplits);
     std::vector<std::shared_ptr<BaseEdge>> edgesToRemoveVector;
-    for(std::shared_ptr<BaseEdge> baseEdge : edgesToRemove) {
+    for(const std::shared_ptr<BaseEdge>& baseEdge : edgesToRemove) {
         edgesToRemoveVector.emplace_back(baseEdge);
     }
     outer->removeAllEdges(edgesToRemoveVector);
 
-    for(std::shared_ptr<SeqVertex> v : getNewMiddles()) {
+    for(const std::shared_ptr<SeqVertex>& v : getNewMiddles()) {
         outer->addVertex(v);
     }
 
@@ -140,22 +143,22 @@ void SharedVertexSequenceSplitter::updateGraph(std::shared_ptr<SeqVertex> top, s
     }
 }
 
-void SharedVertexSequenceSplitter::addPrefixNodeAndEdges(std::shared_ptr<SeqVertex> top) {
+void SharedVertexSequenceSplitter::addPrefixNodeAndEdges(const std::shared_ptr<SeqVertex>& top) {
     outer->addVertex(getPrefixV());
     if(top != nullptr) {
         outer->addEdge(top, getPrefixV(), BaseEdge::makeOREdge(splitGraph->outgoingEdgesOf(getPrefixV()), 1));
     }
 }
 
-void SharedVertexSequenceSplitter::addSuffixNodeAndEdges(std::shared_ptr<SeqVertex> bot) {
+void SharedVertexSequenceSplitter::addSuffixNodeAndEdges(const std::shared_ptr<SeqVertex>& bot) {
     outer->addVertex(getSuffixV());
     if(bot != nullptr) {
         outer->addEdge(getSuffixV(), bot, BaseEdge::makeOREdge(splitGraph->incomingEdgesOf(getSuffixV()), 1));
     }
 }
 
-void SharedVertexSequenceSplitter::addEdgesFromTopNode(std::shared_ptr<SeqVertex> topForConnect, std::shared_ptr<SeqVertex> botForConnect) {
-    for(std::shared_ptr<BaseEdge> e : splitGraph->outgoingEdgesOf(getPrefixV())) {
+void SharedVertexSequenceSplitter::addEdgesFromTopNode(const std::shared_ptr<SeqVertex>& topForConnect, const std::shared_ptr<SeqVertex>& botForConnect) {
+    for(const std::shared_ptr<BaseEdge>& e : splitGraph->outgoingEdgesOf(getPrefixV())) {
         std::shared_ptr<SeqVertex> target = splitGraph->getEdgeTarget(e);
 
         if(target == getSuffixV()) {
@@ -168,8 +171,8 @@ void SharedVertexSequenceSplitter::addEdgesFromTopNode(std::shared_ptr<SeqVertex
     }
 }
 
-void SharedVertexSequenceSplitter::addEdgesToBottomNode(std::shared_ptr<SeqVertex> botForConnect) {
-    for(std::shared_ptr<BaseEdge> e : splitGraph->incomingEdgesOf(getSuffixV())) {
+void SharedVertexSequenceSplitter::addEdgesToBottomNode(const std::shared_ptr<SeqVertex>& botForConnect) {
+    for(const std::shared_ptr<BaseEdge>& e : splitGraph->incomingEdgesOf(getSuffixV())) {
         outer->addEdge(splitGraph->getEdgeSource(e), botForConnect, e);
     }
 }

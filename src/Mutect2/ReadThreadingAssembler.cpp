@@ -25,18 +25,23 @@ ReadThreadingAssembler::getAssemblyResult(std::shared_ptr<Haplotype> &refHaploty
 		if (!rtgraph->ifAlreadyBuilt())
 			throw std::invalid_argument("recoverDanglingTails requires the graph be already built");
 		rtgraph->recoverDanglingTails(pruneFactor, minDanglingBranchLength, recoverAllDanglingBranches);
+		//rtgraph->printGraphSize("recoverDanglingTails");
 		rtgraph->recoverDanglingHeads(pruneFactor, minDanglingBranchLength, recoverAllDanglingBranches);
+		//rtgraph->printGraphSize("recoverDanglingHeads");
 	}
 	//std::cout << rtgraph->getVertexSet().size() << rtgraph->getEdgeSet().size() << std::endl;
 	if (removePathsNotConnectedToRef) {
 		rtgraph->removePathsNotConnectedToRef(rtgraph->getVertexSet().size());
+		//rtgraph->printGraphSize("removePathsNotConnectedToRef");
 	}
 
 	std::shared_ptr<SeqGraph> initialSeqGraph = rtgraph->toSequenceGraph();
+	//initialSeqGraph->printGraphSize("initialSeqGraph");
 	if (justReturnRawGraph) {
 		return std::make_shared<AssemblyResult>(ASSEMBLED_SOME_VARIATION, initialSeqGraph, nullptr);
 	}
 	initialSeqGraph->cleanNonRefPaths();
+	//initialSeqGraph->printGraphSize("cleanNonRefPaths");
 
 	std::shared_ptr<AssemblyResult> cleaned = cleanupSeqGraph(initialSeqGraph);
 	return std::make_shared<AssemblyResult>(cleaned->getStatus(), cleaned->getGraph(), rtgraph);
@@ -44,19 +49,24 @@ ReadThreadingAssembler::getAssemblyResult(std::shared_ptr<Haplotype> &refHaploty
 
 std::shared_ptr<AssemblyResult> ReadThreadingAssembler::cleanupSeqGraph(const std::shared_ptr<SeqGraph> &seqGraph) {
 	seqGraph->zipLinearChains();
+	//seqGraph->printGraphSize("zipLinearChains");
 	seqGraph->removeSingletonOrphanVertices();
+	//seqGraph->printGraphSize("removeSingletonOrphanVertices");
 	seqGraph->removeVerticesNotConnectedToRefRegardlessOfEdgeDirection();
+	//seqGraph->printGraphSize("removeVerticesNotConnectedToRefRegardlessOfEdgeDirection");
 	seqGraph->simplifyGraph();
 	if (seqGraph->getReferenceSinkVertex() == nullptr || seqGraph->getReferenceSourceVertex() == nullptr) {
 		return std::make_shared<AssemblyResult>(JUST_ASSEMBLED_REFERENCE, seqGraph, nullptr);
 	}
 	seqGraph->removePathsNotConnectedToRef(seqGraph->getVertexSet().size());
+	//seqGraph->printGraphSize("removePathsNotConnectedToRef");
 	seqGraph->simplifyGraph();
 	if (seqGraph->getVertexSet().size() == 1) {
 		std::shared_ptr<SeqVertex> complete = *(seqGraph->getVertexSet().begin());
 		std::shared_ptr<SeqVertex> dummy(new SeqVertex(nullptr, 0));
 		seqGraph->addVertex(dummy);
 		seqGraph->addEdge(complete, dummy, std::make_shared<BaseEdge>(true, 0));
+		//seqGraph->printGraphSize("dummy");
 	}
 	return std::make_shared<AssemblyResult>(ASSEMBLED_SOME_VARIATION, seqGraph, nullptr);
 }
@@ -84,9 +94,11 @@ ReadThreadingAssembler::runLocalAssembly(const std::shared_ptr<AssemblyRegion> &
 	resultSet->setRegionForGenotyping(assemblyRegion);
 	resultSet->setFullReferenceWithPadding(fullReferenceWithPadding, refLength);
 	resultSet->setPaddedReferenceLoc(refLoc);
+
 	const std::shared_ptr<SimpleInterval> activeRegionExtendedLocation = assemblyRegion->getExtendedSpan();
 	refHaplotype->setGenomeLocation(activeRegionExtendedLocation);
 	resultSet->add(refHaplotype);
+
 	std::map<std::shared_ptr<SeqGraph>, std::shared_ptr<AssemblyResult>> assemblyResultByGraph;
 	for (const auto &result: assemble(correctedReads, refHaplotype)) {
 		if (result->getStatus() == ASSEMBLED_SOME_VARIATION) {
@@ -94,7 +106,14 @@ ReadThreadingAssembler::runLocalAssembly(const std::shared_ptr<AssemblyRegion> &
 			nonRefGraphs.emplace_back(result->getGraph());
 		}
 	}
+	/*std::cout << "nonRefGraphs\t" << nonRefGraphs.size() << std::endl;
+	std::cout << "refHaplotype\t" << refHaplotype->getLength() << " " << refHaplotype->getBaseString() << std::endl;
+	std::cout << "activeRegionExtendedLocation\t" << activeRegionExtendedLocation->getContig() << " "
+	          << activeRegionExtendedLocation->getStart() + 1 << " " << activeRegionExtendedLocation->getEnd() + 1
+	          << std::endl;*/
+
 	findBestPaths(nonRefGraphs, refHaplotype, refLoc, activeRegionExtendedLocation, assemblyResultByGraph, resultSet);
+	//resultSet->printSortedHaplotypes();
 	return resultSet;
 }
 
@@ -262,6 +281,15 @@ ReadThreadingAssembler::assemble(std::vector<std::shared_ptr<SAMRecord>> &reads,
 		if (numIterations == MAX_KMER_ITERATIONS_TO_ATTEMPT && results.empty())
 			addResult(results, createGraph(reads, refHaplotype, kmerSize, true));
 	}
+	/*std::cout << "----------results Size " << results.size() << "----------\n";
+	for (const auto &result: results) {
+		result->getThreadingGraph()->printGraphSize("");
+		//result->getThreadingGraph()->outputDotFile("threadingGraph.dot");
+		result->getGraph()->printGraphSize("");
+		//result->getGraph()->outputDotFile("seqGraph.dot");
+		std::cout << "----------\n";
+	}
+	std::cout << "----------------------------------\n";*/
 	return results;
 }
 
@@ -271,13 +299,7 @@ ReadThreadingAssembler::createGraph(const std::vector<std::shared_ptr<SAMRecord>
                                     bool allowLowComplexityGraphs) {
 	if (refHaplotype->getLength() < kmerSize)
 		return std::make_shared<AssemblyResult>(FAILED, nullptr, nullptr);
-	/* SequenceForKmers tmp = {"ref", refHaplotype->getBases(), 0, refHaplotype->getLength(), 1, true};
-	 std::vector<std::shared_ptr<Kmer>>* res =ReadThreadingGraph::determineNonUniqueKmers(tmp, kmerSize);
-	 if(!allowNonUniqueKmersInRef && !res->empty()) {
-		 delete res;
-		 return nullptr;
-	 }
-	 delete res;*/
+
 	std::shared_ptr<ReadThreadingGraph> rtgraph = std::make_shared<ReadThreadingGraph>(kmerSize,
 	                                                                                   debugGraphTransformations,
 	                                                                                   minBaseQualityToUseInAssembly,
@@ -289,50 +311,15 @@ ReadThreadingAssembler::createGraph(const std::vector<std::shared_ptr<SAMRecord>
 	for (std::shared_ptr<SAMRecord> read: reads)
 		rtgraph->addRead(read);
 
+	rtgraph->sortPendingBySequence();
+	//rtgraph->printPendingInfo();
 	rtgraph->buildGraphIfNecessary();
-	//std::cout << "1: " + std::to_string(rtgraph->getEdgeSet().size()) + " " +
-	//             std::to_string(rtgraph->getVertexSet().size()) + '\n';
-	/*std::ofstream outfile1("./graph1.dot");
-	outfile1 << "digraph G{" << std::endl;
-	for (auto &v: rtgraph->getVertexSet()) {
-		std::string s = reinterpret_cast<const char *>(v->getSequence().get());
-		s = s.substr(0, v->getLength());
-		//if (s==std::string("CCACAGCTCC")) std::cout<<"wdnmd ";
-		outfile1 << "    " << s << ";" << std::endl;
-	}
-	for (auto &edge: rtgraph->edgeMap) {
-		auto *a = edge.second.getSource().get();
-		auto *b = edge.second.getTarget().get();
-		std::string s1 = reinterpret_cast<const char *>(a->getSequence().get());
-		std::string s2 = reinterpret_cast<const char *>(b->getSequence().get());
-		s1 = s1.substr(0, a->getLength());
-		s2 = s2.substr(0, b->getLength());
-		outfile1 << "    " << s1 << " -> " << s2 << ";" << std::endl;
-	}
-	outfile1 << "}" << std::endl;
-	outfile1.close();*/
+	//rtgraph->printGraphSize("");
+	//rtgraph->outputDotFile("./graph1.dot");
 
 	chainPruner->pruneLowWeightChains(rtgraph);
-	//std::cout << "2: " + std::to_string(rtgraph->getEdgeSet().size()) + " " +
-	//             std::to_string(rtgraph->getVertexSet().size()) + '\n';
-	/*std::ofstream outfile2("./graph2.dot");
-		outfile2 << "digraph G{" << std::endl;
-		for (auto &edge: rtgraph->edgeMap) {
-			auto *a = edge.second.getSource().get();
-			auto *b = edge.second.getTarget().get();
-			std::string s1 = reinterpret_cast<const char *>(a->getSequence().get());
-			std::string s2 = reinterpret_cast<const char *>(b->getSequence().get());
-			s1 = s1.substr(0, a->getLength());
-			s2 = s2.substr(0, b->getLength());
-			outfile2 << "    " << s1 << " -> " << s2 << ";" << std::endl;
-		}
-		outfile2 << "}" << std::endl;
-		outfile2.close();*/
-	//    if(rtgraph->getVertexSet().size() == 292 && rtgraph->getEdgeSet().size() == 291)
-	//        std::cout << " hello";
-	//    std::ofstream outfile("/Users/bigdreamerxixi/data/1.txt", true);
-	//    outfile << rtgraph->getVertexSet().size() << ", "<<rtgraph->getEdgeSet().size() << std::endl;
-	//    outfile.close();
+	//rtgraph->printGraphSize("");
+	//rtgraph->outputDotFile("./graph2.dot");
 
 	if (rtgraph->hasCycles()) {
 		//std::cout << std::to_string(kmerSize) + " failed because hasCycles" + '\n';
@@ -343,7 +330,7 @@ ReadThreadingAssembler::createGraph(const std::vector<std::shared_ptr<SAMRecord>
 		//std::cout << std::to_string(kmerSize) + " failed because isLowComplexity" + '\n';
 		return nullptr;
 	}
-	//std::cout << std::to_string(kmerSize) + '\n';
+	//std::cout << std::to_string(kmerSize) + " OK\n";
 	return getAssemblyResult(refHaplotype, rtgraph);
 }
 
@@ -360,7 +347,7 @@ void ReadThreadingAssembler::findBestPaths(const std::vector<std::shared_ptr<Seq
                                            const std::shared_ptr<SimpleInterval> &activeRegionWindow,
                                            const std::map<std::shared_ptr<SeqGraph>, std::shared_ptr<AssemblyResult>> &assemblyResultByGraph,
                                            std::shared_ptr<AssemblyResultSet> &assemblyResultSet) const {
-	std::set<std::shared_ptr<Haplotype>, HaplotypeComp> returnHaplotypes;
+	std::unordered_set<std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype> returnHaplotypes;
 	int activeRegionStart = refHaplotype->getAlignmentStartHapwrtRef();
 	//int failedCigars = 0;
 
@@ -389,15 +376,6 @@ void ReadThreadingAssembler::findBestPaths(const std::vector<std::shared_ptr<Seq
 			}
 		}
 	}
-	/*
-	 * return value is never used?
-	 *
-	if (returnHaplotypes.find(refHaplotype) == returnHaplotypes.end()) {
-		returnHaplotypes.insert(refHaplotype);
-	}
-
-	//TODO:验证
-	return {returnHaplotypes.begin(), returnHaplotypes.end()};*/
 }
 
 ReadThreadingAssembler::ReadThreadingAssembler(int pruneFactor, int numPruningSamples, int numBestHaplotypesPerGraph,

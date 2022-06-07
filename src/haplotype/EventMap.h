@@ -37,9 +37,8 @@ public:
 	bool empty();
 
 	static std::set<int>
-	buildEventMapsForHaplotypes(std::vector<std::shared_ptr<Haplotype>> &haplotypes, std::shared_ptr<uint8_t[]> ref,
-	                            int refLength, const std::shared_ptr<Locatable> &refLoc, bool debug,
-	                            int maxMnpDistance);
+	buildEventMapsForHaplotypes(std::vector<std::shared_ptr<Haplotype>> &haplotypes, const std::shared_ptr<uint8_t[]>& ref,
+	                            int refLength, const std::shared_ptr<Locatable> &refLoc, int maxMnpDistance);
 
 	std::set<int> getStartPositions();
 

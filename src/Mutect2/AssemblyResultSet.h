@@ -10,26 +10,26 @@
 #include "Haplotype.h"
 #include "AssemblyRegion.h"
 #include "VariantContext.h"
-//#include "ReadThreadingAssembler.h"
 
 struct HaplotypeComp {
 public:
 	bool operator()(const std::shared_ptr<Haplotype> &left, const std::shared_ptr<Haplotype> &right) const {
-		return (*left) < (*right);
+		if (left->getLength() != right->getLength())
+			return left->getLength() > right->getLength();
+		int len = left->getLength();
+		std::shared_ptr<uint8_t[]> bases1 = left->getBases();
+		std::shared_ptr<uint8_t[]> bases2 = right->getBases();
+		for (int i = 0; i < len; ++i) {
+			if (bases1[i] != bases2[i])
+				return bases1[i] < bases2[i];
+		}
+		return false;
 	}
 };
 
 struct hash_Haplotype {
 	size_t operator()(const std::shared_ptr<Haplotype> &haplotype) const {
-		int size = haplotype->getBasesLength();
-		if (size == 0)
-			return 0;
-		size_t res = 1;
-		uint8_t *bases = haplotype->getBases().get();
-		for (int i = 0; i < size; i++) {
-			res = 31 * res + bases[i];
-		}
-		return res;
+		return xxh::xxhash3<64>(haplotype->getBases().get(), haplotype->getBasesLength());
 	}
 };
 
@@ -68,17 +68,12 @@ private:
 
 	void updateReferenceHaplotype(const std::shared_ptr<Haplotype> &newHaplotype);
 
-	std::shared_ptr<std::unordered_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype>>
-	calculateOriginalByTrimmedHaplotypes(const std::shared_ptr<AssemblyRegion> &trimmedAssemblyRegion);
+	std::vector<std::pair<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>>> calculateOriginalByTrimmedHaplotypes(
+			const std::shared_ptr<AssemblyRegion> &trimmedAssemblyRegion);
 
 	static std::shared_ptr<std::unordered_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype>>
 	trimDownHaplotypes(const std::shared_ptr<AssemblyRegion> &trimmedAssemblyRegion,
 	                   const std::shared_ptr<std::vector<std::shared_ptr<Haplotype>>> &haplotypeList);
-
-	static std::shared_ptr<std::unordered_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype>>
-	mapOriginalToTrimmed(
-			const std::shared_ptr<std::unordered_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype>> &originalByTrimmedHaplotypes,
-			const std::vector<std::shared_ptr<Haplotype>> &trimmedHaplotypes);
 
 public:
 	AssemblyResultSet() = default;
@@ -98,6 +93,8 @@ public:
 	void regenerateVariationEvents(int distance);
 
 	std::shared_ptr<std::vector<std::shared_ptr<Haplotype>>> getHaplotypeList();
+
+	std::shared_ptr<std::vector<std::shared_ptr<Haplotype>>> getSortedHaplotypeList();
 
 	bool isisVariationPresent();
 
@@ -124,6 +121,8 @@ public:
 	 * @return might be {@code null}.
 	 */
 	std::shared_ptr<AssemblyRegion> getRegionForGenotyping();
+
+	void printSortedHaplotypes();
 
 	/**
     * Query the reference haplotype in the result set.

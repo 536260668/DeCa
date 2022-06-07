@@ -8,20 +8,20 @@
 #include <cassert>
 
 AssemblyRegionTrimmer_Result::AssemblyRegionTrimmer_Result(bool emitReferenceConfidence, bool needsTrimming,
-                                                           const std::shared_ptr<AssemblyRegion>& originalRegion, int padding, int extension,
+                                                           std::shared_ptr<AssemblyRegion>  originalRegion, int padding, int extension,
                                                            std::vector<std::shared_ptr<VariantContext>> * overlappingEvents,
                                                            std::shared_ptr<std::pair<std::shared_ptr<SimpleInterval>, std::shared_ptr<SimpleInterval>>>  nonVariantFlanks,
-                                                           const std::shared_ptr<SimpleInterval>& extendedSpan, const std::shared_ptr<SimpleInterval>& idealSpan,
-                                                           const std::shared_ptr<SimpleInterval>& maximumSpan, const std::shared_ptr<SimpleInterval>& callableSpan) : emitReferenceConfidence(emitReferenceConfidence), needsTrimming(needsTrimming), callableEvents(*overlappingEvents),padding(padding),
-                                                                                                                        usableExtension(extension), nonVariantFlanks(std::move(nonVariantFlanks)), extendedSpan(extendedSpan), idealSpan(idealSpan), maximumSpan(maximumSpan), callableSpan(callableSpan),
-                                                                                                                        originalRegion(originalRegion)
+                                                           const std::shared_ptr<SimpleInterval>& extendedSpan, std::shared_ptr<SimpleInterval>  idealSpan,
+                                                           std::shared_ptr<SimpleInterval>  maximumSpan, const std::shared_ptr<SimpleInterval>& callableSpan) : emitReferenceConfidence(emitReferenceConfidence), needsTrimming(needsTrimming), callableEvents(*overlappingEvents),padding(padding),
+                                                                                                                        usableExtension(extension), nonVariantFlanks(std::move(nonVariantFlanks)), extendedSpan(extendedSpan), idealSpan(std::move(idealSpan)), maximumSpan(std::move(maximumSpan)), callableSpan(callableSpan),
+                                                                                                                        originalRegion(std::move(originalRegion))
                                                           {
     Mutect2Utils::validateArg(extendedSpan == nullptr || callableSpan == nullptr || extendedSpan->contains(callableSpan), "the extended callable span must include the callable span");
 
 }
 
 std::shared_ptr<AssemblyRegionTrimmer_Result>
-AssemblyRegionTrimmer_Result::noVariation(bool emitReferenceConfidence, std::shared_ptr<AssemblyRegion> targetRegion, int padding,
+AssemblyRegionTrimmer_Result::noVariation(bool emitReferenceConfidence, const std::shared_ptr<AssemblyRegion>& targetRegion, int padding,
                                           int usableExtension) {
     std::vector<std::shared_ptr<VariantContext>> events;
     std::shared_ptr<std::pair<std::shared_ptr<SimpleInterval>, std::shared_ptr<SimpleInterval>>> nonVariantFlanks = std::make_shared<std::pair<std::shared_ptr<SimpleInterval>, std::shared_ptr<SimpleInterval>>>(targetRegion->getSpan(), nullptr);
@@ -57,6 +57,23 @@ std::shared_ptr<AssemblyRegion> AssemblyRegionTrimmer_Result::getCallableRegion(
     return callableRegion;
 }
 
-bool AssemblyRegionTrimmer_Result::getNeedsTrimming() {
+bool AssemblyRegionTrimmer_Result::getNeedsTrimming() const {
     return needsTrimming;
+}
+
+void AssemblyRegionTrimmer_Result::printInfo() {
+	std::cout << "---------------\n";
+	std::cout << "region\t" << originalRegion->getStart() + 1 << " " << originalRegion->getEnd() + 1 << std::endl;
+	std::cout << "callableSpan\t";
+	callableSpan->printInfo();
+	std::cout << "extendSpan\t";
+	extendedSpan->printInfo();
+	std::cout << "idealSpan\t";
+	idealSpan->printInfo();
+	std::cout << "nonVariantFlanks\n";
+	if (nonVariantFlanks->first != nullptr)
+		nonVariantFlanks->first->printInfo();
+	if (nonVariantFlanks->second != nullptr)
+		nonVariantFlanks->second->printInfo();
+	std::cout << "---------------\n";
 }

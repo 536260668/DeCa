@@ -9,12 +9,6 @@ xxh::hash64_t BaseVertex::hashCode(const std::shared_ptr<uint8_t[]> &a, int leng
 	if (a == nullptr)
 		return 0;
 	return xxh::xxhash3<64>(a.get(), length);
-	/*int result = 1;
-	for(int i = 0; i < length; i++) {
-		result = 31 * result + a.get()[i];
-	}
-
-	return result;*/
 }
 
 BaseVertex::BaseVertex(std::shared_ptr<uint8_t[]> const &sequence, const int length) : sequence(sequence),

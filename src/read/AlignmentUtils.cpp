@@ -312,8 +312,8 @@ AlignmentUtils::leftAlignSingleIndel(std::shared_ptr<Cigar> cigar, std::shared_p
 
     int indelLength = cigar->getCigarElement(indexOfIndel).getLength();
     int altStringLength = 0;
-	/*std::cout<<std::string ((char*)refSeq.get()).substr(0,refLength)<<std::endl;
-	std::cout<<std::string ((char*)readSeq.get()).substr(0,readLength)<<std::endl;
+	/*std::cout<<std::string ((char*)refSeq.get(), refLength)<<std::endl;
+	std::cout<<std::string ((char*)readSeq.get(), readLength)<<std::endl;
 	for (const auto &item: cigar->getCigarElements()){
 		std::cout<<item.getLength()<<CigarOperatorUtils::enumToCharacter(item.getOperator());
 	}

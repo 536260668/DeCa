@@ -160,6 +160,7 @@ public:
 
 	bool isFullyDecoded() const;
 
+	std::string getTypeString();
 
 	bool isNotFiltered();
 

@@ -3,13 +3,19 @@ project(Mutect2Cpp_master)
 
 set(CMAKE_CXX_STANDARD 17)
 
+#libtorch required
+set(CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/../libtorch/)
+find_package(Torch REQUIRED)
+
 #compile flag
 set(CMAKE_CXX_FLAGS "-g -pthread")
 set(CMAKE_CXX_FLAGS_RELEASE -O3)
-set(CMAKE_CXX_FLAGS_DEBUG "-fsanitize=address")
+set(CMAKE_CXX_FLAGS_DEBUG "-fsanitize=leak")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 
 #linker flag
-set(CMAKE_EXE_LINKER_FLAGS_DEBUG "-fsanitize=address")
+set(CMAKE_EXE_LINKER_FLAGS_DEBUG "-fsanitize=leak")
 
 # counterpart of gcc -I
 include_directories(${PROJECT_SOURCE_DIR}/../htslib)
@@ -51,7 +57,7 @@ add_subdirectory(./src/param)
 add_subdirectory(./src/clipping)
 add_subdirectory(./src/annotator)
 
-add_executable(Mutect2Cpp_master ${DIR_SRCS} src/engine/ReferenceContext.cpp src/engine/ReferenceContext.h src/engine/AlignmentContext.cpp src/engine/AlignmentContext.h src/pileRead.h src/collection/IndexedSet.h src/collection/IndexedAlleleList.h)
+add_executable(Mutect2Cpp_master ${DIR_SRCS} src/model/model.cpp src/model/model.h src/engine/ReferenceContext.cpp src/engine/ReferenceContext.h src/engine/AlignmentContext.cpp src/engine/AlignmentContext.h src/pileRead.h src/collection/IndexedSet.h src/collection/IndexedAlleleList.h)
 
 
 # counterpart of gcc -L
@@ -77,6 +83,7 @@ target_link_libraries(Mutect2Cpp_master SamtoolsFunctions)
 target_link_libraries(Mutect2Cpp_master ParamFunctions)
 target_link_libraries(Mutect2Cpp_master ClippingFunctions)
 target_link_libraries(Mutect2Cpp_master gkl_pairhmm)
+target_link_libraries(Mutect2Cpp_master "${TORCH_LIBRARIES}")
 target_link_libraries(Mutect2Cpp_master AnnotatorFunctions)
 
 

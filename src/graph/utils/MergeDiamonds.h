@@ -9,7 +9,7 @@
 
 class MergeDiamonds : public VertexBasedTransformer{
 public:
-    MergeDiamonds(std::shared_ptr<SeqGraph> seqGraph) : VertexBasedTransformer(seqGraph) {}
+    explicit MergeDiamonds(SeqGraph* seqGraph) : VertexBasedTransformer(seqGraph) {}
 
 protected:
     bool tryToTransform(std::shared_ptr<SeqVertex> top) override;

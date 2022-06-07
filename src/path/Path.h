@@ -113,32 +113,31 @@ public:
 	}
 
 	std::shared_ptr<uint8_t[]> getBases(int &reslength) {
-		if (getEdges().empty())
-			return graph->getAdditionalSequence(lastVertex);
+		if (getEdges().empty()){
+			reslength = graph->getAdditionalSequenceLength(lastVertex, true);
+			return graph->getAdditionalSequence(lastVertex, true);
+		}
 
 		std::shared_ptr<T> source = graph->getEdgeSource(edgesInOrder[0]);
-		std::shared_ptr<uint8_t[]> bases = graph->getAdditionalSequence(source);
-		int basesLength = graph->getAdditionalSequenceLength(source);
+		std::shared_ptr<uint8_t[]> bases = graph->getAdditionalSequence(source, true);
+		int basesLength = graph->getAdditionalSequenceLength(source, true);
+
+		std::vector<uint8_t> baseVec(bases.get(), bases.get() + basesLength);
 
 		for (int i = 0; i < edgesInOrder.size(); i++) {
 			std::shared_ptr<T> target = graph->getEdgeTarget(edgesInOrder[i]);
-			std::shared_ptr<uint8_t[]> bases1 = graph->getAdditionalSequence(target);
-			int basesLength1 = graph->getAdditionalSequenceLength(target);
+			bases = graph->getAdditionalSequence(target, false);
+			basesLength = graph->getAdditionalSequenceLength(target, false);
 
-			std::shared_ptr<uint8_t[]> new_bases(new uint8_t[basesLength + basesLength1]);
-			memcpy(new_bases.get(), bases.get(), basesLength);
-			memcpy(new_bases.get() + basesLength, bases1.get(), basesLength1);
-
-			bases = new_bases;
-			basesLength += basesLength1;
+			for (int k = 0; k < basesLength; ++k) {
+				baseVec.push_back(bases.get()[k]);
+			}
 		}
-		reslength = basesLength;
-//		std::cout << reslength << std::endl;
-//		 for(int i = 0; i < reslength; i++) {
-//			 std::cout << res.get()[i];
-//		 }
-//		 std::cout << std::endl;
-		return bases;
+		reslength = (int) baseVec.size();
+		std::shared_ptr<uint8_t[]> ret_bases(new uint8_t[reslength]);
+		memcpy(ret_bases.get(), &baseVec[0], reslength);
+
+		return ret_bases;
 	}
 
 	std::shared_ptr<T> getLastVertex() { return lastVertex; }

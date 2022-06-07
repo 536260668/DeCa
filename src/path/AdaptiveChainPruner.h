@@ -49,6 +49,8 @@ protected:
 			}
 		}
 		double errorRate = (double) errorCount / totalBases;
+		//std::cout << "probableErrorChains " << probableErrorChains.size() << std::endl;
+		//std::cout << "errorCount " << errorCount << " totalBases " << totalBases << std::endl;
 		return likelyErrorChains(chains, graph, errorRate);
 	}
 
@@ -61,10 +63,10 @@ private:
 		result.reserve(chains.size());
 		std::map<Path<V, E> *, double> chainLogOddsmap;
 
-
 		for (viter = chains.begin(); viter != chains.end(); viter++) {
 			chainLogOddsmap.insert(std::make_pair(*viter, chainLogOdds(*viter, graph, errorRate)));
 		}
+
 		for (typename std::map<Path<V, E> *, double>::iterator miter = chainLogOddsmap.begin();
 		     miter != chainLogOddsmap.end(); miter++) {
 			if (miter->second < 2.302585092994046) {
@@ -77,22 +79,21 @@ private:
 			if (isChainPossibleVariant(*viter, graph))
 				newchains.template emplace_back(*viter);
 		}
-		if (newchains.size() <= 100)
-			return result;
 
 		//.sorted(Comparator.comparingDouble((ToDoubleFunction<Path<V, E>>) chainLogOdds::get)
 		//                        .reversed().thenComparingInt(Path::length))
 		//according to JAVA version, chainLogOdds in descending order, if chainsLogOdds equal, length ascending order
-		std::sort(newchains.begin(), newchains.end(), [chainLogOddsmap](Path<V, E> *a, Path<V, E> *b) -> bool {
+		std::sort(newchains.begin(), newchains.end(), [chainLogOddsmap, this](Path<V, E> *a, Path<V, E> *b) -> bool {
 			if (chainLogOddsmap.at(a) == chainLogOddsmap.at(b))
-				return a->length() < b->length();
+				return this->sortPathByStr(a,b);
 			return chainLogOddsmap.at(a) > chainLogOddsmap.at(b);
 		});
-		/*for(auto *newchain : newchains)
-			std::cout<<chainLogOddsmap.at(newchain)<<" "<<newchain->length()<< std::endl;*/
-		//todo: 100 according to what?
-		for (viter = newchains.begin() + 100; viter != newchains.end(); viter++) {
-			result.insert(*viter);
+
+		//maxUnprunedVariants = 100
+		if (newchains.size() > 100) {
+			for (viter = newchains.begin() + 100; viter != newchains.end(); viter++) {
+				result.insert(*viter);
+			}
 		}
 		return result;
 	}
@@ -104,8 +105,6 @@ private:
 				return POSITIVE_INFINITY;
 		}
 		int leftTotalMultiplicity = 0, rightTotalMultiplicity = 0;
-//        std::shared_ptr<V> first = chain->getFirstVertex();
-//        std::shared_ptr<V> last = chain->getLastVertex();
 		std::unordered_set<std::shared_ptr<E>> outgoing = graph->outgoingEdgesOf(chain->getFirstVertex());
 		std::unordered_set<std::shared_ptr<E>> incoming = graph->incomingEdgesOf(chain->getLastVertex());
 		typename std::unordered_set<std::shared_ptr<E>>::iterator eiter;
@@ -127,6 +126,12 @@ private:
 	}
 
 	bool isChainPossibleVariant(Path<V, E> *chain, std::shared_ptr<DirectedSpecifics<V, E>> &graph) {
+		/*int len;
+		std::shared_ptr<uint8_t[]> bases = chain->getBases(len);
+		std::string baseString = std::string((char *) bases.get(), 0, len);
+		if (baseString == "CCTTTACCCCTTTCAGCGATGTCCATTTTGTAA" || baseString == "TCTGTGAAGAGAAATGTACCCAGATCTATCATT") {
+			std::cout << baseString <<" found\n\n";
+		}*/
 		typename std::unordered_set<std::shared_ptr<E>>::iterator eiter;
 		int leftTotalMultiplicity = 0, rightTotalMultiplicity = 0;
 		std::unordered_set<std::shared_ptr<E>> outgoing = graph->outgoingEdgesOf(chain->getFirstVertex());

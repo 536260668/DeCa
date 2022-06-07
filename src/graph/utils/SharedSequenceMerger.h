@@ -10,8 +10,10 @@
 
 class SharedSequenceMerger {
 public:
-    static bool canMerge(const std::shared_ptr<SeqGraph>& graph, std::shared_ptr<SeqVertex> v, std::unordered_set<std::shared_ptr<SeqVertex>> incomingVertices);
-    static bool merge(std::shared_ptr<SeqGraph> graph, std::shared_ptr<SeqVertex> v);
+	static bool canMerge(SeqGraph *graph, const std::shared_ptr<SeqVertex> &v,
+	                     std::unordered_set<std::shared_ptr<SeqVertex>> incomingVertices);
+
+	static bool merge(SeqGraph *graph, const std::shared_ptr<SeqVertex> &v);
 };
 
 

@@ -111,8 +111,8 @@ bam1_t * PalindromeArtifactClipReadTransformer::apply(bam1_t * read, sam_hdr_t *
     int length = 0;
     std::shared_ptr<uint8_t[]> refBases = referenceDataSource->getSubsequenceAt(tid, refStart, refEnd, length);
 
-	/*std::string refBasesString((char *) refBases.get());
-	std::cout<<refBasesString.substr(0,length)<<'\n';*/
+	/*std::string refBasesString((char *) refBases.get(), length);
+	std::cout<<refBasesString<<'\n';*/
 
     uint8_t * bases = bam_get_seq(read);
     for(int i = 0; i < length; i++) {

@@ -11,8 +11,8 @@ bool MergeTails::tryToTransform(std::shared_ptr<SeqVertex> top) {
         return false;
     }
 
-    for(std::shared_ptr<SeqVertex> t : tails) {
-        if(tails.size() <= 1) {
+    for(const std::shared_ptr<SeqVertex>& t : tails) {
+        if(!getGraph()->isSink(t) || getGraph()->inDegreeOf(t) > 1) {
             return false;
         }
     }

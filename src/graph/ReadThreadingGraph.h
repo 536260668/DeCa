@@ -288,6 +288,12 @@ public:
 	void determineNonUniques();
 
 	void reserveSpace(int size) override;
+
+	void printPendingInfo();
+
+	void printGraphSize(const std::string& info);
+
+	void sortPendingBySequence();
 };
 
 

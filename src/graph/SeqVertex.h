@@ -26,7 +26,8 @@ public:
 	std::shared_ptr<SeqVertex> withoutSuffix(const std::shared_ptr<uint8_t[]> &suffix, int length);
 
 	std::shared_ptr<SeqVertex>
-	withoutPrefixAndSuffix(const std::shared_ptr<uint8_t[]> &prefix, int preLength, const std::shared_ptr<uint8_t[]>& suffix,
+	withoutPrefixAndSuffix(const std::shared_ptr<uint8_t[]> &prefix, int preLength,
+	                       const std::shared_ptr<uint8_t[]> &suffix,
 	                       int sufLength);
 };
 

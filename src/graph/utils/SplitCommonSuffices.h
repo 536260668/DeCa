@@ -13,7 +13,7 @@ private:
     std::set<std::shared_ptr<SeqVertex>> alreadySplit;
 
 public:
-    SplitCommonSuffices(std::shared_ptr<SeqGraph> graph) : VertexBasedTransformer(graph) {}
+    explicit SplitCommonSuffices(SeqGraph* graph) : VertexBasedTransformer(graph) {}
 
 protected:
     bool tryToTransform(std::shared_ptr<SeqVertex> bottom) override;

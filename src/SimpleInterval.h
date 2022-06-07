@@ -166,5 +166,7 @@ public:
     friend std::ostream & operator<<(std::ostream &os, const SimpleInterval& simpleInterval);
 
     SimpleInterval(const std::shared_ptr<Locatable> & pLocatable);
+
+	void printInfo() const;
 };
 #endif //MUTECT2CPP_MASTER_SIMPLEINTERVAL_H

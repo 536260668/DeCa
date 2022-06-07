@@ -10,6 +10,7 @@
 #include "utils/BaseUtils.h"
 #include "variantcontext/builder/VariantContextBuilder.h"
 #include <deque>
+#include <iostream>
 
 const std::shared_ptr<Allele> EventMap::SYMBOLIC_UNASSEMBLED_EVENT_ALLELE = Allele::create(std::shared_ptr<uint8_t[]>(
 		                                                                                           new uint8_t[19]{'<', 'U', 'N', 'A', 'S', 'S', 'E', 'M', 'B', 'L', 'E', 'D', '_', 'E', 'V', 'E', 'N', 'T', '>'}),
@@ -158,7 +159,7 @@ void EventMap::addVC(const std::shared_ptr<VariantContext> &vc, bool merge) {
 	if (variantMap.find(vc->getStart()) != variantMap.end()) {
 		Mutect2Utils::validateArg(merge, "Will not merge previously bound variant contexts as merge is false");
 		std::shared_ptr<VariantContext> prev = variantMap.at(vc->getStart());
-		variantMap.insert(std::make_pair(vc->getStart(), makeBlock(prev, vc)));
+		variantMap[vc->getStart()] = makeBlock(prev, vc);
 	} else
 		variantMap.insert(std::make_pair(vc->getStart(), vc));
 }
@@ -214,15 +215,24 @@ bool EventMap::empty() {
 }
 
 std::set<int> EventMap::buildEventMapsForHaplotypes(std::vector<std::shared_ptr<Haplotype>> &haplotypes,
-                                                    std::shared_ptr<uint8_t[]> ref, int refLength,
-                                                    const std::shared_ptr<Locatable> &refLoc, bool debug,
-                                                    int maxMnpDistance) {
+                                                    const std::shared_ptr<uint8_t[]> &ref, int refLength,
+                                                    const std::shared_ptr<Locatable> &refLoc, int maxMnpDistance) {
 	Mutect2Utils::validateArg(maxMnpDistance >= 0, "maxMnpDistance may not be negative.");
 	std::set<int> startPosKeySet;
 	int hapNumber = 0;
 	for (auto &h: haplotypes) {
-		auto* newEventMap = new EventMap(h, ref, refLength, refLoc, "HC" + std::to_string(hapNumber),maxMnpDistance);
+		auto *newEventMap = new EventMap(h, ref, refLength, refLoc, "HC" + std::to_string(hapNumber), maxMnpDistance);
 		h->setEventMap(newEventMap);
+		/*if (h->getIsNonReference()) {
+			std::cout.precision(10);
+			std::cout.flags(std::ostream::fixed);
+			std::cout << h->getScore() << "\t" << h->getBasesLength() << std::endl;
+			std::cout << h->getBaseString() << std::endl;
+			std::cout << "variantMap size " << newEventMap->variantMap.size() << std::endl;
+			for (const auto &ve: newEventMap->variantMap) {
+				std::cout << ve.second->getStart() + 1 << " " << ve.second->getEnd() + 1 << std::endl;
+			}
+		}*/
 		for (int i: newEventMap->getStartPositions()) {
 			startPosKeySet.insert(i);
 		}
