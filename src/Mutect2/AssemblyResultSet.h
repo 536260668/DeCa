@@ -29,15 +29,7 @@ public:
 
 struct hash_Haplotype {
 	size_t operator()(const std::shared_ptr<Haplotype> &haplotype) const {
-		int size = haplotype->getBasesLength();
-		if (size == 0)
-			return 0;
-		size_t res = 1;
-		uint8_t *bases = haplotype->getBases().get();
-		for (int i = 0; i < size; i++) {
-			res = 31 * res + bases[i];
-		}
-		return res;
+		return xxh::xxhash3<64>(haplotype->getBases().get(), haplotype->getBasesLength());
 	}
 };
 

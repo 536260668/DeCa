@@ -58,7 +58,7 @@ private:
 
 	static void removeUnmarkedDuplicates(const std::shared_ptr<AssemblyRegion> &assemblyRegion);
 
-	void removeReadStubs(const std::shared_ptr<AssemblyRegion> &assemblyRegion);
+	static void removeReadStubs(const std::shared_ptr<AssemblyRegion> &assemblyRegion);
 
 public:
 	const static int READ_QUALITY_FILTER_THRESHOLD = 20;
@@ -84,11 +84,11 @@ public:
 	// Maybe this variable can be removed in the multi-thread mode
 	void setReferenceCache(ReferenceCache *cache);
 
-	void printVariationEvents(const std::shared_ptr<AssemblyRegion> &region,
+	static void printVariationEvents(const std::shared_ptr<AssemblyRegion> &region,
 	                          const std::set<std::shared_ptr<VariantContext>, VariantContextComparator> &ves);
 
 protected:
-	std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>>
+	static std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>>
 	splitReadsBySample(const std::vector<std::shared_ptr<SAMRecord>> &reads);
 
 };
