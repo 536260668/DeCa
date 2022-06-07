@@ -21,8 +21,12 @@ public:
 
 	void Initial(const std::string &modelPath);
 
+	bool isInitialized() const;
+
 private:
 	torch::jit::script::Module n_model;
+
+	bool initialized = false;
 
 	static std::vector<std::shared_ptr<SAMRecord>>
 	readTrim(std::vector<std::shared_ptr<SAMRecord>> &reads, int start, int end);

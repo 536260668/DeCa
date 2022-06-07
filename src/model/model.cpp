@@ -496,9 +496,11 @@ bool model::modelRefer(const std::shared_ptr<std::map<std::string, std::vector<s
 void model::Initial(const std::string &modelPath) {
 	try {
 		n_model = torch::jit::load(modelPath);
+		initialized = true;
 	}
 	catch (const c10::Error &e) {
 		std::cerr << "error loading the model\n";
+		initialized = false;
 	}
 }
 
@@ -513,6 +515,11 @@ bool model::classify(float (*fre)[6][31]) {
 	}
 	catch (const c10::Error &e) {
 		std::cerr << "error loading the model\n";
+		initialized = false;
 		return false;
 	}
+}
+
+bool model::isInitialized() const {
+	return initialized;
 }

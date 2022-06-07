@@ -164,23 +164,23 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion> &originalAssembl
 	std::shared_ptr<AssemblyRegion> assemblyActiveRegion = AssemblyBasedCallerUtils::assemblyRegionWithWellMappedReads(
 			originalAssemblyRegion, READ_QUALITY_FILTER_THRESHOLD, header);
 	//if (assemblyActiveRegion->getStart() + 1 != 210416389) return {};
-	std::shared_ptr<AssemblyResultSet> untrimmedAssemblyResult = AssemblyBasedCallerUtils::assembleReads(
-			assemblyActiveRegion, MTAC, header, *refCache, assemblyEngine);
-	std::set<std::shared_ptr<VariantContext>, VariantContextComparator> &allVariationEvents = untrimmedAssemblyResult->getVariationEvents(
-			1);
+	std::shared_ptr<AssemblyResultSet> untrimmedAssemblyResult
+			= AssemblyBasedCallerUtils::assembleReads(assemblyActiveRegion, MTAC, header, *refCache, assemblyEngine);
+	std::set<std::shared_ptr<VariantContext>, VariantContextComparator> &allVariationEvents
+			= untrimmedAssemblyResult->getVariationEvents(1);
 	//printVariationEvents(assemblyActiveRegion, allVariationEvents);
 
-	std::shared_ptr<AssemblyRegionTrimmer_Result> trimmingResult = trimmer.trim(originalAssemblyRegion,
-	                                                                            allVariationEvents);
+	std::shared_ptr<AssemblyRegionTrimmer_Result> trimmingResult
+			= trimmer.trim(originalAssemblyRegion, allVariationEvents);
 	if (!trimmingResult->isVariationPresent()) {
 		untrimmedAssemblyResult->deleteEventMap();
 		return {};
 	}
 	// trimmingResult->printInfo();
 
-	std::shared_ptr<AssemblyResultSet> assemblyResult = trimmingResult->getNeedsTrimming()
-	                                                    ? untrimmedAssemblyResult->trimTo(
-					trimmingResult->getCallableRegion()) : untrimmedAssemblyResult;
+	std::shared_ptr<AssemblyResultSet> assemblyResult
+			= trimmingResult->getNeedsTrimming() ? untrimmedAssemblyResult->trimTo(trimmingResult->getCallableRegion())
+			                                     : untrimmedAssemblyResult;
 	if (!assemblyResult->isisVariationPresent()) {
 		untrimmedAssemblyResult->deleteEventMap();
 		return {};
@@ -189,14 +189,17 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion> &originalAssembl
 
 	std::shared_ptr<AssemblyRegion> regionForGenotyping = assemblyResult->getRegionForGenotyping();
 	removeReadStubs(regionForGenotyping);
-	std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>> reads = splitReadsBySample(
-			regionForGenotyping->getReads());
+	std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>> reads
+			= splitReadsBySample(regionForGenotyping->getReads());
 
-	if (regionForGenotyping->getReads().size() > 120) {
-		std::set<std::shared_ptr<VariantContext>, VariantContextComparator> &VariationEvents = assemblyResult->getVariationEvents(
-				1);
-		if (!mymodel.modelRefer(reads, VariationEvents, regionForGenotyping, refCache))
+	if (mymodel.isInitialized() && regionForGenotyping->getReads().size() > 120) {
+		std::set<std::shared_ptr<VariantContext>, VariantContextComparator> &VariationEvents
+				= assemblyResult->getVariationEvents(1);
+		if (!mymodel.modelRefer(reads, VariationEvents, regionForGenotyping, refCache)) {
+			untrimmedAssemblyResult->deleteEventMap();
+			assemblyResult->deleteEventMap();
 			return {};
+		}
 	}
 
 	//cerr << *originalAssemblyRegion;
