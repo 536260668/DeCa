@@ -189,6 +189,8 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion> &originalAssembl
 
 	std::shared_ptr<AssemblyRegion> regionForGenotyping = assemblyResult->getRegionForGenotyping();
 	removeReadStubs(regionForGenotyping);
+	// regionForGenotyping->printRegionInfo();
+
 	std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>> reads
 			= splitReadsBySample(regionForGenotyping->getReads());
 

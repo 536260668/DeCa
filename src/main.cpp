@@ -165,6 +165,12 @@ void threadFunc(Shared *w, char *ref, int n, int nref) {
 		data[i] = static_cast<aux_t *>(calloc(1, sizeof(aux_t)));
 		data[i]->fp = hts_open(w->input_bam[i], "r"); // open BAM
 		if (data[i]->fp == nullptr) {
+			for(int k = 0; k < i; k++) {
+				hts_close(data[k]->fp);
+				sam_hdr_destroy(data[k]->hdr);
+			}
+			free(data[i]);
+			free(data);
 			throw std::runtime_error("Could not open sam/bam/cram files");
 		}
 		data[i]->hdr = sam_hdr_read(data[i]->fp);    // read the BAM header
@@ -378,6 +384,12 @@ int main(int argc, char *argv[])
 	    data[i] = static_cast<aux_t *>(calloc(1, sizeof(aux_t)));
 	    data[i]->fp = hts_open(sharedData.input_bam[i], "r"); // open BAM
         if (data[i]->fp == nullptr) {
+	        for(int k = 0; k < i; k++) {
+		        hts_close(data[k]->fp);
+		        sam_hdr_destroy(data[k]->hdr);
+	        }
+	        free(data[i]);
+	        free(data);
             throw std::runtime_error("Could not open sam/bam/cram files");
         }
 	    data[i]->hdr = sam_hdr_read(data[i]->fp);    // read the BAM header
