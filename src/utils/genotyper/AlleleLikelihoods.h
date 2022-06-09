@@ -42,7 +42,7 @@ private:
     /**
      * Sample matrices lazily initialized (the elements not the array) by invoking {@link #sampleMatrix(int)}.
      */
-    vector<SampleMatrix<E, A>> sampleMatrices;
+    vector<SampleMatrix<E, A>*> sampleMatrices;
 
 
 
@@ -223,12 +223,13 @@ public:
     static double NATURAL_LOG_INFORMATIVE_THRESHOLD;
 
     AlleleLikelihoods(vector<string>& samples, shared_ptr<vector<shared_ptr<A>>>& alleles, map<string, vector<std::shared_ptr<E>>>& evidenceBySample) :
-    samples(samples), alleles(alleles), evidenceBySampleIndex(new std::vector<std::vector<std::shared_ptr<E>>>()), valuesBySampleIndex(new std::vector<std::vector<std::vector<double>>>())
+    samples(samples), alleles(alleles), evidenceBySampleIndex(new std::vector<std::vector<std::shared_ptr<E>>>())
     {
         int sampleCount = samples.size();
         int alleleCount = alleles->size();
 
         evidenceBySampleIndex->reserve(sampleCount);
+        valuesBySampleIndex = make_shared<vector<vector<vector<double>>>>();
         valuesBySampleIndex->reserve(sampleCount);
         referenceAlleleIndex = findReferenceAllele(*alleles);
 
@@ -236,7 +237,7 @@ public:
         sampleMatrices.reserve(sampleCount);
         for(int i=0; i<sampleCount; i++)
         {
-            sampleMatrices.template emplace_back(i, this);
+            sampleMatrices.template emplace_back(nullptr);
         }
 
     }
@@ -245,7 +246,14 @@ public:
         : samples(samples), alleles(alleles), evidenceBySampleIndex(evidenceBySampleIndex), valuesBySampleIndex(values)
     {
         int sampleCount = samples.size();
+        evidenceIndexBySampleIndex.reserve(sampleCount);
 
+        referenceAlleleIndex = findReferenceAllele(*alleles);
+        sampleMatrices.reserve(sampleCount);
+        for(int i=0; i<sampleCount; i++)
+        {
+            sampleMatrices.template emplace_back(nullptr);
+        }
     }
 
     /**
@@ -267,7 +275,9 @@ public:
     {
         assert(sampleIndex >= 0 && sampleIndex < samples.size());
 
-        return &sampleMatrices[sampleIndex];
+        if(!sampleMatrices[sampleIndex])
+            sampleMatrices[sampleIndex] = new SampleMatrix<E, A>(sampleIndex, this);
+        return sampleMatrices[sampleIndex];
     }
 
     /**

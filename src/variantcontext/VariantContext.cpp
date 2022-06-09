@@ -100,8 +100,8 @@ bool VariantContext::hasAttribute(const std::string &key) {
 }
 
 void VariantContext::validateStop() {
-    if(hasAttribute((std::string &) "END")) {
-        int end = getAttributeAsInt((std::string &) "END", -1);
+    if(hasAttribute(VCFConstants::END_KEY)) {
+        int end = getAttributeAsInt(VCFConstants::END_KEY, -1);
 
         assert(end != -1);
 

@@ -16,7 +16,7 @@ Dirichlet::Dirichlet(std::shared_ptr<std::vector<double>> alpha) {
     for(double a : *alpha)
     {
         Mutect2Utils::validateArg(a >= 0 && !std::isinf(a), "Dirichlet parameters may not be negative or infinite");
-        alpha->push_back(a);
+        this->alpha.push_back(a);
     }
 }
 

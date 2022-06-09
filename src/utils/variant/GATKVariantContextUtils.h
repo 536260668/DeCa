@@ -81,7 +81,7 @@ private:
 
     static std::string mergedSampleName(std::string trackName, std::string  sampleName, bool uniquify);
 
-    static bool hasPLIncompatibleAlleles(std::unordered_set<std::shared_ptr<Allele>>& alleleSet1, std::vector<std::shared_ptr<Allele>> & alleleSet2);
+    static bool hasPLIncompatibleAlleles(std::vector<std::shared_ptr<Allele>>& alleleSet1, std::vector<std::shared_ptr<Allele>> & alleleSet2);
 
 public:
     /**
@@ -126,7 +126,7 @@ public:
 
     static bool contextMatchesLoc(std::shared_ptr<VariantContext>& vc, Locatable* loc);
 
-    static std::shared_ptr<AlleleMapper> resolveIncompatibleAlleles(std::shared_ptr<Allele> refAllele, std::shared_ptr<VariantContext> vc, std::unordered_set<std::shared_ptr<Allele>>& alleles);
+    static std::shared_ptr<AlleleMapper> resolveIncompatibleAlleles(std::shared_ptr<Allele> refAllele, std::shared_ptr<VariantContext> vc, std::vector<std::shared_ptr<Allele>>& alleles);
 
     /**
     * Create an allele mapping for the given context where its reference allele must (potentially) be extended to the given allele
@@ -146,6 +146,8 @@ public:
     * @return a non-null mapping of original alleles to new (extended) ones
     */
     static std::shared_ptr<std::map<std::shared_ptr<Allele>, std::shared_ptr<Allele>>> createAlleleMapping(std::shared_ptr<Allele> refAllele, std::shared_ptr<VariantContext> oneVc, std::unordered_set<std::shared_ptr<Allele>> &currentAlleles);
+
+    static std::shared_ptr<std::map<std::shared_ptr<Allele>, std::shared_ptr<Allele>>> createAlleleMapping(std::shared_ptr<Allele> refAllele, std::shared_ptr<VariantContext> oneVc, const std::vector<std::shared_ptr<Allele>> &currentAlleles);
 
     static GenoTypesContext* stripPLsAndAD(GenoTypesContext* genotypes);
 

@@ -13,6 +13,8 @@ CommonInfo::CommonInfo(std::string & name, double log10PError, std::set<std::str
     if(filters != nullptr){
         this->filters = *filters;
     }
+    if(!attributes)
+        this->attributes = new std::map<std::string, AttributeValue>;
 }
 
 CommonInfo::~CommonInfo() {

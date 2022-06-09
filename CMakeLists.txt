@@ -10,12 +10,12 @@ find_package(Torch REQUIRED)
 #compile flag
 set(CMAKE_CXX_FLAGS "-g -pthread")
 set(CMAKE_CXX_FLAGS_RELEASE -O3)
-set(CMAKE_CXX_FLAGS_DEBUG "-fsanitize=leak")
+set(CMAKE_CXX_FLAGS_DEBUG "-fsanitize=address")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 
 #linker flag
-set(CMAKE_EXE_LINKER_FLAGS_DEBUG "-fsanitize=leak")
+set(CMAKE_EXE_LINKER_FLAGS_DEBUG "-fsanitize=address")
 
 # counterpart of gcc -I
 include_directories(${PROJECT_SOURCE_DIR}/../htslib)

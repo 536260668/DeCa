@@ -113,7 +113,7 @@ shared_ptr<vector<double>> MathUtils::applyToArray(vector<double> &array, double
 }
 
 shared_ptr<vector<double>> MathUtils::applyToArrayInPlace(shared_ptr<vector<double>> array, function<double(double)> func) {
-    assert(!array->empty());
+    assert(array != nullptr);
     assert(func != nullptr);
     applyToArrayInPlace(*array, func);
     return array;

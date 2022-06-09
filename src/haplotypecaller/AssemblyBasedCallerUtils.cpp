@@ -200,7 +200,7 @@ AssemblyBasedCallerUtils::getVariantContextsFromActiveHaplotypes(int loc, vector
         if(v->getStart() == loc)
         {
             shared_ptr<LocationAndAlleles> locationAndAlleles = make_shared<LocationAndAlleles>(v->getStart(), v->getAlleles());
-            if(uniqueLocationsAndAlleles.find(locationAndAlleles) != uniqueLocationsAndAlleles.end())
+            if(uniqueLocationsAndAlleles.find(locationAndAlleles) == uniqueLocationsAndAlleles.end())
             {
                 uniqueLocationsAndAlleles.insert(locationAndAlleles);
                 results->emplace_back(v);
@@ -398,8 +398,8 @@ int AssemblyBasedCallerUtils::constructPhaseSetMapping(vector<shared_ptr<Variant
     // use the haplotype mapping to connect variants that are always/never present on the same haplotypes
     for ( int i = 0; i < numCalls - 1; i++ ) {
         shared_ptr<VariantContext>& call = originalCalls[i];
-        auto haplotypesWithCall = haplotypeMap.at(call.get());
-        if(haplotypesWithCall->empty())
+        shared_ptr<unordered_set<Haplotype*>> haplotypesWithCall = haplotypeMap.at(call.get());  // this variable can be nullptr
+        if(haplotypesWithCall == nullptr || haplotypesWithCall->empty())
             continue;
 
         bool callIsOnAllHaps = haplotypesWithCall->size() == totalAvailableHaplotypes;

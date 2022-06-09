@@ -10,7 +10,7 @@
 #include "variantcontext/builder/GenotypeBuilder.h"
 #include "variantcontext/VCFConstants.h"
 
-SomaticGenotypeEngine::SomaticGenotypeEngine(M2ArgumentCollection& MTAC, string normalSample, VaraintAnnotatiorEngine& annotationEngine) : MTAC(MTAC), normalSample(normalSample), annotationEngine(annotationEngine)
+SomaticGenotypeEngine::SomaticGenotypeEngine(M2ArgumentCollection& MTAC, string normalSample, VaraintAnnotatiorEngine& annotationEngine) : MTAC(MTAC), normalSample(normalSample), annotationEngine(annotationEngine), hasNormal(!normalSample.empty())
 {
 
 }
@@ -19,10 +19,13 @@ CalledHaplotypes SomaticGenotypeEngine::callMutations(AlleleLikelihoods<SAMRecor
                                                       AssemblyResultSet &assemblyResultSet,
                                                       ReferenceContext &referenceContext,
                                                       SimpleInterval &activeRegionWindow, SAMFileHeader *header) {
+    if(activeRegionWindow.getStart() == 1207200)
+        cout << "===========" << endl;
+
     auto haplotypes =  logReadLikelihoods->getAlleles();
 
     vector<int> startPosKeySet;
-    for(int startPosKey : EventMap::buildEventMapsForHaplotypes(haplotypes, assemblyResultSet.getFullReferenceWithPadding(), assemblyResultSet.getFullReferenceWithPaddingLength(), assemblyResultSet.getPaddedReferenceLoc(), false, MTAC.maxMnpDistance))
+    for(int startPosKey : EventMap::buildEventMapsForHaplotypes(haplotypes, assemblyResultSet.getFullReferenceWithPadding(), assemblyResultSet.getFullReferenceWithPaddingLength(), assemblyResultSet.getPaddedReferenceLoc(), MTAC.maxMnpDistance))
     {
         if(activeRegionWindow.getStart() <= startPosKey && startPosKey <= activeRegionWindow.getEnd())
             startPosKeySet.push_back(startPosKey);
@@ -79,7 +82,11 @@ CalledHaplotypes SomaticGenotypeEngine::callMutations(AlleleLikelihoods<SAMRecor
         {
             if(forcedAlleles.find(alternateAllele) != forcedAlleles.end() || tumorLogOdds->getAlt(alternateAllele) > MTAC.getEmissionLogOdds())
                 tumorAltAlleles.emplace_back(alternateAllele);
-            if(forcedAlleles.find(alternateAllele) != forcedAlleles.end() || !hasNormal || MTAC.genotypeGermlineSites || normalLogOdds->getAlt(alternateAllele) > MathUtils::log10ToLog(MTAC.normalLog10Odds))
+        }
+
+        for(auto& allele : tumorAltAlleles)
+        {
+            if(forcedAlleles.find(allele) != forcedAlleles.end() || !hasNormal || MTAC.genotypeGermlineSites || normalLogOdds->getAlt(allele) > MathUtils::log10ToLog(MTAC.normalLog10Odds))
                 somaticAltCount++;
         }
 
@@ -179,7 +186,7 @@ SampleMatrix<Fragment, Allele>* SomaticGenotypeEngine::combinedLikelihoodMatrix(
 
     vector<string> sample{"COMBINED"};
     map<string,vector<shared_ptr<Fragment>>> evidenceBySample;
-    evidenceBySample.insert({"COMBINDE", reads});
+    evidenceBySample.insert({"COMBINED", reads});
     auto alleles = alleleList->getAlleles();
     AlleleLikelihoods<Fragment, Allele> *combinedLikelihoods;
     combinedLikelihoods = new AlleleLikelihoods<Fragment, Allele>(sample, alleles, evidenceBySample);
@@ -189,7 +196,7 @@ SampleMatrix<Fragment, Allele>* SomaticGenotypeEngine::combinedLikelihoodMatrix(
     int alleleCount = result->numberOfAlleles();
     for(auto matrix : matrices)
     {
-        int readCount = matrix->numberOfAlleles();
+        int readCount = matrix->evidenceCount();
         for(int r = 0; r < readCount; r++)
         {
             for(int a = 0; a < alleleCount; a++)

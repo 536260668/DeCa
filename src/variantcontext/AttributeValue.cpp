@@ -40,12 +40,36 @@ AttributeValue::AttributeValue(std::vector<int> &val) {
     type = VECTOR_INT;
 }
 
+/*AttributeValue::AttributeValue(AttributeValue &other) {
+    this->type = other.type;
+    switch (type) {
+        case INT:
+            value = (void*)(new int(*(int*)(other.value)));
+            break;
+        case DOUBLE:
+            value = (void*)(new double(*(double*)(other.value)));
+            break;
+        case BOOL:
+            value = (void*)(new bool(*(bool*)(other.value)));
+            break;
+        case STRING:
+            value = (void*)(new std::string(*(std::string*)(other.value)));
+            break;
+        case VECTOR_DOUBLE:
+            value = (void*)(new std::vector<double>(*(std::vector<double>*)(other.value)));
+            break;
+        case VECTOR_INT:
+            value = (void*)(new std::vector<int>(*(std::vector<int>*)(other.value)));
+            break;
+    }
+}*/
+
 int AttributeValue::getAttributeAsInt() {
     assert(type == INT);
     return *((int*)value);
 }
 
-AttributeValue::~AttributeValue(){
+/*AttributeValue::~AttributeValue(){
     if(value != nullptr && type != NULL_)
     {
         switch (type) {
@@ -69,7 +93,7 @@ AttributeValue::~AttributeValue(){
                 break;
         }
     }
-}
+}*/
 
 AttributeValue AttributeValue::empty_value() {
     return AttributeValue(nullptr, NULL_);

@@ -13,3 +13,11 @@ CalledHaplotypes::CalledHaplotypes(std::shared_ptr<std::vector<std::shared_ptr<V
     assert(calls->empty() == calledHaplotypes->empty());
 
 }
+
+std::shared_ptr<std::vector<std::shared_ptr<VariantContext>>> CalledHaplotypes::getCalls() {
+    return calls;
+}
+
+std::shared_ptr<std::unordered_set<std::shared_ptr<Haplotype>>> CalledHaplotypes::getCalledHaplotypes() {
+    return calledHaplotypes;
+}

@@ -130,7 +130,7 @@ std::shared_ptr<VariantContext> GATKVariantContextUtils::simpleMerge(std::shared
     std::string name = first->getSource();
     auto refAllele = determineReferenceAllele(VCs);
 
-    std::unordered_set<std::shared_ptr<Allele>> alleles;
+    std::shared_ptr<std::vector<std::shared_ptr<Allele>>> alleles = std::make_shared<std::vector<std::shared_ptr<Allele>>>();   //---use a vector to function as a set
     std::set<std::string> filters;
     std::map<std::string, std::string> attributes;
     std::set<std::string> inconsistentAttributes;
@@ -158,12 +158,22 @@ std::shared_ptr<VariantContext> GATKVariantContextUtils::simpleMerge(std::shared
         if(vc->isVariant())
             variantSources.insert(vc->getSource());
 
-        auto alleleMapping = resolveIncompatibleAlleles(refAllele, vc, alleles);
+        auto alleleMapping = resolveIncompatibleAlleles(refAllele, vc, *alleles);
 
         auto temp = alleleMapping->values();
         for(auto value : *temp)
         {
-            alleles.insert(value);
+            bool present = false;
+            for(auto a : *alleles)
+            {
+                if(*a == *value)
+                {
+                    present = true;
+                    break;
+                }
+            }
+            if(!present)
+                alleles->emplace_back(value);
         }
 
         mergeGenotypes(*genotypes, vc, alleleMapping, genotypeMergeOptions == UNIQUIFY);
@@ -187,7 +197,7 @@ std::shared_ptr<VariantContext> GATKVariantContextUtils::simpleMerge(std::shared
         if(vc->hasID())
             rsIDs.insert(vc->getID());
 
-        for(auto iter : vc->getAttributes())
+        for(auto& iter : vc->getAttributes())
         {
             std::string key = iter.first;
             AttributeValue value = iter.second;
@@ -217,7 +227,7 @@ std::shared_ptr<VariantContext> GATKVariantContextUtils::simpleMerge(std::shared
             continue;
 
 
-        if(hasPLIncompatibleAlleles(alleles, vc->getAlleles()))
+        if(hasPLIncompatibleAlleles(*alleles, vc->getAlleles()))
         {
             if(!genotypes->isEmpty())
             {
@@ -243,6 +253,7 @@ std::shared_ptr<VariantContext> GATKVariantContextUtils::simpleMerge(std::shared
     std::string ID = rsIDs.empty() ? VCFConstants::EMPTY_ID_FIELD : Utils::join(",", rsIDs);
 
     auto builder = std::shared_ptr<VariantContextBuilder>((new VariantContextBuilder())->setSource(name)->setId(ID));
+    builder->setLoc(longestVC->getContig(), longestVC->getStart(), longestVC->getEnd());
     builder->setAlleles(alleles);
     builder->setGenotypes(genotypes);
     builder->setLog10PError(log10PError);
@@ -269,14 +280,14 @@ Genotype* GATKVariantContextUtils::removePLsAndAD(Genotype *g) {
     return (g->hasLikelihoods() || g->hasAD()) ? GenotypeBuilder(g).make() : g;
 }
 
-bool GATKVariantContextUtils::hasPLIncompatibleAlleles(std::unordered_set<std::shared_ptr<Allele>> &alleleSet1,
+bool GATKVariantContextUtils::hasPLIncompatibleAlleles(std::vector<std::shared_ptr<Allele>> &alleleSet1,
                                                        std::vector<std::shared_ptr<Allele>> &alleleSet2) {
     auto it1 = alleleSet1.begin();
     auto it2 = alleleSet2.begin();
 
     while(it1 != alleleSet1.end() && it2 != alleleSet2.end())
     {
-        if(!(*it1 == *it2))
+        if(!(*it1 == *it2 || it1->get() == it2->get() || *(it1->get()) == *(it2->get())))
         {
             return true;
         }
@@ -357,7 +368,7 @@ bool GATKVariantContextUtils::contextMatchesLoc(std::shared_ptr<VariantContext> 
 
 std::shared_ptr<AlleleMapper> GATKVariantContextUtils::resolveIncompatibleAlleles(std::shared_ptr<Allele> refAllele,
                                                                                   std::shared_ptr<VariantContext> vc,
-                                                                                  std::unordered_set<std::shared_ptr<Allele>> &alleles) {
+                                                                                  std::vector<std::shared_ptr<Allele>> &alleles) {
     if((*refAllele) == (*vc->getReference()))
         return std::make_shared<AlleleMapper>(vc);
     else{
@@ -370,6 +381,39 @@ std::shared_ptr<AlleleMapper> GATKVariantContextUtils::resolveIncompatibleAllele
 std::shared_ptr<std::map<std::shared_ptr<Allele>, std::shared_ptr<Allele>>>
 GATKVariantContextUtils::createAlleleMapping(std::shared_ptr<Allele> refAllele, std::shared_ptr<VariantContext> oneVc,
                                              std::unordered_set<std::shared_ptr<Allele>> &currentAlleles) {
+    auto myRef = oneVc->getReference();
+    assert(refAllele->getLength() > myRef->getLength());
+
+    int myRefLength = myRef->getLength();
+    int refAlleleLength = refAllele->getLength();
+    auto refAlleleBases = refAllele->getBases();
+    std::shared_ptr<uint8_t[]> extraBases(new uint8_t[refAlleleLength - myRefLength]);
+    memcpy(extraBases.get(), refAlleleBases.get() + myRefLength, refAlleleLength - myRefLength);
+
+    std::shared_ptr<std::map<std::shared_ptr<Allele>, std::shared_ptr<Allele>>> map(new std::map<std::shared_ptr<Allele>, std::shared_ptr<Allele>>);
+    for(auto a : oneVc->getAlternateAlleles())
+    {
+        if(isNonSymbolicExtendableAllele(a))
+        {
+            auto extended = Allele::extend(a, extraBases, refAlleleLength - myRefLength);
+            for(auto & b : currentAlleles)
+            {
+                if(*extended == *b)
+                {
+                    extended = b;
+                }
+            }
+            map->insert({a, extended});
+        } else if(*a == *(Allele::SPAN_DEL)) {
+            map->insert({a,a});
+        }
+    }
+    return map;
+}
+
+std::shared_ptr<std::map<std::shared_ptr<Allele>, std::shared_ptr<Allele>>>
+GATKVariantContextUtils::createAlleleMapping(std::shared_ptr<Allele> refAllele, std::shared_ptr<VariantContext> oneVc, const std::vector<std::shared_ptr<Allele>> &currentAlleles)
+{
     auto myRef = oneVc->getReference();
     assert(refAllele->getLength() > myRef->getLength());
 

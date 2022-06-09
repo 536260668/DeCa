@@ -22,7 +22,7 @@ enum Attribute_Type{
 
 class AttributeValue {
 private:
-    void * value;
+    void* value;
     Attribute_Type type;
 
 public:
@@ -42,7 +42,9 @@ public:
 
     AttributeValue(std::vector<int>& val);
 
-    ~AttributeValue();
+    //AttributeValue(AttributeValue& other);    // TODO: how to solve this problem
+
+    //~AttributeValue();
 
     int getAttributeAsInt();
 

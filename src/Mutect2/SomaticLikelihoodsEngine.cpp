@@ -93,7 +93,7 @@ SomaticLikelihoodsEngine::getEffectiveCounts(const std::vector<std::vector<doubl
 std::shared_ptr<std::vector<double>>
 SomaticLikelihoodsEngine::getColumnOfLogLikelihood(const std::vector<std::vector<double>> &logLikelihoods,
                                                    int colomnIndex) {
-    auto logLikelihoodsCoulmn = make_shared<std::vector<double>>(logLikelihoods[0].size());
+    auto logLikelihoodsCoulmn = make_shared<std::vector<double>>(logLikelihoods.size());
     int numRow = logLikelihoods.size();
     for(int i=0; i<numRow; i++)
     {

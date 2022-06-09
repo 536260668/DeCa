@@ -45,14 +45,14 @@ public:
     */
     CalledHaplotypes callMutations(AlleleLikelihoods<SAMRecord, Haplotype>* logReadLikelihoods, AssemblyResultSet& assemblyResultSet, ReferenceContext& referenceContext, SimpleInterval& activeRegionWindow, SAMFileHeader * header);
 
-    SampleMatrix<Fragment, Allele>* combinedLikelihoodMatrix(vector<SampleMatrix<Fragment, Allele>*> matrices, SampleMatrix<Fragment, Allele>* alleleList);
+    static SampleMatrix<Fragment, Allele>* combinedLikelihoodMatrix(vector<SampleMatrix<Fragment, Allele>*> matrices, SampleMatrix<Fragment, Allele>* alleleList);
 
     // compute the likelihoods that each allele is contained at some allele fraction in the sample
     shared_ptr<PreAlleleCollection<double>> somaticLogOdds(SampleMatrix<Fragment, Allele>* logMatrix);
 
-    int getRefIndex(SampleMatrix<Fragment, Allele>* logMatrix);
+    static int getRefIndex(SampleMatrix<Fragment, Allele>* logMatrix);
 
-    int getRefIndex(SubsettedLikelihoodMatrix<Fragment, Allele>* logMatrix);
+    static int getRefIndex(SubsettedLikelihoodMatrix<Fragment, Allele>* logMatrix);
 
     static shared_ptr<vector<vector<double>>> getAsRealMatrix(shared_ptr<SubsettedLikelihoodMatrix<Fragment, Allele>> matrix);
 

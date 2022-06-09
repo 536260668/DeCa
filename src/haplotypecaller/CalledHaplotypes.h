@@ -24,7 +24,13 @@ public:
      * Get the list of calls made at this location
      * @return a non-null (but potentially empty) list of calls
      */
+    std::shared_ptr<std::vector<std::shared_ptr<VariantContext>>> getCalls();
 
+    /**
+     * Get the set of haplotypes that we actually called (i.e., underlying one of the VCs in getCalls().
+     * @return a non-null set of haplotypes
+     */
+    std::shared_ptr<std::unordered_set<std::shared_ptr<Haplotype>>> getCalledHaplotypes();
 };
 
 

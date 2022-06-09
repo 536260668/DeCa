@@ -44,7 +44,10 @@ std::vector<Genotype *> *GenoTypesContext::getGenotypes() {
 }
 
 int GenoTypesContext::getSize() {
-    return (int)getGenotypes()->size();
+    if(!notToBeDirectlyAccessedGenotypes)
+        return 0;
+    else
+        return (int)notToBeDirectlyAccessedGenotypes->size();
 }
 
 Genotype *GenoTypesContext::get(int i) {
