@@ -422,10 +422,7 @@ public:
         int index = 0;
         for(int i=0; i<numberOfEvidence; i++)
         {
-            if(index >= indexesToRemove.size())
-                break;
-
-            if(indexesToRemove[index] != i)
+            if(index >= indexesToRemove.size() || indexesToRemove[index] != i)
             {
                 IndicesToKeep.push_back(i);
             } else {

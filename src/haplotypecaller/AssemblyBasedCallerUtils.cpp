@@ -475,7 +475,7 @@ int AssemblyBasedCallerUtils::constructPhaseSetMapping(vector<shared_ptr<Variant
 
 shared_ptr<vector<shared_ptr<VariantContext>>> AssemblyBasedCallerUtils::constructPhaseGroups(vector<shared_ptr<VariantContext>> &originalCalls, map<VariantContext*, pair<int, string>>& phaseSetMapping, int indexTo)
 {
-    auto phasedCalls = make_shared<vector<shared_ptr<VariantContext>>>();
+    auto phasedCalls = make_shared<vector<shared_ptr<VariantContext>>>(originalCalls);
 
     // if we managed to find any phased groups, update the VariantContexts
     for ( int count = 0; count < indexTo; count++ ) {

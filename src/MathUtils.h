@@ -67,6 +67,8 @@ public:
     * Returns a new array -- the original array in not modified.
     *
     */
+    static shared_ptr<vector<double>> applyToArray(shared_ptr<vector<double>> array, double (*func)(double));
+
     static shared_ptr<vector<double>> applyToArray(vector<double>& array, double (*func)(double));
 
     /**

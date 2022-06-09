@@ -236,7 +236,7 @@ SomaticGenotypeEngine::somaticLogOdds(SampleMatrix<Fragment, Allele> *logMatrix)
         shared_ptr<Allele> allele = logMatrix->getAllele(i);
         auto logMatrixWithoutThisAllele = SubsettedLikelihoodMatrix<Fragment, Allele>::excludingAllele(logMatrix, allele);
         double logEvidenceWithoutThisAllele = logMatrixWithoutThisAllele->evidenceCount() == 0 ? 0.0 : SomaticLikelihoodsEngine::logEvidence(
-                *getAsRealMatrix(logMatrixWithoutThisAllele), MTAC.minAF, logMatrixWithoutThisAllele->numberOfAlleles() > 1 ? nonRefIndex: -1);
+                *getAsRealMatrix(logMatrixWithoutThisAllele), MTAC.minAF, logMatrixWithoutThisAllele->numberOfAlleles() > 1 ? nonRefIndex-1: -1);
         lods->setAlt(allele, logEvidenceWithAllAlleles - logEvidenceWithoutThisAllele);
     }
     return lods;

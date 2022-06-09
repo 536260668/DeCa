@@ -111,12 +111,12 @@ void VectorLoglessPairHMM::computeLog10Likelihoods(SampleMatrix<SAMRecord, Haplo
     computeLikelihoodsNative(testcases, mLogLikelihoodArray);
 
     //---print the likelihoods calculated by PairHMM algorithm
-/*    for(double & likelihood: mLogLikelihoodArray)
+    for(double & likelihood: mLogLikelihoodArray)
     {
         cerr.setf(ios::fixed);
         cerr << setprecision(5) << likelihood << " ";
     }
-    cerr << endl;*/
+    cerr << endl;
 
     int readIdx = 0;
     for(int r=0; r<numReads; r++)

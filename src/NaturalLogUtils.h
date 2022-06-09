@@ -51,7 +51,9 @@ public:
      */
     static std::shared_ptr<std::vector<double>> normalizeFromLogToLinearSpace(std::shared_ptr<std::vector<double>> array);
 
-    static std::shared_ptr<std::vector<double>> posteriors( std::shared_ptr<std::vector<double>> logPriors, std::shared_ptr<std::vector<double>> logLikelihoods);
+    static std::shared_ptr<std::vector<double>> posteriors( const std::vector<double>& logPriors, const std::vector<double>& logLikelihoods);
+
+    static std::shared_ptr<std::vector<double>> posteriors(std::shared_ptr<std::vector<double>> logPriors, std::shared_ptr<std::vector<double>> logLikelihoods);
 };
 
 

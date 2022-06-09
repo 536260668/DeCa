@@ -79,10 +79,16 @@ NaturalLogUtils::normalizeFromLogToLinearSpace(std::shared_ptr<std::vector<doubl
 
 std::shared_ptr<std::vector<double>> NaturalLogUtils::posteriors(std::shared_ptr<std::vector<double>> logPriors,
                                                                  std::shared_ptr<std::vector<double>> logLikelihoods) {
-    int size = logLikelihoods->size();
+    return posteriors(*logPriors, *logLikelihoods);
+}
+
+std::shared_ptr<std::vector<double>> NaturalLogUtils::posteriors(const std::vector<double>& logPriors,
+                                                                 const std::vector<double>& logLikelihoods) {
+    int size = logLikelihoods.size();
+    auto addedArray = make_shared<std::vector<double>>(size, 0.0);
     for(int i=0; i<size; i++)
     {
-        logLikelihoods->operator[](i) += logPriors->operator[](i);
+        addedArray->operator[](i) = logPriors[i] + logLikelihoods[i];
     }
-    return normalizeFromLogToLinearSpace(logLikelihoods);
+    return normalizeFromLogToLinearSpace(addedArray);
 }

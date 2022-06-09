@@ -38,8 +38,8 @@ double SomaticLikelihoodsEngine::logEvidence(const std::vector<std::vector<doubl
     for(int i=0; i<columnNums; i++)
     {
         auto logLikelihoodsForRead = getColumnOfLogLikelihood(logLikelihoods, i);
-        auto responsibilities = NaturalLogUtils::posteriors(logAlleleFractions, logLikelihoodsForRead);
-        double entropyContribution = MathUtils::sum(MathUtils::applyToArrayInPlace(responsibilities, SomaticLikelihoodsEngine::xLogx));
+        auto responsibilities = NaturalLogUtils::posteriors(*logAlleleFractions, *logLikelihoodsForRead);
+        double entropyContribution = MathUtils::sum(MathUtils::applyToArray(responsibilities, SomaticLikelihoodsEngine::xLogx));
         likelihoodsAndEntropyContribution += likelihoodsContribution(logLikelihoodsForRead, responsibilities) - entropyContribution;
     }
 

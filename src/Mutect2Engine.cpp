@@ -210,7 +210,7 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion> &originalAssembl
 		}
 	}
 
-    //cerr << *originalAssemblyRegion;
+    cerr << *originalAssemblyRegion;
     auto readLikelihoods = likelihoodCalculationEngine->computeReadLikelihoods(*assemblyResult, samplesList, *reads);
     readLikelihoods->switchToNaturalLog();
 

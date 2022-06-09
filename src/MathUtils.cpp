@@ -103,6 +103,10 @@ double MathUtils::sum(shared_ptr<vector<double>> values) {
     return sum;
 }
 
+shared_ptr<vector<double>> MathUtils::applyToArray(shared_ptr<vector<double>> array, double (*func)(double)) {
+    return applyToArray(*array, func);
+}
+
 shared_ptr<vector<double>> MathUtils::applyToArray(vector<double> &array, double (*func)(double)) {
     assert(!array.empty());
     assert(func != nullptr);
