@@ -88,12 +88,10 @@ AssemblyBasedCallerUtils::finalizeRegion(const std::shared_ptr<AssemblyRegion> &
 std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>>
 AssemblyBasedCallerUtils::splitReadsBySample(const std::vector<std::shared_ptr<SAMRecord>> &reads) {
 	std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>> res = std::make_shared<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>>();
-	std::string normal = "normal";
-	std::string tumor = "case";     // TODO: make it a parameter, not a constant string
-	res->insert({normal, std::vector<std::shared_ptr<SAMRecord>>()});
-	res->insert({tumor, std::vector<std::shared_ptr<SAMRecord>>()});
-	std::vector<std::shared_ptr<SAMRecord>> &normalReads = res->at(normal);
-	std::vector<std::shared_ptr<SAMRecord>> &tumorReads = res->at(tumor);
+	res->insert({NORMAL, std::vector<std::shared_ptr<SAMRecord>>()});
+	res->insert({TUMOR, std::vector<std::shared_ptr<SAMRecord>>()});
+	std::vector<std::shared_ptr<SAMRecord>> &normalReads = res->at(NORMAL);
+	std::vector<std::shared_ptr<SAMRecord>> &tumorReads = res->at(TUMOR);
 	for (const std::shared_ptr<SAMRecord> &read: reads) {
 		if (read->getGroup() == 0) {
 			normalReads.emplace_back(read);

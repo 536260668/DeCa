@@ -14,6 +14,9 @@
 #include "PairHMMLikelihoodCalculationEngine.h"
 #include "LikelihoodEngineArgumentCollection.h"
 
+static const std::string NORMAL = "normal";
+static const std::string TUMOR = "tumor";
+
 class AssemblyBasedCallerUtils {
 public:
     /**

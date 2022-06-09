@@ -189,10 +189,10 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion> &originalAssembl
 
 	std::shared_ptr<AssemblyRegion> regionForGenotyping = assemblyResult->getRegionForGenotyping();
 	removeReadStubs(regionForGenotyping);
-	// regionForGenotyping->printRegionInfo();
 
 	std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>> reads
 			= splitReadsBySample(regionForGenotyping->getReads());
+	//printReadsMap(reads);
 
 	if (mymodel.isInitialized() && regionForGenotyping->getReads().size() > 120) {
 		std::set<std::shared_ptr<VariantContext>, VariantContextComparator> &VariationEvents
@@ -290,5 +290,19 @@ void Mutect2Engine::printVariationEvents(const std::shared_ptr<AssemblyRegion> &
 			std::cout << ve->getReference()->getBaseString() << "==>" << alt->getBaseString() << " ";
 		}
 		std::cout << std::endl;
+	}
+}
+
+void
+Mutect2Engine::printReadsMap(const std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>>& reads) {
+	for (const auto &keyValuePair: *reads) {
+		std::cout << keyValuePair.first << " " << keyValuePair.second.size() << std::endl;
+		for (const auto &read: keyValuePair.second) {
+			std::cout << read->getName() << "\t" << read->getStart() + 1 << " " << read->getEnd() + 1 << "\t";
+			for (const auto &ce: read->getCigarElements()) {
+				std::cout << ce.getLength() << CigarOperatorUtils::enumToCharacter(ce.getOperator());
+			}
+			std::cout << std::endl;
+		}
 	}
 }

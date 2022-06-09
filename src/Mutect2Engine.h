@@ -87,6 +87,8 @@ public:
 	static void printVariationEvents(const std::shared_ptr<AssemblyRegion> &region,
 	                          const std::set<std::shared_ptr<VariantContext>, VariantContextComparator> &ves);
 
+	static void printReadsMap(const std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>>& reads);
+
 protected:
 	static std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>>
 	splitReadsBySample(const std::vector<std::shared_ptr<SAMRecord>> &reads);

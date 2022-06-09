@@ -414,7 +414,7 @@ bool model::modelRefer(const std::shared_ptr<std::map<std::string, std::vector<s
 	std::vector <std::shared_ptr<VariantContext>> withinActiveRegion;
 	std::shared_ptr <SimpleInterval> originalRegionRange = regionForGenotyping->getSpan();
 
-	std::vector <std::shared_ptr<SAMRecord>> caseReads = reads->at("case");
+	std::vector <std::shared_ptr<SAMRecord>> caseReads = reads->at("tumor");
 	std::vector <std::shared_ptr<SAMRecord>> normalReads = reads->at("normal");
 	int referenceStart = regionForGenotyping->getExtendedSpan()->getStart() - 15;
 	int ref_len = 0;
