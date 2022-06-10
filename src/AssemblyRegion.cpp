@@ -108,9 +108,9 @@ AssemblyRegion::trim(const std::shared_ptr<SimpleInterval> &span, const std::sha
 			trimmedReads.emplace_back(clippedRead);
 		}
 	}
-	//TODO:sort
 	result->clearReads();
 	result->addAll(trimmedReads);
+	result->sortReadsByCoordinate();
 	return result;
 }
 

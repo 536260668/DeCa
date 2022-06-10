@@ -8,6 +8,7 @@
 #include <vector>
 #include "samtools/SAMRecord.h"
 #include "torch/script.h"
+#include "ATen/Parallel.h"
 #include "EventMap.h"
 #include "AssemblyRegion.h"
 #include "variantcontext/VariantContext.h"

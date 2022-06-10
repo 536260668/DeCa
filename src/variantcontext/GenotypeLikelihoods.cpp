@@ -230,8 +230,13 @@ GenotypeLikelihoodsAllelePair** GenotypeLikelihoods::calculateDiploidPLcache(int
     }
 
     for(i = 0; i < numLikelihood; ++i) {
-        if(cache[i] == nullptr)
-            throw std::invalid_argument("BUG: cache entry is unexpected null");
+        if(cache[i] == nullptr) {
+	        for (int k = 0; k < numLikelihood; ++k) {
+		        delete cache[k];
+			}
+			delete[] cache;
+	        throw std::invalid_argument("BUG: cache entry is unexpected null");
+        }
     }
     length = numLikelihood;
     return cache;

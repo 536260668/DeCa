@@ -15,6 +15,9 @@
 #include "LikelihoodEngineArgumentCollection.h"
 #include "SmithWatermanAligner.h"
 
+static const std::string NORMAL = "normal";
+static const std::string TUMOR = "tumor";
+
 class AssemblyBasedCallerUtils {
 private:
     static std::string phase01;
