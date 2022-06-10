@@ -93,7 +93,6 @@ void ReadCache::readData(const string &region)
         int result;
         hts_itr_t* iter = sam_itr_querys(hts_idxes[i], data[i]->hdr, region.c_str());
         while((result = sam_itr_next(data[i]->fp, iter, b)) >= 0) {
-
             if(ReadFilter::test(b, data[i]->hdr)) {
                 // recalibrate base qualities
                 if(bqsr_within_mutect)
@@ -191,7 +190,6 @@ AlignmentContext ReadCache::getAlignmentContext() {
                 tumorReads.pop();
             }
         }
-
     }
     while(!normalReads.empty() && (*normalReads.front()).read->getStart() <= currentPose){
         if((*normalReads.front()).activateStart <= currentPose) {
@@ -214,7 +212,6 @@ AlignmentContext ReadCache::getAlignmentContext() {
                 normalReads.pop();
             }
         }
-
     }
     iter = tumorCache.begin();
     while (iter != tumorCache.end() && (*iter)->activateStart <= currentPose) {
@@ -234,11 +231,8 @@ std::vector<std::shared_ptr<SAMRecord>> ReadCache::getReadsForRegion(AssemblyReg
     std::vector<std::shared_ptr<SAMRecord>> ret;
     std::shared_ptr<SimpleInterval> loc = region.getExtendedSpan();
     auto iter = tumorReadsForRegion.begin();
-
     while(iter != tumorReadsForRegion.end()) {
         std::shared_ptr<SimpleInterval> readLoc = (*iter)->getLoc();
-
-
         if((*iter)->getEndAfterFliter() < loc->getStart()) {
             tumorReadsForRegion.erase(iter++);
         } else {
@@ -247,7 +241,6 @@ std::vector<std::shared_ptr<SAMRecord>> ReadCache::getReadsForRegion(AssemblyReg
             }
             iter++;
         }
-
     }
 
     iter = normalReadsForRegion.begin();

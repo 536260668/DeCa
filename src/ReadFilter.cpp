@@ -137,7 +137,7 @@ bool ReadFilter::ReadLengthTest(std::shared_ptr<SAMRecord> & originalRead) {
 }
 
 bool ReadFilter::ReadLengthTest(bam1_t *read) {
-    return read->core.l_qseq > MIN_READ_LENGTH && read->core.l_qseq < INT32_MAX;
+    return read->core.l_qseq >= MIN_READ_LENGTH && read->core.l_qseq <= INT32_MAX;
 }
 
 bool ReadFilter::MappingQualityNotZeroTest(bam1_t *read)

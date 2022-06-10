@@ -74,6 +74,7 @@ private:
 
 private:
 	inline static std::string ANONYMOUS_SAMPLE = "XXX_UNNAMED_XXX";
+	inline static std::string pendingKeys[4] = {ANONYMOUS_SAMPLE, "normal", "tumor", "case"};
 
 	/**
 	 * Determines whether a base can safely be used for assembly.

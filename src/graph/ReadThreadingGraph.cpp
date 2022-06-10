@@ -367,8 +367,7 @@ void ReadThreadingGraph::buildGraphIfNecessary() {
 	determineNonUniques();
 
 	int cnt = 0;
-	std::string keys[3] = {ANONYMOUS_SAMPLE, "normal", "tumor"};
-	for (const auto &key: keys) {
+	for (const auto &key: pendingKeys) {
 		if (pending.find(key) != pending.end()) {
 			for (auto &viter: pending[key]) {
 				threadSequence(viter);
@@ -894,8 +893,7 @@ bool ReadThreadingGraph::ifAlreadyBuilt() const {
 }
 
 void ReadThreadingGraph::printPendingInfo() {
-	std::string keys[3] = {ANONYMOUS_SAMPLE, "normal", "tumor"};
-	for (const auto &key: keys) {
+	for (const auto &key: pendingKeys) {
 		if (pending.find(key) != pending.end()) {
 			std::cout << key << " " << pending[key].size() << std::endl;
 			for (const auto &item: pending[key]) {
@@ -917,8 +915,7 @@ void ReadThreadingGraph::printGraphSize(const std::string &info) {
 }
 
 void ReadThreadingGraph::sortPendingBySequence() {
-	std::string keys[3] = {ANONYMOUS_SAMPLE, "normal", "tumor"};
-	for (const auto &key: keys) {
+	for (const auto &key: pendingKeys) {
 		if (pending.find(key) != pending.end()) {
 			std::sort(pending[key].begin(), pending[key].end(), [](SequenceForKmers &k1, SequenceForKmers &k2) -> bool {
 				int len1 = k1.stop - k1.start, len2 = k2.stop - k2.start;
