@@ -102,7 +102,7 @@ CalledHaplotypes SomaticGenotypeEngine::callMutations(AlleleLikelihoods<SAMRecor
         vector<shared_ptr<VariantContext>> germlineResourceVariants;
         auto negativeLogPopulationAFAnnotation = getNegativeLogPopulationAFAnnotation(germlineResourceVariants, tumorAltAlleles, MTAC.getDefaultAlleleFrequency());
         VariantContextBuilder callVcb(mergedVC);
-        callVcb.setAlleles(allAllelesToEmit)->setAttributes(&negativeLogPopulationAFAnnotation);
+        callVcb.setAlleles(allAllelesToEmit)->setAttributes(negativeLogPopulationAFAnnotation);
 
         vector<double> attributeValue;
         for(auto a : tumorAltAlleles)
@@ -310,7 +310,7 @@ SomaticGenotypeEngine::diploidAltLogOdds(SampleMatrix<Fragment, Allele> *matrix)
     return result;
 }
 
-map<string, vector<double>>
+shared_ptr<map<string, vector<double>>>
 SomaticGenotypeEngine::getNegativeLogPopulationAFAnnotation(vector<shared_ptr<VariantContext>>& germlineResourceVariants,
                                                             vector<shared_ptr<Allele>> &altAlleles,
                                                             double afOfAllelesNotInGermlineResource) {
@@ -320,7 +320,9 @@ SomaticGenotypeEngine::getNegativeLogPopulationAFAnnotation(vector<shared_ptr<Va
         return -log10(x);
     });
 
-    return {{VCFConstants::POPULATION_AF_KEY, populationAlleleFrequencies}};
+    auto result = make_shared<map<string, vector<double>>>();
+    result->insert({VCFConstants::POPULATION_AF_KEY, populationAlleleFrequencies});
+    return result;
 }
 
 vector<double> SomaticGenotypeEngine::getGermlineAltAlleleFrequencies(vector<shared_ptr<Allele>> &altAlleles,

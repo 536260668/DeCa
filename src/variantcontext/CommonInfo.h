@@ -5,6 +5,7 @@
 #ifndef MUTECT2CPP_MASTER_COMMONINFO_H
 #define MUTECT2CPP_MASTER_COMMONINFO_H
 
+#include <memory>
 #include <string>
 #include <set>
 #include <map>
@@ -26,7 +27,7 @@ private:
     double log10PError = NO_LOG10_PERROR;
     std::string name;
     std::set<std::string> filters;
-    std::map<std::string, AttributeValue>* attributes;
+    std::shared_ptr<std::map<std::string, AttributeValue>> attributes;
 
     /* 1:int
      * 2:double
@@ -38,7 +39,7 @@ private:
 public:
     constexpr static double NO_LOG10_PERROR = 1.0;
 
-    CommonInfo(std::string & name, double log10PError, std::set<std::string> * filters, std::map<std::string, AttributeValue>* attributes);
+    CommonInfo(std::string & name, double log10PError, std::set<std::string> * filters, std::shared_ptr<std::map<std::string, AttributeValue>> attributes);
 
     ~CommonInfo();
 
@@ -50,7 +51,9 @@ public:
 
     AttributeValue getAttribute(std::string &key);
 
-    std::map<std::string, AttributeValue> & getAttributes();
+    const std::map<std::string, AttributeValue> & getAttributes();
+
+    std::shared_ptr<std::map<std::string, AttributeValue>> getAttributesAsPointer();
 
     std::set<std::string> * getFiltersMaybeNull();
 

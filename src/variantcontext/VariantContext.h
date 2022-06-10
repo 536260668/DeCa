@@ -78,7 +78,7 @@ public:
                    const std::shared_ptr<std::vector<std::shared_ptr<Allele>>> &alleles,
                    GenoTypesContext *genotypes,
                    double log10PError,
-                   std::set<std::string> *filters, std::map<std::string, AttributeValue> *attributes,
+                   std::set<std::string> *filters,  std::shared_ptr<std::map<std::string, AttributeValue>> attributes,
                    bool fullyDecoded,
                    const std::set<Validation> &validationToPerform
                    );
@@ -140,7 +140,9 @@ public:
 
 	std::shared_ptr<Allele> getAlternateAllele(int i);
 
-	std::map<std::string, AttributeValue> &getAttributes();
+	const std::map<std::string, AttributeValue> &getAttributes();
+
+	std::shared_ptr<std::map<std::string, AttributeValue>> getAttributesAsPointer();
 
 	std::string &getContig();
 

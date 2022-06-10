@@ -2,6 +2,7 @@
 // Created by lhh on 11/11/21.
 //
 
+#include <iostream>
 #include <stdexcept>
 #include <cassert>
 #include "VariantContext.h"
@@ -14,7 +15,7 @@ VariantContext::VariantContext(std::string &source,
                                const std::shared_ptr<std::vector<std::shared_ptr<Allele>>> & alleles,
                                GenoTypesContext* genotypes,
                                double log10PError,
-                               std::set<std::string>* filters, std::map<std::string, AttributeValue> *attributes,
+                               std::set<std::string>* filters,  std::shared_ptr<std::map<std::string, AttributeValue>> attributes,
                                bool fullyDecoded,
                                const std::set<Validation>&  validationToPerform) : contig(contig), start(start), stop(stop), commonInfo(
         CommonInfo(source, log10PError, filters, attributes))
@@ -297,8 +298,12 @@ bool VariantContext::isSimpleInsertion() {
     return isSimpleIndel() && getReference()->getLength() == 1;
 }
 
-std::map<std::string,AttributeValue> & VariantContext::getAttributes() {
+const std::map<std::string,AttributeValue> & VariantContext::getAttributes() {
     return commonInfo.getAttributes();
+}
+
+std::shared_ptr<std::map<std::string, AttributeValue>> VariantContext::getAttributesAsPointer() {
+    return commonInfo.getAttributesAsPointer();
 }
 
 std::string &VariantContext::getContig() {

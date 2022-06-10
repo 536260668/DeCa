@@ -158,7 +158,7 @@ Mutect2Engine::fillNextAssemblyRegionWithReads(const std::shared_ptr<AssemblyReg
 std::vector<std::shared_ptr<VariantContext>>
 Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion> &originalAssemblyRegion,
                           ReferenceContext &referenceContext) {
-    if(originalAssemblyRegion->getStart() == 1207167)
+    if(originalAssemblyRegion->getStart() == 3118882)
         cout << "=============\n";
 
 	// divide PCR qual by two in order to get the correct total qual when treating paired reads as independent
@@ -223,7 +223,7 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion> &originalAssembl
     std::shared_ptr<std::vector<std::shared_ptr<VariantContext>>> calls = calledHaplotypes.getCalls();
     for(auto& call : *calls)
     {
-        cout << call->getContig() << " " << call->getStart() << " " << call->getEnd() << "\n";
+        cerr << call->getContig() << " " << call->getStart() << " " << call->getEnd() << "\n";
     }
 
 	// Break the circular reference of pointer

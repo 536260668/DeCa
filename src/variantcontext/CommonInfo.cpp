@@ -7,18 +7,17 @@
 #include <stdexcept>
 #include "VCFConstants.h"
 
-CommonInfo::CommonInfo(std::string & name, double log10PError, std::set<std::string> * filters, std::map<std::string, AttributeValue>* attributes): name(name), attributes(attributes)
+CommonInfo::CommonInfo(std::string & name, double log10PError, std::set<std::string> * filters, std::shared_ptr<std::map<std::string, AttributeValue>> attributes): name(name), attributes(attributes)
 {
     setLog10PError(log10PError);
     if(filters != nullptr){
         this->filters = *filters;
     }
     if(!attributes)
-        this->attributes = new std::map<std::string, AttributeValue>;
+        this->attributes = std::make_shared<std::map<std::string, AttributeValue>>();
 }
 
 CommonInfo::~CommonInfo() {
-    delete attributes;
 }
 
 void CommonInfo::setLog10PError(double log10PError)
@@ -47,8 +46,12 @@ AttributeValue CommonInfo::getAttribute(std::string &key) {
     return attributes->at(key);
 }
 
-std::map<std::string, AttributeValue> &CommonInfo::getAttributes(){
+const std::map<std::string, AttributeValue> &CommonInfo::getAttributes(){
     return *attributes;
+}
+
+std::shared_ptr<std::map<std::string, AttributeValue>> CommonInfo::getAttributesAsPointer() {
+    return attributes;
 }
 
 std::set<std::string>* CommonInfo::getFiltersMaybeNull() {

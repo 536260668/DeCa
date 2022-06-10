@@ -25,7 +25,7 @@ std::shared_ptr<VariantContext> VariantContextBuilder::make() {
     return make(false);
 }
 
-VariantContextBuilder::VariantContextBuilder(std::shared_ptr<VariantContext> &parent) : alleles(std::make_shared<std::vector<std::shared_ptr<Allele>>>(parent->getAlleles()) ), attribute(&parent->getAttributes()),attributesCanBeModified(false),
+VariantContextBuilder::VariantContextBuilder(std::shared_ptr<VariantContext> &parent) : alleles(std::make_shared<std::vector<std::shared_ptr<Allele>>>(parent->getAlleles()) ), attribute(parent->getAttributesAsPointer()), attributesCanBeModified(false),
 contig(parent->getContig()), filters(parent->getFiltersMaybeNull()), genotypes(parent->getGenotypes()), ID(parent->getID()), log10PError(parent->getLog10PError()),
 source(parent->getSource()), start(parent->getStart()), stop(parent->getEnd()), fullyDecoded(parent->isFullyDecoded()){}
 
@@ -116,8 +116,8 @@ VariantContextBuilder *VariantContextBuilder::unfiltered() {
     return this;
 }
 
-VariantContextBuilder *VariantContextBuilder::setAttributes(std::map<std::string, std::vector<double>> *attribute) {
-    this->attribute = new std::map<std::string, AttributeValue>();
+VariantContextBuilder *VariantContextBuilder::setAttributes(std::shared_ptr<std::map<std::string, std::vector<double>>> attribute) {
+    this->attribute = std::make_shared<std::map<std::string, AttributeValue>>();
     if(attribute != nullptr)
     {
         for(auto & iter : *attribute)

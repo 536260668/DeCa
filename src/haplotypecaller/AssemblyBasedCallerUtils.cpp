@@ -304,7 +304,6 @@ AssemblyBasedCallerUtils::phaseCalls(vector<shared_ptr<VariantContext>> &calls,
 // ---a helper method
 bool contains(vector<shared_ptr<Allele>> alleles, shared_ptr<Allele> alt)
 {
-
     for(auto allele : alleles)
     {
         if(*allele == *alt)
@@ -379,11 +378,11 @@ bool containAll(unordered_set<Haplotype*>& set1, unordered_set<Haplotype*>& set2
 //---just like Java set retainAll
 void retainAll(unordered_set<Haplotype*>& set1, unordered_set<Haplotype*>& set2)
 {
-    for(Haplotype* h : set1)
-    {
-        if(set2.find(h) == set2.end())
-        {
-            set1.erase(h);
+    for (auto h = set1.begin(), last = set1.end(); h != last; ) {
+        if (set2.find(*h) == set2.end()) {
+            h = set1.erase(h);
+        } else {
+            ++h;
         }
     }
 }
@@ -516,21 +515,25 @@ string AssemblyBasedCallerUtils::createUniqueID(shared_ptr<VariantContext> vc) {
 shared_ptr<VariantContext>
 AssemblyBasedCallerUtils::phaseVC(shared_ptr<VariantContext> vc, string &ID, string &phaseGT, int phaseSetID) {
     vector<Genotype*> phasedGenotypes;
-    for(auto g : *vc->getGenotypes()->getGenotypes())
+    GenoTypesContext* genotypesContext = vc->getGenotypes();
+    if(genotypesContext != nullptr && genotypesContext->getGenotypes() != nullptr)
     {
-        std::vector<std::shared_ptr<Allele>> & alleles = g->getAlleles();
-        if (phaseGT == phase10 && g->isHet())
+        for(auto g : *genotypesContext->getGenotypes())
         {
-            // reverse the list
-            int size = alleles.size();
-            for(int i=0; i<size/2; i++)
+            std::vector<std::shared_ptr<Allele>> & alleles = g->getAlleles();
+            if (phaseGT == phase10 && g->isHet())
             {
-                swap(alleles[i], alleles[size - i - 1]);
+                // reverse the list
+                int size = alleles.size();
+                for(int i=0; i<size/2; i++)
+                {
+                    swap(alleles[i], alleles[size - i - 1]);
+                }
             }
-        }
 
-        Genotype* genotype = GenotypeBuilder(g).setAlleles(alleles).phased(true).attribute(VCFConstants::HAPLOTYPE_CALLER_PHASING_ID_KEY, ID).attribute(VCFConstants::HAPLOTYPE_CALLER_PHASING_GT_KEY, phaseGT).attribute(VCFConstants::PHASE_SET_KEY, phaseSetID).make();
-        phasedGenotypes.push_back(genotype);
+            Genotype* genotype = GenotypeBuilder(g).setAlleles(alleles).phased(true).attribute(VCFConstants::HAPLOTYPE_CALLER_PHASING_ID_KEY, ID).attribute(VCFConstants::HAPLOTYPE_CALLER_PHASING_GT_KEY, phaseGT).attribute(VCFConstants::PHASE_SET_KEY, phaseSetID).make();
+            phasedGenotypes.push_back(genotype);
+        }
     }
     return VariantContextBuilder(vc).setGenotypes(phasedGenotypes)->make();
 }

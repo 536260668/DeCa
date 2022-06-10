@@ -28,7 +28,7 @@ private:
     GenoTypesContext* genotypes;
     double log10PError;
     std::set<std::string> * filters;
-    std::map<std::string, AttributeValue> * attribute;
+    std::shared_ptr<std::map<std::string, AttributeValue>> attribute;
     bool attributesCanBeModified = false;
     bool filtersCanBeModified = false;
     std::set<Validation> toValidate;
@@ -97,7 +97,7 @@ public:
 
     VariantContextBuilder* unfiltered();
 
-    VariantContextBuilder* setAttributes(std::map<std::string, std::vector<double>> * attribute);
+    VariantContextBuilder* setAttributes(std::shared_ptr<std::map<std::string, std::vector<double>>> attribute);
 
     VariantContextBuilder* setAttribute(const std::string& key, int value);
 

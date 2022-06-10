@@ -19,7 +19,7 @@ private:
     string normalSample;
     bool hasNormal;
 
-    static map<string, vector<double>> getNegativeLogPopulationAFAnnotation(vector<shared_ptr<VariantContext>>& germlineResourceVariants, vector<shared_ptr<Allele>>& altAlleles, double afOfAllelesNotInGermlineResource);
+    static shared_ptr<map<string, vector<double>>> getNegativeLogPopulationAFAnnotation(vector<shared_ptr<VariantContext>>& germlineResourceVariants, vector<shared_ptr<Allele>>& altAlleles, double afOfAllelesNotInGermlineResource);
 
     static vector<double> getGermlineAltAlleleFrequencies(vector<shared_ptr<Allele>>& altAlleles, shared_ptr<VariantContext> germlineVC,  double afOfAllelesNotInGermlineResource);
 
