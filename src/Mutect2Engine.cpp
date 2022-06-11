@@ -162,7 +162,7 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion> &originalAssembl
         cout << "=============\n";
 
 	// divide PCR qual by two in order to get the correct total qual when treating paired reads as independent
-	AssemblyBasedCallerUtils::cleanOverlappingReadPairs(originalAssemblyRegion->getReads(), normalSample, false,
+	AssemblyBasedCallerUtils::cleanOverlappingReadPairs(originalAssemblyRegion->getReads(), samplesList, normalSample, false,
 	                                                    MTAC.pcrSnvQual / 2, MTAC.pcrIndelQual / 2);
 	if (originalAssemblyRegion->getReads().empty())
 		return {};
@@ -212,7 +212,7 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion> &originalAssembl
 		}
 	}
 
-    cerr << *originalAssemblyRegion;
+    //cerr << *originalAssemblyRegion;
     auto readLikelihoods = likelihoodCalculationEngine->computeReadLikelihoods(*assemblyResult, samplesList, *reads);
     readLikelihoods->switchToNaturalLog();
 
@@ -226,6 +226,8 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion> &originalAssembl
     for(auto& call : *calls)
     {
         cerr << call->getContig() << " " << call->getStart() << " " << call->getEnd() << "\n";
+        if(call->getStart() == 10600317)
+            break;
     }
 
 	// Break the circular reference of pointer
@@ -294,7 +296,7 @@ void Mutect2Engine::removeReadStubs(const std::shared_ptr<AssemblyRegion> &assem
 
 std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>>
 Mutect2Engine::splitReadsBySample(const std::vector<std::shared_ptr<SAMRecord>> &reads) {
-	return AssemblyBasedCallerUtils::splitReadsBySample(reads);
+	return AssemblyBasedCallerUtils::splitReadsBySample(samplesList, normalSample, reads);
 }
 
 void Mutect2Engine::setReferenceCache(ReferenceCache *cache) {

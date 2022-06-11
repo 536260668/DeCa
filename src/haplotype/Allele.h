@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <string>
 #include <memory>
+#include <xxhash.hpp>
 
 class Allele {
 private:
@@ -74,12 +75,35 @@ public:
     int getLength() const;
     int getBasesLength() const {return length;}
     std::string getBaseString();
+    size_t hashcode();
     Allele(std::shared_ptr<uint8_t[]> bases, int length, bool isRef);
     Allele(Allele &  allele, bool ignoreRefState);
 
 protected:
 
 };
+
+struct hash_Allele {
+    size_t operator()(const std::shared_ptr<Allele> &allele) const {
+        return xxh::xxhash3<64>(allele->getBases().get(), allele->getBasesLength());
+    }
+};
+
+struct equal_Allele {
+    bool operator()(const std::shared_ptr<Allele> &left, const std::shared_ptr<Allele> &right) const {
+        if (left->getLength() != right->getLength())
+            return false;
+        int size = left->getLength();
+        uint8_t *left_bases = left->getBases().get();
+        uint8_t *right_bases = right->getBases().get();
+        for (int i = 0; i < size; i++) {
+            if (left_bases[i] != right_bases[i])
+                return false;
+        }
+        return true;
+    }
+};
+
 
 
 #endif //MUTECT2CPP_MASTER_ALLELE_H

@@ -5,6 +5,7 @@
 #ifndef MUTECT2CPP_MASTER_LOCATIONANDALLELES_H
 #define MUTECT2CPP_MASTER_LOCATIONANDALLELES_H
 
+#include <iostream>
 #include <cassert>
 #include <vector>
 #include "Allele.h"
@@ -27,7 +28,7 @@ public:
     std::vector<std::shared_ptr<Allele>> & getAlleles();
 };
 
-/*struct hash_LocationAndAlleles{
+struct hash_LocationAndAlleles{
     size_t operator()(const std::shared_ptr<LocationAndAlleles> &locationAndAlleles) const {
         auto& alleles = locationAndAlleles->getAlleles();
         size_t allelesHashCode = 0;
@@ -35,12 +36,12 @@ public:
         {
             for(auto& temp : alleles)
             {
-                allelesHashCode += temp->
+                allelesHashCode += temp->hashcode();
             }
         }
-        return 31 * locationAndAlleles->getLoc();
+        return 31 * locationAndAlleles->getLoc() + allelesHashCode;
     }
-};*/
+};
 
 struct equal_LocationAndAlleles {
     bool operator()(const std::shared_ptr<LocationAndAlleles> &left, const std::shared_ptr<LocationAndAlleles> &right) const {

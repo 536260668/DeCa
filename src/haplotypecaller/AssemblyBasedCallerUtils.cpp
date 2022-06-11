@@ -94,12 +94,19 @@ AssemblyBasedCallerUtils::finalizeRegion(const std::shared_ptr<AssemblyRegion> &
 }
 
 std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>>
-AssemblyBasedCallerUtils::splitReadsBySample(const std::vector<std::shared_ptr<SAMRecord>> &reads) {
+AssemblyBasedCallerUtils::splitReadsBySample(const std::vector<std::string>& sampleList, const std::string& normalSample, const std::vector<std::shared_ptr<SAMRecord>> &reads) {
 	std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>> res = std::make_shared<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>>();
-	res->insert({NORMAL, std::vector<std::shared_ptr<SAMRecord>>()});
-	res->insert({TUMOR, std::vector<std::shared_ptr<SAMRecord>>()});
-	std::vector<std::shared_ptr<SAMRecord>> &normalReads = res->at(NORMAL);
-	std::vector<std::shared_ptr<SAMRecord>> &tumorReads = res->at(TUMOR);
+	string tumorSample;
+	for(auto& sample : sampleList)
+	{
+	    if(sample != normalSample)
+	        tumorSample = sample;
+	}
+
+	res->insert({normalSample, std::vector<std::shared_ptr<SAMRecord>>()});
+	res->insert({tumorSample, std::vector<std::shared_ptr<SAMRecord>>()});
+	std::vector<std::shared_ptr<SAMRecord>> &normalReads = res->at(normalSample);
+	std::vector<std::shared_ptr<SAMRecord>> &tumorReads = res->at(tumorSample);
 	for (const std::shared_ptr<SAMRecord> &read: reads) {
 		if (read->getGroup() == 0) {
 			normalReads.emplace_back(read);
@@ -121,10 +128,10 @@ AssemblyBasedCallerUtils::createLikelihoodCalculationEngine(LikelihoodEngineArgu
 	                                              likelihoodArgs.BASE_QUALITY_SCORE_THRESHOLD);
 }
 
-void AssemblyBasedCallerUtils::cleanOverlappingReadPairs(vector<shared_ptr<SAMRecord>> &reads, const string &sample,
+void AssemblyBasedCallerUtils::cleanOverlappingReadPairs(vector<shared_ptr<SAMRecord>> &reads, const std::vector<std::string>& sampleList, const string &sample,
                                                          bool setConflictingToZero, int halfOfPcrSnvQual,
                                                          int halfOfPcrIndelQual) {
-	auto MappedReads = splitReadsBySample(reads);
+	auto MappedReads = splitReadsBySample(sampleList, sample, reads);
 	for (auto &iter: *MappedReads) {
 		FragmentCollection<SAMRecord> *fragmentCollection = FragmentCollection<SAMRecord>::create(iter.second);
 		for (auto &overlappingPair: fragmentCollection->getOverlappingPairs()) {
@@ -179,7 +186,7 @@ shared_ptr<vector<shared_ptr<VariantContext>>>
 AssemblyBasedCallerUtils::getVariantContextsFromActiveHaplotypes(int loc, vector<shared_ptr<Haplotype>> &haplotypes,
                                                                  bool includeSpanningEvents) {
     shared_ptr<vector<shared_ptr<VariantContext>>> results = make_shared<vector<shared_ptr<VariantContext>>>();
-    set<shared_ptr<LocationAndAlleles>, equal_LocationAndAlleles> uniqueLocationsAndAlleles;
+    unordered_set<shared_ptr<LocationAndAlleles>, hash_LocationAndAlleles, equal_LocationAndAlleles> uniqueLocationsAndAlleles;
 
     // transform a haplotype to a stream of VariantContext
 
@@ -402,8 +409,10 @@ int AssemblyBasedCallerUtils::constructPhaseSetMapping(vector<shared_ptr<Variant
         bool callIsOnAllHaps = haplotypesWithCall->size() == totalAvailableHaplotypes;
         for ( int j = i+1; j < numCalls; j++ ) {
             shared_ptr<VariantContext> comp = originalCalls[j];
+            if(haplotypeMap.find(comp.get()) == haplotypeMap.end())
+                continue;
             auto haplotypesWithComp = haplotypeMap.at(comp.get());
-            if ( haplotypesWithComp->empty()) {
+            if ( haplotypesWithComp == nullptr || haplotypesWithComp->empty()) {
                 continue;
             }
 

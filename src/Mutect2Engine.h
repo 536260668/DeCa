@@ -94,8 +94,7 @@ public:
 	static void printReadsMap(const std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>>& reads);
 
 protected:
-	static std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>>
-	splitReadsBySample(const std::vector<std::shared_ptr<SAMRecord>> &reads);
+    std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>> splitReadsBySample(const std::vector<std::shared_ptr<SAMRecord>> &reads);
 
 };
 

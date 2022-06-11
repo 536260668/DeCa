@@ -15,8 +15,6 @@
 #include "LikelihoodEngineArgumentCollection.h"
 #include "SmithWatermanAligner.h"
 
-static const std::string NORMAL = "normal";
-static const std::string TUMOR = "tumor";
 
 class AssemblyBasedCallerUtils {
 private:
@@ -45,7 +43,7 @@ public:
 
     static void finalizeRegion(const std::shared_ptr<AssemblyRegion>& region, bool errorCorrectReads, bool dontUseSoftClippedBases, uint8_t minTailQuality, SAMFileHeader* header, bool correctOverlappingBaseQualities);
 
-    static std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>> splitReadsBySample(const std::vector<std::shared_ptr<SAMRecord>> & reads);
+    static std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>> splitReadsBySample(const std::vector<std::string>& sampleList, const std::string& normalSample, const std::vector<std::shared_ptr<SAMRecord>> & reads);
 
     /**
      * Instantiates the appropriate likelihood calculation engine.
@@ -67,7 +65,7 @@ public:
      * @param halfOfPcrSnvQual half of phred-scaled quality of substitution errors from PCR
      * @param halfOfPcrIndelQual half of phred-scaled quality of indel errors from PCR
      */
-    static void cleanOverlappingReadPairs(vector<shared_ptr<SAMRecord>>& reads, const string& sample, bool setConflictingToZero, int halfOfPcrSnvQual = 0, int halfOfPcrIndelQual = 0);
+    static void cleanOverlappingReadPairs(vector<shared_ptr<SAMRecord>>& reads, const vector<string>& sampleList, const string& sample, bool setConflictingToZero, int halfOfPcrSnvQual = 0, int halfOfPcrIndelQual = 0);
 
     // create the assembly using just high quality reads (eg Q20 or higher).  We may want to use lower
     // quality reads in the PairHMM downstream, so we can't use a ReadFilter

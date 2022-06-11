@@ -3,14 +3,15 @@
 //
 
 #include "GenoTypesContext.h"
-
 #include <utility>
 #include <unordered_map>
 #include <cassert>
 
 
-GenoTypesContext::GenoTypesContext(int n) : maxPloidy(-1), immutable(false),  notToBeDirectlyAccessedGenotypes(new std::vector<Genotype*>(n)), sampleNameToOffset(
-        nullptr), sampleNamesInOrder(nullptr){}
+GenoTypesContext::GenoTypesContext(int n) : maxPloidy(-1), immutable(false),  notToBeDirectlyAccessedGenotypes(new std::vector<Genotype*>()), sampleNameToOffset(
+        nullptr), sampleNamesInOrder(nullptr){
+    notToBeDirectlyAccessedGenotypes->reserve(n);
+}
 
 GenoTypesContext::GenoTypesContext(std::vector<Genotype *> & genotypes) : maxPloidy(-1), immutable(false), notToBeDirectlyAccessedGenotypes(&genotypes), sampleNameToOffset(
         nullptr), sampleNamesInOrder(nullptr){}

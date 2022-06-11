@@ -14,7 +14,7 @@ void SAMSequenceDictionary::addSequence(SAMSequenceRecord sequenceRecord) {
     }
 }
 
-SAMSequenceRecord &SAMSequenceDictionary::getSequence(const std::string& name) {
+SAMSequenceRecord & SAMSequenceDictionary::getSequence(const std::string& name) {
     if(mSequenceMap.find(name) == mSequenceMap.end())
         throw std::invalid_argument("not found in provided dictionary");
     return mSequenceMap.at(name);

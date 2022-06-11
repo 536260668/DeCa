@@ -133,11 +133,11 @@ bool ReadFilter::test(std::shared_ptr<SAMRecord> & originalRead, SAMFileHeader* 
 }
 
 bool ReadFilter::ReadLengthTest(std::shared_ptr<SAMRecord> & originalRead) {
-    return originalRead->getLength() > MIN_READ_LENGTH && originalRead->getLength() < INT32_MAX;
+    return originalRead->getLength() >= MIN_READ_LENGTH && originalRead->getLength() < INT32_MAX;
 }
 
 bool ReadFilter::ReadLengthTest(bam1_t *read) {
-    return read->core.l_qseq > MIN_READ_LENGTH && read->core.l_qseq < INT32_MAX;
+    return read->core.l_qseq >= MIN_READ_LENGTH && read->core.l_qseq < INT32_MAX;
 }
 
 bool ReadFilter::MappingQualityNotZeroTest(bam1_t *read)

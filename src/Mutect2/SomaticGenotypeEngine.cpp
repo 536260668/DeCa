@@ -19,8 +19,8 @@ CalledHaplotypes SomaticGenotypeEngine::callMutations(AlleleLikelihoods<SAMRecor
                                                       AssemblyResultSet &assemblyResultSet,
                                                       ReferenceContext &referenceContext,
                                                       SimpleInterval &activeRegionWindow, SAMFileHeader *header) {
-    if(activeRegionWindow.getStart() == 1207200)
-        cout << "===========" << endl;
+    if(activeRegionWindow.getStart() == 10600292)
+        cout << "===============\n";
 
     auto haplotypes =  logReadLikelihoods->getAlleles();
 
@@ -48,7 +48,7 @@ CalledHaplotypes SomaticGenotypeEngine::callMutations(AlleleLikelihoods<SAMRecor
         if(mergedVC == nullptr)
             continue;
 
-        shared_ptr<std::map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Haplotype>>>>> alleleMapper = AssemblyBasedCallerUtils::createAlleleMapper(mergedVC, loc, haplotypes);
+        auto alleleMapper = AssemblyBasedCallerUtils::createAlleleMapper(mergedVC, loc, haplotypes);
         AlleleLikelihoods<Fragment, Allele>* logLikelihoods = logFragmentLikelihoods->marginalize(alleleMapper, make_shared<SimpleInterval>(mergedVC->getContig(), mergedVC->getStart(), mergedVC->getEnd())->expandWithinContig(ALLELE_EXTENSION, &header->getSequenceDictionary()));
 
         vector<SampleMatrix<Fragment, Allele>*> tumorMatrices;
