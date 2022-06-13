@@ -134,20 +134,29 @@ struct Shared{
 	std::shared_ptr<BQSRReadTransformer> normalTransformer = nullptr;
 
 	bool startFlag = false;
+	bool exitFlag= false;
+	int numOfThreads = 1;
 	std::vector<Region> regions;
+	std::vector<std::vector<shared_ptr<VariantContext>>> results;
+	std::vector<std::vector<shared_ptr<VariantContext>>> concurrentResults;
+	std::mutex queueMutex;
+	std::condition_variable queueCond;
+	std::queue<std::pair<std::shared_ptr<AssemblyRegion>, ReferenceContext>> activeRegionQueue;
+	std::unordered_map<std::string, int> contigToIndex;
 	std::atomic<int> indexOfRegion{0};
 	std::atomic<int> activeRegioncount{0};
 	std::atomic<int> indexOfRefCache{0};
 	std::atomic<int> numOfRefCache{0};
+	std::atomic<int> numOfStep2Thread{0};
 };
 
-void threadFunc(Shared *w, char *ref, int n, int nref) {
+void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 	std::queue<std::shared_ptr<AssemblyRegion>> pendingRegions;
 	ActivityProfile *activityProfile = new BandPassActivityProfile(w->MTAC.maxProbPropagationDistance, w->MTAC.activeProbThreshold, BandPassActivityProfile::MAX_FILTER_SIZE, BandPassActivityProfile::DEFAULT_SIGMA,true , w->header);
 	Mutect2Engine m2Engine(w->MTAC, w->header, w->modelPath);
 	std::vector<SAMSequenceRecord> headerSequences = w->header->getSequenceDictionary().getSequences();
 
-	std::cout << "thread start\n";
+	//std::cout << "Thread " + std::to_string(threadID) + " started.\n";
 
 	// create all refCaches
 	// This operation is thread safe
@@ -195,7 +204,8 @@ void threadFunc(Shared *w, char *ref, int n, int nref) {
 		end =  tmpRegion.getEnd();
 		k = tmpRegion.getK();
 		std::string contig = headerSequences[k].getSequenceName();
-		std::cout << "solving " + std::to_string(currentTask) + ' ' + contig + ' ' + std::to_string(start) + ' ' + std::to_string(end) + '\n';
+		std::cout << "Processing " + std::to_string(currentTask + 1) + "/" + std::to_string(w->regions.size()) + '\t'
+			+ contig + ':' + std::to_string(start) + '-' + std::to_string(end) + '\n';
 
 		ReadCache cache(data, w->input_bam, k, start, end, w->MTAC.maxAssemblyRegionSize, w->refCaches[k], w->bqsr_within_mutect, w->tumorTransformer.get(), w->normalTransformer.get());
 		m2Engine.setReferenceCache(w->refCaches[k].get());
@@ -237,7 +247,15 @@ void threadFunc(Shared *w, char *ref, int n, int nref) {
 				pendingRegions.pop();
 
 				Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
-				std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext);
+				if (BOOST_LIKELY(w->numOfStep2Thread == 0)) {
+					std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext);
+					w->results[currentTask].insert(w->results[currentTask].end(), variant.begin(), variant.end());
+				} else {
+					w->queueMutex.lock();
+					w->activeRegionQueue.push(std::make_pair(nextRegion, pileupRefContext));
+					w->queueMutex.unlock();
+					w->queueCond.notify_all();
+				}
 			}
 		}
 
@@ -263,10 +281,44 @@ void threadFunc(Shared *w, char *ref, int n, int nref) {
 			pendingRegions.pop();
 			Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
 			// ReferenceContext is not needed for the time being
-			std::shared_ptr<SimpleInterval> pileupInterval = std::make_shared<SimpleInterval>(contig, 0, 0);
-			ReferenceContext tmp{pileupInterval, N};
-			std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, tmp); // TODO: callRegion() needs pileupRefContext
+			ReferenceContext tmp{std::make_shared<SimpleInterval>(contig, 0, 0), N};
+			if (BOOST_LIKELY(w->numOfStep2Thread == 0)) {
+				std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, tmp);    // TODO: callRegion() needs pileupRefContext
+				w->results[currentTask].insert(w->results[currentTask].end(), variant.begin(), variant.end());
+			} else {
+				w->queueMutex.lock();
+				w->activeRegionQueue.push(std::make_pair(nextRegion, tmp));
+				w->queueMutex.unlock();
+				w->queueCond.notify_all();
+			}
 		}
+ 	}
+
+	w->exitFlag = ++w->numOfStep2Thread == w->numOfThreads;
+
+	std::shared_ptr<AssemblyRegion> region = nullptr;
+	ReferenceContext pileupContext {std::make_shared<SimpleInterval>("", 0, 0), N};
+	std::pair<std::shared_ptr<AssemblyRegion>, ReferenceContext> activeRegion = std::make_pair(region, pileupContext);
+
+	while (true) {
+		while (true) {
+			std::unique_lock<std::mutex> lock(w->queueMutex);
+			w->queueCond.wait(lock, [] { return true; });
+			if (BOOST_LIKELY(!w->activeRegionQueue.empty())) {
+				activeRegion = w->activeRegionQueue.front();
+				w->activeRegionQueue.pop();
+				break;
+			}
+			if (w->exitFlag) break;
+		}
+		if (w->exitFlag) break;
+		region = activeRegion.first;
+		pileupContext = activeRegion.second;
+		int refInd = w->contigToIndex[region->getContig()];
+		m2Engine.setReferenceCache(w->refCaches[refInd].get());
+		std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(region, pileupContext);
+		w->queueCond.notify_all();
+		w->concurrentResults[threadID].insert(w->concurrentResults[threadID].end(), variant.begin(), variant.end());
 	}
 
 	// free the space
@@ -278,7 +330,7 @@ void threadFunc(Shared *w, char *ref, int n, int nref) {
 		free(data[i]);
 	}
 	free(data);
-	std::cout << "thread exit\n";
+	//std::cout << "Thread " + std::to_string(threadID) + " exited.\n";
 }
 
 int main(int argc, char *argv[])
@@ -290,7 +342,6 @@ int main(int argc, char *argv[])
 	aux_t **data;
 	Shared sharedData;
     char * tumor_table = nullptr, * normal_table = nullptr;
-	int thread_num = 1;
 
 	sharedData.MTAC = {10, 50, 0.002, 100, 50, 300, ""};
 
@@ -331,7 +382,7 @@ int main(int argc, char *argv[])
                 ref = strdup(optarg);
                 break;
 	        case 'T':
-				thread_num = std::max(1, atoi(optarg));
+				sharedData.numOfThreads = std::max(1, atoi(optarg));
 		        break;
 	        case 'L':
 		        sharedData.chromosomeName = std::string (optarg);
@@ -418,8 +469,8 @@ int main(int argc, char *argv[])
 	//start threads
 	std::vector<std::thread> threads;
 	sharedData.refCaches.resize(nref);
-	for (int i = 0; i < thread_num; ++i) {
-		threads.emplace_back(&threadFunc, &sharedData, ref, n, nref);
+	for (int i = 0; i < sharedData.numOfThreads; ++i) {
+		threads.emplace_back(&threadFunc, &sharedData, i, ref, n, nref);
 	}
 
 	std::vector<SAMSequenceRecord> headerSequences = sharedData.header->getSequenceDictionary().getSequences();
@@ -427,6 +478,7 @@ int main(int argc, char *argv[])
     {
 	    if (!sharedData.chromosomeName.empty() && headerSequences[k].getSequenceName() != sharedData.chromosomeName)
 		    continue;
+		sharedData.contigToIndex.insert(std::make_pair(headerSequences[k].getSequenceName(), k));
         hts_pos_t ref_len = sam_hdr_tid2len(data[0]->hdr, k);   // the length of reference sequence
         int start = 0;
         int end = ref_len < REGION_SIZE - 1 ? ref_len : REGION_SIZE - 1;
@@ -438,12 +490,39 @@ int main(int argc, char *argv[])
         }
 	    sharedData.regions.emplace_back(start, end, k);
     }
-
-	std::cout << "count of regions: " + std::to_string(sharedData.regions.size()) + "\n";
+	sharedData.results.resize(sharedData.regions.size());
+	sharedData.concurrentResults.resize(sharedData.numOfThreads);
 	sharedData.startFlag = true;
 
 	for(auto &thread : threads) {
 		thread.join();
+	}
+	std::cout << "All threads exited\n";
+
+	std::vector<std::shared_ptr<VariantContext>> MergedConcurrentResults;
+	for (const auto &results: sharedData.concurrentResults) {
+		MergedConcurrentResults.insert(MergedConcurrentResults.end(), results.begin(), results.end());
+	}
+
+	std::sort(MergedConcurrentResults.begin(), MergedConcurrentResults.end(),
+			  [&sharedData](const shared_ptr<VariantContext>& a, const shared_ptr<VariantContext>& b) -> bool {
+		int ind1 = sharedData.contigToIndex[a->getContig()];
+		int ind2 = sharedData.contigToIndex[b->getContig()];
+		if (ind1 != ind2)
+			return ind1 < ind2;
+		return a->getStart() < b->getStart();
+	});
+
+	auto sortedVE = MergedConcurrentResults.begin();
+	for (int i = 0; i < sharedData.regions.size(); ++i) {
+		for (const auto &ve: sharedData.results[i]) {
+			//ve do something
+		}
+		for (; sortedVE != MergedConcurrentResults.end(); ++sortedVE) {
+			if ((*sortedVE)->getStart() > sharedData.regions[i].getEnd())
+				break;
+			//(*sortedVE) do something
+		}
 	}
 
     // free the space
