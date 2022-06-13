@@ -514,15 +514,15 @@ int main(int argc, char *argv[])
 		return a->getStart() < b->getStart();
 	});
 
-	auto sortedVE = MergedConcurrentResults.begin();
+	auto sortedVC = MergedConcurrentResults.begin();
 	for (int i = 0; i < sharedData.regions.size(); ++i) {
-		for (const auto &ve: sharedData.results[i]) {
-			//ve do something
+		for (const auto &vc: sharedData.results[i]) {
+			//Mutect2Engine::printVariationContext(vc);
 		}
-		for (; sortedVE != MergedConcurrentResults.end(); ++sortedVE) {
-			if ((*sortedVE)->getStart() > sharedData.regions[i].getEnd())
+		for (; sortedVC != MergedConcurrentResults.end(); ++sortedVC) {
+			if ((*sortedVC)->getStart() > sharedData.regions[i].getEnd())
 				break;
-			//(*sortedVE) do something
+			//Mutect2Engine::printVariationContext(*sortedVC);
 		}
 	}
 

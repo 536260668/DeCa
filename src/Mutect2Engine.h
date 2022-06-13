@@ -28,18 +28,18 @@
 
 class Mutect2Engine {
 private:
-    int minCallableDepth;
-    std::vector<string> samplesList;
-    std::string & normalSample;
-    SAMFileHeader * header;
-    M2ArgumentCollection & MTAC;
-    ReadThreadingAssembler assemblyEngine;
-    MutectReadThreadingAssemblerArgumentCollection assemblerArgs;
-    PairHMMLikelihoodCalculationEngine* likelihoodCalculationEngine;
-    AssemblyRegionTrimmer trimmer;
-    SmithWatermanAligner* aligner;
-    SomaticGenotypeEngine genotypingEngine;
-    model mymodel;
+	int minCallableDepth;
+	std::vector<string> samplesList;
+	std::string &normalSample;
+	SAMFileHeader *header;
+	M2ArgumentCollection &MTAC;
+	ReadThreadingAssembler assemblyEngine;
+	MutectReadThreadingAssemblerArgumentCollection assemblerArgs;
+	PairHMMLikelihoodCalculationEngine *likelihoodCalculationEngine;
+	AssemblyRegionTrimmer trimmer;
+	SmithWatermanAligner *aligner;
+	SomaticGenotypeEngine genotypingEngine;
+	model mymodel;
 
 	std::shared_ptr<std::vector<char>> altQuals(ReadPileup &pileup, char refBase, int pcrErrorQual);
 
@@ -74,7 +74,8 @@ public:
 	int callableSites;  // in GATK4, this variable is a MutableInt class object
 	ReferenceCache *refCache;
 
-	Mutect2Engine(M2ArgumentCollection &MTAC, SAMFileHeader *samFileHeader, const std::string &modelPath, VariantAnnotatorEngine& annotatorEngine);
+	Mutect2Engine(M2ArgumentCollection &MTAC, SAMFileHeader *samFileHeader, const std::string &modelPath,
+	              VariantAnnotatorEngine &annotatorEngine);
 
 	~Mutect2Engine();
 
@@ -88,13 +89,20 @@ public:
 	// Maybe this variable can be removed in the multi-thread mode
 	void setReferenceCache(ReferenceCache *cache);
 
-	static void printVariationEvents(const std::shared_ptr<AssemblyRegion> &region,
-	                          const std::set<std::shared_ptr<VariantContext>, VariantContextComparator> &ves);
+	static void printVariationContexts(const std::shared_ptr<AssemblyRegion> &region,
+	                            const std::set<std::shared_ptr<VariantContext>, VariantContextComparator> &vcs);
 
-	static void printReadsMap(const std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>>& reads);
+	static void printVariationContexts(const std::shared_ptr<AssemblyRegion> &region,
+	                            const std::vector<std::shared_ptr<VariantContext>> &vcs);
+
+	static void printVariationContext(const std::shared_ptr<VariantContext> &vc);
+
+	static void
+	printReadsMap(const std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>> &reads);
 
 protected:
-    std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>> splitReadsBySample(const std::vector<std::shared_ptr<SAMRecord>> &reads);
+	std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>>
+	splitReadsBySample(const std::vector<std::shared_ptr<SAMRecord>> &reads);
 
 };
 
