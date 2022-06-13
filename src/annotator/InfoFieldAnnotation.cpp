@@ -4,6 +4,8 @@
 
 #include "InfoFieldAnnotation.h"
 
+const std::string InfoFieldAnnotation::INFOFIELD_ANNOTATION = "InfoFieldAnnotation";
+
 std::string InfoFieldAnnotation::toString() {
-    return "InfoFieldAnnotation";
+    return InfoFieldAnnotation::INFOFIELD_ANNOTATION;
 }

@@ -2,6 +2,7 @@
 // Created by lhh on 6/2/22.
 //
 
+#include <iostream>
 #include <cassert>
 #include "AttributeValue.h"
 
@@ -40,7 +41,7 @@ AttributeValue::AttributeValue(std::vector<int> &val) {
     type = VECTOR_INT;
 }
 
-/*AttributeValue::AttributeValue(AttributeValue &other) {
+AttributeValue::AttributeValue(const AttributeValue &other) {
     this->type = other.type;
     switch (type) {
         case INT:
@@ -62,14 +63,14 @@ AttributeValue::AttributeValue(std::vector<int> &val) {
             value = (void*)(new std::vector<int>(*(std::vector<int>*)(other.value)));
             break;
     }
-}*/
+}
 
 int AttributeValue::getAttributeAsInt() {
     assert(type == INT);
     return *((int*)value);
 }
 
-/*AttributeValue::~AttributeValue(){
+AttributeValue::~AttributeValue(){
     if(value != nullptr && type != NULL_)
     {
         switch (type) {
@@ -93,7 +94,7 @@ int AttributeValue::getAttributeAsInt() {
                 break;
         }
     }
-}*/
+}
 
 AttributeValue AttributeValue::empty_value() {
     return AttributeValue(nullptr, NULL_);

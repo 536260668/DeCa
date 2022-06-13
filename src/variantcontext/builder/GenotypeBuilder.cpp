@@ -30,34 +30,34 @@ Genotype *GenotypeBuilder::create(std::string sampleName, std::vector<std::share
 }
 
 GenotypeBuilder& GenotypeBuilder::attributes(const std::map<std::string, AttributeValue>& attributes) {
-    for(std::pair<std::string, AttributeValue> pairToAdd : attributes) {
+    for(auto pairToAdd : attributes) {
         extendedAttributes.insert(pairToAdd);
     }
     return *this;
 }
 
 GenotypeBuilder& GenotypeBuilder::attribute(const std::string &key, std::string &value) {
-    extendedAttributes.insert({key, AttributeValue(value)});
+    extendedAttributes.emplace(key, AttributeValue(value));
     return *this;
 }
 
 GenotypeBuilder& GenotypeBuilder::attribute(const std::string &key, int value) {
-    extendedAttributes.insert({key, AttributeValue(value)});
+    extendedAttributes.emplace(key, AttributeValue(value));
     return *this;
 }
 
 GenotypeBuilder& GenotypeBuilder::attribute(const std::string &key, std::vector<double>& value){
-    extendedAttributes.insert({key, AttributeValue(value)});
+    extendedAttributes.emplace(key, AttributeValue(value));
     return *this;
 }
 
 GenotypeBuilder& GenotypeBuilder::attribute(const std::string &key, std::vector<int>& value){
-    extendedAttributes.insert({key, AttributeValue(value)});
+    extendedAttributes.emplace(key, AttributeValue(value));
     return *this;
 }
 
 GenotypeBuilder& GenotypeBuilder::attribute(const std::string &key, std::vector<int>&& value){
-    extendedAttributes.insert({key, AttributeValue(value)});
+    extendedAttributes.emplace(key, AttributeValue(value));
     return *this;
 }
 

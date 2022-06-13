@@ -256,6 +256,15 @@ public:
         }
     }
 
+    ~AlleleLikelihoods()
+    {
+        for(auto sampleMatrix : sampleMatrices)
+        {
+            if(!sampleMatrix)
+                delete sampleMatrix;
+        }
+    }
+
     /**
      * Returns the units of evidence that belong to a sample sorted by their index (within that sample).
      *
@@ -979,9 +988,9 @@ public:
         return likelihood->indexOfAllele(allele);
     }
 
-    AlleleLikelihoods<E, A>& getLikelihoods(){
+    AlleleLikelihoods<E, A>* getLikelihoods(){
         assert(likelihood != nullptr);
-        return *likelihood;
+        return likelihood;
     }
 
     int numberOfAlleles(){

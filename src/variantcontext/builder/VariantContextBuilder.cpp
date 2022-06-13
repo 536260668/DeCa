@@ -122,7 +122,7 @@ VariantContextBuilder *VariantContextBuilder::setAttributes(std::shared_ptr<std:
     {
         for(auto & iter : *attribute)
         {
-            this->attribute->insert({iter.first, AttributeValue(iter.second)});
+            this->attribute->emplace(iter.first, AttributeValue(iter.second));
         }
     }
     this->attributesCanBeModified = true;
@@ -130,12 +130,12 @@ VariantContextBuilder *VariantContextBuilder::setAttributes(std::shared_ptr<std:
 }
 
 VariantContextBuilder *VariantContextBuilder::setAttribute(const std::string &key, int value) {
-    this->attribute->insert({key, AttributeValue(value)});
+    this->attribute->emplace(key, AttributeValue(value));
     return this;
 }
 
 VariantContextBuilder *VariantContextBuilder::setAttribute(const std::string &key, std::vector<double> value) {
-    this->attribute->insert({key, AttributeValue(value)});
+    this->attribute->emplace(key, AttributeValue(value));
     return this;
 }
 

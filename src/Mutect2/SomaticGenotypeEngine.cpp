@@ -10,7 +10,7 @@
 #include "variantcontext/builder/GenotypeBuilder.h"
 #include "variantcontext/VCFConstants.h"
 
-SomaticGenotypeEngine::SomaticGenotypeEngine(M2ArgumentCollection& MTAC, string normalSample, VaraintAnnotatiorEngine& annotationEngine) : MTAC(MTAC), normalSample(normalSample), annotationEngine(annotationEngine), hasNormal(!normalSample.empty())
+SomaticGenotypeEngine::SomaticGenotypeEngine(M2ArgumentCollection& MTAC, string normalSample, VariantAnnotatorEngine& annotationEngine) : MTAC(MTAC), normalSample(normalSample), annotationEngine(annotationEngine), hasNormal(!normalSample.empty())
 {
 
 }
@@ -19,8 +19,6 @@ CalledHaplotypes SomaticGenotypeEngine::callMutations(AlleleLikelihoods<SAMRecor
                                                       AssemblyResultSet &assemblyResultSet,
                                                       ReferenceContext &referenceContext,
                                                       SimpleInterval &activeRegionWindow, SAMFileHeader *header) {
-    if(activeRegionWindow.getStart() == 10600292)
-        cout << "===============\n";
 
     auto haplotypes =  logReadLikelihoods->getAlleles();
 
@@ -49,7 +47,7 @@ CalledHaplotypes SomaticGenotypeEngine::callMutations(AlleleLikelihoods<SAMRecor
             continue;
 
         auto alleleMapper = AssemblyBasedCallerUtils::createAlleleMapper(mergedVC, loc, haplotypes);
-        AlleleLikelihoods<Fragment, Allele>* logLikelihoods = logFragmentLikelihoods->marginalize(alleleMapper, make_shared<SimpleInterval>(mergedVC->getContig(), mergedVC->getStart(), mergedVC->getEnd())->expandWithinContig(ALLELE_EXTENSION, &header->getSequenceDictionary()));
+        shared_ptr<AlleleLikelihoods<Fragment, Allele>> logLikelihoods(logFragmentLikelihoods->marginalize(alleleMapper, make_shared<SimpleInterval>(mergedVC->getContig(), mergedVC->getStart(), mergedVC->getEnd())->expandWithinContig(ALLELE_EXTENSION, &header->getSequenceDictionary())));
 
         vector<SampleMatrix<Fragment, Allele>*> tumorMatrices;
         for(int i=0; i<logLikelihoods->numberOfSamples(); i++)
@@ -93,6 +91,8 @@ CalledHaplotypes SomaticGenotypeEngine::callMutations(AlleleLikelihoods<SAMRecor
         // if every alt allele is germline, skip this variant.  However, if some alt alleles are germline and others
         // are not we emit them all so that the filtering engine can see them
         if (somaticAltCount == 0) {
+            delete logTumorMatrix->getLikelihoods();
+            delete logNormalMatrix->getLikelihoods();
             continue;
         }
 
@@ -152,6 +152,8 @@ CalledHaplotypes SomaticGenotypeEngine::callMutations(AlleleLikelihoods<SAMRecor
         }
         returnCalls.emplace_back(annotatedCall);
 
+        delete logTumorMatrix->getLikelihoods();
+        delete logNormalMatrix->getLikelihoods();
         delete logReadAlleleLikelihoods;
         delete trimmedLikelihoodsForAnnotation;
     }
@@ -188,7 +190,7 @@ SampleMatrix<Fragment, Allele>* SomaticGenotypeEngine::combinedLikelihoodMatrix(
     map<string,vector<shared_ptr<Fragment>>> evidenceBySample;
     evidenceBySample.insert({"COMBINED", reads});
     auto alleles = alleleList->getAlleles();
-    AlleleLikelihoods<Fragment, Allele> *combinedLikelihoods;
+    AlleleLikelihoods<Fragment, Allele> *combinedLikelihoods;   // TODO: solve the memory leak problem here
     combinedLikelihoods = new AlleleLikelihoods<Fragment, Allele>(sample, alleles, evidenceBySample);
 
     int combinedReadIndex = 0;
@@ -335,7 +337,7 @@ vector<double> SomaticGenotypeEngine::getGermlineAltAlleleFrequencies(vector<sha
     return vector<double>(altAlleles.size(), afOfAllelesNotInGermlineResource);
 }
 
-void SomaticGenotypeEngine::addGenotypes(AlleleLikelihoods<Fragment, Allele>* logLikelihoods,
+void SomaticGenotypeEngine::addGenotypes(shared_ptr<AlleleLikelihoods<Fragment, Allele>> logLikelihoods,
                                          shared_ptr<vector<shared_ptr<Allele>>> allelesToEmit, VariantContextBuilder &callVcb) {
     int numberOfSamples = logLikelihoods->numberOfSamples();
     std::vector<Genotype*> genotypes;

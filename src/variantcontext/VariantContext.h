@@ -66,7 +66,7 @@ private:
 protected:
     VariantContextType type;
     std::vector<std::shared_ptr<Allele>> alleles;
-    GenoTypesContext *genotypes;
+    GenoTypesContext* genotypes;
 
 
 public:

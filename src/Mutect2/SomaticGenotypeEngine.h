@@ -6,7 +6,7 @@
 #define MUTECT2CPP_MASTER_SOMATICGENOTYPEENGINE_H
 
 #include "M2ArgumentCollection.h"
-#include "VaraintAnnotatiorEngine.h"
+#include "VariantAnnotatorEngine.h"
 #include "haplotypecaller/CalledHaplotypes.h"
 #include "engine/ReferenceContext.h"
 #include "PreAlleleCollection.h"
@@ -25,12 +25,12 @@ private:
 
     static shared_ptr<vector<double>> getEffectiveCounts(SubsettedLikelihoodMatrix<Fragment, Allele>& logLikelihoodMatrix);
 protected:
-    VaraintAnnotatiorEngine& annotationEngine;
+    VariantAnnotatorEngine& annotationEngine;
 
 public:
     const static int ALLELE_EXTENSION = 2;
 
-    SomaticGenotypeEngine(M2ArgumentCollection& MTAC, string normalSample, VaraintAnnotatiorEngine& annotationEngine);
+    SomaticGenotypeEngine(M2ArgumentCollection& MTAC, string normalSample, VariantAnnotatorEngine& annotationEngine);
 
     /**
     * Main entry point of class - given a particular set of haplotypes, samples and reference context, compute
@@ -66,7 +66,7 @@ public:
      */
     shared_ptr<PreAlleleCollection<double>> diploidAltLogOdds(SampleMatrix<Fragment, Allele>* matrix);
 
-    void addGenotypes(AlleleLikelihoods<Fragment, Allele>* logLikelihoods, shared_ptr<vector<shared_ptr<Allele>>> allelesToEmit, VariantContextBuilder& callVcb);
+    void addGenotypes(shared_ptr<AlleleLikelihoods<Fragment, Allele>> logLikelihoods, shared_ptr<vector<shared_ptr<Allele>>> allelesToEmit, VariantContextBuilder& callVcb);
 
 
 };

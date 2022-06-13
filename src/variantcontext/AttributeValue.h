@@ -42,9 +42,9 @@ public:
 
     AttributeValue(std::vector<int>& val);
 
-    //AttributeValue(AttributeValue& other);    // TODO: how to solve this problem
+    AttributeValue(const AttributeValue& other);
 
-    //~AttributeValue();
+    ~AttributeValue();
 
     int getAttributeAsInt();
 

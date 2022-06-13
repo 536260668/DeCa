@@ -74,7 +74,7 @@ public:
 	int callableSites;  // in GATK4, this variable is a MutableInt class object
 	ReferenceCache *refCache;
 
-	Mutect2Engine(M2ArgumentCollection &MTAC, SAMFileHeader *samFileHeader, const std::string &modelPath, VaraintAnnotatiorEngine& annotatorEngine);
+	Mutect2Engine(M2ArgumentCollection &MTAC, SAMFileHeader *samFileHeader, const std::string &modelPath, VariantAnnotatorEngine& annotatorEngine);
 
 	~Mutect2Engine();
 

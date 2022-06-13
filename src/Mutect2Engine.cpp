@@ -15,7 +15,7 @@
 #include "AssemblyResultSet.h"
 #include "haplotypecaller/AssemblyBasedCallerUtils.h"
 
-Mutect2Engine::Mutect2Engine(M2ArgumentCollection & MTAC, SAMFileHeader* samFileHeader, const std::string &modelPath, VaraintAnnotatiorEngine& annotatorEngine):MTAC(MTAC), minCallableDepth(MTAC.callableDepth),
+Mutect2Engine::Mutect2Engine(M2ArgumentCollection & MTAC, SAMFileHeader* samFileHeader, const std::string &modelPath, VariantAnnotatorEngine& annotatorEngine):MTAC(MTAC), minCallableDepth(MTAC.callableDepth),
                                                             normalSample(MTAC.normalSample) ,callableSites(0), refCache(nullptr) ,header(samFileHeader),
                                                                                                     assemblyEngine(0, 1, 128, false, false, {10, 25}),
                                                                                                     likelihoodCalculationEngine(AssemblyBasedCallerUtils::createLikelihoodCalculationEngine(MTAC.likelihoodArgs)),

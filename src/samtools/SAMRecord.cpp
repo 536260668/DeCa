@@ -584,9 +584,7 @@ SAMRecord::SAMRecord(bam1_t *read, sam_hdr_t * hdr, bool load) {
 }
 
 SAMRecord::~SAMRecord() {
-    //delete[] mReadBases;
-    //delete[] mBaseQualities;
-    //std::cout << "finished" << std::endl;
+
 }
 
 int SAMRecord::getAdaptorBoundary() {

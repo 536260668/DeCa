@@ -3,11 +3,17 @@
 //
 
 #include "variantcontext/builder/VariantContextBuilder.h"
-#include "VaraintAnnotatiorEngine.h"
+#include "VariantAnnotatorEngine.h"
 
-VaraintAnnotatiorEngine::VaraintAnnotatiorEngine() {}
+VariantAnnotatorEngine::VariantAnnotatorEngine() {}
 
-shared_ptr<VariantContext> VaraintAnnotatiorEngine::annotateContext(shared_ptr<VariantContext> vc, ReferenceContext& ref,
+VariantAnnotatorEngine::VariantAnnotatorEngine(std::vector<shared_ptr<InfoFieldAnnotation>>& InfoFieldAnnotationList, std::vector<shared_ptr<GenotypeAnnotation>>& GenotypeAnnotationList): infoAnnotations(InfoFieldAnnotationList), genotypeAnnotations(GenotypeAnnotationList),
+useRawAnnotations(false), keepRawCombinedAnnotations(false)
+{
+
+}
+
+shared_ptr<VariantContext> VariantAnnotatorEngine::annotateContext(shared_ptr<VariantContext> vc, ReferenceContext& ref,
                                                                     AlleleLikelihoods<SAMRecord, Allele> *likelihoods) {
     assert(vc != nullptr);
 
@@ -18,7 +24,7 @@ shared_ptr<VariantContext> VaraintAnnotatiorEngine::annotateContext(shared_ptr<V
     return vc;
 }
 
-GenoTypesContext *VaraintAnnotatiorEngine::annotateGenotypes(ReferenceContext &ref, shared_ptr<VariantContext> vc,
+GenoTypesContext *VariantAnnotatorEngine::annotateGenotypes(ReferenceContext &ref, shared_ptr<VariantContext> vc,
                                                              AlleleLikelihoods<SAMRecord, Allele> *likelihoods) {
     if(genotypeAnnotations.empty())
         return vc->getGenotypes();
@@ -28,7 +34,7 @@ GenoTypesContext *VaraintAnnotatiorEngine::annotateGenotypes(ReferenceContext &r
     {
         auto genotype = genotypes->get(i);
         GenotypeBuilder gb(genotype);
-        for(GenotypeAnnotation* annotation : genotypeAnnotations)
+        for(auto& annotation  : genotypeAnnotations)
         {
             annotation->annotate(ref, vc, genotype, gb, likelihoods);
         }
