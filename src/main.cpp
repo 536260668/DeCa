@@ -153,7 +153,8 @@ struct Shared{
 void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 	std::queue<std::shared_ptr<AssemblyRegion>> pendingRegions;
 	ActivityProfile *activityProfile = new BandPassActivityProfile(w->MTAC.maxProbPropagationDistance, w->MTAC.activeProbThreshold, BandPassActivityProfile::MAX_FILTER_SIZE, BandPassActivityProfile::DEFAULT_SIGMA,true , w->header);
-	Mutect2Engine m2Engine(w->MTAC, w->header, w->modelPath);
+	VariantAnnotatorEngine annotatiorEngine;   // TODO: make it more elegant
+	Mutect2Engine m2Engine(w->MTAC, w->header, w->modelPath, annotatiorEngine);
 	std::vector<SAMSequenceRecord> headerSequences = w->header->getSequenceDictionary().getSequences();
 
 	//std::cout << "Thread " + std::to_string(threadID) + " started.\n";
@@ -232,7 +233,7 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 			}
 			std::shared_ptr<SimpleInterval> pileupInterval = std::make_shared<SimpleInterval>(contig, (int)pileup.getPosition(), (int)pileup.getPosition());
 			char refBase = w->refCaches[k]->getBase(pileup.getPosition());
-			ReferenceContext pileupRefContext(pileupInterval, refBase);
+			ReferenceContext pileupRefContext(pileupInterval, refBase); //---this variable is useful in annotationEngine
 
 			std::shared_ptr<ActivityProfileState> profile = m2Engine.isActive(pileup);
 			activityProfile->add(profile);

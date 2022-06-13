@@ -135,6 +135,8 @@ public:
     std::shared_ptr<SimpleInterval> getLoc();
     void setGroup(uint8_t i) {readGroup = i;}
     uint8_t getGroup() {return readGroup;}
+    bool overlaps(std::shared_ptr<Locatable> other);
+
 
 private:
     void setAttribute(short tag, void* value, Void_Type type, int length, bool isUnsignedArray);

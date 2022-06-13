@@ -27,6 +27,8 @@ public:
     inline const static std::string GENOTYPE_ALLELE_DEPTHS = "AD"; //AD isn't reserved, but is specifically handled by VariantContext
     inline const static std::string GENOTYPE_PL_KEY = "PL";   // phred-scaled genotype likelihoods
     inline const static std::string EXPECTED_ALLELE_COUNT_KEY = "EC";
+    inline const static std::string PHASE_SET_KEY = "PS";
+
 
 
     // missing/default values
@@ -39,6 +41,25 @@ public:
     inline const static std::string MISSING_VALUE_v4 = ".";
     inline const static std::string MISSING_QUALITY_v3 = "-1";
     inline const static double MISSING_QUALITY_v3_DOUBLE = stod(MISSING_QUALITY_v3);
+
+    // Mutect2-specific INFO keys
+    inline const static std::string TUMOR_LOG_10_ODDS_KEY =                      "TLOD";
+    inline const static std::string POPULATION_AF_KEY =        "POPAF";
+    inline const static std::string NORMAL_LOG_10_ODDS_KEY =                     "NLOD";
+    inline const static std::string NORMAL_ARTIFACT_LOG_10_ODDS_KEY =      "NALOD";
+
+    // FORMAT keys
+    inline const static std::string HAPLOTYPE_CALLER_PHASING_ID_KEY =    "PID";
+    inline const static std::string HAPLOTYPE_CALLER_PHASING_GT_KEY =    "PGT";
+    inline const static std::string STRAND_BIAS_BY_SAMPLE_KEY =          "SB";
+
+    // M2-specific FORMAT keys
+    inline const static std::string ALLELE_FRACTION_KEY =                "AF";
+
+    // INFO keys
+    inline const static std::string EVENT_COUNT_IN_HAPLOTYPE_KEY =       "ECNT"; //M2
+    inline const static std::string F1R2_KEY =                           "F1R2";
+    inline const static std::string F2R1_KEY =                           "F2R1";
 };
 
 

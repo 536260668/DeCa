@@ -266,3 +266,16 @@ std::vector<std::shared_ptr<VariantContext>> EventMap::getVariantContexts() {
 	}
 	return ret;
 }
+
+std::shared_ptr<std::vector<std::shared_ptr<VariantContext>>> EventMap::getOverlappingEvents(int loc)
+{
+    std::shared_ptr<std::vector<std::shared_ptr<VariantContext>>> events = std::make_shared<std::vector<std::shared_ptr<VariantContext>>>();
+    for(auto& iter : variantMap)
+    {
+        if(iter.first <= loc && iter.second->getEnd() >= loc)
+        {
+            events->emplace_back(iter.second);
+        }
+    }
+    return events;
+}

@@ -584,9 +584,7 @@ SAMRecord::SAMRecord(bam1_t *read, sam_hdr_t * hdr, bool load) {
 }
 
 SAMRecord::~SAMRecord() {
-    //delete[] mReadBases;
-    //delete[] mBaseQualities;
-    //std::cout << "finished" << std::endl;
+
 }
 
 int SAMRecord::getAdaptorBoundary() {
@@ -632,3 +630,7 @@ int SAMRecord::getEndAfterFliter() {
 }
 
 PositionToCigar::PositionToCigar(int cigarOffset, int currentStart, int offset):cigarOffset(cigarOffset), currentStart(currentStart), offset(offset) {}
+
+bool SAMRecord::overlaps(std::shared_ptr<Locatable> other) {
+    return getLoc()->overlaps(other);
+}

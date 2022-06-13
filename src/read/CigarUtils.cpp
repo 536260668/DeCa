@@ -12,6 +12,7 @@
 #include "AlignmentUtils.h"
 
 const SWParameters  CigarUtils::NEW_SW_PARAMETERS = SWParameters(200, -150, -260, -11);
+const SWParameters  CigarUtils::ALIGNMENT_TO_BEST_HAPLOTYPE_SW_PARAMETERS = SWParameters(10, -15, -30, -5);
 
 std::shared_ptr<Cigar> CigarUtils::calculateCigar(const std::shared_ptr<uint8_t[]>& refSeq, int refLength, const std::shared_ptr<uint8_t[]>& altSeq, int altLength) {
     Mutect2Utils::validateArg(refSeq.get(), "refSeq");

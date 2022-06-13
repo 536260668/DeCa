@@ -235,10 +235,10 @@ bool Allele::operator==(const Allele &other) const {
         return true;
     if(this->isRef != other.getIsReference() || this->isNoCall != other.getIsNoCall())
         return false;
-    if(this->bases == other.getBases())
-        return true;
     if(this->getLength() != other.getLength())
         return false;
+    if(this->bases == other.getBases())
+        return true;
     uint8_t * bases_ = bases.get();
     uint8_t * other_ = other.bases.get();
     for(int i = 0; i < length; i++) {
@@ -254,6 +254,11 @@ std::string Allele::getBaseString() {
 	tmp[length] = '\0';
 	std::string ret(tmp,length);
     return ret;
+}
+
+size_t Allele::hashcode() {
+    std::hash<std::string> hash_string;
+    return hash_string(getBaseString());
 }
 
 bool Allele::equals(Allele &other, bool ignoreRefState) {

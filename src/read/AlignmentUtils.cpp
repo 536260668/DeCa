@@ -3,11 +3,71 @@
 //
 
 #include "AlignmentUtils.h"
-
 #include <memory>
 #include <utility>
 #include <cstring>
+#include <cassert>
+#include "CigarUtils.h"
 #include "Mutect2Utils.h"
+
+std::vector<CigarPairTransform> AlignmentUtils::cigarPairTransformers = std::vector<CigarPairTransform>{
+    //
+    // op12 is a match
+    //
+    // 3: xxx B yyy
+    // ^^^^^^^^^^^^
+    // 2: xxx M yyy
+    // 1: xxx M yyy
+    CigarPairTransform(CigarOperator::M, CigarOperator::M, CigarOperator::M, 1, 1),
+    // 3: xxx I yyy
+    // ^^^^^^^^^^^^
+    // 2: xxx I yyy
+    // 1: xxx M yyy
+    CigarPairTransform(CigarOperator::M, CigarOperator::I, CigarOperator::I, 1, 1),
+    // 3: xxx D yyy
+    // ^^^^^^^^^^^^
+    // 2: xxx D yyy
+    // 1: xxx M yyy
+    CigarPairTransform(CigarOperator::M, CigarOperator::D, CigarOperator::D, 0, 1),
+
+    //
+    // op12 is a deletion
+    //
+    // 3: xxx D M yyy
+    // ^^^^^^^^^^^^
+    // 2: xxx M yyy
+    // 1: xxx D yyy
+    CigarPairTransform(CigarOperator::D, CigarOperator::M, CigarOperator::D, 1, 1),
+    // 3: xxx D2 D1 yyy
+    // ^^^^^^^^^^^^
+    // 2: xxx D2 yyy
+    // 1: xxx D1 yyy
+    CigarPairTransform(CigarOperator::D, CigarOperator::D, CigarOperator::D, 0, 1),
+    // 3: xxx X yyy => no-op, we skip emitting anything here
+    // ^^^^^^^^^^^^
+    // 2: xxx I yyy
+    // 1: xxx D yyy
+    CigarPairTransform(CigarOperator::D, CigarOperator::I, CigarOperator::_NULL, 1, 1),
+
+    //
+    // op12 is a insertion
+    //
+    // 3: xxx I M yyy
+    // ^^^^^^^^^^^^
+    // 2: xxx M yyy
+    // 1: xxx I yyy
+    CigarPairTransform(CigarOperator::I, CigarOperator::M, CigarOperator::I, 1, 0),
+    // 3: xxx I D yyy
+    // ^^^^^^^^^^^^
+    // 2: xxx D yyy
+    // 1: xxx I yyy
+     CigarPairTransform(CigarOperator::I, CigarOperator::D, CigarOperator::I, 1, 0),
+    // 3: xxx I1 I2 yyy
+    // ^^^^^^^^^^^^
+    // 2: xxx I2 yyy
+    // 1: xxx I1 yyy
+     CigarPairTransform(CigarOperator::I, CigarOperator::I, CigarOperator::I, 1, 0)
+};
 
 std::shared_ptr<Cigar> AlignmentUtils::consolidateCigar(std::shared_ptr<Cigar> c) {
     if(c == nullptr) {throw std::invalid_argument("Cigar cannot be null");}
@@ -190,6 +250,41 @@ std::shared_ptr<Cigar> AlignmentUtils::trimCigarByBases(const std::shared_ptr<Ci
 }
 
 std::shared_ptr<Cigar>
+AlignmentUtils::leftAlignIndel(std::shared_ptr<Cigar> cigar, std::shared_ptr<uint8_t[]> refSeq, int refLength,
+                               std::shared_ptr<uint8_t[]> readSeq, int readLength, int refIndex, int readIndex,
+                               int leftmostAllowedAlignment, bool doNotThrowExceptionForMultipleIndels) {
+    ensureLeftAlignmentHasGoodArguments(cigar, refSeq, readSeq, refIndex, readIndex);
+
+    int numIndels = countIndelElements(cigar);
+    if ( numIndels == 0 )
+        return cigar;
+    if ( numIndels == 1 )
+        return leftAlignSingleIndel(cigar, refSeq, refLength, readSeq, readLength, refIndex, readIndex, leftmostAllowedAlignment, true);
+
+    // if we got here then there is more than 1 indel in the alignment
+    if ( doNotThrowExceptionForMultipleIndels )
+        return cigar;
+
+    throw "attempting to left align a CIGAR that has more than 1 indel in its alignment but this functionality has not been implemented yet";
+}
+
+std::shared_ptr<Cigar>
+AlignmentUtils::leftAlignIndel(std::shared_ptr<Cigar> cigar, std::shared_ptr<uint8_t[]> refSeq, int refLength,
+                               std::shared_ptr<uint8_t[]> readSeq, int readLength, int refIndex, int readIndex, bool doNotThrowExceptionForMultipleIndels){
+    return leftAlignIndel(cigar, refSeq, refLength, readSeq, readLength, refIndex, readIndex, 0, doNotThrowExceptionForMultipleIndels);
+}
+
+int AlignmentUtils::countIndelElements(std::shared_ptr<Cigar> &cigar)
+{
+    int indelCount = 0;
+    for ( CigarElement& ce : cigar->getCigarElements() ) {
+        if ( ce.getOperator() == CigarOperator::D || ce.getOperator() == CigarOperator::I )
+            indelCount++;
+    }
+    return indelCount;
+}
+
+std::shared_ptr<Cigar>
 AlignmentUtils::leftAlignSingleIndel(std::shared_ptr<Cigar> cigar, std::shared_ptr<uint8_t[]>refSeq, int refLength, std::shared_ptr<uint8_t[]>readSeq, int readLength,
                                      int refIndex, int readIndex, bool cleanupCigar) {
     return leftAlignSingleIndel(std::move(cigar), refSeq, refLength, readSeq, readLength, refIndex, readIndex, 0, false);
@@ -362,6 +457,12 @@ bool AlignmentUtils::isIndelAlignedTooFarLeft(const std::shared_ptr<Cigar>&cigar
 }
 
 bool AlignmentUtils::cigarHasZeroSizeElement(const std::shared_ptr<Cigar>&c) {
+    auto & cigarElements =  c->getCigarElements();
+    if(std::any_of(cigarElements.begin(), cigarElements.end(), [](CigarElement& ce){return ce.getLength() == 0;}))
+        return true;
+
+    return false;
+
     for(CigarElement ce : c->getCigarElements()) {
         if(ce.getLength() == 0)
             return true;
@@ -378,4 +479,141 @@ std::shared_ptr<Cigar> AlignmentUtils::cleanUpCigar(const std::shared_ptr<Cigar>
     }
 
     return std::make_shared<Cigar>(elements);
+}
+
+std::shared_ptr<SAMRecord>
+AlignmentUtils::createReadAlignedToRef(const std::shared_ptr<SAMRecord>& originalRead, const std::shared_ptr<Haplotype>& haplotype,
+                                       const std::shared_ptr<Haplotype>& refHaplotype, int referenceStart, bool isInformative,
+                                       SmithWatermanAligner *aligner) {
+    assert(originalRead);
+    assert(haplotype);
+    assert(refHaplotype);
+    assert( haplotype->getCigar());
+    assert(aligner);
+    assert(referenceStart >= 1);
+
+    // compute the smith-waterman alignment of read -> haplotype
+    auto swPairwiseAlignment = aligner->align(haplotype->getBases(), haplotype->getLength(), originalRead->getBasesNoCopy(), originalRead->getLength(), const_cast<SWParameters *>(&CigarUtils::ALIGNMENT_TO_BEST_HAPLOTYPE_SW_PARAMETERS), SWOverhangStrategy::SOFTCLIP);
+
+    if ( swPairwiseAlignment->getAlignmentOffset() == -1 ) {
+        // sw can fail (reasons not clear) so if it happens just don't realign the read
+        return originalRead;
+    }
+
+    auto swCigar = consolidateCigar(swPairwiseAlignment->getCigar());
+
+    // since we're modifying the read we need to clone it
+    std::shared_ptr<SAMRecord> read = std::make_shared<SAMRecord>(*originalRead);
+    // only informative reads are given the haplotype tag to enhance visualization
+//    if ( isInformative ) {
+//        read.setAttribute(HAPLOTYPE_TAG, haplotype.hashCode());
+//    }
+
+    // compute here the read starts w.r.t. the reference from the SW result and the hap -> ref cigar
+    auto extendedHaplotypeCigar = haplotype->getConsolidatedPaddedCigar(1000);
+    int readStartOnHaplotype = calcFirstBaseMatchingReferenceInCigar(extendedHaplotypeCigar, swPairwiseAlignment->getAlignmentOffset());
+    int readStartOnReference = referenceStart + haplotype->getAlignmentStartHapwrtRef() + readStartOnHaplotype;
+
+    // compute the read -> ref alignment by mapping read -> hap -> ref from the
+    // SW of read -> hap mapped through the given by hap -> ref
+    auto haplotypeToRef = trimCigarByBases(extendedHaplotypeCigar, swPairwiseAlignment->getAlignmentOffset(), extendedHaplotypeCigar->getReadLength() - 1);
+    auto readToRefCigarRaw = applyCigarToCigar(swCigar, haplotypeToRef);
+    auto readToRefCigarClean = cleanUpCigar(readToRefCigarRaw);
+    auto readToRefCigar =  leftAlignIndel(readToRefCigarClean, refHaplotype->getBases(), refHaplotype->getLength(),
+                                          originalRead->getBasesNoCopy(), originalRead->getLength(), readStartOnHaplotype, 0, true);
+
+    int leadingDeletions = readToRefCigarClean->getReferenceLength() - readToRefCigar->getReferenceLength();
+    read->setPosition(read->getContig(), readStartOnReference + leadingDeletions);
+
+    // the SW Cigar does not contain the hard clips of the original read
+    auto& originalCigar = originalRead->getCigar();
+    CigarElement firstElement = originalCigar->getFirstCigarElement();
+    CigarElement lastElement = originalCigar->getLastCigarElement();
+    std::vector<CigarElement> readToRefCigarElementsWithHardClips;
+    if(firstElement.getOperator() == CigarOperator::H)
+        readToRefCigarElementsWithHardClips.push_back(firstElement);
+    for(auto & cigarElement: readToRefCigar->getCigarElements())
+        readToRefCigarElementsWithHardClips.emplace_back(cigarElement);
+    if(lastElement.getOperator() == CigarOperator::H)
+        readToRefCigarElementsWithHardClips.push_back(lastElement);
+
+    read->setCigar(std::make_shared<Cigar>(readToRefCigarElementsWithHardClips));
+    if(readToRefCigar->getReadLength() != read->getLength())
+        throw std::exception();
+
+    delete swPairwiseAlignment;
+    return read;
+}
+
+int
+AlignmentUtils::calcFirstBaseMatchingReferenceInCigar(const std::shared_ptr<Cigar> &cigar, int readStartByBaseOfCigar)
+{
+    assert(cigar != nullptr);
+    assert(readStartByBaseOfCigar <= cigar->getReadLength());
+
+    int hapOffset = 0, refOffset = 0;
+    for (CigarElement& ce : cigar->getCigarElements() ) {
+        for ( int i = 0; i < ce.getLength(); i++ ) {
+            switch ( ce.getOperator() ) {
+                case M:
+                case EQ:
+                case X:
+                    if ( hapOffset >= readStartByBaseOfCigar )
+                        return refOffset;
+                    hapOffset++;
+                    refOffset++;
+                    break;
+                case I:
+                case S:
+                    hapOffset++;
+                    break;
+                case D:
+                    refOffset++;
+                    break;
+                default:
+                    throw "calcFirstBaseMatchingReferenceInCigar does not support cigar";
+            }
+        }
+    }
+    throw std::exception();
+}
+
+std::shared_ptr<Cigar> AlignmentUtils::applyCigarToCigar(const std::shared_ptr<Cigar> &firstToSecond,
+                                                                const std::shared_ptr<Cigar> &secondToThird) {
+    bool DEBUG = false;
+
+    std::vector<CigarElement> newElements;
+    int nElements12 = firstToSecond->numCigarElements();
+    int nElements23 = secondToThird->numCigarElements();
+
+    int cigar12I = 0, cigar23I = 0;
+    int elt12I = 0, elt23I = 0;
+
+    while ( cigar12I < nElements12 && cigar23I < nElements23 ) {
+        auto & elt12 = firstToSecond->getCigarElement(cigar12I);
+        auto & elt23 = secondToThird->getCigarElement(cigar23I);
+
+        CigarPairTransform transform = getTransformer(elt12.getOperator(), elt23.getOperator());
+
+        if ( transform.op13 != CigarOperator::_NULL ) // skip no ops
+            newElements.emplace_back(CigarElement(1, transform.op13));
+
+        elt12I += transform.advance12;
+        elt23I += transform.advance23;
+
+        // if have exhausted our current element, advance to the next one
+        if ( elt12I == elt12.getLength() ) { cigar12I++; elt12I = 0; }
+        if ( elt23I == elt23.getLength() ) { cigar23I++; elt23I = 0; }
+    }
+    return AlignmentUtils::consolidateCigar(std::make_shared<Cigar>(newElements));
+}
+
+CigarPairTransform AlignmentUtils::getTransformer(CigarOperator op12, CigarOperator op23)
+{
+    for(CigarPairTransform& transform : cigarPairTransformers)
+    {
+        if ( transform.op12.find(op12) != transform.op12.end() && transform.op23.find(op23) != transform.op23.end())
+            return transform;
+    }
+    throw std::exception();
 }

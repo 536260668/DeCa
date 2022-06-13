@@ -6,6 +6,7 @@
 #define MUTECT2CPP_MASTER_MATHUTILS_H
 
 #include <vector>
+#include <functional>
 #include "cache/DigammaCache.h"
 #include "cache/Log10FactorialCache.h"
 #include "AssemblyRegion.h"
@@ -56,6 +57,48 @@ public:
     static double log10Fractorial(int n);
 
     static double log10BinomialCoefficient(int n, int k);
+
+    static double sum(vector<double>& values);
+
+    static double sum(shared_ptr<vector<double>> values);
+
+    /**
+    * Apply a method for an array of elements
+    * Returns a new array -- the original array in not modified.
+    *
+    */
+    static shared_ptr<vector<double>> applyToArray(shared_ptr<vector<double>> array, double (*func)(double));
+
+    static shared_ptr<vector<double>> applyToArray(vector<double>& array, double (*func)(double));
+
+    /**
+    * Apply a method for an array of elements
+    * the original array in modified in place.
+    *
+    */
+    static shared_ptr<vector<double>> applyToArrayInPlace(shared_ptr<vector<double>> array, function<double(double)> func);
+
+    static void applyToArrayInPlace(vector<double>& array, function<double(double)> func);
+
+    // sum of int -> double[] function mapped to an index range
+    static shared_ptr<vector<double>> sumArrayFunction(int min, int max, function<shared_ptr<vector<double>>(int)> func);
+
+    static int maxElementIndex(shared_ptr<vector<double>> array);
+
+    static int maxElementIndex(vector<double>& array);
+
+    static double distance1(vector<double>& p1, vector<double>& p2);
+
+    /**
+    * normalizes the real-space probability array.
+    *
+    * Does not assume anything about the values in the array, beyond that no elements are below 0.  It's ok
+    * to have values in the array of > 1, or have the sum go above 0.
+    *
+    * @param array the array to be normalized
+    * @return a newly allocated array corresponding the normalized values in array
+    */
+    static shared_ptr<vector<double>> normalizeSumToOne(shared_ptr<vector<double>> array);
 };
 
 

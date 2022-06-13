@@ -15,25 +15,30 @@
 #include "AssemblyResultSet.h"
 #include "haplotypecaller/AssemblyBasedCallerUtils.h"
 
-Mutect2Engine::Mutect2Engine(M2ArgumentCollection &MTAC, SAMFileHeader *samFileHeader,
-                             const std::string &modelPath)
-		: MTAC(MTAC), minCallableDepth(MTAC.callableDepth), normalSample(MTAC.normalSample), callableSites(0),
-		  refCache(nullptr), header(samFileHeader), assemblyEngine(0, 1, 128, false, false, {10, 25}),
-		  likelihoodCalculationEngine(AssemblyBasedCallerUtils::createLikelihoodCalculationEngine(MTAC.likelihoodArgs)),
-		  trimmer(&assemblerArgs, &header->getSequenceDictionary(), false,
-		          false) {
-	std::vector<SAMReadGroupRecord> &mReadGroups = samFileHeader->getReadGroupRecord();
-	for (auto &readGroup: mReadGroups) {
-		samplesList.emplace_back(readGroup.getReadGroupId());
-	}
-	NaturalLogUtils::initial();
-	if (!modelPath.empty()) {
-		mymodel.Initial(modelPath);
-	}
+Mutect2Engine::Mutect2Engine(M2ArgumentCollection & MTAC, SAMFileHeader* samFileHeader, const std::string &modelPath, VariantAnnotatorEngine& annotatorEngine):MTAC(MTAC), minCallableDepth(MTAC.callableDepth),
+                                                            normalSample(MTAC.normalSample) ,callableSites(0), refCache(nullptr) ,header(samFileHeader),
+                                                                                                    assemblyEngine(0, 1, 128, false, false, {10, 25}),
+                                                                                                    likelihoodCalculationEngine(AssemblyBasedCallerUtils::createLikelihoodCalculationEngine(MTAC.likelihoodArgs)),
+                                                                                                    trimmer(&assemblerArgs, &header->getSequenceDictionary(), false,
+                                                                                                            false), aligner(SmithWatermanAligner::getAligner(SmithWatermanAligner::FASTEST_AVAILABLE)),
+                                                                                                            genotypingEngine(MTAC, MTAC.normalSample, annotatorEngine)
+{
+    std::vector<SAMReadGroupRecord> & mReadGroups = samFileHeader->getReadGroupRecord();
+    for(auto & readGroup : mReadGroups)
+    {
+        samplesList.emplace_back(readGroup.getReadGroupId());
+    }
+    NaturalLogUtils::initial();
+    assert(aligner != nullptr);
+    if (!modelPath.empty()) {
+        mymodel.Initial(modelPath);
+    }
 }
 
-Mutect2Engine::~Mutect2Engine() {
-	delete likelihoodCalculationEngine;
+Mutect2Engine::~Mutect2Engine()
+{
+    delete likelihoodCalculationEngine;
+    delete aligner;
 }
 
 
@@ -153,8 +158,11 @@ Mutect2Engine::fillNextAssemblyRegionWithReads(const std::shared_ptr<AssemblyReg
 std::vector<std::shared_ptr<VariantContext>>
 Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion> &originalAssemblyRegion,
                           ReferenceContext &referenceContext) {
+    if(originalAssemblyRegion->getStart() == 36211225)
+        cout << "=============\n";
+
 	// divide PCR qual by two in order to get the correct total qual when treating paired reads as independent
-	AssemblyBasedCallerUtils::cleanOverlappingReadPairs(originalAssemblyRegion->getReads(), normalSample, false,
+	AssemblyBasedCallerUtils::cleanOverlappingReadPairs(originalAssemblyRegion->getReads(), samplesList, normalSample, false,
 	                                                    MTAC.pcrSnvQual / 2, MTAC.pcrIndelQual / 2);
 	if (originalAssemblyRegion->getReads().empty())
 		return {};
@@ -204,13 +212,27 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion> &originalAssembl
 		}
 	}
 
-	//cerr << *originalAssemblyRegion;
-	likelihoodCalculationEngine->computeReadLikelihoods(*assemblyResult, samplesList, *reads);
+    //cerr << *originalAssemblyRegion;
+    auto readLikelihoods = likelihoodCalculationEngine->computeReadLikelihoods(*assemblyResult, samplesList, *reads);
+    readLikelihoods->switchToNaturalLog();
+
+    shared_ptr<unordered_map<shared_ptr<SAMRecord>, shared_ptr<SAMRecord>>> readRealignments = AssemblyBasedCallerUtils::realignReadsToTheirBestHaplotype(*readLikelihoods, assemblyResult->getReferenceHaplotype(), assemblyResult->getPaddedReferenceLoc(), aligner);
+    readLikelihoods->changeEvidence(readRealignments);
+
+    CalledHaplotypes calledHaplotypes = genotypingEngine.callMutations(readLikelihoods, *assemblyResult, referenceContext, *regionForGenotyping->getSpan(), header);
+
+    //---print the called variant
+    std::shared_ptr<std::vector<std::shared_ptr<VariantContext>>> calls = calledHaplotypes.getCalls();
+    for(auto& call : *calls)
+    {
+        cerr << call->getContig() << " " << call->getStart() << " " << call->getEnd() << "\n";
+    }
 
 	// Break the circular reference of pointer
 	untrimmedAssemblyResult->deleteEventMap();
 	assemblyResult->deleteEventMap();
-	return {allVariationEvents.begin(), allVariationEvents.end()};
+	delete readLikelihoods;
+    return  {allVariationEvents.begin(), allVariationEvents.end()};
 }
 
 void Mutect2Engine::removeUnmarkedDuplicates(const std::shared_ptr<AssemblyRegion> &assemblyRegion) {
@@ -272,7 +294,7 @@ void Mutect2Engine::removeReadStubs(const std::shared_ptr<AssemblyRegion> &assem
 
 std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>>
 Mutect2Engine::splitReadsBySample(const std::vector<std::shared_ptr<SAMRecord>> &reads) {
-	return AssemblyBasedCallerUtils::splitReadsBySample(reads);
+	return AssemblyBasedCallerUtils::splitReadsBySample(samplesList, normalSample, reads);
 }
 
 void Mutect2Engine::setReferenceCache(ReferenceCache *cache) {

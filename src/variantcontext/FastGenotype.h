@@ -17,9 +17,12 @@ private:
     int* PL;
     int ADLength;
     int PLLength;
-    std::map<std::string, void*> extendedAttributes;
+    std::map<std::string, AttributeValue> extendedAttributes;
 
 public:
+    FastGenotype(std::string sampleName, std::vector<std::shared_ptr<Allele>> & alleles, bool isPhased, int GQ, int DP, int* AD, int ADLength, int* PL, int PLLength, const std::string& filters, std::map<std::string, AttributeValue> extendedAttributes);
+    ~FastGenotype();
+
     std::vector<std::shared_ptr<Allele>> & getAlleles() override {return alleles;}
     std::shared_ptr<Allele> getAllele(int i) override {return alleles.at(i);}
     bool isPhased() override {return _isPhased;}
@@ -27,8 +30,10 @@ public:
     int* getAD(int& length) override;
     int getGQ() override {return GQ;}
     int* getPL(int & length) override;
-    std::map<std::string, void*>& getExtendedAttributes() override {return extendedAttributes;}
-    FastGenotype(std::string sampleName, std::vector<std::shared_ptr<Allele>> & alleles, bool isPhased, int GQ, int DP, int* AD, int ADLength, int* PL, int PLLength, const std::string& filters, std::map<std::string, void*> extendedAttributes);
+    std::map<std::string, AttributeValue>& getExtendedAttributes()  {return extendedAttributes;}
+
+
+
 };
 
 

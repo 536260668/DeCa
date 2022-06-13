@@ -19,6 +19,8 @@ double PairHMMLikelihoodCalculationEngine::INITIAL_QSCORE = 40.0;
 double PairHMMLikelihoodCalculationEngine::EXPECTED_ERROR_RATE_PER_BASE = 0.02;
 char PairHMMLikelihoodCalculationEngine::constantGCP = 10;
 
+template<> double AlleleLikelihoods<SAMRecord, Haplotype>::NATURAL_LOG_INFORMATIVE_THRESHOLD = MathUtils::log10ToLog(LOG_10_INFORMATIVE_THRESHOLD);
+
 PairHMMLikelihoodCalculationEngine::PairHMMLikelihoodCalculationEngine(char constantGCP, PairHMMNativeArgumentCollection& args,
                                                                        double log10globalReadMismappingRate,
                                                                        PCRErrorModel pcrErrorModel,
@@ -70,7 +72,7 @@ void PairHMMLikelihoodCalculationEngine::computeReadLikelihoods(SampleMatrix<SAM
     delete gapContinuationPenalties;
 }
 
-void PairHMMLikelihoodCalculationEngine::computeReadLikelihoods(AssemblyResultSet &assemblyResultSet, std::vector<std::string>& samples,
+AlleleLikelihoods<SAMRecord, Haplotype>* PairHMMLikelihoodCalculationEngine::computeReadLikelihoods(AssemblyResultSet &assemblyResultSet, std::vector<std::string>& samples,
                                                                 std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>> &perSampleReadList)
 {
     std::shared_ptr<std::vector<std::shared_ptr<Haplotype>>> haplotypeList = assemblyResultSet.getHaplotypeList();
@@ -78,7 +80,7 @@ void PairHMMLikelihoodCalculationEngine::computeReadLikelihoods(AssemblyResultSe
     initializePairHMM(*haplotypeList, perSampleReadList);
 
     // Add likelihoods for each sample's reads to our result
-    AlleleLikelihoods<SAMRecord, Haplotype>* result = new AlleleLikelihoods<SAMRecord, Haplotype>(samples, *haplotypeList, perSampleReadList);
+    AlleleLikelihoods<SAMRecord, Haplotype>* result = new AlleleLikelihoods<SAMRecord, Haplotype>(samples, haplotypeList, perSampleReadList);
 
     int sampleCount = samples.size();
     for(int i=0; i<sampleCount; i++)
@@ -86,8 +88,10 @@ void PairHMMLikelihoodCalculationEngine::computeReadLikelihoods(AssemblyResultSe
         computeReadLikelihoods(result->sampleMatrix(i));
     }
 
+    result->normalizeLikelihoods(log10globalReadMismappingRate);
+    result->filterPoorlyModeledEvidence(&PairHMMLikelihoodCalculationEngine::log10MinTrueLikelihood, EXPECTED_ERROR_RATE_PER_BASE);
 
-    delete result;
+    return result;
 }
 
 void PairHMMLikelihoodCalculationEngine::initializePairHMM(vector<shared_ptr<Haplotype>> &haplotypes,
@@ -283,4 +287,11 @@ unordered_map<SAMRecord*, shared_ptr<char[]>>* PairHMMLikelihoodCalculationEngin
         result->emplace(pair<SAMRecord*, shared_ptr<char[]>>(read.get(), Utils::dupBytes(gapPenalty, read->getLength())));
     }
     return result;
+}
+
+double PairHMMLikelihoodCalculationEngine::log10MinTrueLikelihood(shared_ptr<SAMRecord> read, double maximumErrorPerBase)
+{
+    double maxErrorsForRead = min(2.0, ceil(read->getLength() * maximumErrorPerBase));
+    double log10QualPerBase = -4.0;
+    return maxErrorsForRead * log10QualPerBase;
 }

@@ -83,6 +83,8 @@ private:
      */
     void applyPCRErrorModel(int length, uint8_t* readBases, uint8_t* readInsQuals, uint8_t* readDelQuals);
 
+    static double log10MinTrueLikelihood(shared_ptr<SAMRecord> read, double maximumErrorPerBase);
+
     static int findTandemRepeatUnits(uint8_t* readBases, int length, int offset);
 
     static void capMinimumReadQualities(SAMRecord& read, int readQualsLength, uint8_t* readQuals, uint8_t* readInsQuals, uint8_t* readDelQuals, char baseQualityScoreThreshold);
@@ -110,7 +112,6 @@ private:
     * @return a read with modified bases and qualities, safe for the GATK
     */
     static shared_ptr<SAMRecord> createQualityModifiedRead(SAMRecord& read, int length, std::shared_ptr<uint8_t[]> readBases, std::shared_ptr<uint8_t[]> baseQualities, std::shared_ptr<uint8_t[]> baseInsertionQualities, std::shared_ptr<uint8_t[]> baseDeletionQualities);
-
 
     static unordered_map<SAMRecord*, shared_ptr<char[]>>* buildGapContinuationPenalties(vector<shared_ptr<SAMRecord>>& reads, char gapPenalty);
 
@@ -156,8 +157,8 @@ public:
      *
      * @return never {@code null}, and with at least one entry for input sample (keys in {@code perSampleReadList}.
      *    The value maps can be potentially empty though.
-     */ // TODO: change the type of returned value
-    void computeReadLikelihoods(AssemblyResultSet & assemblyResultSet, std::vector<std::string>& samples, std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>& perSampleReadList);
+     */
+    AlleleLikelihoods<SAMRecord, Haplotype>* computeReadLikelihoods(AssemblyResultSet & assemblyResultSet, std::vector<std::string>& samples, std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>& perSampleReadList);
 
 
 };

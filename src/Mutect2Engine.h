@@ -22,20 +22,24 @@
 #include "haplotypecaller/MutectReadThreadingAssemblerArgumentCollection.h"
 #include "haplotypecaller/AssemblyRegionTrimmer.h"
 #include "haplotypecaller/PairHMMLikelihoodCalculationEngine.h"
+#include "SmithWatermanAligner.h"
+#include "SomaticGenotypeEngine.h"
 
 
 class Mutect2Engine {
 private:
-	int minCallableDepth;
-	std::vector<string> samplesList;
-	std::string &normalSample;
-	SAMFileHeader *header;
-	M2ArgumentCollection &MTAC;
-	ReadThreadingAssembler assemblyEngine;
-	MutectReadThreadingAssemblerArgumentCollection assemblerArgs;
-	PairHMMLikelihoodCalculationEngine *likelihoodCalculationEngine;
-	AssemblyRegionTrimmer trimmer;
-	model mymodel;
+    int minCallableDepth;
+    std::vector<string> samplesList;
+    std::string & normalSample;
+    SAMFileHeader * header;
+    M2ArgumentCollection & MTAC;
+    ReadThreadingAssembler assemblyEngine;
+    MutectReadThreadingAssemblerArgumentCollection assemblerArgs;
+    PairHMMLikelihoodCalculationEngine* likelihoodCalculationEngine;
+    AssemblyRegionTrimmer trimmer;
+    SmithWatermanAligner* aligner;
+    SomaticGenotypeEngine genotypingEngine;
+    model mymodel;
 
 	std::shared_ptr<std::vector<char>> altQuals(ReadPileup &pileup, char refBase, int pcrErrorQual);
 
@@ -70,7 +74,7 @@ public:
 	int callableSites;  // in GATK4, this variable is a MutableInt class object
 	ReferenceCache *refCache;
 
-	Mutect2Engine(M2ArgumentCollection &MTAC, SAMFileHeader *samFileHeader, const std::string &modelPath);
+	Mutect2Engine(M2ArgumentCollection &MTAC, SAMFileHeader *samFileHeader, const std::string &modelPath, VariantAnnotatorEngine& annotatorEngine);
 
 	~Mutect2Engine();
 
@@ -90,8 +94,7 @@ public:
 	static void printReadsMap(const std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>>& reads);
 
 protected:
-	static std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>>
-	splitReadsBySample(const std::vector<std::shared_ptr<SAMRecord>> &reads);
+    std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>> splitReadsBySample(const std::vector<std::shared_ptr<SAMRecord>> &reads);
 
 };
 

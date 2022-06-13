@@ -123,6 +123,28 @@ public:
 	std::shared_ptr<AssemblyRegion> getRegionForGenotyping();
 
 	void printSortedHaplotypes();
+
+	/**
+    * Query the reference haplotype in the result set.
+    * @return {@code null} if none wasn't yet added, otherwise a reference haplotype.
+    */
+	std::shared_ptr<Haplotype>& getReferenceHaplotype();
+
+	/**
+    * Returns the padded reference location.
+    *
+    * @return might be {@code null}
+    */
+	std::shared_ptr<SimpleInterval>& getPaddedReferenceLoc();
+
+	/**
+    * Returns the current full reference with padding.
+    *
+    * @return might be {@code null}. The result must not be modified by the caller.
+    */
+	std::shared_ptr<uint8_t[]>& getFullReferenceWithPadding();
+
+	int getFullReferenceWithPaddingLength();
 };
 
 
