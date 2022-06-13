@@ -228,10 +228,10 @@ AssemblyBasedCallerUtils::makeMergedVariantContext(shared_ptr<vector<shared_ptr<
     return GATKVariantContextUtils::simpleMerge(vcs, haplotypeSources, FilteredRecordMergeType::KEEP_IF_ANY_UNFILTERED, GenotypeMergeType::PRIORITIZE, false);
 }
 
-shared_ptr<std::map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Haplotype>>>>>
+shared_ptr<std::unordered_map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Haplotype>>>, hash_Allele, equal_Allele>>
 AssemblyBasedCallerUtils::createAlleleMapper(shared_ptr<VariantContext> mergedVC, int loc,
                                              vector<shared_ptr<Haplotype>> &haplotypes) {
-    auto result = make_shared<std::map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Haplotype>>>>>();
+    auto result = make_shared<std::unordered_map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Haplotype>>>, hash_Allele, equal_Allele>>();
 
     auto ref = mergedVC->getReference();
     result->insert({ref, make_shared<vector<shared_ptr<Haplotype>>>()});

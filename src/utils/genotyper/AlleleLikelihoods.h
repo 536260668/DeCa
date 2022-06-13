@@ -669,7 +669,7 @@ public:
      *  or its values contain reference to non-existing alleles in this evidence-likelihood collection. Also no new allele
      *  can have zero old alleles mapping nor two new alleles can make reference to the same old allele.
      */
-     AlleleLikelihoods<E, Allele>* marginalize(shared_ptr<std::map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Haplotype>>>>> newToOldAlleleMap, shared_ptr<SimpleInterval> overlap)
+     AlleleLikelihoods<E, Allele>* marginalize(std::shared_ptr<std::unordered_map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Haplotype>>>, hash_Allele, equal_Allele>> newToOldAlleleMap, shared_ptr<SimpleInterval> overlap)
      {
          assert(newToOldAlleleMap != nullptr);
          if(overlap == nullptr)
@@ -720,7 +720,7 @@ public:
      }
 
 
-     AlleleLikelihoods<E, Allele>* marginalize(shared_ptr<std::map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Haplotype>>>>> newToOldAlleleMap)
+     AlleleLikelihoods<E, Allele>* marginalize(std::shared_ptr<std::unordered_map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Haplotype>>>, hash_Allele, equal_Allele>> newToOldAlleleMap)
      {
         assert(newToOldAlleleMap != nullptr);
         shared_ptr<vector<shared_ptr<Allele>>> newAlleles = make_shared<vector<shared_ptr<Allele>>>();
@@ -792,7 +792,7 @@ public:
      }
 
      // calculates an old to new allele index map array.
-     shared_ptr<vector<int>> oldToNewAlleleIndexMap(shared_ptr<std::map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Haplotype>>>>> newToOldAlleleMap, int oldAlleleCount,  vector<shared_ptr<Allele>>& newAlleles)
+     shared_ptr<vector<int>> oldToNewAlleleIndexMap(std::shared_ptr<std::unordered_map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Haplotype>>>, hash_Allele, equal_Allele>> newToOldAlleleMap, int oldAlleleCount,  vector<shared_ptr<Allele>>& newAlleles)
      {
          for(auto& h : newAlleles)
              assert(h);

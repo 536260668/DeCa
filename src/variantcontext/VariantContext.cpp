@@ -409,35 +409,3 @@ std::string VariantContext::getTypeString() {
 			return "NULL";
 	}
 }
-
-//std::vector<Allele> *VariantContext::makeAlleles(std::vector<Allele> &alleles)
-//{
-//    std::vector<Allele> * alleleList = new std::vector<Allele>(alleles.size());
-//    bool sawRef = false;
-//    for(Allele a : alleles)
-//    {
-//        for(int i=0, alleleListSize = alleleList->size(); i<alleleListSize; i++)
-//        {
-//            //---TODO: how to judge whether two allele object are equal ?
-//        }
-//
-//        // deal with the case where the first allele isn't the reference
-//        if(a.getIsReference())
-//        {
-//            if(sawRef)
-//                throw "Alleles for a VariantContext must contain at most one reference allele: ";
-//            alleleList->insert(alleleList->begin(), a);
-//            sawRef = true;
-//        } else {
-//            alleleList->push_back(a);
-//        }
-//    }
-//
-//    if(alleleList->empty())
-//        throw "Cannot create a VariantContext with an empty allele list";
-//
-//    if(alleleList->at(0).getIsNonReference())
-//        throw "Alleles for a VariantContext must contain at least one reference allele: ";
-//
-//    return alleleList;
-//}

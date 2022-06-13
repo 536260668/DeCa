@@ -223,7 +223,7 @@ void threadFunc(Shared *w, char *ref, int n, int nref) {
 			}
 			std::shared_ptr<SimpleInterval> pileupInterval = std::make_shared<SimpleInterval>(contig, (int)pileup.getPosition(), (int)pileup.getPosition());
 			char refBase = w->refCaches[k]->getBase(pileup.getPosition());
-			ReferenceContext pileupRefContext(pileupInterval, refBase); //---is this variable necessary?
+			ReferenceContext pileupRefContext(pileupInterval, refBase); //---this variable is useful in annotationEngine
 
 			std::shared_ptr<ActivityProfileState> profile = m2Engine.isActive(pileup);
 			activityProfile->add(profile);

@@ -104,7 +104,7 @@ public:
      * @param haplotypes Haplotypes for the current active region
      * @return
      */
-    static shared_ptr<std::map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Haplotype>>>>> createAlleleMapper(shared_ptr<VariantContext> mergedVC, int loc, vector<shared_ptr<Haplotype>>& haplotypes);
+    static shared_ptr<std::unordered_map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Haplotype>>>, hash_Allele, equal_Allele>> createAlleleMapper(shared_ptr<VariantContext> mergedVC, int loc, vector<shared_ptr<Haplotype>>& haplotypes);
 
     /**
      * Tries to phase the individual alleles based on pairwise comparisons to the other alleles based on all called haplotypes
