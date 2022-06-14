@@ -608,7 +608,7 @@ public:
      *               to construct a fragment out of a pair of reads with the same name
      *
      * @return a new AlleleLikelihoods based on the grouped, transformed evidence.
-     */
+    */     // TODO: make this method lightweight
     AlleleLikelihoods<Fragment, A>* groupEvidence(function<std::string&(shared_ptr<E>)> groupingFunction, function<shared_ptr<Fragment>(vector<shared_ptr<E>>&)> gather)
      {
          int sampleCount = samples.size();
@@ -620,12 +620,19 @@ public:
 
          for(int s = 0; s < sampleCount; s++)
          {
-             vector<vector<shared_ptr<E>>> evidenceGroups;
+             vector<shared_ptr<vector<shared_ptr<E>>>> evidenceGroups;  //---Maybe this variable is unnecessary
              vector<shared_ptr<E>> & sampleEvidence = (*evidenceBySampleIndex)[s];
-             unordered_map<string, vector<shared_ptr<E>>> map;
+             unordered_map<string, shared_ptr<vector<shared_ptr<E>>>> map;
              for(auto& evidence : sampleEvidence)
              {
-                 map[groupingFunction(evidence)].emplace_back(evidence);
+                 string & groupingKey = groupingFunction(evidence);
+                 if(map.find(groupingKey) != map.end())
+                 {
+                     map[groupingKey]->emplace_back(evidence);
+                 } else {
+                     map.template emplace(groupingKey, make_shared<vector<shared_ptr<E>>>(1, evidence));
+                 }
+
              }
 
              for(auto& kv: map)
@@ -639,7 +646,7 @@ public:
              // For each old allele and read we update the new table keeping the maximum likelihood.
              for (int newEvidenceIndex = 0; newEvidenceIndex < newEvidenceCount; newEvidenceIndex++) {
                  for (int a = 0; a < alleleCount; a++) {
-                     for(auto& evidence : evidenceGroups[newEvidenceIndex])
+                     for(auto& evidence : *evidenceGroups[newEvidenceIndex])
                      {
                          int oldEvidenceIndex = evidenceIndex(s, evidence);
                          assert(oldEvidenceIndex != -1);
@@ -651,7 +658,7 @@ public:
              vector<shared_ptr<Fragment>> temp;
              for(auto& group : evidenceGroups)
              {
-                 temp.template emplace_back(gather(group));
+                 temp.template emplace_back(gather(*group));
              }
              newEvidenceBySampleIndex->template emplace_back(temp);
          }
