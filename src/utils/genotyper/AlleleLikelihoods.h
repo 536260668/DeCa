@@ -164,7 +164,7 @@ private:
         }
     }
 
-    map<shared_ptr<E>, int>& getEvidenceIndexBySampleIndex(int sampleIndex)
+    unordered_map<shared_ptr<E>, int>& getEvidenceIndexBySampleIndex(int sampleIndex)
     {
         if(evidenceIndexBySampleIndex.size() <= sampleIndex)
         {
@@ -175,10 +175,10 @@ private:
         if(evidenceIndexBySampleIndex[sampleIndex].empty()){
             auto& sampleEvidence = evidenceBySampleIndex->operator[](sampleIndex);
             int sampleEvidenceCount = sampleEvidence.size();
-            evidenceIndexBySampleIndex[sampleIndex] = map<shared_ptr<E>, int>();
+            //evidenceIndexBySampleIndex[sampleIndex] = unordered_map<shared_ptr<E>, int>();
             for(int r=0; r<sampleEvidenceCount; r++)
             {
-                evidenceIndexBySampleIndex[sampleIndex].template insert(pair<shared_ptr<E>, int>(sampleEvidence[r], r));
+                evidenceIndexBySampleIndex[sampleIndex].template emplace(sampleEvidence[r], r);
             }
         }
         return evidenceIndexBySampleIndex[sampleIndex];
@@ -204,7 +204,7 @@ protected:
     * <p>In order to save CPU time the indices contained in this array (not the array itself) is
     * lazily initialized by invoking {@link #evidenceIndexBySampleIndex(int)}.</p>
     */
-    vector<map<shared_ptr<E>, int>> evidenceIndexBySampleIndex;
+    vector<unordered_map<shared_ptr<E>, int>> evidenceIndexBySampleIndex;
 
     double maximumLikelihoodOverAllAlleles(int sampleIndex, int evidenceIndex) {
         double result = -numeric_limits<double>::infinity();
