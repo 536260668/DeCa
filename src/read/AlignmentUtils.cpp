@@ -490,7 +490,7 @@ AlignmentUtils::createReadAlignedToRef(const std::shared_ptr<SAMRecord>& origina
     assert(refHaplotype);
     assert( haplotype->getCigar());
     assert(aligner);
-    assert(referenceStart >= 1);
+    assert(referenceStart >= 0);
 
     // compute the smith-waterman alignment of read -> haplotype
     auto swPairwiseAlignment = aligner->align(haplotype->getBases(), haplotype->getLength(), originalRead->getBasesNoCopy(), originalRead->getLength(), const_cast<SWParameters *>(&CigarUtils::ALIGNMENT_TO_BEST_HAPLOTYPE_SW_PARAMETERS), SWOverhangStrategy::SOFTCLIP);

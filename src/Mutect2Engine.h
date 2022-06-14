@@ -68,7 +68,6 @@ public:
 	const static int READ_QUALITY_FILTER_THRESHOLD = 20;
 	const static int MIN_READ_LENGTH = 30;
 	const static int MINIMUM_BASE_QUALITY = 6;
-
 	const static int HUGE_FRAGMENT_LENGTH = 1000000;
 
 	int callableSites;  // in GATK4, this variable is a MutableInt class object

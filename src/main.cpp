@@ -25,7 +25,7 @@
 #include "intel/smithwaterman/IntelSmithWaterman.h"
 #include "ReferenceCache.h"
 #include "utils/BaseUtils.h"
-
+#include "variantcontext/VCFWriter.h"
 
 
 struct Region{
@@ -122,6 +122,15 @@ void adjust_input_bam(std::vector<char*> & input_bam, std::string & normalSample
     }
 }
 
+struct concurrentTask{
+	std::shared_ptr<AssemblyRegion> region = nullptr;
+	ReferenceContext referenceContext = ReferenceContext{std::make_shared<SimpleInterval>("", 0, 0), N};
+
+	friend bool operator < (const concurrentTask& a, const concurrentTask & b){
+		return a.region->getReads().size() < b.region->getReads().size();
+	}
+};
+
 struct Shared{
 	std::vector<std::shared_ptr<ReferenceCache>> refCaches;
 	std::vector<char*> input_bam;
@@ -134,14 +143,14 @@ struct Shared{
 	std::shared_ptr<BQSRReadTransformer> normalTransformer = nullptr;
 
 	bool startFlag = false;
-	bool exitFlag= false;
+	bool allConcurrentMode= false;
 	int numOfThreads = 1;
 	std::vector<Region> regions;
 	std::vector<std::vector<shared_ptr<VariantContext>>> results;
 	std::vector<std::vector<shared_ptr<VariantContext>>> concurrentResults;
 	std::mutex queueMutex;
 	std::condition_variable queueCond;
-	std::queue<std::pair<std::shared_ptr<AssemblyRegion>, ReferenceContext>> activeRegionQueue;
+	std::priority_queue<concurrentTask> activeRegionQueue;
 	std::unordered_map<std::string, int> contigToIndex;
 	std::atomic<int> indexOfRegion{0};
 	std::atomic<int> activeRegioncount{0};
@@ -253,7 +262,7 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 					w->results[currentTask].insert(w->results[currentTask].end(), variant.begin(), variant.end());
 				} else {
 					w->queueMutex.lock();
-					w->activeRegionQueue.push(std::make_pair(nextRegion, pileupRefContext));
+					w->activeRegionQueue.push({nextRegion, pileupRefContext});
 					w->queueMutex.unlock();
 					w->queueCond.notify_all();
 				}
@@ -288,36 +297,32 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 				w->results[currentTask].insert(w->results[currentTask].end(), variant.begin(), variant.end());
 			} else {
 				w->queueMutex.lock();
-				w->activeRegionQueue.push(std::make_pair(nextRegion, tmp));
+				w->activeRegionQueue.push({nextRegion, tmp});
 				w->queueMutex.unlock();
 				w->queueCond.notify_all();
 			}
 		}
  	}
 
-	w->exitFlag = ++w->numOfStep2Thread == w->numOfThreads;
-
-	std::shared_ptr<AssemblyRegion> region = nullptr;
-	ReferenceContext pileupContext {std::make_shared<SimpleInterval>("", 0, 0), N};
-	std::pair<std::shared_ptr<AssemblyRegion>, ReferenceContext> activeRegion = std::make_pair(region, pileupContext);
-
+	w->allConcurrentMode = ++w->numOfStep2Thread == w->numOfThreads;
+	concurrentTask activeRegion;
+	bool exitFlag = false;
 	while (true) {
 		while (true) {
 			std::unique_lock<std::mutex> lock(w->queueMutex);
 			w->queueCond.wait(lock, [] { return true; });
 			if (BOOST_LIKELY(!w->activeRegionQueue.empty())) {
-				activeRegion = w->activeRegionQueue.front();
+				activeRegion = w->activeRegionQueue.top();
 				w->activeRegionQueue.pop();
 				break;
 			}
-			if (w->exitFlag) break;
+			exitFlag = w->allConcurrentMode;
+			if (exitFlag) break;
 		}
-		if (w->exitFlag) break;
-		region = activeRegion.first;
-		pileupContext = activeRegion.second;
-		int refInd = w->contigToIndex[region->getContig()];
+		if (exitFlag) break;
+		int refInd = w->contigToIndex[activeRegion.region->getContig()];
 		m2Engine.setReferenceCache(w->refCaches[refInd].get());
-		std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(region, pileupContext);
+		std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(activeRegion.region, activeRegion.referenceContext);
 		w->queueCond.notify_all();
 		w->concurrentResults[threadID].insert(w->concurrentResults[threadID].end(), variant.begin(), variant.end());
 	}
@@ -338,8 +343,8 @@ int main(int argc, char *argv[])
 {
     CigarOperatorUtils::initial();
     int c, n = 0;
-	char * reg;
-    char *output = nullptr, *ref = nullptr;
+	char *reg, *ref = nullptr;
+	std::string output;
 	aux_t **data;
 	Shared sharedData;
     char * tumor_table = nullptr, * normal_table = nullptr;
@@ -495,6 +500,11 @@ int main(int argc, char *argv[])
 	sharedData.concurrentResults.resize(sharedData.numOfThreads);
 	sharedData.startFlag = true;
 
+	// Initialize VCFWriter and write headers
+	VCFWriter vcfWriter(output, sharedData.header->getSequenceDictionary());
+	std::string commandLine = VCFWriter::getCommandLine(argc, argv);
+	vcfWriter.writeHeader(commandLine);
+
 	for(auto &thread : threads) {
 		thread.join();
 	}
@@ -517,12 +527,12 @@ int main(int argc, char *argv[])
 	auto sortedVC = MergedConcurrentResults.begin();
 	for (int i = 0; i < sharedData.regions.size(); ++i) {
 		for (const auto &vc: sharedData.results[i]) {
-			//Mutect2Engine::printVariationContext(vc);
+			Mutect2Engine::printVariationContext(vc);
 		}
 		for (; sortedVC != MergedConcurrentResults.end(); ++sortedVC) {
 			if ((*sortedVC)->getStart() > sharedData.regions[i].getEnd())
 				break;
-			//Mutect2Engine::printVariationContext(*sortedVC);
+			Mutect2Engine::printVariationContext(*sortedVC);
 		}
 	}
 
@@ -530,18 +540,17 @@ int main(int argc, char *argv[])
     fai_destroy(refPoint);
     for(char * input_file : sharedData.input_bam)
         free(input_file);
-    free(output);
     free(ref);
     free(tumor_table);
     free(normal_table);
     delete sharedData.header;
-    for(int i = 0; i < n; i++)
+	for(int i = 0; i < n; i++)
     {
         hts_close(data[i]->fp);
         sam_hdr_destroy(data[i]->hdr);
         free(data[i]);
     }
     free(data);
-
-    return 0;
+	vcfWriter.close();
+	return 0;
 }
