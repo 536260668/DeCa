@@ -45,8 +45,15 @@ private:
 
 
     void setFlag(bool flag, int bit);
-    void requireReadPaired();
-    bool getMateUnmappedFlagUnchecked();
+    void requireReadPaired() const;
+    bool getMateUnmappedFlagUnchecked() const;
+
+    /**
+    * Checks to see if the two sets of coordinates have any overlap.
+    */
+    static bool overlaps(int start, int end, int start2, int end2);
+
+    static bool encloses(int outerStart, int outerEnd, int innerStart, int innerEnd);
 
 public:
     // map from position to cigar index
@@ -68,14 +75,14 @@ public:
     void setPosition(std::string& contig, int start);
     void setPosition(Locatable* locatable);
     std::string & getAssignedContig();
-    int getAssignedStart();
+    int getAssignedStart() const;
     int getUnclippedStart();
     int getUnclippedEnd();
-    bool getReadUnmappedFlag();
+    bool getReadUnmappedFlag() const;
     bool isUnmapped();
     bool mateIsUnmapped();
     bool getMateUnmappedFlag();
-    bool isPaired();
+    bool isPaired() const;
     std::string& getMateContig();
     int getMateStart();
     void setMatePosition(std::string& contig, int start);
@@ -90,11 +97,10 @@ public:
     std::shared_ptr<uint8_t[]> getBases();
     std::shared_ptr<uint8_t[]> & getBasesNoCopy();
     uint8_t getBase(const int i) {return mReadBases[i];}
-    int getLength();
     void setBases(std::shared_ptr<uint8_t[]>bases, int length);
     std::shared_ptr<uint8_t[]> getBaseQualities();
     std::shared_ptr<uint8_t[]> & getBaseQualitiesNoCopy();
-    int getBaseQualitiesLength();
+    int getBaseQualitiesLength() const;
     uint8_t getBaseQuality(const int i) {return mBaseQualities[i];}
     void setBaseQualities(std::shared_ptr<uint8_t[]> baseQualities, int length);
     const std::shared_ptr<Cigar> & getCigar();
@@ -105,7 +111,7 @@ public:
     bool getProperPairFlagUnchecked() const;
     bool isProperlyPaired();
     void setIsProperlyPaired(bool isProperlyPaired);
-    int getStart();
+    int getStart() const;
     int getEnd();
     void setIsUnmapped();
     void setReadUnmappedFlag(bool flag);
@@ -121,7 +127,7 @@ public:
     std::string getAttributeAsString(std::string & attributeName);
     bool isReverseStrand() const;
     bool mateIsReverseStrand();
-    bool getMateNegativeStrandFlagUnchecked();
+    bool getMateNegativeStrandFlagUnchecked() const;
     bool isFirstOfPair();
     bool getFirstOfPairFlag();
     bool isSecondOfPair();
@@ -131,10 +137,10 @@ public:
     bool isDuplicate() const;
     bool isSupplementaryAlignment() const;
     int getAdaptorBoundary();
-    int getEndAfterFliter();
+    int getEndAfterFliter() const;
     std::shared_ptr<SimpleInterval> getLoc();
     void setGroup(uint8_t i) {readGroup = i;}
-    uint8_t getGroup() {return readGroup;}
+    uint8_t getGroup() const {return readGroup;}
     bool overlaps(std::shared_ptr<Locatable> other);
 
 
