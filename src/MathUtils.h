@@ -99,6 +99,8 @@ public:
     * @return a newly allocated array corresponding the normalized values in array
     */
     static shared_ptr<vector<double>> normalizeSumToOne(shared_ptr<vector<double>> array);
+
+    static int median(std::vector<int> &values);
 };
 
 

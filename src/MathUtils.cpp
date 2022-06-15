@@ -180,3 +180,13 @@ shared_ptr<vector<double>> MathUtils::normalizeSumToOne(shared_ptr<vector<double
     Mutect2Utils::validateArg(sum >= 0.0, "Values in probability array sum to a negative number ");
     return applyToArrayInPlace(array, [sum](double x){return x / sum;});
 }
+
+int MathUtils::median(std::vector<int> &values) {
+    assert(!values.empty());
+    sort(values.begin(), values.end());
+    int size = values.size();
+    if(size % 2 != 0)
+        return values[size/2];
+    double median = (values[(size-1)/2] + values[size/2]) / 2.0;
+    return round(median);
+}

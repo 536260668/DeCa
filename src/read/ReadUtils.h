@@ -24,10 +24,13 @@ enum Passes {
 class ReadUtils {
 public:
     static const int CANNOT_COMPUTE_ADAPTOR_BOUNDARY = INT32_MIN;
+    static const int CLIPPING_GOAL_NOT_REACHED;
+
     static std::shared_ptr<SAMRecord> emptyRead(SAMRecord & read);
     static std::shared_ptr<SAMRecord> emptyRead(std::shared_ptr<SAMRecord> & read);
     static void assertAttributeNameIsLegal(std::string& attributeName);
     static int getReadCoordinateForReferenceCoordinate(std::shared_ptr<SAMRecord> & read, int refCoord, ClippingTail tail);
+    static int getReadCoordinateForReferenceCoordinate(std::shared_ptr<SAMRecord> & read, int refCoord, ClippingTail tail, bool allowGoalNotReached);
     static int getReadCoordinateForReferenceCoordinate(int alignmentStart, std::shared_ptr<Cigar> cigar, int refCoord, ClippingTail tail, bool allowGoalNotReached);
     static CigarElement* readStartsWithInsertion(const std::shared_ptr<Cigar>& cigarForRead);
     static CigarElement* readStartsWithInsertion(const std::shared_ptr<Cigar>& cigarForRead, bool ignoreSoftClipOps);
@@ -107,7 +110,7 @@ public:
 
 private:
     static std::pair<int, bool> getReadCoordinateForReferenceCoordinate(int alignmentStart, std::shared_ptr<Cigar> cigar, int refCoord, bool allowGoalNotReached);
-    static const int CLIPPING_GOAL_NOT_REACHED;
+
 };
 
 

@@ -28,8 +28,10 @@ public:
     inline const static std::string GENOTYPE_PL_KEY = "PL";   // phred-scaled genotype likelihoods
     inline const static std::string EXPECTED_ALLELE_COUNT_KEY = "EC";
     inline const static std::string PHASE_SET_KEY = "PS";
-
-
+    inline const static std::string STR_PRESENT_KEY =                    "STR";
+    inline const static std::string REFSAMPLE_DEPTH_KEY =                "REFDEPTH";
+    inline const static std::string REPEAT_UNIT_KEY =                    "RU";
+    inline const static std::string REPEATS_PER_ALLELE_KEY =             "RPA";
 
     // missing/default values
     inline const static std::string UNFILTERED = ".";
@@ -47,6 +49,10 @@ public:
     inline const static std::string POPULATION_AF_KEY =        "POPAF";
     inline const static std::string NORMAL_LOG_10_ODDS_KEY =                     "NLOD";
     inline const static std::string NORMAL_ARTIFACT_LOG_10_ODDS_KEY =      "NALOD";
+    inline const static std::string MEDIAN_BASE_QUALITY_KEY =       "MBQ";
+    inline const static std::string MEDIAN_MAPPING_QUALITY_KEY = "MMQ";
+    inline const static std::string MEDIAN_FRAGMENT_LENGTH_KEY = "MFRL";
+    inline const static std::string MEDIAN_READ_POSITON_KEY = "MPOS";
 
     // FORMAT keys
     inline const static std::string HAPLOTYPE_CALLER_PHASING_ID_KEY =    "PID";

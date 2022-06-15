@@ -25,11 +25,11 @@
 #include <omp.h>
 #endif
 #include <vector>
-#include <math.h>
+#include <cmath>
 #include <iostream>
 #include <debug.h>
 #include <avx.h>
-#include <assert.h>
+#include <cassert>
 #include "IntelPairHmm.h"
 #include "pairhmm_common.h"
 #include "avx_impl.h"
@@ -37,7 +37,6 @@
   #include "avx512_impl.h"
 #endif
 #include "Context.h"
-
 
 bool g_use_double;
 int g_max_threads;

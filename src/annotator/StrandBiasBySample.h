@@ -22,6 +22,8 @@ public:
     * @return the array used by the per-sample Strand Bias annotation
     */
     static vector<int> getContingencyArray(vector<vector<int>>& table);
+
+    std::vector<std::string> getKeyNames();
 };
 
 

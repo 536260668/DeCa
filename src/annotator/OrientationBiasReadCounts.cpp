@@ -52,3 +52,7 @@ void OrientationBiasReadCounts::annotate(ReferenceContext &ref, shared_ptr<Varia
     gb.attribute(VCFConstants::F1R2_KEY, f1r2);
     gb.attribute(VCFConstants::F2R1_KEY, f2r1);
 }
+
+std::vector<std::string> OrientationBiasReadCounts::getKeyNames() {
+    return {VCFConstants::F1R2_KEY, VCFConstants::F2R1_KEY};
+}
