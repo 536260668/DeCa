@@ -5,6 +5,7 @@
 #ifndef MUTECT2CPP_MASTER_ALLELELIKELIHOODS_H
 #define MUTECT2CPP_MASTER_ALLELELIKELIHOODS_H
 
+#include <utility>
 #include <vector>
 #include <string>
 #include <map>
@@ -243,7 +244,7 @@ public:
     }
 
     AlleleLikelihoods(std::shared_ptr<std::vector<shared_ptr<A>>> alleles, std::vector<std::string>& samples, shared_ptr<vector<vector<shared_ptr<E>>>> evidenceBySampleIndex, shared_ptr<vector<vector<vector<double>>>> values)
-        : samples(samples), alleles(alleles), evidenceBySampleIndex(evidenceBySampleIndex), valuesBySampleIndex(values)
+        : samples(samples), alleles(alleles), evidenceBySampleIndex(evidenceBySampleIndex), valuesBySampleIndex(std::move(values))
     {
         int sampleCount = samples.size();
         evidenceIndexBySampleIndex.reserve(sampleCount);
@@ -401,7 +402,7 @@ public:
    *
    * @throws IllegalArgumentException if {@code maximumErrorPerBase} is negative.
    */   // TODO: validate this method
-    void filterPoorlyModeledEvidence(function<double(shared_ptr<SAMRecord>, double)> log10MinTrueLikelihood, double maximumErrorPerBase){
+    void filterPoorlyModeledEvidence(const function<double(shared_ptr<SAMRecord>, double)>& log10MinTrueLikelihood, double maximumErrorPerBase){
         assert(alleles->size() > 0);
         int numberOfSamples = samples.size();
         for (int s = 0; s < numberOfSamples; s++) {
@@ -662,7 +663,7 @@ public:
          }
 
          // Finally we create the new read-likelihood
-         AlleleLikelihoods<Fragment, A>* result = new AlleleLikelihoods<Fragment, A>(alleles, samples, newEvidenceBySampleIndex, newLikelihoodValues);
+         auto* result = new AlleleLikelihoods<Fragment, A>(alleles, samples, newEvidenceBySampleIndex, newLikelihoodValues);
 
          return result;
      }
@@ -728,7 +729,7 @@ public:
          }
 
          // Finally we create the new evidence-likelihood
-         AlleleLikelihoods<E, Allele> * result = new AlleleLikelihoods<E, Allele>(newAlleles, samples, newEvidenceBySampleIndex, newLikelihoodValues);
+         auto * result = new AlleleLikelihoods<E, Allele>(newAlleles, samples, newEvidenceBySampleIndex, newLikelihoodValues);
          result->setIsNaturalLog(isNaturalLog);
          return result;
      }
@@ -760,7 +761,7 @@ public:
         }
 
         // Finally we create the new evidence-likelihood
-        AlleleLikelihoods<E, Allele>* result = new AlleleLikelihoods<E, Allele>(
+        auto* result = new AlleleLikelihoods<E, Allele>(
                 newAlleles,
                 samples,
                 newEvidenceBySampleIndex,
@@ -796,7 +797,7 @@ public:
          }
 
          // Finally we create the new evidence-likelihood
-         AlleleLikelihoods<E, Allele>* result = new AlleleLikelihoods<E, Allele>(
+         auto* result = new AlleleLikelihoods<E, Allele>(
                  newAlleles,
                  samples,
                  newEvidenceBySampleIndex,
@@ -829,7 +830,7 @@ public:
      }
 
      // pay attention! The data type of parameters is different from the methods above
-     shared_ptr<vector<int>> oldToNewAlleleIndexMap(shared_ptr<std::map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Allele>>>>> newToOldAlleleMap, int oldAlleleCount,  vector<shared_ptr<Allele>>& newAlleles)
+     shared_ptr<vector<int>> oldToNewAlleleIndexMap(const shared_ptr<std::map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Allele>>>>>& newToOldAlleleMap, int oldAlleleCount,  vector<shared_ptr<Allele>>& newAlleles)
      {
          for(auto& h : newAlleles)
              assert(h);
@@ -906,7 +907,7 @@ public:
     }
 
     // Calculate the marginal likelihoods considering the old -> new allele index mapping.
-    shared_ptr<vector<vector<vector<double>>>> marginalLikelihoods(int oldAlleleCount, int newAlleleCount, vector<int>& oldToNewAlleleIndexMap, shared_ptr<vector<vector<int>>> evidenceToKeep)
+    shared_ptr<vector<vector<vector<double>>>> marginalLikelihoods(int oldAlleleCount, int newAlleleCount, vector<int>& oldToNewAlleleIndexMap, const shared_ptr<vector<vector<int>>>& evidenceToKeep)
     {
         int sampleCount = samples.size();
         shared_ptr<vector<vector<vector<double>>>> result = make_shared<vector<vector<vector<double>>>>(sampleCount, vector<vector<double>>());

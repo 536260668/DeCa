@@ -31,10 +31,10 @@ std::shared_ptr<Fragment> Fragment::createAndAvoidFailure(std::vector<std::share
         return create(reads);
     else {
         std::vector<std::shared_ptr<SAMRecord>> nonSupplementaryReads;
-        for(int i = 0; i < reads.size(); i++)
+        for(auto & read : reads)
         {
-            if(!(reads[i]->isDuplicate() || reads[i]->isSecondaryAlignment() || reads[i]->isSupplementaryAlignment()))
-                nonSupplementaryReads.emplace_back(reads[i]);
+            if(!(read->isDuplicate() || read->isSecondaryAlignment() || read->isSupplementaryAlignment()))
+                nonSupplementaryReads.emplace_back(read);
         }
         if(nonSupplementaryReads.size() > 2)
         {
