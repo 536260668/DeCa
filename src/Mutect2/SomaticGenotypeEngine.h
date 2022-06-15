@@ -21,7 +21,7 @@ private:
 
     static shared_ptr<map<string, vector<double>>> getNegativeLogPopulationAFAnnotation(vector<shared_ptr<VariantContext>>& germlineResourceVariants, vector<shared_ptr<Allele>>& altAlleles, double afOfAllelesNotInGermlineResource);
 
-    static vector<double> getGermlineAltAlleleFrequencies(vector<shared_ptr<Allele>>& altAlleles, shared_ptr<VariantContext> germlineVC,  double afOfAllelesNotInGermlineResource);
+    static vector<double> getGermlineAltAlleleFrequencies(vector<shared_ptr<Allele>>& altAlleles, const shared_ptr<VariantContext>& germlineVC,  double afOfAllelesNotInGermlineResource);
 
     static shared_ptr<vector<double>> getEffectiveCounts(SubsettedLikelihoodMatrix<Fragment, Allele>& logLikelihoodMatrix);
 protected:
@@ -30,7 +30,7 @@ protected:
 public:
     const static int ALLELE_EXTENSION = 2;
 
-    SomaticGenotypeEngine(M2ArgumentCollection& MTAC, string normalSample, VariantAnnotatorEngine& annotationEngine);
+    SomaticGenotypeEngine(M2ArgumentCollection& MTAC, const string& normalSample, VariantAnnotatorEngine& annotationEngine);
 
     /**
     * Main entry point of class - given a particular set of haplotypes, samples and reference context, compute
@@ -66,7 +66,7 @@ public:
      */
     shared_ptr<PreAlleleCollection<double>> diploidAltLogOdds(SampleMatrix<Fragment, Allele>* matrix);
 
-    void addGenotypes(shared_ptr<AlleleLikelihoods<Fragment, Allele>> logLikelihoods, shared_ptr<vector<shared_ptr<Allele>>> allelesToEmit, VariantContextBuilder& callVcb);
+    void addGenotypes(const shared_ptr<AlleleLikelihoods<Fragment, Allele>>& logLikelihoods, const shared_ptr<vector<shared_ptr<Allele>>>& allelesToEmit, VariantContextBuilder& callVcb);
 
 
 };

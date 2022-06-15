@@ -10,7 +10,7 @@
 #include "variantcontext/builder/GenotypeBuilder.h"
 #include "variantcontext/VCFConstants.h"
 
-SomaticGenotypeEngine::SomaticGenotypeEngine(M2ArgumentCollection& MTAC, string normalSample, VariantAnnotatorEngine& annotationEngine) : MTAC(MTAC), normalSample(normalSample), annotationEngine(annotationEngine), hasNormal(!normalSample.empty())
+SomaticGenotypeEngine::SomaticGenotypeEngine(M2ArgumentCollection& MTAC, const string& normalSample, VariantAnnotatorEngine& annotationEngine) : MTAC(MTAC), normalSample(normalSample), annotationEngine(annotationEngine), hasNormal(!normalSample.empty())
 {
 
 }
@@ -105,7 +105,7 @@ CalledHaplotypes SomaticGenotypeEngine::callMutations(AlleleLikelihoods<SAMRecor
         callVcb.setAlleles(allAllelesToEmit)->setAttributes(negativeLogPopulationAFAnnotation);
 
         vector<double> attributeValue;
-        for(auto a : tumorAltAlleles)
+        for(const auto& a : tumorAltAlleles)
         {
             attributeValue.push_back(MathUtils::log10ToLog(tumorLogOdds->getAlt(a)));
         }
@@ -142,9 +142,9 @@ CalledHaplotypes SomaticGenotypeEngine::callMutations(AlleleLikelihoods<SAMRecor
 
         auto annotatedCall = annotationEngine.annotateContext(trimmedCall, referenceContext, trimmedLikelihoodsForAnnotation);
 
-        for(auto allele : call->getAlleles())
+        for(const auto& allele : call->getAlleles())
         {
-            for(auto h : *alleleMapper->at(allele))
+            for(const auto& h : *alleleMapper->at(allele))
             {
                 if(h != nullptr)
                     calledHaplotypes->insert(h);
@@ -328,7 +328,7 @@ SomaticGenotypeEngine::getNegativeLogPopulationAFAnnotation(vector<shared_ptr<Va
 }
 
 vector<double> SomaticGenotypeEngine::getGermlineAltAlleleFrequencies(vector<shared_ptr<Allele>> &altAlleles,
-                                                                      shared_ptr<VariantContext> germlineVC,
+                                                                      const shared_ptr<VariantContext>& germlineVC,
                                                                       double afOfAllelesNotInGermlineResource) {
     if(germlineVC!= nullptr)
     {
@@ -337,8 +337,8 @@ vector<double> SomaticGenotypeEngine::getGermlineAltAlleleFrequencies(vector<sha
     return vector<double>(altAlleles.size(), afOfAllelesNotInGermlineResource);
 }
 
-void SomaticGenotypeEngine::addGenotypes(shared_ptr<AlleleLikelihoods<Fragment, Allele>> logLikelihoods,
-                                         shared_ptr<vector<shared_ptr<Allele>>> allelesToEmit, VariantContextBuilder &callVcb) {
+void SomaticGenotypeEngine::addGenotypes(const shared_ptr<AlleleLikelihoods<Fragment, Allele>>& logLikelihoods,
+                                         const shared_ptr<vector<shared_ptr<Allele>>>& allelesToEmit, VariantContextBuilder &callVcb) {
     int numberOfSamples = logLikelihoods->numberOfSamples();
     std::vector<Genotype*> genotypes;
     for(int n=0; n<numberOfSamples; n++)

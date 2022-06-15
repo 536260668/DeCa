@@ -63,7 +63,7 @@ std::shared_ptr<ActivityProfileState> Mutect2Engine::isActive(AlignmentContext &
 	ReadPileup tumorPileup = context.makeTumorPileup();
 
 	std::shared_ptr<std::vector<char>> tumorAltQuals = altQuals(tumorPileup, refBase, 40);
-	if (!tumorAltQuals->size())
+	if (tumorAltQuals->empty())
 		return std::make_shared<ActivityProfileState>(refName.c_str(), pos, 0.0);
 	double tumorLogOdds = logLikelihoodRatio(tumorPileup.size() - tumorAltQuals->size(), tumorAltQuals);
 
@@ -178,12 +178,12 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion> &originalAssembl
 
 	std::shared_ptr<AssemblyRegion> assemblyActiveRegion = AssemblyBasedCallerUtils::assemblyRegionWithWellMappedReads(
 			originalAssemblyRegion, READ_QUALITY_FILTER_THRESHOLD, header);
-	//if (assemblyActiveRegion->getStart() + 1 != 210416389) return {};
+	//if (assemblyActiveRegion->getStart() + 1 <= 36224041) return {};
 	std::shared_ptr<AssemblyResultSet> untrimmedAssemblyResult
 			= AssemblyBasedCallerUtils::assembleReads(assemblyActiveRegion, MTAC, header, *refCache, assemblyEngine);
 	std::set<std::shared_ptr<VariantContext>, VariantContextComparator> &allVariationEvents
 			= untrimmedAssemblyResult->getVariationEvents(1);
-	//printVariationEvents(assemblyActiveRegion, allVariationEvents);
+	//printVariationContexts(assemblyActiveRegion, allVariationEvents);
 
 	std::shared_ptr<AssemblyRegionTrimmer_Result> trimmingResult
 			= trimmer.trim(originalAssemblyRegion, allVariationEvents);
@@ -191,7 +191,7 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion> &originalAssembl
 		untrimmedAssemblyResult->deleteEventMap();
 		return {};
 	}
-	// trimmingResult->printInfo();
+	//trimmingResult->printInfo();
 
 	std::shared_ptr<AssemblyResultSet> assemblyResult
 			= trimmingResult->getNeedsTrimming() ? untrimmedAssemblyResult->trimTo(trimmingResult->getCallableRegion())

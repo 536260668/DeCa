@@ -41,7 +41,7 @@ private:
 	SomaticGenotypeEngine genotypingEngine;
 	model mymodel;
 
-	std::shared_ptr<std::vector<char>> altQuals(ReadPileup &pileup, char refBase, int pcrErrorQual);
+	static std::shared_ptr<std::vector<char>> altQuals(ReadPileup &pileup, char refBase, int pcrErrorQual);
 
 	static int getCurrentOrFollowingIndelLength(PeUtils &pe);
 

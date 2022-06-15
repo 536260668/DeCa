@@ -10,7 +10,6 @@
 #include "VariantContext.h"
 #include "samtools/SAMSequenceDictionary.h"
 #include "VCFConstants.h"
-#include <string>
 
 class VCFWriter {
 	std::string VERSION_LINE;
