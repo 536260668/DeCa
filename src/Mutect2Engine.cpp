@@ -35,7 +35,7 @@ Mutect2Engine::Mutect2Engine(M2ArgumentCollection &MTAC, SAMFileHeader *samFileH
                                                                                          annotatorEngine) {
 	std::vector<SAMReadGroupRecord> &mReadGroups = samFileHeader->getReadGroupRecord();
 	for (auto &readGroup: mReadGroups) {
-		samplesList.emplace_back(readGroup.getReadGroupId());
+		samplesList.emplace_back(readGroup.getAttribute(SAMReadGroupRecord::READ_GROUP_SAMPLE_TAG));
 	}
 	NaturalLogUtils::initial();
 	assert(aligner != nullptr);
@@ -178,7 +178,7 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion> &originalAssembl
 
 	std::shared_ptr<AssemblyRegion> assemblyActiveRegion = AssemblyBasedCallerUtils::assemblyRegionWithWellMappedReads(
 			originalAssemblyRegion, READ_QUALITY_FILTER_THRESHOLD, header);
-	//if (assemblyActiveRegion->getStart() + 1 <= 36224041) return {};
+	//if (assemblyActiveRegion->getStart() + 1 < 33043694) return {};
 	std::shared_ptr<AssemblyResultSet> untrimmedAssemblyResult
 			= AssemblyBasedCallerUtils::assembleReads(assemblyActiveRegion, MTAC, header, *refCache, assemblyEngine);
 	std::set<std::shared_ptr<VariantContext>, VariantContextComparator> &allVariationEvents
@@ -208,11 +208,10 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion> &originalAssembl
 	std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>> reads
 			= splitReadsBySample(regionForGenotyping->getReads());
 	//printReadsMap(reads);
-
-	if (mymodel.isInitialized() && regionForGenotyping->getReads().size() > 120) {
+	if (mymodel.isInitialized() && regionForGenotyping->getReads().size() > 100) {
 		std::set<std::shared_ptr<VariantContext>, VariantContextComparator> &VariationEvents
 				= assemblyResult->getVariationEvents(1);
-		if (!mymodel.modelRefer(reads, VariationEvents, regionForGenotyping, refCache)) {
+		if (!mymodel.modelRefer(reads, VariationEvents, regionForGenotyping, refCache, samplesList, normalSample)) {
 			untrimmedAssemblyResult->deleteEventMap();
 			assemblyResult->deleteEventMap();
 			return {};
@@ -314,7 +313,8 @@ void Mutect2Engine::setReferenceCache(ReferenceCache *cache) {
 
 void Mutect2Engine::printVariationContexts(const shared_ptr<AssemblyRegion> &region,
                                            const vector<std::shared_ptr<VariantContext>> &vcs) {
-	std::cout << "region: " << region->getStart() + 1 << " " << region->getEnd() + 1 << std::endl;
+	std::cout << "region: " << region->getContig() << ":" << region->getStart() + 1 << "-" << region->getEnd() + 1
+	          << std::endl;
 	std::cout << "allVariationEvents " << vcs.size() << std::endl;
 	for (const auto &vc: vcs) {
 		printVariationContext(vc);
@@ -327,9 +327,21 @@ void Mutect2Engine::printVariationContexts(const std::shared_ptr<AssemblyRegion>
 }
 
 void Mutect2Engine::printVariationContext(const shared_ptr<VariantContext> &vc) {
-	std::cout << vc->getStart() + 1 << " " << vc->getEnd() + 1 << " " << vc->getTypeString() << "\t";
+	std::cout << vc->getContig() << ":" << vc->getStart() + 1 << "-" << vc->getEnd() + 1 << " " << vc->getTypeString()
+	          << "\t";
+	std::vector<std::string> sortedAlleles;
+	sortedAlleles.reserve(vc->getAlternateAlleles().size());
 	for (const auto &alt: vc->getAlternateAlleles()) {
-		std::cout << vc->getReference()->getBaseString() << "==>" << alt->getBaseString() << " ";
+		sortedAlleles.push_back(alt->getBaseString());
+	}
+	std::sort(sortedAlleles.begin(), sortedAlleles.end(), [](const std::string& s1, const std::string& s2) -> bool {
+		if (s1.length() != s2.length())
+			return s1.length() < s2.length();
+		return s1 < s2;
+	});
+	std::cout << vc->getReference()->getBaseString() + " ==> ";
+	for (const auto &sortedAllele: sortedAlleles) {
+		std::cout << sortedAllele + "; ";
 	}
 	std::cout << std::endl;
 }
