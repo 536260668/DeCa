@@ -26,6 +26,12 @@ std::shared_ptr<Fragment> Fragment::create(std::vector<std::shared_ptr<SAMRecord
     return reads.size() == 1 ? std::make_shared<Fragment>(reads[0]) : std::make_shared<Fragment>(reads);
 }
 
+std::shared_ptr<Fragment> Fragment::create(std::vector<std::shared_ptr<SAMRecord>> &&reads) {
+    assert(reads.size() <= 2);
+    assert(!reads.empty());
+    return reads.size() == 1 ? std::make_shared<Fragment>(reads[0]) : std::make_shared<Fragment>(reads);
+}
+
 std::shared_ptr<Fragment> Fragment::createAndAvoidFailure(std::vector<std::shared_ptr<SAMRecord>>& reads) {
     if(reads.size() <= 2)
         return create(reads);
@@ -42,6 +48,8 @@ std::shared_ptr<Fragment> Fragment::createAndAvoidFailure(std::vector<std::share
             std::vector<std::shared_ptr<SAMRecord>> temp{reads[0], reads[1]};
             return create(temp);
         }
+        if(nonSupplementaryReads.empty())
+            return create({reads[0]});
         return create(nonSupplementaryReads);
     }
 }

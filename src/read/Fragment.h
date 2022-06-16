@@ -22,6 +22,8 @@ public:
 
     static std::shared_ptr<Fragment> create(std::vector<std::shared_ptr<SAMRecord>>& reads);
 
+    static std::shared_ptr<Fragment> create(std::vector<std::shared_ptr<SAMRecord>>&& reads);
+
     static std::shared_ptr<Fragment> createAndAvoidFailure(std::vector<std::shared_ptr<SAMRecord>>& reads);
 
     std::string getContig() const;
