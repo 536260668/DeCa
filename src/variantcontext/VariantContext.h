@@ -120,6 +120,8 @@ public:
 
 	bool isSimpleIndel();
 
+	bool isIndel();
+
 	VariantContextType getType();
 
 	bool hasSymbolicAlleles();

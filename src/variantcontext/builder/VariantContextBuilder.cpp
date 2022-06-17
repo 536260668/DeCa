@@ -116,6 +116,13 @@ VariantContextBuilder *VariantContextBuilder::unfiltered() {
     return this;
 }
 
+VariantContextBuilder *
+VariantContextBuilder::setAttributes(std::shared_ptr<std::map<std::string, AttributeValue>> attribute) {
+    this->attribute = attribute;
+    this->attributesCanBeModified = true;
+    return this;
+}
+
 VariantContextBuilder *VariantContextBuilder::setAttributes(std::shared_ptr<std::map<std::string, std::vector<double>>> attribute) {
     this->attribute = std::make_shared<std::map<std::string, AttributeValue>>();
     if(attribute != nullptr)

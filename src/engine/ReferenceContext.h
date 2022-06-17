@@ -15,6 +15,7 @@ private:
 
 public:
     ReferenceContext(std::shared_ptr<SimpleInterval>  interval, char refBase);
+    ReferenceContext(const ReferenceContext& other);
     uint8_t getBase();
     const std::shared_ptr<SimpleInterval> & getInterval();
 };

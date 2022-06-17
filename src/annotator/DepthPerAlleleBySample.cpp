@@ -46,3 +46,7 @@ pair<int *, int> DepthPerAlleleBySample::annotateWithLikelihoods(shared_ptr<Vari
 
     return {counts, alleleCounts.size()};
 }
+
+std::vector<std::string> DepthPerAlleleBySample::getKeyNames() {
+    return {VCFConstants::GENOTYPE_ALLELE_DEPTHS};
+}

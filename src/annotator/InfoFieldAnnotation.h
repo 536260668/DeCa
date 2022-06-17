@@ -19,7 +19,7 @@ class InfoFieldAnnotation : public VariantAnnotation{
 public:
     const static std::string INFOFIELD_ANNOTATION;
 
-    virtual void annotate(shared_ptr<ReferenceContext> ref, shared_ptr<VariantContext> vc, AlleleLikelihoods<SAMRecord, Allele>* likelihoods) = 0;
+    virtual std::shared_ptr<std::map<std::string, AttributeValue>> annotate(shared_ptr<ReferenceContext> ref, shared_ptr<VariantContext> vc, AlleleLikelihoods<SAMRecord, Allele>* likelihoods) = 0;
 
     std::string toString();
 };

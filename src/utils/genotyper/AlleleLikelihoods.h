@@ -490,6 +490,20 @@ public:
     /**
      * Default version where ties are broken in favor of the reference allele
      */
+    shared_ptr<vector<shared_ptr<BestAllele<E, A>>>> bestAllelesBreakingTies()
+    {
+        auto result = make_shared<vector<shared_ptr<BestAllele<E, A>>>>();
+        for(int i=0; i<numberOfSamples(); i++)
+        {
+            auto bestAlleles = bestAllelesBreakingTies(i);
+            for(auto& bestAllele: *bestAlleles)
+            {
+                result->template emplace_back(bestAllele);
+            }
+        }
+        return result;
+    }
+
     shared_ptr<vector<shared_ptr<BestAllele<E, A>>>> bestAllelesBreakingTies(std::string sample)
     {
         int sampleIndex= indexOfSamples(sample);
@@ -937,6 +951,18 @@ public:
         }
         return result;
     }
+
+    /**
+   * Returns the total count of evidence in the evidence-likelihood collection.
+   */
+   int evidenceCount(){
+       int sum = 0;
+       for(auto& evidences : *evidenceBySampleIndex)
+       {
+           sum += evidences.size();
+       }
+       return sum;
+   }
 };
 
 template <typename E, typename A>

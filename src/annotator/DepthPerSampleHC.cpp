@@ -4,6 +4,8 @@
 
 #include "DepthPerSampleHC.h"
 
+template<> double AlleleLikelihoods<SAMRecord, Allele>::NATURAL_LOG_INFORMATIVE_THRESHOLD = MathUtils::log10ToLog(LOG_10_INFORMATIVE_THRESHOLD);
+
 void DepthPerSampleHC::annotate(ReferenceContext &ref, shared_ptr<VariantContext> vc, Genotype *g, GenotypeBuilder &gb,
                                 AlleleLikelihoods<SAMRecord, Allele> *likelihoods) {
     assert(vc != nullptr);
@@ -41,4 +43,8 @@ void DepthPerSampleHC::annotate(ReferenceContext &ref, shared_ptr<VariantContext
     }
 
     gb.setDP(depth);
+}
+
+std::vector<std::string> DepthPerSampleHC::getKeyNames() {
+    return {VCFConstants::DEPTH_KEY};
 }
