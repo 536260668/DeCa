@@ -16,7 +16,7 @@
 #include "haplotypecaller/AssemblyBasedCallerUtils.h"
 
 Mutect2Engine::Mutect2Engine(M2ArgumentCollection &MTAC, SAMFileHeader *samFileHeader, const std::string &modelPath,
-                             VariantAnnotatorEngine &annotatorEngine) : MTAC(MTAC),
+                             VariantAnnotatorEngine &annotatorEngine, bool debugMode) : MTAC(MTAC),
                                                                         minCallableDepth(MTAC.callableDepth),
                                                                         normalSample(MTAC.normalSample),
                                                                         callableSites(0), refCache(nullptr),
@@ -32,7 +32,8 @@ Mutect2Engine::Mutect2Engine(M2ArgumentCollection &MTAC, SAMFileHeader *samFileH
                                                                         aligner(SmithWatermanAligner::getAligner(
 		                                                                        SmithWatermanAligner::FASTEST_AVAILABLE)),
                                                                         genotypingEngine(MTAC, MTAC.normalSample,
-                                                                                         annotatorEngine) {
+                                                                                         annotatorEngine),
+																		debugMode(debugMode) {
 	std::vector<SAMReadGroupRecord> &mReadGroups = samFileHeader->getReadGroupRecord();
 	for (auto &readGroup: mReadGroups) {
 		samplesList.emplace_back(readGroup.getAttribute(SAMReadGroupRecord::READ_GROUP_SAMPLE_TAG));
@@ -50,10 +51,8 @@ Mutect2Engine::~Mutect2Engine() {
 }
 
 
-std::shared_ptr<ActivityProfileState> Mutect2Engine::isActive(AlignmentContext &context) {
+std::shared_ptr<ActivityProfileState> Mutect2Engine::isActive(AlignmentContext &context, const std::string& refName) {
 	hts_pos_t pos = context.getPosition();
-
-	std::string refName = context.getRefName();
 
 	if (context.getReadNum() > minCallableDepth)
 		callableSites++;
@@ -155,12 +154,14 @@ bool Mutect2Engine::hasNormal() {
 }
 
 void
-Mutect2Engine::fillNextAssemblyRegionWithReads(const std::shared_ptr<AssemblyRegion> &region, ReadCache &readCache) {
+Mutect2Engine::fillNextAssemblyRegionWithReads(const std::shared_ptr<AssemblyRegion> &region, ReadCache &readCache) const {
 	std::vector<std::shared_ptr<SAMRecord>> toAdd = readCache.getReadsForRegion(*region);
 	for (auto read: toAdd) {
 		region->add(read);
 	}
-	region->sortReadsByCoordinate();
+	if (debugMode) {
+		region->sortReadsByCoordinate();
+	}
 }
 
 std::vector<std::shared_ptr<VariantContext>>
@@ -177,10 +178,10 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion> &originalAssembl
 	removeUnmarkedDuplicates(originalAssemblyRegion);
 
 	std::shared_ptr<AssemblyRegion> assemblyActiveRegion = AssemblyBasedCallerUtils::assemblyRegionWithWellMappedReads(
-			originalAssemblyRegion, READ_QUALITY_FILTER_THRESHOLD, header);
+			originalAssemblyRegion, READ_QUALITY_FILTER_THRESHOLD, header, debugMode);
 	//if (assemblyActiveRegion->getStart() + 1 < 33043694) return {};
 	std::shared_ptr<AssemblyResultSet> untrimmedAssemblyResult
-			= AssemblyBasedCallerUtils::assembleReads(assemblyActiveRegion, MTAC, header, *refCache, assemblyEngine);
+			= AssemblyBasedCallerUtils::assembleReads(assemblyActiveRegion, MTAC, header, *refCache, assemblyEngine, debugMode);
 	std::set<std::shared_ptr<VariantContext>, VariantContextComparator> &allVariationEvents
 			= untrimmedAssemblyResult->getVariationEvents(1);
 	//printVariationContexts(assemblyActiveRegion, allVariationEvents);

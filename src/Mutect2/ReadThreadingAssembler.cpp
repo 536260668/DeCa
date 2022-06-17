@@ -76,7 +76,7 @@ ReadThreadingAssembler::runLocalAssembly(const std::shared_ptr<AssemblyRegion> &
                                          std::shared_ptr<Haplotype> &refHaplotype,
                                          const std::shared_ptr<uint8_t[]> &fullReferenceWithPadding, int refLength,
                                          const std::shared_ptr<SimpleInterval> &refLoc,
-                                         ReadErrorCorrector *readErrorCorrector) {
+                                         ReadErrorCorrector *readErrorCorrector, bool debugMode) {
 	Mutect2Utils::validateArg(assemblyRegion.get(), "Assembly engine cannot be used with a null AssemblyRegion.");
 	Mutect2Utils::validateArg(refHaplotype.get(), "Active region must have an extended location.");
 	Mutect2Utils::validateArg(fullReferenceWithPadding.get(), "fullReferenceWithPadding");
@@ -90,7 +90,7 @@ ReadThreadingAssembler::runLocalAssembly(const std::shared_ptr<AssemblyRegion> &
 	}
 	correctedReads = assemblyRegion->getReads();
 	std::vector<std::shared_ptr<SeqGraph>> nonRefGraphs;
-	std::shared_ptr<AssemblyResultSet> resultSet = std::make_shared<AssemblyResultSet>();
+	std::shared_ptr<AssemblyResultSet> resultSet = std::make_shared<AssemblyResultSet>(debugMode);
 	resultSet->setRegionForGenotyping(assemblyRegion);
 	resultSet->setFullReferenceWithPadding(fullReferenceWithPadding, refLength);
 	resultSet->setPaddedReferenceLoc(refLoc);
@@ -100,7 +100,7 @@ ReadThreadingAssembler::runLocalAssembly(const std::shared_ptr<AssemblyRegion> &
 	resultSet->add(refHaplotype);
 
 	std::map<std::shared_ptr<SeqGraph>, std::shared_ptr<AssemblyResult>> assemblyResultByGraph;
-	for (const auto &result: assemble(correctedReads, refHaplotype)) {
+	for (const auto &result: assemble(correctedReads, refHaplotype, debugMode)) {
 		if (result->getStatus() == ASSEMBLED_SOME_VARIATION) {
 			assemblyResultByGraph.insert(std::make_pair(result->getGraph(), result));
 			nonRefGraphs.emplace_back(result->getGraph());
@@ -252,7 +252,7 @@ ReadThreadingAssembler::getMinKmerSize(std::shared_ptr<Haplotype> &refHaplotype,
 
 std::vector<std::shared_ptr<AssemblyResult>>
 ReadThreadingAssembler::assemble(std::vector<std::shared_ptr<SAMRecord>> &reads,
-                                 std::shared_ptr<Haplotype> &refHaplotype) {
+                                 std::shared_ptr<Haplotype> &refHaplotype, bool debugMode) {
 	std::vector<std::shared_ptr<AssemblyResult>> results;
 	if (kmerSizes.empty()) return results;
 
@@ -266,20 +266,20 @@ ReadThreadingAssembler::assemble(std::vector<std::shared_ptr<SAMRecord>> &reads,
 
 	for (int kmerSize: kmerSizes) {
 		if (kmerSize < minKmerSize && !allowNonUniqueKmersInRef) continue;
-		addResult(results, createGraph(reads, refHaplotype, kmerSize, dontIncreaseKmerSizesForCycles));
+		addResult(results, createGraph(reads, refHaplotype, kmerSize, dontIncreaseKmerSizesForCycles, debugMode));
 	}
 
 	if (results.empty() && !dontIncreaseKmerSizesForCycles) {
 		int numIterations = 1, kmerSize = *(kmerSizes.end() - 1) + KMER_SIZE_ITERATION_INCREASE;
 		while (numIterations < MAX_KMER_ITERATIONS_TO_ATTEMPT) {
 			if (kmerSize >= minKmerSize || allowNonUniqueKmersInRef) {
-				addResult(results, createGraph(reads, refHaplotype, kmerSize, false));
+				addResult(results, createGraph(reads, refHaplotype, kmerSize, false, debugMode));
 				if (!results.empty()) break;
 			}
 			numIterations++, kmerSize += KMER_SIZE_ITERATION_INCREASE;
 		}
 		if (numIterations == MAX_KMER_ITERATIONS_TO_ATTEMPT && results.empty())
-			addResult(results, createGraph(reads, refHaplotype, kmerSize, true));
+			addResult(results, createGraph(reads, refHaplotype, kmerSize, true, debugMode));
 	}
 	/*std::cout << "----------results Size " << results.size() << "----------\n";
 	for (const auto &result: results) {
@@ -296,14 +296,15 @@ ReadThreadingAssembler::assemble(std::vector<std::shared_ptr<SAMRecord>> &reads,
 std::shared_ptr<AssemblyResult>
 ReadThreadingAssembler::createGraph(const std::vector<std::shared_ptr<SAMRecord>> &reads,
                                     std::shared_ptr<Haplotype> &refHaplotype, int kmerSize,
-                                    bool allowLowComplexityGraphs) {
+                                    bool allowLowComplexityGraphs, bool debugMode) {
 	if (refHaplotype->getLength() < kmerSize)
 		return std::make_shared<AssemblyResult>(FAILED, nullptr, nullptr);
 
 	std::shared_ptr<ReadThreadingGraph> rtgraph = std::make_shared<ReadThreadingGraph>(kmerSize,
 	                                                                                   debugGraphTransformations,
 	                                                                                   minBaseQualityToUseInAssembly,
-	                                                                                   numPruningSamples);
+	                                                                                   numPruningSamples,
+																					   debugMode);
 	rtgraph->setThreadingStartOnlyAtExistingVertex(!recoverDanglingBranches);
 	rtgraph->addSequence(refSequenceName, refHaplotype->getBases(), refHaplotype->getLength(), true);
 	rtgraph->reserveSpace((int) (refHaplotype->getLength() * 1.1));
@@ -311,7 +312,9 @@ ReadThreadingAssembler::createGraph(const std::vector<std::shared_ptr<SAMRecord>
 	for (std::shared_ptr<SAMRecord> read: reads)
 		rtgraph->addRead(read);
 
-	rtgraph->sortPendingBySequence();
+	if (debugMode) {
+		rtgraph->sortPendingBySequence();
+	}
 	//rtgraph->printPendingInfo();
 	rtgraph->buildGraphIfNecessary();
 	//rtgraph->printGraphSize("");

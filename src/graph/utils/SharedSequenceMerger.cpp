@@ -50,11 +50,21 @@ bool SharedSequenceMerger::merge(SeqGraph *graph, const std::shared_ptr<SeqVerte
 		memcpy(tmp.get() + prevSeqLength, vSeq.get(), vSeqLength);
 		std::shared_ptr<SeqVertex> newV(new SeqVertex(tmp, tmpLength));
 		graph->addVertex(newV);
-		for (const std::shared_ptr<SeqVertex> &prev: graph->sortedVerticesOf(prevs)) {
-			for (const std::shared_ptr<BaseEdge> &prevIn: graph->incomingEdgesOf(prev)) {
-				graph->addEdge(graph->getEdgeSource(prevIn), newV,
-				               std::make_shared<BaseEdge>(prevIn->getIsRef(), prevIn->getMultiplicity()));
-				edgesToRemove.emplace_back(prevIn);
+		if (graph->isDebugMode()) {
+			for (const std::shared_ptr<SeqVertex> &prev: graph->sortedVerticesOf(prevs)) {
+				for (const std::shared_ptr<BaseEdge> &prevIn: graph->incomingEdgesOf(prev)) {
+					graph->addEdge(graph->getEdgeSource(prevIn), newV,
+					               std::make_shared<BaseEdge>(prevIn->getIsRef(), prevIn->getMultiplicity()));
+					edgesToRemove.emplace_back(prevIn);
+				}
+			}
+		} else {
+			for (const std::shared_ptr<SeqVertex> &prev: prevs) {
+				for (const std::shared_ptr<BaseEdge> &prevIn: graph->incomingEdgesOf(prev)) {
+					graph->addEdge(graph->getEdgeSource(prevIn), newV,
+					               std::make_shared<BaseEdge>(prevIn->getIsRef(), prevIn->getMultiplicity()));
+					edgesToRemove.emplace_back(prevIn);
+				}
 			}
 		}
 		for (const std::shared_ptr<BaseEdge> &e: graph->outgoingEdgesOf(v)) {

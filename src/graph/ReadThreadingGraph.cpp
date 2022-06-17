@@ -366,13 +366,23 @@ void ReadThreadingGraph::buildGraphIfNecessary() {
 
 	determineNonUniques();
 
-	int cnt = 0;
-	for (const auto &key: pendingKeys) {
-		if (pending.find(key) != pending.end()) {
-			for (auto &viter: pending[key]) {
+	if (debugMode) {
+		for (const auto &key: pendingKeys) {
+			if (pending.find(key) != pending.end()) {
+				for (auto &viter: pending[key]) {
+					threadSequence(viter);
+					//outputDotFile("./CPP_" + std::to_string(cnt) + ".dot");
+					//printGraphSize();
+				}
+				for (auto &eiter: edgeMap) {
+					eiter.first->flushSingleSampleMultiplicity();
+				}
+			}
+		}
+	} else {
+		for (auto &item: pending) {
+			for (auto &viter: item.second) {
 				threadSequence(viter);
-				//outputDotFile("./CPP_" + std::to_string(cnt) + ".dot");
-				//printGraphSize();
 			}
 			for (auto &eiter: edgeMap) {
 				eiter.first->flushSingleSampleMultiplicity();
@@ -418,22 +428,34 @@ void ReadThreadingGraph::removeSingletonOrphanVertices() {
 }
 
 void ReadThreadingGraph::recoverDanglingTails(int pruneFactor, int minDanglingBranchLength, bool recoverAll) {
-	//int attempted = 0, nRecovered = 0;
 	DanglingChainMergeHelper *danglingTailMergeResult = nullptr;
-	for (const std::shared_ptr<MultiDeBruijnVertex> &v: getSortedVertexList()) {
-		if (outDegreeOf(v) == 0 && !isRefSink(v)) {
-			//attempted++;
-			//nRecovered += recoverDanglingTail(v, pruneFactor, minDanglingBranchLength, recoverAll);
-			danglingTailMergeResult = generateCigarAgainstDownwardsReferencePath(v, pruneFactor,
-			                                                                     minDanglingBranchLength, recoverAll);
-			if (danglingTailMergeResult != nullptr) {
-				if (cigarIsOkayToMerge(danglingTailMergeResult->cigar, false, true))
-					mergeDanglingTail(danglingTailMergeResult);
-				delete danglingTailMergeResult;
+	if (debugMode) {
+		for (const std::shared_ptr<MultiDeBruijnVertex> &v: getSortedVertexList()) {
+			if (outDegreeOf(v) == 0 && !isRefSink(v)) {
+				danglingTailMergeResult = generateCigarAgainstDownwardsReferencePath(v, pruneFactor,
+				                                                                     minDanglingBranchLength,
+				                                                                     recoverAll);
+				if (danglingTailMergeResult != nullptr) {
+					if (cigarIsOkayToMerge(danglingTailMergeResult->cigar, false, true))
+						mergeDanglingTail(danglingTailMergeResult);
+					delete danglingTailMergeResult;
+				}
+			}
+		}
+	} else {
+		for (const std::shared_ptr<MultiDeBruijnVertex> &v: getVertexSet()) {
+			if (outDegreeOf(v) == 0 && !isRefSink(v)) {
+				danglingTailMergeResult = generateCigarAgainstDownwardsReferencePath(v, pruneFactor,
+				                                                                     minDanglingBranchLength,
+				                                                                     recoverAll);
+				if (danglingTailMergeResult != nullptr) {
+					if (cigarIsOkayToMerge(danglingTailMergeResult->cigar, false, true))
+						mergeDanglingTail(danglingTailMergeResult);
+					delete danglingTailMergeResult;
+				}
 			}
 		}
 	}
-	//std::cout << nRecovered << std::endl;
 }
 
 DanglingChainMergeHelper *
@@ -639,23 +661,33 @@ int ReadThreadingGraph::longestSuffixMatch(const std::shared_ptr<uint8_t[]> &seq
 
 void ReadThreadingGraph::recoverDanglingHeads(int pruneFactor, int minDanglingBranchLength, bool recoverAll) {
 	DanglingChainMergeHelper *danglingHeadMergeResult = nullptr;
-	for (const std::shared_ptr<MultiDeBruijnVertex> &v: getSortedVertexList()) {
-		if (inDegreeOf(v) == 0 && !isRefSource(v)) {
-			danglingHeadMergeResult = generateCigarAgainstUpwardsReferencePath(v, pruneFactor, minDanglingBranchLength,
-			                                                                   recoverAll);
-			if (danglingHeadMergeResult != nullptr) {
-				if (cigarIsOkayToMerge(danglingHeadMergeResult->cigar, true, false))
-					mergeDanglingHead(danglingHeadMergeResult);
-				delete danglingHeadMergeResult;
+	if (debugMode) {
+		for (const std::shared_ptr<MultiDeBruijnVertex> &v: getSortedVertexList()) {
+			if (inDegreeOf(v) == 0 && !isRefSource(v)) {
+				danglingHeadMergeResult = generateCigarAgainstUpwardsReferencePath(v, pruneFactor,
+				                                                                   minDanglingBranchLength,
+				                                                                   recoverAll);
+				if (danglingHeadMergeResult != nullptr) {
+					if (cigarIsOkayToMerge(danglingHeadMergeResult->cigar, true, false))
+						mergeDanglingHead(danglingHeadMergeResult);
+					delete danglingHeadMergeResult;
+				}
+			}
+		}
+	} else {
+		for (const std::shared_ptr<MultiDeBruijnVertex> &v: getVertexSet()) {
+			if (inDegreeOf(v) == 0 && !isRefSource(v)) {
+				danglingHeadMergeResult = generateCigarAgainstUpwardsReferencePath(v, pruneFactor,
+				                                                                   minDanglingBranchLength,
+				                                                                   recoverAll);
+				if (danglingHeadMergeResult != nullptr) {
+					if (cigarIsOkayToMerge(danglingHeadMergeResult->cigar, true, false))
+						mergeDanglingHead(danglingHeadMergeResult);
+					delete danglingHeadMergeResult;
+				}
 			}
 		}
 	}
-	/*int attempted = 0, nRecovered = 0;
-	for (const std::shared_ptr<MultiDeBruijnVertex> &v: danglingHeads) {
-		attempted++;
-		nRecovered += recoverDanglingHead(v, pruneFactor, minDanglingBranchLength, recoverAll);
-	}*/
-	//std::cout << nRecovered << std::endl;
 }
 
 DanglingChainMergeHelper *
@@ -829,7 +861,7 @@ std::shared_ptr<MultiSampleEdge> ReadThreadingGraph::createEdge(const std::share
 std::shared_ptr<SeqGraph> ReadThreadingGraph::toSequenceGraph() {
 	//buildGraphIfNecessary();
 	int reserveSize = (int) ((double) getVertexSet().size() * 1.3);
-	std::shared_ptr<SeqGraph> seqGraph(new SeqGraph(kmerSize));
+	std::shared_ptr<SeqGraph> seqGraph(new SeqGraph(kmerSize, debugMode));
 	seqGraph->reserveSpace(reserveSize);
 	std::unordered_map<std::shared_ptr<MultiDeBruijnVertex>, std::shared_ptr<SeqVertex>> vertexMap;
 	vertexMap.reserve(reserveSize);
@@ -850,10 +882,10 @@ std::shared_ptr<SeqGraph> ReadThreadingGraph::toSequenceGraph() {
 }
 
 ReadThreadingGraph::ReadThreadingGraph(int kmerSize, bool debugGraphTransformations,
-                                       uint8_t minBaseQualityToUseInAssembly, int numPruningSamples) : kmerSize(
-		kmerSize), minBaseQualityToUseInAssembly(minBaseQualityToUseInAssembly), debugGraphTransformations(
-		debugGraphTransformations), refSource(std::make_shared<Kmer>(nullptr, 0)), numPruningSamples(
-		numPruningSamples) {
+                                       uint8_t minBaseQualityToUseInAssembly, int numPruningSamples, bool debugMode)
+		: kmerSize(kmerSize), minBaseQualityToUseInAssembly(minBaseQualityToUseInAssembly),
+		  debugGraphTransformations(debugGraphTransformations), refSource(std::make_shared<Kmer>(nullptr, 0)),
+		  numPruningSamples(numPruningSamples), debugMode(debugMode) {
 	Mutect2Utils::validateArg(kmerSize > 0, "bad minkKmerSize");
 	resetToInitialState();
 }

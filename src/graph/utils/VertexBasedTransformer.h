@@ -10,21 +10,24 @@
 
 class VertexBasedTransformer {
 private:
-    bool dontModifyGraphEvenIfPossible = false;
-    SeqGraph* graph;
+	bool dontModifyGraphEvenIfPossible = false;
+	SeqGraph *graph;
 
 public:
-    bool getDontModifyGraphEvenIfPossible() const {return dontModifyGraphEvenIfPossible;}
-    void setDontModifyGraphEvenIfPossible() {dontModifyGraphEvenIfPossible = true; }
-    VertexBasedTransformer(SeqGraph* graph);
-	SeqGraph* getGraph() {return graph;}
+	bool getDontModifyGraphEvenIfPossible() const { return dontModifyGraphEvenIfPossible; }
 
-    /**
-     * Merge until the graph has no vertices that are candidates for merging
-     */
-    bool transformUntilComplete();
+	void setDontModifyGraphEvenIfPossible() { dontModifyGraphEvenIfPossible = true; }
 
-    virtual bool tryToTransform(std::shared_ptr<SeqVertex> v) = 0;
+	VertexBasedTransformer(SeqGraph *graph);
+
+	SeqGraph *getGraph() { return graph; }
+
+	/**
+	 * Merge until the graph has no vertices that are candidates for merging
+	 */
+	bool transformUntilComplete();
+
+	virtual bool tryToTransform(std::shared_ptr<SeqVertex> v) = 0;
 };
 
 

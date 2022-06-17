@@ -68,13 +68,15 @@ private:
 
 	static const bool INCREASE_COUNTS_BACKWARDS = true;
 
+	bool debugMode;
+
 	static const int MAX_CIGAR_COMPLEXITY = 3;
 
 	int maxMismatchesInDanglingHead = -1;
 
 private:
 	inline static std::string ANONYMOUS_SAMPLE = "XXX_UNNAMED_XXX";
-	inline static std::string pendingKeys[4] = {ANONYMOUS_SAMPLE, "normal", "tumor", "case"};
+	inline static std::string pendingKeys[3] = {ANONYMOUS_SAMPLE, "normal", "tumor"};
 
 	/**
 	 * Determines whether a base can safely be used for assembly.
@@ -206,12 +208,12 @@ private:
 
 public:
 	ReadThreadingGraph(uint8_t minBaseQualityToUseInAssembly, int kmerSize, bool alreadyBuilt,
-	                   std::shared_ptr<Kmer> ref, int numPruningSamples) : minBaseQualityToUseInAssembly(
-			minBaseQualityToUseInAssembly), kmerSize(kmerSize), alreadyBuilt(
-			false), refSource(std::move(ref)), numPruningSamples(numPruningSamples), nonUniqueKmers() {}
+	                   std::shared_ptr<Kmer> ref, int numPruningSamples, bool debugMode)
+			: minBaseQualityToUseInAssembly(minBaseQualityToUseInAssembly), kmerSize(kmerSize), debugMode(debugMode),
+			  alreadyBuilt(false), refSource(std::move(ref)), numPruningSamples(numPruningSamples), nonUniqueKmers() {}
 
 	ReadThreadingGraph(int kmerSize, bool debugGraphTransformations, uint8_t minBaseQualityToUseInAssembly,
-	                   int numPruningSamples);
+	                   int numPruningSamples, bool debugMode);
 
 	/**
 	 * Build the read threaded assembly graph if it hasn't already been constructed from the sequences that have
@@ -292,7 +294,7 @@ public:
 
 	void printPendingInfo();
 
-	void printGraphSize(const std::string& info);
+	void printGraphSize(const std::string &info);
 
 	void sortPendingBySequence();
 };

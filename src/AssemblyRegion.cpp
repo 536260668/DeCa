@@ -177,9 +177,8 @@ void AssemblyRegion::add(std::shared_ptr<SAMRecord> &read) {
 
 void AssemblyRegion::sortReadsByCoordinate() {
 	std::sort(reads.begin(), reads.end(), [this](std::shared_ptr<SAMRecord> &a, std::shared_ptr<SAMRecord> &b) -> bool {
-		// res == 1 in JAVA ==> return false in CPP
-		// res == -1 in JAVA ==> return true in CPP
-		int result_a = ReadUtils::getAssignedReferenceIndex(a, this->header);
+		// There's no need to compare getAssignedReferenceIndex because 2 contigs equal
+		/*int result_a = ReadUtils::getAssignedReferenceIndex(a, this->header);
 		int result_b = ReadUtils::getAssignedReferenceIndex(b, this->header);
 
 		if (result_a == -1 && result_b != -1)
@@ -188,10 +187,13 @@ void AssemblyRegion::sortReadsByCoordinate() {
 			return false;
 
 		if (result_a != result_b)
-			return result_a < result_b;
+			return result_a < result_b;*/
 
-		result_a = a->getAssignedStart();
-		result_b = b->getAssignedStart();
+		// res == 1 in JAVA ==> return false in CPP
+		// res == -1 in JAVA ==> return true in CPP
+
+		int result_a = a->getAssignedStart();
+		int result_b = b->getAssignedStart();
 		if (result_a != result_b)
 			return result_a < result_b;
 

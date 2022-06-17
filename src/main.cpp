@@ -163,7 +163,7 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 	std::queue<std::shared_ptr<AssemblyRegion>> pendingRegions;
 	ActivityProfile *activityProfile = new BandPassActivityProfile(w->MTAC.maxProbPropagationDistance, w->MTAC.activeProbThreshold, BandPassActivityProfile::MAX_FILTER_SIZE, BandPassActivityProfile::DEFAULT_SIGMA,true , w->header);
 	VariantAnnotatorEngine annotatiorEngine;   // TODO: make it more elegant
-	Mutect2Engine m2Engine(w->MTAC, w->header, w->modelPath, annotatiorEngine);
+	Mutect2Engine m2Engine(w->MTAC, w->header, w->modelPath, annotatiorEngine, false);
 	std::vector<SAMSequenceRecord> headerSequences = w->header->getSequenceDictionary().getSequences();
 
 	//std::cout << "Thread " + std::to_string(threadID) + " started.\n";
@@ -244,10 +244,10 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 			char refBase = w->refCaches[k]->getBase(pileup.getPosition());
 			ReferenceContext pileupRefContext(pileupInterval, refBase); //---this variable is useful in annotationEngine
 
-			std::shared_ptr<ActivityProfileState> profile = m2Engine.isActive(pileup);
+			std::shared_ptr<ActivityProfileState> profile = m2Engine.isActive(pileup, contig);
 			activityProfile->add(profile);
 
-			if(!pendingRegions.empty() && IntervalUtils::isAfter(pileup.getLocation(), *pendingRegions.front()->getExtendedSpan(), w->header->getSequenceDictionary())) {
+			if(!pendingRegions.empty() && pileup.getLocation().getStart() > (*pendingRegions.front()).getExtendedSpan()->getEnd()) {
 				w->activeRegioncount++;
 
 				std::shared_ptr<AssemblyRegion> nextRegion = pendingRegions.front();
@@ -256,7 +256,7 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 				//std::cout << nextRegion->getContig() + " " + to_string(nextRegion->getStart()+1) + " " + to_string(nextRegion->getEnd()+1) + '\n';
 				pendingRegions.pop();
 
-				Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
+				m2Engine.fillNextAssemblyRegionWithReads(nextRegion, cache);
 				if (BOOST_LIKELY(w->numOfStep2Thread == 0)) {
 					std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext);
 					w->results[currentTask].insert(w->results[currentTask].end(), variant.begin(), variant.end());
@@ -289,7 +289,7 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 			//std::cout << nextRegion->getContig() + " " + to_string(nextRegion->getStart()+1) + " " + to_string(nextRegion->getEnd()+1) + '\n';
 
 			pendingRegions.pop();
-			Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
+			m2Engine.fillNextAssemblyRegionWithReads(nextRegion, cache);
 			// ReferenceContext is not needed for the time being
 			ReferenceContext tmp{std::make_shared<SimpleInterval>(contig, 0, 0), N};
 			if (BOOST_LIKELY(w->numOfStep2Thread == 0)) {

@@ -27,8 +27,6 @@ int SAMSequenceDictionary::getSequenceIndex(std::string &sequenceName) {
     } catch(const std::out_of_range &e) {
         return -1;
     }
-
-
 }
 
 SAMSequenceDictionary::SAMSequenceDictionary(std::list<SAMSequenceRecord> &toAdd) {

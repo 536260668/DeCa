@@ -70,17 +70,19 @@ public:
 	const static int MINIMUM_BASE_QUALITY = 6;
 	const static int HUGE_FRAGMENT_LENGTH = 1000000;
 
+	bool debugMode;
+
 	int callableSites;  // in GATK4, this variable is a MutableInt class object
 	ReferenceCache *refCache;
 
 	Mutect2Engine(M2ArgumentCollection &MTAC, SAMFileHeader *samFileHeader, const std::string &modelPath,
-	              VariantAnnotatorEngine &annotatorEngine);
+	              VariantAnnotatorEngine &annotatorEngine, bool debugMode);
 
 	~Mutect2Engine();
 
-	std::shared_ptr<ActivityProfileState> isActive(AlignmentContext &context);
+	std::shared_ptr<ActivityProfileState> isActive(AlignmentContext &context, const std::string& refName);
 
-	static void fillNextAssemblyRegionWithReads(const std::shared_ptr<AssemblyRegion> &region, ReadCache &readCache);
+	void fillNextAssemblyRegionWithReads(const std::shared_ptr<AssemblyRegion> &region, ReadCache &readCache) const;
 
 	std::vector<std::shared_ptr<VariantContext>>
 	callRegion(const std::shared_ptr<AssemblyRegion> &originalAssemblyRegion, ReferenceContext &referenceContext);
