@@ -3,6 +3,7 @@
 //
 
 #include "FragmentLength.h"
+#include <optional>
 
 int FragmentLength::aggregate(std::vector<int> &values) {
     return values.empty() ? 0 : MathUtils::median(values);

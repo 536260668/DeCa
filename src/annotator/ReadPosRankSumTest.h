@@ -7,6 +7,7 @@
 
 #include <optional>
 #include <VariantContext.h>
+#include <limits>
 #include "samtools/SAMRecord.h"
 
 

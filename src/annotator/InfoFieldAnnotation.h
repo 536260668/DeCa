@@ -11,6 +11,7 @@
 #include "Genotype.h"
 #include "variantcontext/builder/GenotypeBuilder.h"
 #include "utils/genotyper/AlleleLikelihoods.h"
+#include <optional>
 
 /**
  * Annotations relevant to the INFO field of the variant file (ie annotations for sites).
