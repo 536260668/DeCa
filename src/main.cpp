@@ -27,6 +27,21 @@
 #include "utils/BaseUtils.h"
 #include "variantcontext/VCFWriter.h"
 
+#include "annotator/BaseQuality.h"
+#include "annotator/FragmentLength.h"
+#include "annotator/Coverage.h"
+#include "annotator/MappingQuality.h"
+#include "annotator/ReadPosition.h"
+
+
+#include "annotator/DepthPerSampleHC.h"
+#include "annotator/DepthPerAlleleBySample.h"
+#include "annotator/OrientationBiasReadCounts.h"
+#include "annotator/StrandBiasBySample.h"
+
+std::vector<shared_ptr<GenotypeAnnotation>> makeGenotypeAnnotation();
+std::vector<shared_ptr<InfoFieldAnnotation>> makeInfoFieldAnnotation();
+
 
 struct Region{
     int _start;
@@ -162,7 +177,7 @@ struct Shared{
 void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 	std::queue<std::shared_ptr<AssemblyRegion>> pendingRegions;
 	ActivityProfile *activityProfile = new BandPassActivityProfile(w->MTAC.maxProbPropagationDistance, w->MTAC.activeProbThreshold, BandPassActivityProfile::MAX_FILTER_SIZE, BandPassActivityProfile::DEFAULT_SIGMA,true , w->header);
-	VariantAnnotatorEngine annotatiorEngine;   // TODO: make it more elegant
+	VariantAnnotatorEngine annotatiorEngine(makeInfoFieldAnnotation(), makeGenotypeAnnotation());   // TODO: make it more elegant
 	Mutect2Engine m2Engine(w->MTAC, w->header, w->modelPath, annotatiorEngine);
 	std::vector<SAMSequenceRecord> headerSequences = w->header->getSequenceDictionary().getSequences();
 
@@ -553,4 +568,28 @@ int main(int argc, char *argv[])
     free(data);
 	vcfWriter.close();
 	return 0;
+}
+
+// TODO: finish this method
+std::vector<shared_ptr<InfoFieldAnnotation>> makeInfoFieldAnnotation()
+{
+    std::vector<shared_ptr<InfoFieldAnnotation>> InfoFieldAnnotationList;
+    InfoFieldAnnotationList.emplace_back(new BaseQuality);
+    InfoFieldAnnotationList.emplace_back(new FragmentLength);
+    InfoFieldAnnotationList.emplace_back(new ReadPosition);
+    InfoFieldAnnotationList.emplace_back(new Coverage);
+    InfoFieldAnnotationList.emplace_back(new MappingQuality);
+
+    return InfoFieldAnnotationList;
+}
+
+std::vector<shared_ptr<GenotypeAnnotation>> makeGenotypeAnnotation()
+{
+    std::vector<shared_ptr<GenotypeAnnotation>> GenotypeAnnotationList;
+    GenotypeAnnotationList.emplace_back(new DepthPerSampleHC);
+    GenotypeAnnotationList.emplace_back(new DepthPerAlleleBySample);
+    GenotypeAnnotationList.emplace_back(new OrientationBiasReadCounts);
+    GenotypeAnnotationList.emplace_back(new StrandBiasBySample);
+
+    return GenotypeAnnotationList;
 }

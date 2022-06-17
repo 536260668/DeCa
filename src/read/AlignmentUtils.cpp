@@ -69,6 +69,8 @@ std::vector<CigarPairTransform> AlignmentUtils::cigarPairTransformers = std::vec
      CigarPairTransform(CigarOperator::I, CigarOperator::I, CigarOperator::I, 1, 0)
 };
 
+std::set<CigarOperator> AlignmentUtils::ALIGNED_TO_GENOME_PLUS_SOFTCLIPS = {CigarOperator::M, CigarOperator::EQ, CigarOperator::X, CigarOperator::S};
+
 std::shared_ptr<Cigar> AlignmentUtils::consolidateCigar(std::shared_ptr<Cigar> c) {
     if(c == nullptr) {throw std::invalid_argument("Cigar cannot be null");}
 
@@ -616,4 +618,122 @@ CigarPairTransform AlignmentUtils::getTransformer(CigarOperator op12, CigarOpera
             return transform;
     }
     throw std::exception();
+}
+
+bool AlignmentUtils::isInsideDeletion(std::shared_ptr<Cigar> cigar, int offset) {
+    assert(cigar != nullptr);
+    if(offset < 0)
+        return false;
+
+    // pos counts read bases
+    int pos = 0;
+    int prevPos = 0;
+
+    for (CigarElement& ce : cigar->getCigarElements()) {
+
+        switch (ce.getOperator()) {
+            case I:
+            case S:
+            case D:
+            case M:
+            case EQ:
+            case X:
+                prevPos = pos;
+                pos += ce.getLength();
+                break;
+            case H:
+            case P:
+            case N:
+                break;
+            default:
+                throw "Unsupported cigar operator: ";
+        }
+
+        // Is the offset inside a deletion?
+        if ( prevPos < offset && pos >= offset && ce.getOperator() == CigarOperator::D ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+int AlignmentUtils::calcAlignmentByteArrayOffset(std::shared_ptr<Cigar> cigar, int offset, bool isDeletion,
+                                                 int alignmentStart, int refLocus) {
+    if ( cigar == nullptr ) throw std::invalid_argument("attempting to find the alignment position from a CIGAR that is null");
+    if ( offset < -1 ) throw std::invalid_argument("attempting to find the alignment position with an offset that is negative (and not -1)");
+    if ( alignmentStart < 0 ) throw std::invalid_argument("attempting to find the alignment position from an alignment start that is negative");
+    if ( refLocus < 0 ) throw std::invalid_argument("attempting to find the alignment position from a reference position that is negative");
+    if ( offset >= cigar->getReadLength() ) throw std::invalid_argument("attempting to find the alignment position of an offset than is larger than the read length");
+
+    int pileupOffset = offset;
+
+    // Reassign the offset if we are in the middle of a deletion because of the modified representation of the read bases
+    if (isDeletion) {
+        pileupOffset = refLocus - alignmentStart;
+        CigarElement& ce = cigar->getCigarElement(0);
+        if (ce.getOperator() == CigarOperator::S) {
+            pileupOffset += ce.getLength();
+        }
+    }
+
+    int pos = 0;
+    int alignmentPos = 0;
+
+    for (int iii = 0; iii < cigar->numCigarElements(); iii++) {
+        CigarElement& ce = cigar->getCigarElement(iii);
+        int elementLength = ce.getLength();
+
+        switch (ce.getOperator()) {
+            case I:
+            case S: // TODO -- I don't think that soft clips should be treated the same as inserted bases here. Investigation needed.
+                pos += elementLength;
+                if (pos >= pileupOffset) {
+                    return alignmentPos;
+                }
+                break;
+            case D:
+                if (!isDeletion) {
+                    alignmentPos += elementLength;
+                } else {
+                    if (pos + elementLength - 1 >= pileupOffset) {
+                        return alignmentPos + (pileupOffset - pos);
+                    } else {
+                        pos += elementLength;
+                        alignmentPos += elementLength;
+                    }
+                }
+                break;
+            case M:
+            case EQ:
+            case X:
+                if (pos + elementLength - 1 >= pileupOffset) {
+                    return alignmentPos + (pileupOffset - pos);
+                } else {
+                    pos += elementLength;
+                    alignmentPos += elementLength;
+                }
+                break;
+                case H:
+                    case P:
+                        case N:
+                            break;
+                default:
+                    throw "Unsupported cigar operator: ";
+        }
+
+    }
+    return alignmentPos;
+}
+
+int AlignmentUtils::getNumAlignedBasesCountingSoftClips(std::shared_ptr<SAMRecord> r) {
+    int n = 0;
+    auto& cigar = r->getCigar();
+    if (cigar == nullptr)
+        return 0;
+
+    for (CigarElement& e : cigar->getCigarElements())
+        if (ALIGNED_TO_GENOME_PLUS_SOFTCLIPS.find(e.getOperator()) != ALIGNED_TO_GENOME_PLUS_SOFTCLIPS.end())
+            n += e.getLength();
+
+    return n;
 }

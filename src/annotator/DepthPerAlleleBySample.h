@@ -12,6 +12,8 @@ public:
     void annotate(ReferenceContext& ref, shared_ptr<VariantContext> vc, Genotype* g, GenotypeBuilder& gb, AlleleLikelihoods<SAMRecord, Allele>* likelihoods);
 
     pair<int*, int> annotateWithLikelihoods(shared_ptr<VariantContext> vc, Genotype* g, vector<shared_ptr<Allele>>& alleles, AlleleLikelihoods<SAMRecord, Allele>* likelihoods);
+
+    std::vector<std::string> getKeyNames();
 };
 
 

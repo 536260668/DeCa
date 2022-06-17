@@ -7,7 +7,7 @@
 
 #include "GenotypeAnnotation.h"
 
-class OrientationBiasReadCounts : GenotypeAnnotation {
+class OrientationBiasReadCounts : public GenotypeAnnotation {
 private:
     const static int MINIMUM_BASE_QUALITY = 20;
 
@@ -18,6 +18,8 @@ private:
 public:
     void annotate(ReferenceContext &ref, shared_ptr<VariantContext> vc, Genotype *g, GenotypeBuilder &gb,
              AlleleLikelihoods<SAMRecord, Allele> *likelihoods);
+
+    std::vector<std::string> getKeyNames();
 };
 
 

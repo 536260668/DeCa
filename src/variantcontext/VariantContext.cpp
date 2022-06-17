@@ -294,6 +294,10 @@ bool VariantContext::isSimpleIndel() {
             getAlternateAllele(0)->getLength() == 1);
 }
 
+bool VariantContext::isIndel() {
+    return getType() == VariantContext_INDEL;
+}
+
 bool VariantContext::isSimpleInsertion() {
     return isSimpleIndel() && getReference()->getLength() == 1;
 }

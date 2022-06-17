@@ -32,7 +32,7 @@ private:
 public:
     VariantAnnotatorEngine();
 
-    VariantAnnotatorEngine(std::vector<shared_ptr<InfoFieldAnnotation>>& InfoFieldAnnotationList, std::vector<shared_ptr<GenotypeAnnotation>>& GenotypeAnnotationList);
+    VariantAnnotatorEngine(std::vector<shared_ptr<InfoFieldAnnotation>>&& InfoFieldAnnotationList, std::vector<shared_ptr<GenotypeAnnotation>>&& GenotypeAnnotationList);
 
     shared_ptr<VariantContext> annotateContext(shared_ptr<VariantContext> vc, ReferenceContext& ref, AlleleLikelihoods<SAMRecord, Allele>* likelihoods);
 

@@ -16,7 +16,7 @@ class CigarPairTransform;
 class AlignmentUtils {
 public:
     static std::vector<CigarPairTransform> cigarPairTransformers;
-
+    static std::set<CigarOperator> ALIGNED_TO_GENOME_PLUS_SOFTCLIPS;
     static std::shared_ptr<Cigar> consolidateCigar(std::shared_ptr<Cigar> c);
     static bool needsConsolidation(const std::shared_ptr<Cigar>& c);
 
@@ -100,6 +100,37 @@ public:
     static std::shared_ptr<SAMRecord> createReadAlignedToRef(const std::shared_ptr<SAMRecord>& originalRead, const std::shared_ptr<Haplotype>& haplotype,
                                                              const std::shared_ptr<Haplotype>& refHaplotype, int referenceStart, bool isInformative,
                                                              SmithWatermanAligner *aligner);
+
+    /**
+    * Is the offset inside a deletion?
+    *
+    * @param cigar         the read's CIGAR -- cannot be null
+    * @param offset        the offset into the CIGAR
+    * @return true if the offset is inside a deletion, false otherwise
+    */
+    static bool isInsideDeletion(std::shared_ptr<Cigar> cigar, int offset);
+
+    /**
+     * Calculate the index into the read's bases of the beginning of the encompassing cigar element for a given cigar and offset
+     *
+     * @param cigar            the read's CIGAR -- cannot be null
+     * @param offset           the offset to use for the calculation or -1 if in the middle of a deletion
+     * @param isDeletion       are we in the middle of a deletion?
+     * @param alignmentStart   the alignment start of the read
+     * @param refLocus         the reference position of the offset
+     * @return a non-negative int index
+     */
+    static int calcAlignmentByteArrayOffset( std::shared_ptr<Cigar> cigar, int offset, bool isDeletion, int alignmentStart, int refLocus);
+
+    /**
+    * Get the number of bases aligned to the genome, including soft clips
+    *
+    * If read is not mapped (i.e., doesn't have a cigar) returns 0
+    *
+    * @param r a non-null Read
+    * @return the number of bases aligned to the genome in R, including soft clipped bases
+    */
+    static int getNumAlignedBasesCountingSoftClips(std::shared_ptr<SAMRecord> r);
 
 private:
     static std::shared_ptr<Cigar> trimCigar(const std::shared_ptr<Cigar>& cigar, int start, int end, bool byReference);

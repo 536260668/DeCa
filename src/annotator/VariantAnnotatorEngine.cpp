@@ -7,7 +7,7 @@
 
 VariantAnnotatorEngine::VariantAnnotatorEngine() {}
 
-VariantAnnotatorEngine::VariantAnnotatorEngine(std::vector<shared_ptr<InfoFieldAnnotation>>& InfoFieldAnnotationList, std::vector<shared_ptr<GenotypeAnnotation>>& GenotypeAnnotationList): infoAnnotations(InfoFieldAnnotationList), genotypeAnnotations(GenotypeAnnotationList),
+VariantAnnotatorEngine::VariantAnnotatorEngine(std::vector<shared_ptr<InfoFieldAnnotation>>&& InfoFieldAnnotationList, std::vector<shared_ptr<GenotypeAnnotation>>&& GenotypeAnnotationList): infoAnnotations(InfoFieldAnnotationList), genotypeAnnotations(GenotypeAnnotationList),
 useRawAnnotations(false), keepRawCombinedAnnotations(false)
 {
 
@@ -19,9 +19,25 @@ shared_ptr<VariantContext> VariantAnnotatorEngine::annotateContext(shared_ptr<Va
 
     // annotate genotypes, creating another new VC in the process
     VariantContextBuilder builder(vc);
-    // TODO: finish this method 2022.6.2
+    builder.setGenotypes(annotateGenotypes(ref, vc, likelihoods));
+    auto newGenotypeAnnotatedVC = builder.make();
 
-    return vc;
+    auto infoAnnotMap = make_shared<std::map<std::string, AttributeValue>>();
+
+    for(auto& annotationType : infoAnnotations)
+    {
+        auto annotationsFromCurrentType = annotationType->annotate(make_shared<ReferenceContext>(ref), newGenotypeAnnotatedVC, likelihoods);
+        if(annotationsFromCurrentType != nullptr)
+        {
+            for(auto& annotation : *annotationsFromCurrentType)
+            {
+                infoAnnotMap->emplace(annotation);
+            }
+        }
+    }
+    auto annotated = builder.setAttributes(infoAnnotMap)->make();
+
+    return annotated;
 }
 
 GenoTypesContext *VariantAnnotatorEngine::annotateGenotypes(ReferenceContext &ref, shared_ptr<VariantContext> vc,

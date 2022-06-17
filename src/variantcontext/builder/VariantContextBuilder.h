@@ -97,6 +97,8 @@ public:
 
     VariantContextBuilder* unfiltered();
 
+    VariantContextBuilder* setAttributes(std::shared_ptr<std::map<std::string, AttributeValue>> attribute);
+
     VariantContextBuilder* setAttributes(std::shared_ptr<std::map<std::string, std::vector<double>>> attribute);
 
     VariantContextBuilder* setAttribute(const std::string& key, int value);

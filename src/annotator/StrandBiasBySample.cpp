@@ -33,3 +33,7 @@ vector<int> StrandBiasBySample::getContingencyArray(vector<vector<int>>& table)
     list.push_back(table[1][1]);
     return list;
 }
+
+std::vector<std::string> StrandBiasBySample::getKeyNames() {
+    return {VCFConstants::STRAND_BIAS_BY_SAMPLE_KEY};
+}

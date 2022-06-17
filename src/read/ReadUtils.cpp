@@ -177,6 +177,12 @@ int ReadUtils::getReadCoordinateForReferenceCoordinate(std::shared_ptr<SAMRecord
                                                    false);
 }
 
+int ReadUtils::getReadCoordinateForReferenceCoordinate(std::shared_ptr<SAMRecord> & read, int refCoord, ClippingTail tail, bool allowGoalNotReached)
+{
+    int leftmostSafeVariantPosition = std::max(read->getSoftStart(), refCoord);
+    return getReadCoordinateForReferenceCoordinate(read->getSoftStart(), read->getCigar(), leftmostSafeVariantPosition, tail, allowGoalNotReached);
+}
+
 int ReadUtils::getSoftStart(std::shared_ptr<SAMRecord> & read) {
     Mutect2Utils::validateArg(read != nullptr, "read");
 
