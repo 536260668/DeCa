@@ -154,8 +154,8 @@ struct Shared{
 	M2ArgumentCollection MTAC;
 	std::string modelPath;
 	bool bqsr_within_mutect = false;
-	std::shared_ptr<BQSRReadTransformer> tumorTransformer = nullptr;
-	std::shared_ptr<BQSRReadTransformer> normalTransformer = nullptr;
+	char * tumor_table = nullptr;
+	char * normal_table = nullptr;
 
 	bool startFlag = false;
 	bool allConcurrentMode= false;
@@ -180,6 +180,15 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 	VariantAnnotatorEngine annotatiorEngine(makeInfoFieldAnnotation(), makeGenotypeAnnotation());
 	Mutect2Engine m2Engine(w->MTAC, w->header, w->modelPath, annotatiorEngine, false);
 	std::vector<SAMSequenceRecord> headerSequences = w->header->getSequenceDictionary().getSequences();
+
+	std::shared_ptr<BQSRReadTransformer> tumorTransformer = nullptr;
+	std::shared_ptr<BQSRReadTransformer> normalTransformer = nullptr;
+	if(w->bqsr_within_mutect)
+	{
+		ApplyBQSRArgumentCollection bqsrArgs;
+		tumorTransformer = std::make_shared<BQSRReadTransformer>(w->tumor_table, bqsrArgs);
+		normalTransformer = std::make_shared<BQSRReadTransformer>(w->normal_table, bqsrArgs);
+	}
 
 	//std::cout << "Thread " + std::to_string(threadID) + " started.\n";
 
@@ -232,7 +241,7 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 		std::cout << "Processing " + std::to_string(currentTask + 1) + "/" + std::to_string(w->regions.size()) + '\t'
 			+ contig + ':' + std::to_string(start) + '-' + std::to_string(end) + '\n';
 
-		ReadCache cache(data, w->input_bam, k, start, end, w->MTAC.maxAssemblyRegionSize, w->refCaches[k], w->bqsr_within_mutect, w->tumorTransformer.get(), w->normalTransformer.get());
+		ReadCache cache(data, w->input_bam, k, start, end, w->MTAC.maxAssemblyRegionSize, w->refCaches[k], w->bqsr_within_mutect, tumorTransformer.get(), normalTransformer.get());
 		m2Engine.setReferenceCache(w->refCaches[k].get());
 
 		while(cache.hasNextPos()) {
@@ -362,7 +371,6 @@ int main(int argc, char *argv[])
 	std::string output;
 	aux_t **data;
 	Shared sharedData;
-    char * tumor_table = nullptr, * normal_table = nullptr;
 
 	sharedData.MTAC = {10, 50, 0.002, 100, 50, 300, ""};
 
@@ -439,10 +447,10 @@ int main(int argc, char *argv[])
                 sharedData.bqsr_within_mutect = true;
                 break;
             case 1008:
-                tumor_table = strdup(optarg);
+	            sharedData.tumor_table = strdup(optarg);
                 break;
             case 1009:
-                normal_table = strdup(optarg);
+	            sharedData.normal_table = strdup(optarg);
                 break;
         }
     }
@@ -479,13 +487,6 @@ int main(int argc, char *argv[])
     smithwaterman_initial();
     QualityUtils::initial();
 	BaseUtils::initial();
-
-    if(sharedData.bqsr_within_mutect)
-    {
-        ApplyBQSRArgumentCollection bqsrArgs;
-	    sharedData.tumorTransformer = std::make_shared<BQSRReadTransformer>(tumor_table, bqsrArgs);
-	    sharedData.normalTransformer = std::make_shared<BQSRReadTransformer>(normal_table, bqsrArgs);
-    }
 
 	//start threads
 	std::vector<std::thread> threads;
@@ -556,8 +557,8 @@ int main(int argc, char *argv[])
     for(char * input_file : sharedData.input_bam)
         free(input_file);
     free(ref);
-    free(tumor_table);
-    free(normal_table);
+    free(sharedData.tumor_table);
+    free(sharedData.normal_table);
     delete sharedData.header;
 	for(int i = 0; i < n; i++)
     {
