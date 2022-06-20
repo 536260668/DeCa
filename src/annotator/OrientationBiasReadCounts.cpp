@@ -15,7 +15,7 @@ int OrientationBiasReadCounts::getReadBaseQuality(shared_ptr<SAMRecord> read, in
     return readCoord < 0 || readCoord >= read->getLength() ? 0 : read->getBaseQuality(readCoord);
 }
 
-void OrientationBiasReadCounts::annotate(ReferenceContext &ref, shared_ptr<VariantContext> vc, Genotype *g,
+void OrientationBiasReadCounts::annotate(ReferenceContext &ref, shared_ptr<VariantContext> vc, std::shared_ptr<Genotype> g,
                                          GenotypeBuilder &gb, AlleleLikelihoods<SAMRecord, Allele> *likelihoods) {
     assert(vc != nullptr);
 

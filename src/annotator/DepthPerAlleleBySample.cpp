@@ -5,7 +5,7 @@
 #include "DepthPerAlleleBySample.h"
 
 void
-DepthPerAlleleBySample::annotate(ReferenceContext &ref, shared_ptr<VariantContext> vc, Genotype *g, GenotypeBuilder &gb,
+DepthPerAlleleBySample::annotate(ReferenceContext &ref, shared_ptr<VariantContext> vc, std::shared_ptr<Genotype> g, GenotypeBuilder &gb,
                                  AlleleLikelihoods<SAMRecord, Allele> *likelihoods) {
     if(g == nullptr || !g->isCalled() || likelihoods == nullptr)
         return;
@@ -14,7 +14,7 @@ DepthPerAlleleBySample::annotate(ReferenceContext &ref, shared_ptr<VariantContex
     gb.setAD(AD.first, AD.second);
 }
 
-pair<int *, int> DepthPerAlleleBySample::annotateWithLikelihoods(shared_ptr<VariantContext> vc, Genotype *g,
+pair<int *, int> DepthPerAlleleBySample::annotateWithLikelihoods(shared_ptr<VariantContext> vc, std::shared_ptr<Genotype> g,
                                                                  vector<shared_ptr<Allele>> &alleles,
                                                                  AlleleLikelihoods<SAMRecord, Allele> *likelihoods) {
     unordered_map<Allele*, int> alleleCounts;

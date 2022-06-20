@@ -13,7 +13,7 @@ VariantContext::VariantContext(std::string &source,
                                long start,
                                long stop,
                                const std::shared_ptr<std::vector<std::shared_ptr<Allele>>> & alleles,
-                               GenoTypesContext* genotypes,
+                               std::shared_ptr<GenoTypesContext> genotypes,
                                double log10PError,
                                std::set<std::string>* filters,  std::shared_ptr<std::map<std::string, AttributeValue>> attributes,
                                bool fullyDecoded,
@@ -28,10 +28,11 @@ VariantContext::VariantContext(std::string &source,
 
     this->alleles = std::move(makeAlleles(*alleles));
 
-    if(genotypes != nullptr && genotypes != &GenoTypesContext::NO_GENOTYPES) {
-        this->genotypes = &genotypes->setImmutable();
+    if(genotypes != nullptr && genotypes != GenoTypesContext::NO_GENOTYPES) {
+        this->genotypes = genotypes;
+        this->genotypes->setImmutable();
     } else {
-        this->genotypes = &GenoTypesContext::NO_GENOTYPES;
+        this->genotypes = GenoTypesContext::NO_GENOTYPES;
     }
 
     for(const std::shared_ptr<Allele> & allele : *alleles) {
@@ -176,7 +177,7 @@ void VariantContext::validateGenotypes() {
         throw std::invalid_argument("Genotypes is null");
     } else {
         for(int i = 0; i < genotypes->getSize(); ++i) {
-            Genotype* genotype = genotypes->get(i);
+            std::shared_ptr<Genotype> genotype = genotypes->get(i);
             if(genotype->isAvailable()) {
                 std::vector<std::shared_ptr<Allele>> new_alleles = genotype->getAlleles();
                 for(std::shared_ptr<Allele> allele : new_alleles) {
@@ -198,18 +199,20 @@ bool VariantContext::hasAllele(const std::shared_ptr<Allele> &allele, bool ignor
 }
 
 bool VariantContext::hasAllele(const std::shared_ptr<Allele> &allele, bool ignoreRefState, bool considerRefAllele) {
-    if((!considerRefAllele || !((*allele) == (*REF))) && !((*allele) == (*ALT))) {
-        std::vector<std::shared_ptr<Allele>> allelesToConsider = considerRefAllele ? getAlleles() : getAlternateAlleles();
-        int i = 0;
-        for(const std::shared_ptr<Allele> & allele1 : allelesToConsider) {
-            if(allele1->equals(*allele, ignoreRefState)) {
-                return true;
-            }
-        }
-        return false;
-    } else {
+    // REF or ALT may be NULL
+    if ( (considerRefAllele && REF != nullptr && (*allele) == (*REF) )) // optimization for cached cases
         return true;
+    if(ALT != nullptr && (*allele) == (*ALT))
+        return true;
+
+    std::vector<std::shared_ptr<Allele>> allelesToConsider = considerRefAllele ? getAlleles() : getAlternateAlleles();
+    int i = 0;
+    for(const std::shared_ptr<Allele> & allele1 : allelesToConsider) {
+        if(allele1->equals(*allele, ignoreRefState)) {
+            return true;
+        }
     }
+    return false;
 }
 
 std::vector<std::shared_ptr<Allele>> VariantContext::getAlternateAlleles() {
@@ -322,7 +325,7 @@ std::set<std::string> *VariantContext::getFiltersMaybeNull() {
     return commonInfo.getFiltersMaybeNull();
 }
 
-GenoTypesContext *VariantContext::getGenotypes() {
+std::shared_ptr<GenoTypesContext> VariantContext::getGenotypes() {
     return genotypes;
 }
 
@@ -347,7 +350,8 @@ bool VariantContext::isFullyDecoded() const {
 }
 
 VariantContext::~VariantContext() {
-	//delete genotypes;
+//    if(genotypes != &GenoTypesContext::NO_GENOTYPES)
+//	    delete genotypes;
 }
 
 bool VariantContext::isNotFiltered() {

@@ -5,26 +5,26 @@
 #include "GenotypeBuilder.h"
 #include <utility>
 
-GenotypeBuilder::GenotypeBuilder(Genotype* g): sampleName(g->getSampleName()), alleles(g->getAlleles()), isPhased(g->isPhased()), GQ(g->getGQ()),  DP(g->getDP()), AD(g->getAD(ADLength)), PL(g->getPL(PLLength)), filters(g->getFilters())
+GenotypeBuilder::GenotypeBuilder(std::shared_ptr<Genotype> g): sampleName(g->getSampleName()), alleles(g->getAlleles()), isPhased(g->isPhased()), GQ(g->getGQ()),  DP(g->getDP()), AD(g->getAD(ADLength)), PL(g->getPL(PLLength)), filters(g->getFilters())
 {
     attributes(g->getExtendedAttributes());
 }
 
-GenotypeBuilder::GenotypeBuilder(Genotype *g, std::string name, std::vector<std::shared_ptr<Allele>> &alleles):
+GenotypeBuilder::GenotypeBuilder(std::shared_ptr<Genotype> g, std::string name, std::vector<std::shared_ptr<Allele>> &alleles):
     sampleName(name), alleles(alleles), isPhased(g->isPhased()), GQ(g->getGQ()), DP(g->getDP()), AD(g->getAD(ADLength)), PL(g->getPL(PLLength)), filters(g->getFilters())
 {
     attributes(g->getExtendedAttributes());
 }
 
-Genotype *GenotypeBuilder::create(std::string sampleName, std::vector<std::shared_ptr<Allele>> alleles) {
+std::shared_ptr<Genotype> GenotypeBuilder::create(std::string sampleName, std::vector<std::shared_ptr<Allele>> alleles) {
     return GenotypeBuilder(std::move(sampleName), std::move(alleles)).make();
 }
 
-Genotype *GenotypeBuilder::make() {
-    return new FastGenotype(sampleName, alleles, isPhased, GQ, DP, AD, ADLength, PL, PLLength, filters, extendedAttributes);
+std::shared_ptr<Genotype> GenotypeBuilder::make() {
+    return std::make_shared<FastGenotype>(sampleName, alleles, isPhased, GQ, DP, AD, ADLength, PL, PLLength, filters, extendedAttributes);
 }
 
-Genotype *GenotypeBuilder::create(std::string sampleName, std::vector<std::shared_ptr<Allele>> alleles,
+std::shared_ptr<Genotype> GenotypeBuilder::create(std::string sampleName, std::vector<std::shared_ptr<Allele>> alleles,
                                   const std::map<std::string, AttributeValue>& attributes) {
     return GenotypeBuilder(std::move(sampleName), std::move(alleles)).attributes(attributes).make();
 }
@@ -61,7 +61,7 @@ GenotypeBuilder& GenotypeBuilder::attribute(const std::string &key, std::vector<
     return *this;
 }
 
-Genotype *GenotypeBuilder::create(const std::string& sampleName, const std::vector<std::shared_ptr<Allele>>& alleles, double *gls, int length) {
+std::shared_ptr<Genotype> GenotypeBuilder::create(const std::string& sampleName, const std::vector<std::shared_ptr<Allele>>& alleles, double *gls, int length) {
     return GenotypeBuilder(sampleName, alleles).buildPL(gls, length).make();
 }
 

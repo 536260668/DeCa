@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <algorithm>
 #include <unordered_set>
+#include <iostream>
 #include "GATKVariantContextUtils.h"
 #include "VariantContextUtils.h"
 #include "variantcontext/builder/GenotypeBuilder.h"
@@ -16,7 +17,7 @@ AlleleMapper::AlleleMapper(std::shared_ptr<VariantContext> vc): vc(vc) {
 
 }
 
-AlleleMapper::AlleleMapper(std::shared_ptr<std::map<std::shared_ptr<Allele>, std::shared_ptr<Allele>>> map): map(map){
+AlleleMapper::AlleleMapper(std::shared_ptr<std::unordered_map<std::shared_ptr<Allele>, std::shared_ptr<Allele>, hash_Allele, equal_Allele>> map): map(map){
 
 }
 
@@ -141,7 +142,7 @@ std::shared_ptr<VariantContext> GATKVariantContextUtils::simpleMerge(std::shared
     int depth = 0;
     double log10PError = CommonInfo::NO_LOG10_PERROR;
     bool anyVCHadFiltersApplied = false;
-    auto* genotypes = new GenoTypesContext;
+    auto genotypes = std::make_shared<GenoTypesContext>();
 
     // counting the number of filtered and variant VCs
     int nFiltered = 0;
@@ -234,7 +235,6 @@ std::shared_ptr<VariantContext> GATKVariantContextUtils::simpleMerge(std::shared
                 throw std::exception();
             }
             auto temp = stripPLsAndAD(genotypes);
-            delete genotypes;
             genotypes = temp;
 
             // this will remove stale AC,AF attributed from vc
@@ -266,9 +266,9 @@ std::shared_ptr<VariantContext> GATKVariantContextUtils::simpleMerge(std::shared
     return merged;
 }
 
-GenoTypesContext* GATKVariantContextUtils::stripPLsAndAD(GenoTypesContext* genotypes)
+std::shared_ptr<GenoTypesContext> GATKVariantContextUtils::stripPLsAndAD(std::shared_ptr<GenoTypesContext> genotypes)
 {
-    auto newGs = new GenoTypesContext(genotypes->getSize());
+    auto newGs = std::make_shared<GenoTypesContext>(genotypes->getSize());
     for(int i=0; i<genotypes->getSize(); i++)
     {
         newGs->add(removePLsAndAD(genotypes->get(i)));
@@ -276,7 +276,7 @@ GenoTypesContext* GATKVariantContextUtils::stripPLsAndAD(GenoTypesContext* genot
     return newGs;
 }
 
-Genotype* GATKVariantContextUtils::removePLsAndAD(Genotype *g) {
+std::shared_ptr<Genotype> GATKVariantContextUtils::removePLsAndAD(std::shared_ptr<Genotype> g) {
     return (g->hasLikelihoods() || g->hasAD()) ? GenotypeBuilder(g).make() : g;
 }
 
@@ -411,7 +411,7 @@ GATKVariantContextUtils::createAlleleMapping(std::shared_ptr<Allele> refAllele, 
     return map;
 }
 
-std::shared_ptr<std::map<std::shared_ptr<Allele>, std::shared_ptr<Allele>>>
+std::shared_ptr<std::unordered_map<std::shared_ptr<Allele>, std::shared_ptr<Allele>, hash_Allele, equal_Allele>>
 GATKVariantContextUtils::createAlleleMapping(std::shared_ptr<Allele> refAllele, std::shared_ptr<VariantContext> oneVc, const std::vector<std::shared_ptr<Allele>> &currentAlleles)
 {
     auto myRef = oneVc->getReference();
@@ -423,7 +423,7 @@ GATKVariantContextUtils::createAlleleMapping(std::shared_ptr<Allele> refAllele, 
     std::shared_ptr<uint8_t[]> extraBases(new uint8_t[refAlleleLength - myRefLength]);
     memcpy(extraBases.get(), refAlleleBases.get() + myRefLength, refAlleleLength - myRefLength);
 
-    std::shared_ptr<std::map<std::shared_ptr<Allele>, std::shared_ptr<Allele>>> map(new std::map<std::shared_ptr<Allele>, std::shared_ptr<Allele>>);
+    std::shared_ptr<std::unordered_map<std::shared_ptr<Allele>, std::shared_ptr<Allele>, hash_Allele, equal_Allele>> map(new std::unordered_map<std::shared_ptr<Allele>, std::shared_ptr<Allele>, hash_Allele, equal_Allele>);
     for(auto a : oneVc->getAlternateAlleles())
     {
         if(isNonSymbolicExtendableAllele(a))
@@ -449,11 +449,11 @@ void GATKVariantContextUtils::mergeGenotypes(GenoTypesContext &mergedGenotypes, 
     int size = oneVC->getGenotypes()->getSize();
     for(int i=0; i<size; i++)
     {
-        Genotype * g = oneVC->getGenotypes()->get(i);
+        std::shared_ptr<Genotype> g = oneVC->getGenotypes()->get(i);
         std::string name = mergedSampleName(oneVC->getSource(), g->getSampleName(), uniquifySamples);
         if(!mergedGenotypes.containsSample(name)){
             // only add if the name is new
-            Genotype* newG = g;
+            std::shared_ptr<Genotype> newG = g;
 
             if(uniquifySamples || alleleMapping->needsRemapping())
             {
@@ -488,7 +488,7 @@ GATKVariantContextUtils::trimAlleles(std::shared_ptr<VariantContext> inputVC, in
         return inputVC;
 
     auto alleles = std::make_shared<std::vector<std::shared_ptr<Allele>>>();
-    auto originalToTrimmedAlleleMap = std::make_shared<std::map<std::shared_ptr<Allele>, std::shared_ptr<Allele>>>();
+    auto originalToTrimmedAlleleMap = std::make_shared<std::unordered_map<std::shared_ptr<Allele>, std::shared_ptr<Allele>, hash_Allele, equal_Allele>>();
 
     for(auto a : inputVC->getAlleles())
     {
@@ -583,9 +583,9 @@ int GATKVariantContextUtils::computeForwardClipping(std::vector<std::shared_ptr<
     return indexOflastSharedBase;
 }
 
-GenoTypesContext *GATKVariantContextUtils::updateGenotypesWithMappedAlleles(GenoTypesContext *originalGenotypes,
+std::shared_ptr<GenoTypesContext> GATKVariantContextUtils::updateGenotypesWithMappedAlleles(std::shared_ptr<GenoTypesContext> originalGenotypes,
                                                                             AlleleMapper &alleleMapper) {
-    auto updatedGenotypes = new GenoTypesContext(originalGenotypes->getSize());
+    auto updatedGenotypes = std::make_shared<GenoTypesContext>(originalGenotypes->getSize());
 
     for(int i=0; i<originalGenotypes->getSize(); i++)
     {

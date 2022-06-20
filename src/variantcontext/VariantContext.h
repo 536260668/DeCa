@@ -66,7 +66,7 @@ private:
 protected:
     VariantContextType type;
     std::vector<std::shared_ptr<Allele>> alleles;
-    GenoTypesContext* genotypes;
+    std::shared_ptr<GenoTypesContext> genotypes;
 
 
 public:
@@ -76,7 +76,7 @@ public:
                    long start,
                    long stop,
                    const std::shared_ptr<std::vector<std::shared_ptr<Allele>>> &alleles,
-                   GenoTypesContext *genotypes,
+                   std::shared_ptr<GenoTypesContext> genotypes,
                    double log10PError,
                    std::set<std::string> *filters,  std::shared_ptr<std::map<std::string, AttributeValue>> attributes,
                    bool fullyDecoded,
@@ -152,7 +152,7 @@ public:
 
 	std::set<std::string> *getFiltersMaybeNull();
 
-	GenoTypesContext *getGenotypes();
+	std::shared_ptr<GenoTypesContext> getGenotypes();
 
 	std::string &getID();
 

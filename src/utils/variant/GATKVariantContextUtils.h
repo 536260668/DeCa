@@ -47,10 +47,10 @@ enum GenotypeMergeType {
 class AlleleMapper {
 private:
     std::shared_ptr<VariantContext> vc;
-    std::shared_ptr<std::map<std::shared_ptr<Allele>, std::shared_ptr<Allele>>> map;
+    std::shared_ptr<std::unordered_map<std::shared_ptr<Allele>, std::shared_ptr<Allele>, hash_Allele, equal_Allele>> map;
 public:
     AlleleMapper(std::shared_ptr<VariantContext> vc);
-    AlleleMapper(std::shared_ptr<std::map<std::shared_ptr<Allele>, std::shared_ptr<Allele>>> map);
+    AlleleMapper(std::shared_ptr<std::unordered_map<std::shared_ptr<Allele>, std::shared_ptr<Allele>, hash_Allele, equal_Allele>> map);
 
     bool needsRemapping();
 
@@ -147,11 +147,11 @@ public:
     */
     static std::shared_ptr<std::map<std::shared_ptr<Allele>, std::shared_ptr<Allele>>> createAlleleMapping(std::shared_ptr<Allele> refAllele, std::shared_ptr<VariantContext> oneVc, std::unordered_set<std::shared_ptr<Allele>> &currentAlleles);
 
-    static std::shared_ptr<std::map<std::shared_ptr<Allele>, std::shared_ptr<Allele>>> createAlleleMapping(std::shared_ptr<Allele> refAllele, std::shared_ptr<VariantContext> oneVc, const std::vector<std::shared_ptr<Allele>> &currentAlleles);
+    static std::shared_ptr<std::unordered_map<std::shared_ptr<Allele>, std::shared_ptr<Allele>, hash_Allele, equal_Allele>> createAlleleMapping(std::shared_ptr<Allele> refAllele, std::shared_ptr<VariantContext> oneVc, const std::vector<std::shared_ptr<Allele>> &currentAlleles);
 
-    static GenoTypesContext* stripPLsAndAD(GenoTypesContext* genotypes);
+    static std::shared_ptr<GenoTypesContext> stripPLsAndAD(std::shared_ptr<GenoTypesContext> genotypes);
 
-    static Genotype* removePLsAndAD(Genotype* g);
+    static std::shared_ptr<Genotype> removePLsAndAD(std::shared_ptr<Genotype> g);
 
     /**
     * Trim the alleles in inputVC forward and reverse, as requested
@@ -199,7 +199,7 @@ public:
     */
     static std::shared_ptr<VariantContext> trimAlleles(std::shared_ptr<VariantContext> inputVC, int fwdTrimEnd, int revTrim);
 
-    static GenoTypesContext* updateGenotypesWithMappedAlleles(GenoTypesContext* originalGenotypes, AlleleMapper& alleleMapper);
+    static std::shared_ptr<GenoTypesContext> updateGenotypesWithMappedAlleles(std::shared_ptr<GenoTypesContext> originalGenotypes, AlleleMapper& alleleMapper);
 };
 
 

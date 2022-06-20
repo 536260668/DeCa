@@ -79,8 +79,8 @@ VariantContextBuilder *VariantContextBuilder::setLoc(std::string &contig, long s
     return this;
 }
 
-VariantContextBuilder *VariantContextBuilder::setGenotypes(GenoTypesContext *genotypesContext) {
-    this->genotypes = genotypes;
+VariantContextBuilder *VariantContextBuilder::setGenotypes(std::shared_ptr<GenoTypesContext> genotypesContext) {
+    this->genotypes = genotypesContext;
     if(genotypes != nullptr)
     {
         genotypes->setImmutable();
@@ -89,8 +89,8 @@ VariantContextBuilder *VariantContextBuilder::setGenotypes(GenoTypesContext *gen
     return this;
 }
 
-VariantContextBuilder *VariantContextBuilder::setGenotypes(std::vector<Genotype *>& genotypes) {
-    return setGenotypes(new GenoTypesContext(genotypes));
+VariantContextBuilder *VariantContextBuilder::setGenotypes(std::vector<std::shared_ptr<Genotype>>& genotypes) {
+    return setGenotypes(std::make_shared<GenoTypesContext>(genotypes));
 }
 
 VariantContextBuilder *VariantContextBuilder::setLog10PError(double log10PError) {

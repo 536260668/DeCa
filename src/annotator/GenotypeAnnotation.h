@@ -19,7 +19,7 @@ class GenotypeAnnotation : public VariantAnnotation{
 public:
     const static std::string GENOTYPE_ANNOTATION;
 
-    virtual void annotate(ReferenceContext& ref, shared_ptr<VariantContext> vc, Genotype* g, GenotypeBuilder& gb, AlleleLikelihoods<SAMRecord, Allele>* likelihoods) = 0;
+    virtual void annotate(ReferenceContext& ref, shared_ptr<VariantContext> vc, std::shared_ptr<Genotype> g, GenotypeBuilder& gb, AlleleLikelihoods<SAMRecord, Allele>* likelihoods) = 0;
 
     std::string toString();
 

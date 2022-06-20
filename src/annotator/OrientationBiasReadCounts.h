@@ -16,7 +16,7 @@ private:
     static int getReadBaseQuality(shared_ptr<SAMRecord> read, int refLoc);
 
 public:
-    void annotate(ReferenceContext &ref, shared_ptr<VariantContext> vc, Genotype *g, GenotypeBuilder &gb,
+    void annotate(ReferenceContext &ref, shared_ptr<VariantContext> vc, std::shared_ptr<Genotype> g, GenotypeBuilder &gb,
              AlleleLikelihoods<SAMRecord, Allele> *likelihoods);
 
     std::vector<std::string> getKeyNames();

@@ -40,12 +40,12 @@ shared_ptr<VariantContext> VariantAnnotatorEngine::annotateContext(shared_ptr<Va
     return annotated;
 }
 
-GenoTypesContext *VariantAnnotatorEngine::annotateGenotypes(ReferenceContext &ref, shared_ptr<VariantContext> vc,
+shared_ptr<GenoTypesContext> VariantAnnotatorEngine::annotateGenotypes(ReferenceContext &ref, shared_ptr<VariantContext> vc,
                                                              AlleleLikelihoods<SAMRecord, Allele> *likelihoods) {
     if(genotypeAnnotations.empty())
         return vc->getGenotypes();
 
-    GenoTypesContext* genotypes = new GenoTypesContext(vc->getNSamples());
+    auto genotypes = make_shared<GenoTypesContext>(vc->getNSamples());
     for(int i=0; i<genotypes->getSize(); i++)
     {
         auto genotype = genotypes->get(i);

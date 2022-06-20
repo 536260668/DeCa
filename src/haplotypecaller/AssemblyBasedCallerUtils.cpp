@@ -528,8 +528,8 @@ string AssemblyBasedCallerUtils::createUniqueID(shared_ptr<VariantContext> vc) {
 
 shared_ptr<VariantContext>
 AssemblyBasedCallerUtils::phaseVC(shared_ptr<VariantContext> vc, string &ID, string &phaseGT, int phaseSetID) {
-    vector<Genotype*> phasedGenotypes;
-    GenoTypesContext* genotypesContext = vc->getGenotypes();
+    vector<std::shared_ptr<Genotype>> phasedGenotypes;
+    auto genotypesContext = vc->getGenotypes();
     if(genotypesContext != nullptr && genotypesContext->getGenotypes() != nullptr)
     {
         for(auto g : *genotypesContext->getGenotypes())
@@ -545,7 +545,7 @@ AssemblyBasedCallerUtils::phaseVC(shared_ptr<VariantContext> vc, string &ID, str
                 }
             }
 
-            Genotype* genotype = GenotypeBuilder(g).setAlleles(alleles).phased(true).attribute(VCFConstants::HAPLOTYPE_CALLER_PHASING_ID_KEY, ID).attribute(VCFConstants::HAPLOTYPE_CALLER_PHASING_GT_KEY, phaseGT).attribute(VCFConstants::PHASE_SET_KEY, phaseSetID).make();
+            auto genotype = GenotypeBuilder(g).setAlleles(alleles).phased(true).attribute(VCFConstants::HAPLOTYPE_CALLER_PHASING_ID_KEY, ID).attribute(VCFConstants::HAPLOTYPE_CALLER_PHASING_GT_KEY, phaseGT).attribute(VCFConstants::PHASE_SET_KEY, phaseSetID).make();
             phasedGenotypes.push_back(genotype);
         }
     }

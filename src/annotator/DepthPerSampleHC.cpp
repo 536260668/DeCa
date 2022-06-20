@@ -6,7 +6,7 @@
 
 template<> double AlleleLikelihoods<SAMRecord, Allele>::NATURAL_LOG_INFORMATIVE_THRESHOLD = MathUtils::log10ToLog(LOG_10_INFORMATIVE_THRESHOLD);
 
-void DepthPerSampleHC::annotate(ReferenceContext &ref, shared_ptr<VariantContext> vc, Genotype *g, GenotypeBuilder &gb,
+void DepthPerSampleHC::annotate(ReferenceContext &ref, shared_ptr<VariantContext> vc, std::shared_ptr<Genotype> g, GenotypeBuilder &gb,
                                 AlleleLikelihoods<SAMRecord, Allele> *likelihoods) {
     assert(vc != nullptr);
     assert(g != nullptr);

@@ -25,7 +25,7 @@ private:
 
     // optional -> these are set to the appropriate default value
     std::string ID = ".";
-    GenoTypesContext* genotypes;
+    std::shared_ptr<GenoTypesContext> genotypes;
     double log10PError;
     std::set<std::string> * filters;
     std::shared_ptr<std::map<std::string, AttributeValue>> attribute;
@@ -77,9 +77,9 @@ public:
 
     VariantContextBuilder* setLoc(std::string& contig, long start, long stop);
 
-    VariantContextBuilder* setGenotypes(GenoTypesContext* genotypesContext);
+    VariantContextBuilder* setGenotypes(std::shared_ptr<GenoTypesContext> genotypesContext);
 
-    VariantContextBuilder* setGenotypes(std::vector<Genotype*>& genotypes);
+    VariantContextBuilder* setGenotypes(std::vector<std::shared_ptr<Genotype>>& genotypes);
 
     VariantContextBuilder* setLog10PError(double log10PError);
 

@@ -13,7 +13,7 @@ class GenoTypesContext {
 protected:
     std::vector<std::string> * sampleNamesInOrder;
     std::unordered_map<std::string, int> * sampleNameToOffset;
-    std::vector<Genotype*> * notToBeDirectlyAccessedGenotypes;
+    std::vector<std::shared_ptr<Genotype>> * notToBeDirectlyAccessedGenotypes;
 
 
     void ensureSampleNameMap();
@@ -22,22 +22,23 @@ protected:
 private:
     int maxPloidy;
     bool immutable = false;
-    std::vector<Genotype*> bases;
+    std::vector<std::shared_ptr<Genotype>> bases;
 
 public:
-    static GenoTypesContext NO_GENOTYPES;
+    static std::shared_ptr<GenoTypesContext> NO_GENOTYPES;
 
     explicit GenoTypesContext(int n = 10);
-    explicit GenoTypesContext(std::vector<Genotype*> & genotypes);
-    GenoTypesContext(std::vector<Genotype*> * genotypes, std::unordered_map<std::string, int> * sampleNameToOffset, std::vector<std::string> * sampleNamesInOrder);
+    explicit GenoTypesContext(std::vector<std::shared_ptr<Genotype>> & genotypes);
+    GenoTypesContext(std::vector<std::shared_ptr<Genotype>> * genotypes, std::unordered_map<std::string, int> * sampleNameToOffset, std::vector<std::string> * sampleNamesInOrder);
+    GenoTypesContext(std::vector<std::shared_ptr<Genotype>> * genotypes, std::unordered_map<std::string, int> * sampleNameToOffset, std::vector<std::string> * sampleNamesInOrder, bool immutable);
     ~GenoTypesContext();
 
-    std::vector<Genotype*> * getGenotypes();
-    GenoTypesContext & setImmutable();
+    std::vector<std::shared_ptr<Genotype>> * getGenotypes();
+    void setImmutable();
     int getSize();
-    Genotype* get(int i);
+    std::shared_ptr<Genotype> get(int i);
     bool containsSample(std::string sample);
-    bool add(Genotype* genotype);
+    void add(std::shared_ptr<Genotype> genotype);
     bool isEmpty();
 };
 

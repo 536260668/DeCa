@@ -36,7 +36,7 @@ public:
 
     shared_ptr<VariantContext> annotateContext(shared_ptr<VariantContext> vc, ReferenceContext& ref, AlleleLikelihoods<SAMRecord, Allele>* likelihoods);
 
-    GenoTypesContext* annotateGenotypes(ReferenceContext& ref, shared_ptr<VariantContext> vc,  AlleleLikelihoods<SAMRecord, Allele>* likelihoods);
+    shared_ptr<GenoTypesContext> annotateGenotypes(ReferenceContext& ref, shared_ptr<VariantContext> vc,  AlleleLikelihoods<SAMRecord, Allele>* likelihoods);
 };
 
 

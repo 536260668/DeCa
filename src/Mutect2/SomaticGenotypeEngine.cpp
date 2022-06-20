@@ -154,6 +154,7 @@ CalledHaplotypes SomaticGenotypeEngine::callMutations(AlleleLikelihoods<SAMRecor
 
         delete logTumorMatrix->getLikelihoods();
         delete logNormalMatrix->getLikelihoods();
+        delete trimmedLikelihoods;
         delete logReadAlleleLikelihoods;
         delete trimmedLikelihoodsForAnnotation;
     }
@@ -340,7 +341,7 @@ vector<double> SomaticGenotypeEngine::getGermlineAltAlleleFrequencies(vector<sha
 void SomaticGenotypeEngine::addGenotypes(const shared_ptr<AlleleLikelihoods<Fragment, Allele>>& logLikelihoods,
                                          const shared_ptr<vector<shared_ptr<Allele>>>& allelesToEmit, VariantContextBuilder &callVcb) {
     int numberOfSamples = logLikelihoods->numberOfSamples();
-    std::vector<Genotype*> genotypes;
+    std::vector<std::shared_ptr<Genotype>> genotypes;
     for(int n=0; n<numberOfSamples; n++)
     {
         string sample = logLikelihoods->getSample(n);

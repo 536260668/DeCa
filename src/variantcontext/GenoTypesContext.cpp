@@ -8,39 +8,41 @@
 #include <cassert>
 
 
-GenoTypesContext::GenoTypesContext(int n) : maxPloidy(-1), immutable(false),  notToBeDirectlyAccessedGenotypes(new std::vector<Genotype*>()), sampleNameToOffset(
+GenoTypesContext::GenoTypesContext(int n) : maxPloidy(-1), immutable(false),  notToBeDirectlyAccessedGenotypes(new std::vector<std::shared_ptr<Genotype>>()), sampleNameToOffset(
         nullptr), sampleNamesInOrder(nullptr){
     notToBeDirectlyAccessedGenotypes->reserve(n);
 }
 
-GenoTypesContext::GenoTypesContext(std::vector<Genotype *> & genotypes) : maxPloidy(-1), immutable(false), notToBeDirectlyAccessedGenotypes(&genotypes), sampleNameToOffset(
-        nullptr), sampleNamesInOrder(nullptr){}
+GenoTypesContext::GenoTypesContext(std::vector<std::shared_ptr<Genotype>> & genotypes) : maxPloidy(-1), immutable(false), notToBeDirectlyAccessedGenotypes(
+        new std::vector<std::shared_ptr<Genotype>>(genotypes)), sampleNameToOffset(nullptr), sampleNamesInOrder(nullptr){}
 
-        GenoTypesContext GenoTypesContext::NO_GENOTYPES = GenoTypesContext(nullptr, nullptr, nullptr).setImmutable();
+std::shared_ptr<GenoTypesContext> GenoTypesContext::NO_GENOTYPES = std::make_shared<GenoTypesContext>(nullptr, nullptr, nullptr, true);
 
-GenoTypesContext::GenoTypesContext(std::vector<Genotype *> *genotypes, std::unordered_map<std::string, int> *sampleNameToOffset,
+GenoTypesContext::GenoTypesContext(std::vector<std::shared_ptr<Genotype>> *genotypes, std::unordered_map<std::string, int> *sampleNameToOffset,
                                    std::vector<std::string> *sampleNamesInOrder) : maxPloidy(-1), immutable(false), notToBeDirectlyAccessedGenotypes(genotypes), sampleNamesInOrder(sampleNamesInOrder), sampleNameToOffset(sampleNameToOffset){}
 
+GenoTypesContext::GenoTypesContext(std::vector<std::shared_ptr<Genotype>> *genotypes, std::unordered_map<std::string, int> *sampleNameToOffset,
+                                                                      std::vector<std::string> *sampleNamesInOrder, bool immutable) : maxPloidy(-1), immutable(immutable), notToBeDirectlyAccessedGenotypes(genotypes), sampleNamesInOrder(sampleNamesInOrder), sampleNameToOffset(sampleNameToOffset){}
+
 GenoTypesContext::~GenoTypesContext() noexcept {
-    if(notToBeDirectlyAccessedGenotypes)
+/*    if(notToBeDirectlyAccessedGenotypes)
     {
         for(Genotype* genotype : *notToBeDirectlyAccessedGenotypes)
         {
             delete genotype;
         }
-    }
+    }*/
 
     delete notToBeDirectlyAccessedGenotypes;
     delete sampleNameToOffset;
     delete sampleNamesInOrder;
 }
 
-GenoTypesContext & GenoTypesContext::setImmutable() {
+void GenoTypesContext::setImmutable() {
     immutable = true;
-    return *this;
 }
 
-std::vector<Genotype *> *GenoTypesContext::getGenotypes() {
+std::vector<std::shared_ptr<Genotype>> *GenoTypesContext::getGenotypes() {
     return notToBeDirectlyAccessedGenotypes;
 }
 
@@ -51,8 +53,10 @@ int GenoTypesContext::getSize() {
         return (int)notToBeDirectlyAccessedGenotypes->size();
 }
 
-Genotype *GenoTypesContext::get(int i) {
-    return getGenotypes()->at(i);
+std::shared_ptr<Genotype> GenoTypesContext::get(int i) {
+    assert(notToBeDirectlyAccessedGenotypes != nullptr);
+    assert(i >= 0 && i < notToBeDirectlyAccessedGenotypes->size());
+    return notToBeDirectlyAccessedGenotypes->at(i);
 }
 
 void GenoTypesContext::ensureSampleNameMap() {
@@ -72,14 +76,16 @@ bool GenoTypesContext::containsSample(std::string sample) {
     return sampleNameToOffset->find(sample) != sampleNameToOffset->end();
 }
 
-bool GenoTypesContext::add(Genotype *genotype) {
+void GenoTypesContext::add(std::shared_ptr<Genotype> genotype) {
     assert(!this->immutable);
     invalidateSampleOrdering();
     if(sampleNameToOffset != nullptr)
     {
         sampleNameToOffset->insert({genotype->getSampleName(), getSize()});
     }
-    return getGenotypes()->emplace_back(genotype);
+    if(!notToBeDirectlyAccessedGenotypes)
+        notToBeDirectlyAccessedGenotypes = new std::vector<std::shared_ptr<Genotype>>();
+    notToBeDirectlyAccessedGenotypes->emplace_back(genotype);
 }
 
 void GenoTypesContext::invalidateSampleOrdering() {

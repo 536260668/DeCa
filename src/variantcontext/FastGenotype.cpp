@@ -20,4 +20,8 @@ int *FastGenotype::getPL(int &length) {
     return PL;
 }
 
-FastGenotype::~FastGenotype() = default;
+FastGenotype::~FastGenotype()
+{
+//    delete[] AD;
+//    delete[] PL;
+}

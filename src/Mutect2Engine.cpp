@@ -98,7 +98,7 @@ std::shared_ptr<std::vector<char>> Mutect2Engine::altQuals(ReadPileup &pileup, c
 			result->emplace_back(indelQual(indelLength));
 		} else if (isNextToUsefulSoftClip(pe)) {
 			result->emplace_back(indelQual(1));
-		} else if (pe.getBase() != refBase && pe.getQual() > 6) {
+		} else if (pe.getBase() != refBase && pe.getQual() > MINIMUM_BASE_QUALITY) {
 
 			int mateStart = (!read->read->isProperlyPaired() || read->read->mateIsUnmapped()) ? INT32_MAX
 			                                                                                  : read->read->getMateStart();

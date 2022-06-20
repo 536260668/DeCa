@@ -261,8 +261,7 @@ public:
     {
         for(auto sampleMatrix : sampleMatrices)
         {
-            if(!sampleMatrix)
-                delete sampleMatrix;
+            delete sampleMatrix;
         }
     }
 
