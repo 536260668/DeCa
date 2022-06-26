@@ -284,7 +284,10 @@ void AssemblyResultSet::printSortedHaplotypes() {
 		} else {
 			std::cout << "ref\t";
 		}
-		std::cout << baseStr.length() << std::endl;
-		std::cout << baseStr << std::endl;
+		std::cout << baseStr.length() << " ";
+		for (const auto &ce: h->getCigar()->getCigarElements()){
+			std::cout << ce.getLength() << CigarOperatorUtils::enumToCharacter(ce.getOperator());
+		}
+		std::cout << std::endl << baseStr << std::endl;;
 	}
 }

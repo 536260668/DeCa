@@ -25,7 +25,7 @@ std::optional<int> BaseQuality::getValueForRead(std::shared_ptr<SAMRecord> read,
     return getBaseQuality(read, vc);
 }
 
-std::optional<int> BaseQuality::getBaseQuality(std::shared_ptr<SAMRecord> read, shared_ptr<VariantContext> vc) {
+std::optional<int> BaseQuality::getBaseQuality(const std::shared_ptr<SAMRecord>& read, const shared_ptr<VariantContext>& vc) {
     if (vc->getStart() < read->getStart() || read->getEnd() < vc->getStart()) {
         return std::nullopt;
     }

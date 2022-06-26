@@ -371,6 +371,21 @@ void ReadThreadingAssembler::findBestPaths(const std::vector<std::shared_ptr<Seq
 				                                                          h->getLength());
 				if (cigar == nullptr)
 					continue;   // couldn't produce a meaningful alignment of haplotype to reference, fail quietly
+
+				/*std::cout << refHaplotype->getLength() << " " <<std::string((char *)refHaplotype->getBases().get()) << std::endl << h->getLength()  << " " <<std::string((char *)h->getBases().get()) << std::endl;
+				for (const auto &ce: cigar->getCigarElements()){
+					std::cout << ce.getLength() << CigarOperatorUtils::enumToCharacter(ce.getOperator());
+				}
+				std::cout << std::endl;
+				for (int i = 1; i < cigar->getCigarElements().size(); ++i){
+					if (cigar->getCigarElement(i).getLength() == cigar->getCigarElement(i-1).getLength() && cigar->getCigarElement(i).getLength()>10){
+						if((cigar->getCigarElement(i).getOperator()==D && cigar->getCigarElement(i-1).getOperator()==I)
+						||(cigar->getCigarElement(i).getOperator()==I && cigar->getCigarElement(i-1).getOperator()==D)){
+							std::shared_ptr<Cigar> cigar1 = CigarUtils::calculateCigar(refHaplotype->getBases(),refHaplotype->getLength(), h->getBases(),h->getLength());
+							std::cout<<"break\n";
+						}
+					}
+				}*/
 				h->setCigar(cigar);
 				h->setAlignmentStartHapwrtRef(activeRegionStart);
 				h->setGenomeLocation(activeRegionWindow);

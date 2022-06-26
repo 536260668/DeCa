@@ -3,6 +3,7 @@
 //
 
 #include <cassert>
+#include <random>
 #include "ReadCache.h"
 #include "iostream"
 #include "ReadUtils.h"
@@ -17,7 +18,7 @@ ReadCache::ReadCache(aux_t **data, std::vector<char*> & bam_name, std::shared_pt
     std::string region(sam_hdr_tid2name(data[0]->hdr, 0));
     for(int i = 0; i < bam_name.size(); i++){
         int result;
-        int count = 0;
+        //int count = 0;
         hts_idx_t * idx = sam_index_load(data[i]->fp, bam_name[i]);
         if(idx == nullptr)
             throw std::invalid_argument("random alignment retrieval only works for indexed BAM or CRAM files.");
@@ -36,8 +37,8 @@ ReadCache::ReadCache(aux_t **data, std::vector<char*> & bam_name, std::shared_pt
                     tumorReads.emplace(getpileRead(read));
                 }
             }
-            if(count > 500)
-                break;
+            //if(count > 500)
+            //    break;
         }
         hts_itr_destroy(iter);
     }
@@ -46,7 +47,7 @@ ReadCache::ReadCache(aux_t **data, std::vector<char*> & bam_name, std::shared_pt
     //start = end = currentPose = 0;
 }
 
-ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, int start, int end, int maxAssemblyRegionSize, std::shared_ptr<ReferenceCache> & cache, bool bqsr_within_mutect, BQSRReadTransformer * tumorTransformer, BQSRReadTransformer * normalTransformer) :
+ReadCache::ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, int start, int end, int maxReadsPerAlignmentStart, int maxAssemblyRegionSize, std::shared_ptr<ReferenceCache> & cache, bool bqsr_within_mutect, BQSRReadTransformer * tumorTransformer, BQSRReadTransformer * normalTransformer) :
 tid(tid), data(data), bam_name(bam_name), readTransformer(cache, data[0]->header, 5), bqsr_within_mutect(bqsr_within_mutect), tumorTransformer(tumorTransformer), normalTransformer(normalTransformer){
 
     for(int i = 0; i < bam_name.size(); i++){
@@ -65,6 +66,13 @@ tid(tid), data(data), bam_name(bam_name), readTransformer(cache, data[0]->header
     ExtendedEnd = min(end + maxAssemblyRegionSize, chr_len);
     chr_name = std::string(sam_hdr_tid2name(data[0]->hdr, tid));
     currentPose = ExtendedStart - 1;
+
+	if (maxReadsPerAlignmentStart < 0)
+		maxCoverage = DEFAULT_MAX_COVERAGE;
+	else if (maxReadsPerAlignmentStart == 0)
+		maxCoverage = INT_MAX;
+	else
+		maxCoverage = maxReadsPerAlignmentStart;
 
     readData(string(sam_hdr_tid2name(data[0]->hdr, tid)) + ":" + to_string(ExtendedStart) + "-" + to_string(ExtendedEnd));
 
@@ -88,42 +96,91 @@ void ReadCache::readData(const string &region)
 {
     bam1_t * b;
     b = bam_init1();
+	std::vector<pileRead *> pendingReads;
 
     for(int i = 0; i < bam_name.size(); i++){
         int result;
         hts_itr_t* iter = sam_itr_querys(hts_idxes[i], data[i]->hdr, region.c_str());
         while((result = sam_itr_next(data[i]->fp, iter, b)) >= 0) {
-            if(ReadFilter::test(b, data[i]->hdr)) {
-                // recalibrate base qualities
-                if(bqsr_within_mutect)
-                {
-                    if(i == 0)
-                    {
-                        normalTransformer->apply(b);
-                    }
-                    else {
-                        tumorTransformer->apply(b);
-                    }
-                }
+	        if(ReadFilter::test(b, data[i]->hdr)) {
+				// recalibrate base qualities
+				if(bqsr_within_mutect) {
+					if(i == 0) {
+						normalTransformer->apply(b);
+					} else {
+						tumorTransformer->apply(b);
+					}
+				}
 
-                bam1_t * transformed_read = readTransformer.apply(b, data[i]->hdr);
-                std::shared_ptr<SAMRecord> read = std::make_shared<SAMRecord>(transformed_read, data[i]->hdr);
-                if(i == 0) {
-                    read->setGroup(0);
-                    normalReads.emplace(getpileRead(read));
-                }
-                else {
-                    read->setGroup(1);
-                    tumorReads.emplace(getpileRead(read));
-                }
+				bam1_t * transformed_read = readTransformer.apply(b, data[i]->hdr);
+				std::shared_ptr<SAMRecord> read = std::make_shared<SAMRecord>(transformed_read, data[i]->hdr);
+				read->setGroup(i);
+				pendingReads.emplace_back(getpileRead(read));
 
-                if(transformed_read != b)
-                    bam_destroy1(transformed_read);
-            }
-        }
+				if(transformed_read != b)
+					bam_destroy1(transformed_read);
+			}
+		}
         hts_itr_destroy(iter);
     }
+
+	// downSample
+	if (BOOST_LIKELY(!pendingReads.empty())) {
+		// merge reads by coordinate
+		std::sort(pendingReads.begin(), pendingReads.end(), [](pileRead *a, pileRead *b) -> bool {
+			return a->read->getStart() < b->read->getStart();
+		});
+		int last_start = pendingReads[0]->read->getStart(), count = 1;
+		for (int i = 1; i <= pendingReads.size(); ++i) {
+			if (BOOST_LIKELY(i != pendingReads.size()) && pendingReads[i]->read->getStart() == last_start) {
+				count++;
+				continue;
+			}
+
+			// handle position change
+			if (count > maxCoverage) {
+				std::vector<pileRead *> toDownSample(pendingReads.begin() + i - count,pendingReads.begin() + i);
+				std::vector<pileRead *> downSampled = downSample(toDownSample);
+				//std::cout << (*toDownSample.begin())->read->getStart() + 1 << " " << toDownSample.size() << " " << downSampled.size() << std::endl;
+				splitPendingReads(downSampled, 0 ,(int)downSampled.size());
+			} else {
+				splitPendingReads(pendingReads, i - count, i);
+			}
+
+			if (BOOST_UNLIKELY(i == pendingReads.size())) break;
+			last_start = pendingReads[i]->read->getStart(), count = 1;
+		}
+	}
+
     bam_destroy1(b);
+}
+
+void ReadCache::splitPendingReads(const std::vector<pileRead *>& pendingReads, int start, int end) {
+	for (int j = start; j < end; ++j) {
+		pileRead* finalizedPileRead = pendingReads[j];
+		if (finalizedPileRead->read->getGroup() == 0) {
+			normalReads.emplace(finalizedPileRead);
+		} else {
+			tumorReads.emplace(finalizedPileRead);
+		}
+	}
+}
+
+std::vector<pileRead *> ReadCache::downSample(const std::vector<pileRead *>& pendingReads) const {
+	std::vector<pileRead *> filtered;
+	filtered.reserve(pendingReads.size());
+
+	for (const auto &pileRead: pendingReads) {
+		if (pileRead->read->getMappingQuality() > SUSPICIOUS_MAPPING_QUALITY) {
+			filtered.emplace_back(pileRead);
+		}
+	}
+
+	if (filtered.size() <= maxCoverage)
+		return filtered;
+
+	shuffle(filtered.begin(), filtered.end(), std::mt19937(std::random_device()()));
+	return {filtered.begin(), filtered.begin() + maxCoverage};
 }
 
 int ReadCache::getNextPos() {

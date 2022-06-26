@@ -28,7 +28,7 @@ protected:
     std::string getDescription();
 public:
     // -1 represent null
-    std::optional<int> getBaseQuality(std::shared_ptr<SAMRecord> read, shared_ptr<VariantContext> vc);
+    std::optional<int> getBaseQuality(const std::shared_ptr<SAMRecord>& read, const shared_ptr<VariantContext>& vc);
 };
 
 

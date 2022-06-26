@@ -7,6 +7,7 @@
 #include "ReadConstants.h"
 #include "SAMUtils.h"
 #include "ReadUtils.h"
+#include <memory>
 #include <sstream>
 #include <iostream>
 #include <utility>
@@ -294,12 +295,12 @@ void SAMRecord::setAttribute(short tag, void *value, Void_Type type, int length,
     } else {
         std::shared_ptr<SAMBinaryTagAndValue> tmp;
         if(!isUnsignedArray) {
-            tmp = std::shared_ptr<SAMBinaryTagAndValue>(new SAMBinaryTagAndValue(tag, value, type, length));
+            tmp = std::make_shared<SAMBinaryTagAndValue>(tag, value, type, length);
         } else {
             if(type == Short_Array_Type || type == Int_Array_Type || type == Float_Array_Type || type == Uint8_t_Array_Type) {
                 throw std::invalid_argument("Attribute type cannot be encoded as an unsigned array.");
             } else {
-                tmp = std::shared_ptr<SAMBinaryTagAndValue>(new SAMBinaryTagAndValue(tag, value, type, length));
+                tmp = std::make_shared<SAMBinaryTagAndValue>(tag, value, type, length);
             }
         }
 

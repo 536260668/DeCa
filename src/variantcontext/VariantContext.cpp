@@ -53,9 +53,8 @@ std::vector<std::shared_ptr<Allele>> VariantContext::makeAlleles(std::vector<std
     std::vector<std::shared_ptr<Allele>> alleleList;
     bool sawRef = false;
     for(const std::shared_ptr<Allele>& allele : _alleles) {
-        int i = 0;
-        for(int alleleListSize = _alleles.size(); i < alleleListSize; ++i) {
-            if(i < alleleList.size() && alleleList.at(i) != nullptr && (*allele).equals(*alleleList.at(i), true)) {
+        for(auto & otherAllele : alleleList) {
+            if((*allele).equals(*otherAllele, true)) {
                 throw std::invalid_argument("Duplicate allele added to VariantContext");
             }
         }

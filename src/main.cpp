@@ -27,21 +27,29 @@
 #include "utils/BaseUtils.h"
 #include "variantcontext/VCFWriter.h"
 
-#include "annotator/BaseQuality.h"
-#include "annotator/FragmentLength.h"
-#include "annotator/Coverage.h"
-#include "annotator/MappingQuality.h"
-#include "annotator/ReadPosition.h"
+// TODO: finish this method
+std::vector<shared_ptr<InfoFieldAnnotation>> makeInfoFieldAnnotation()
+{
+	std::vector<shared_ptr<InfoFieldAnnotation>> InfoFieldAnnotationList;
+	InfoFieldAnnotationList.emplace_back(new BaseQuality);
+	InfoFieldAnnotationList.emplace_back(new FragmentLength);
+	InfoFieldAnnotationList.emplace_back(new ReadPosition);
+	InfoFieldAnnotationList.emplace_back(new Coverage);
+	InfoFieldAnnotationList.emplace_back(new MappingQuality);
 
+	return InfoFieldAnnotationList;
+}
 
-#include "annotator/DepthPerSampleHC.h"
-#include "annotator/DepthPerAlleleBySample.h"
-#include "annotator/OrientationBiasReadCounts.h"
-#include "annotator/StrandBiasBySample.h"
+std::vector<shared_ptr<GenotypeAnnotation>> makeGenotypeAnnotation()
+{
+	std::vector<shared_ptr<GenotypeAnnotation>> GenotypeAnnotationList;
+	GenotypeAnnotationList.emplace_back(new DepthPerSampleHC);
+	GenotypeAnnotationList.emplace_back(new DepthPerAlleleBySample);
+	GenotypeAnnotationList.emplace_back(new OrientationBiasReadCounts);
+	GenotypeAnnotationList.emplace_back(new StrandBiasBySample);
 
-std::vector<shared_ptr<GenotypeAnnotation>> makeGenotypeAnnotation();
-std::vector<shared_ptr<InfoFieldAnnotation>> makeInfoFieldAnnotation();
-
+	return GenotypeAnnotationList;
+}
 
 struct Region{
     int _start;
@@ -114,6 +122,8 @@ static int usage() {
 	fprintf(stderr, "\n");
 	fprintf(stderr, "-M:String                      ML model path\n");
 	fprintf(stderr, "\n");
+	fprintf(stderr, "--max-reads-per-alignment-start-M:Int   Maximum number of reads to retain per alignment start position. Reads above this threshold will be downsampled. Set to 0 to disable.\n");
+	fprintf(stderr, "\n");
                     return EXIT_FAILURE;
 }
 
@@ -153,6 +163,7 @@ struct Shared{
 	std::string chromosomeName;
 	M2ArgumentCollection MTAC;
 	std::string modelPath;
+	int maxReadsPerAlignmentStart = -1;
 	bool bqsr_within_mutect = false;
 	char * tumor_table = nullptr;
 	char * normal_table = nullptr;
@@ -178,7 +189,7 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 	std::queue<std::shared_ptr<AssemblyRegion>> pendingRegions;
 	ActivityProfile *activityProfile = new BandPassActivityProfile(w->MTAC.maxProbPropagationDistance, w->MTAC.activeProbThreshold, BandPassActivityProfile::MAX_FILTER_SIZE, BandPassActivityProfile::DEFAULT_SIGMA,true , w->header);
 	VariantAnnotatorEngine annotatiorEngine(makeInfoFieldAnnotation(), makeGenotypeAnnotation());
-	Mutect2Engine m2Engine(w->MTAC, w->header, w->modelPath, annotatiorEngine, false);
+	Mutect2Engine m2Engine(w->MTAC, w->header, w->modelPath, annotatiorEngine, true);
 	std::vector<SAMSequenceRecord> headerSequences = w->header->getSequenceDictionary().getSequences();
 
 	std::shared_ptr<BQSRReadTransformer> tumorTransformer = nullptr;
@@ -241,7 +252,7 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 		std::cout << "Processing " + std::to_string(currentTask + 1) + "/" + std::to_string(w->regions.size()) + '\t'
 			+ contig + ':' + std::to_string(start) + '-' + std::to_string(end) + '\n';
 
-		ReadCache cache(data, w->input_bam, k, start, end, w->MTAC.maxAssemblyRegionSize, w->refCaches[k], w->bqsr_within_mutect, tumorTransformer.get(), normalTransformer.get());
+		ReadCache cache(data, w->input_bam, k, start, end, w->maxReadsPerAlignmentStart, w->MTAC.maxAssemblyRegionSize, w->refCaches[k], w->bqsr_within_mutect, tumorTransformer.get(), normalTransformer.get());
 		m2Engine.setReferenceCache(w->refCaches[k].get());
 
 		while(cache.hasNextPos()) {
@@ -392,6 +403,7 @@ int main(int argc, char *argv[])
             {"bqsr-within-mutect", optional_argument, nullptr, 1007},
             {"tumor-table", required_argument, nullptr, 1008},
             {"normal-table", required_argument, nullptr, 1009},
+            {"max-reads-per-alignment-start", required_argument, nullptr, 1010},
             { nullptr, 0, nullptr, 0 }
             };
 
@@ -451,6 +463,9 @@ int main(int argc, char *argv[])
                 break;
             case 1009:
 	            sharedData.normal_table = strdup(optarg);
+				break;
+	        case 1010:
+		        sharedData.maxReadsPerAlignmentStart = atoi(optarg);
                 break;
         }
     }
@@ -519,7 +534,7 @@ int main(int argc, char *argv[])
 	// Initialize VCFWriter and write headers
 	VCFWriter vcfWriter(output, sharedData.header->getSequenceDictionary());
 	std::string commandLine = VCFWriter::getCommandLine(argc, argv);
-	vcfWriter.writeHeader(commandLine);
+	vcfWriter.writeHeader(commandLine, sharedData.header->getReadGroupRecord(), sharedData.MTAC.normalSample);
 
 	for(auto &thread : threads) {
 		thread.join();
@@ -569,28 +584,4 @@ int main(int argc, char *argv[])
     free(data);
 	vcfWriter.close();
 	return 0;
-}
-
-// TODO: finish this method
-std::vector<shared_ptr<InfoFieldAnnotation>> makeInfoFieldAnnotation()
-{
-    std::vector<shared_ptr<InfoFieldAnnotation>> InfoFieldAnnotationList;
-    InfoFieldAnnotationList.emplace_back(new BaseQuality);
-    InfoFieldAnnotationList.emplace_back(new FragmentLength);
-    InfoFieldAnnotationList.emplace_back(new ReadPosition);
-    InfoFieldAnnotationList.emplace_back(new Coverage);
-    InfoFieldAnnotationList.emplace_back(new MappingQuality);
-
-    return InfoFieldAnnotationList;
-}
-
-std::vector<shared_ptr<GenotypeAnnotation>> makeGenotypeAnnotation()
-{
-    std::vector<shared_ptr<GenotypeAnnotation>> GenotypeAnnotationList;
-    GenotypeAnnotationList.emplace_back(new DepthPerSampleHC);
-    GenotypeAnnotationList.emplace_back(new DepthPerAlleleBySample);
-    GenotypeAnnotationList.emplace_back(new OrientationBiasReadCounts);
-    GenotypeAnnotationList.emplace_back(new StrandBiasBySample);
-
-    return GenotypeAnnotationList;
 }

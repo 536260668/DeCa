@@ -180,6 +180,7 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion> &originalAssembl
 	std::shared_ptr<AssemblyRegion> assemblyActiveRegion = AssemblyBasedCallerUtils::assemblyRegionWithWellMappedReads(
 			originalAssemblyRegion, READ_QUALITY_FILTER_THRESHOLD, header, debugMode);
 	//if (assemblyActiveRegion->getStart() + 1 < 33043694) return {};
+	//assemblyActiveRegion->printRegionInfo();
 	std::shared_ptr<AssemblyResultSet> untrimmedAssemblyResult
 			= AssemblyBasedCallerUtils::assembleReads(assemblyActiveRegion, MTAC, header, *refCache, assemblyEngine, debugMode);
 	std::set<std::shared_ptr<VariantContext>, VariantContextComparator> &allVariationEvents

@@ -52,8 +52,11 @@ private:
     BQSRReadTransformer * tumorTransformer;
     BQSRReadTransformer * normalTransformer;
     bool bqsr_within_mutect;
+	int DEFAULT_MAX_COVERAGE = 50;
+	int SUSPICIOUS_MAPPING_QUALITY = 50;
+	int maxCoverage;
 
-    // read data in a specific region and add it to the cache
+	// read data in a specific region and add it to the cache
     void readData(const string & region);
 
     void advanceLoad();
@@ -61,10 +64,14 @@ private:
     // clear all the reads in the cache
     void clear();
 
+	void splitPendingReads(const std::vector<pileRead*>& pendingReads, int start, int end);
+
+	std::vector<pileRead*> downSample(const std::vector<pileRead*>& pendingReads) const;
+
 public:
 
     ReadCache(aux_t** data, std::vector<char*> & bam_name, std::shared_ptr<ReferenceCache> & cache);
-    ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, int start, int end, int maxAssemblyRegionSize, std::shared_ptr<ReferenceCache> & cache, bool bqsr_within_mutect = false, BQSRReadTransformer * tumorTransformer = nullptr, BQSRReadTransformer * normalTransformer = nullptr);
+    ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, int start, int end, int maxReadsPerAlignmentStart, int maxAssemblyRegionSize, std::shared_ptr<ReferenceCache> & cache, bool bqsr_within_mutect = false, BQSRReadTransformer * tumorTransformer = nullptr, BQSRReadTransformer * normalTransformer = nullptr);
     int getNextPos();
     bool hasNextPos();
     void InsertPileToAlignment(pileRead* stopPos, std::list<pileRead*> &);
@@ -72,6 +79,7 @@ public:
     AlignmentContext getAlignmentContext();
     std::vector<std::shared_ptr<SAMRecord>> getReadsForRegion(AssemblyRegion & region);
     static pileRead * getpileRead(const std::shared_ptr<SAMRecord> & read);
+	void downSample();
     ~ReadCache();
 };
 

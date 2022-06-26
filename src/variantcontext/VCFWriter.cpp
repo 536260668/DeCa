@@ -38,7 +38,7 @@ void VCFWriter::appendHeader(const std::string &str) {
 }
 
 std::string VCFWriter::getCommandLine(int argc, char *argv[]) {
-	std::string commandLine = "##Mutect2CommandLine=";
+	std::string commandLine;
 	for (int i = 0; i < argc; ++i) {
 		if (i != 0)
 			commandLine.append(" ");
@@ -47,17 +47,75 @@ std::string VCFWriter::getCommandLine(int argc, char *argv[]) {
 	return commandLine;
 }
 
-int VCFWriter::writeHeader(const std::string &cmdLine) {
-	appendHeader("##source=Mutect2");
+void VCFWriter::writeHeader(const std::string &cmdLine, const std::vector<SAMReadGroupRecord> &readGroup,
+                            const std::string &normalSample) {
+	mOtherMetaData.insert(std::make_pair("source", "Mutect2"));
 	if (!cmdLine.empty()) {
-		appendHeader(cmdLine);
+		mOtherMetaData.insert(std::make_pair("Mutect2CommandLine", cmdLine));
 	}
-	appendHeader(
-			"##filtering_status=Warning: unfiltered Mutect 2 calls.  Please run FilterMutectCalls to remove false positives.");
 
-	bcf_hdr_add_sample(hdr, "/home/cluster/Storage4/hlf/test1223/elwg/ts_tumor_dedup.bam");
-	//bcf_hdr_sync(hdr);
-	return vcf_hdr_write(outFile, hdr);
+	// remove default filter and add a warning
+	// TODO:filter not removed
+	bcf1_t *rec = bcf_init();
+	rec->rid = bcf_hdr_name2id(hdr, "1");
+	bcf_remove_filter(hdr, rec, bcf_hdr_id2int(hdr, BCF_DT_ID, "PASS"), 1);
+
+	mOtherMetaData.insert(std::make_pair("filtering_status",
+	                                     "Warning: unfiltered Mutect 2 calls.  Please run FilterMutectCalls to remove false positives."));
+
+	// process sample names
+	for (const auto &rg: readGroup) {
+		std::string sampleName = rg.getAttributesNochange()[SAMReadGroupRecord::READ_GROUP_SAMPLE_TAG];
+		if (sampleName == normalSample) {
+			mOtherMetaData.insert(std::make_pair("normal_sample", sampleName));
+		} else {
+			mOtherMetaData.insert(std::make_pair("tumor_sample", sampleName));
+		}
+		sampleNamesInOrder.push_back(sampleName);
+	}
+	std::sort(sampleNamesInOrder.begin(), sampleNamesInOrder.end());
+	for (const std::string &sampleName: sampleNamesInOrder) {
+		char c_str[sampleName.length() + 1];
+		strcpy(c_str, sampleName.c_str());
+		bcf_hdr_add_sample(hdr, c_str);
+	}
+	if (bcf_hdr_sync(hdr) < 0)
+		throw std::invalid_argument("something wrong when bcf_hdr_sync.");
+
+	// process reference dictionary
+	for (auto &sequence: refDict.getSequences()) {
+		contigMetaData.push_back(
+				"contig=<ID=" + sequence.getSequenceName() + ",length=" + std::to_string(sequence.getSequenceLength()) +
+				">");
+	}
+
+	// merge and sort all meta date
+	//TODO : use bcf_update_info_string()
+	for (const auto &infoData: mInfoMetaData) {
+		metaDataInSortedOrder.push_back("##" + infoData.second);
+	}
+	for (const auto &formatData: mFormatMetaData) {
+		metaDataInSortedOrder.push_back("##" + formatData.second);
+	}
+	for (const auto &otherData: mOtherMetaData) {
+		metaDataInSortedOrder.push_back("##" + otherData.first + "=" + otherData.second);
+	}
+	metaDataInSortedOrder.emplace_back("##contig"); // represent all contigs
+	std::sort(metaDataInSortedOrder.begin(), metaDataInSortedOrder.end());
+
+	for (const auto &data: metaDataInSortedOrder) {
+		if (data != "##contig") {
+			appendHeader(data);
+			continue;
+		}
+		for (const auto &contigData: contigMetaData) {
+			appendHeader("##" + contigData);
+		}
+	}
+
+
+	if (vcf_hdr_write(outFile, hdr) < 0)
+		throw std::invalid_argument("something wrong when write vcf header.");
 }
 
 void VCFWriter::add(VariantContext vc) {
@@ -65,5 +123,6 @@ void VCFWriter::add(VariantContext vc) {
 }
 
 void VCFWriter::close() {
+	bcf_hdr_destroy(hdr);
 	hts_close(outFile);
 }
