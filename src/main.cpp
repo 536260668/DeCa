@@ -340,6 +340,8 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
  	}
 
 	w->allConcurrentMode = ++w->numOfStep2Thread == w->numOfThreads;
+	if (w->allConcurrentMode) std::cout << "All threads work concurrently.\n";
+
 	concurrentTask activeRegion;
 	bool exitFlag = false;
 	while (true) {
@@ -539,7 +541,7 @@ int main(int argc, char *argv[])
 	for(auto &thread : threads) {
 		thread.join();
 	}
-	std::cout << "All threads exited\n";
+	std::cout << "All threads exited.\n";
 
 	std::vector<std::shared_ptr<VariantContext>> MergedConcurrentResults;
 	for (const auto &results: sharedData.concurrentResults) {

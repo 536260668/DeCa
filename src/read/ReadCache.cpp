@@ -97,9 +97,7 @@ void ReadCache::readData(const string &region)
 {
     bam1_t * b;
     b = bam_init1();
-	std::vector<pileRead *> pendingReads[bam_name.size()];
-	std::vector<pileRead *> mergedPendingReads;
-	std::unordered_set<int> startIndex;
+	std::vector<pileRead *> pendingReads;
 
 	for(int i = 0; i < bam_name.size(); i++){
         int result;
@@ -118,8 +116,7 @@ void ReadCache::readData(const string &region)
 				bam1_t * transformed_read = readTransformer.apply(b, data[i]->hdr);
 				std::shared_ptr<SAMRecord> read = std::make_shared<SAMRecord>(transformed_read, data[i]->hdr);
 				read->setGroup(i);
-				pendingReads[i].emplace_back(getpileRead(read));
-		        startIndex.insert(read->getStart());
+				pendingReads.emplace_back(getpileRead(read));
 
 				if(transformed_read != b)
 					bam_destroy1(transformed_read);
@@ -128,43 +125,31 @@ void ReadCache::readData(const string &region)
         hts_itr_destroy(iter);
     }
 
-	// merge reads by coordinate
-	int p[bam_name.size()];
-	std::fill_n(p, bam_name.size(), 0);
-
-	for (int ind = 0; ind < chr_len; ++ind) {
-		if (startIndex.find(ind) == startIndex.end()) continue;
-		for (int j = 0; j < bam_name.size(); ++j) {
-			if (BOOST_UNLIKELY(p[j] >= pendingReads[j].size())) continue;
-			while(pendingReads[j][p[j]]->read->getStart() == ind) {
-				mergedPendingReads.emplace_back(pendingReads[j][p[j]]);
-				++p[j];
-				if (BOOST_UNLIKELY(p[j] >= pendingReads[j].size())) break;
-			}
-		}
-	}
-
 	// downSample
-	if (BOOST_LIKELY(!mergedPendingReads.empty())) {
-		int last_start = mergedPendingReads.front()->read->getStart(), count = 1;
-		for (int i = 1; i <= mergedPendingReads.size(); ++i) {
-			if (BOOST_LIKELY(i != mergedPendingReads.size()) && mergedPendingReads[i]->read->getStart() == last_start) {
+	if (BOOST_LIKELY(!pendingReads.empty())) {
+		// sort reads by coordinate
+		std::sort(pendingReads.begin(), pendingReads.end(), [](pileRead *a, pileRead *b) -> bool {
+			return a->read->getStart() < b->read->getStart();
+		});
+		int last_start = pendingReads.front()->read->getStart(), count = 1;
+		for (int i = 1; i <= pendingReads.size(); ++i) {
+			if (BOOST_LIKELY(i != pendingReads.size()) && pendingReads[i]->read->getStart() == last_start) {
 				count++;
 				continue;
 			}
 
 			// handle position change
 			if (count > maxCoverage) {
-				std::vector<pileRead *> toDownSample(mergedPendingReads.begin() + i - count,mergedPendingReads.begin() + i);
+				std::vector<pileRead *> toDownSample(pendingReads.begin() + i - count, pendingReads.begin() + i);
 				std::vector<pileRead *> downSampled = downSample(toDownSample);
-				//std::cout << (*toDownSample.begin())->read->getStart() + 1 << " " << toDownSample.size() << " " << downSampled.size() << std::endl;
+				// std::cout << (*toDownSample.begin())->read->getStart() + 1 << " " << toDownSample.size() << " " << downSampled.size() << std::endl;
 				splitPendingReads(downSampled, 0 ,(int)downSampled.size());
 			} else {
-				splitPendingReads(mergedPendingReads, i - count, i);
+				splitPendingReads(pendingReads, i - count, i);
 			}
 
-			if (BOOST_UNLIKELY(i == mergedPendingReads.size())) break;
-			last_start = mergedPendingReads[i]->read->getStart(), count = 1;
+			if (BOOST_UNLIKELY(i == pendingReads.size())) break;
+			last_start = pendingReads[i]->read->getStart(), count = 1;
 		}
 	}
 
