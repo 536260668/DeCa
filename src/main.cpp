@@ -558,12 +558,12 @@ int main(int argc, char *argv[])
 	auto sortedVC = MergedConcurrentResults.begin();
 	for (int i = 0; i < sharedData.regions.size(); ++i) {
 		for (const auto &vc: sharedData.results[i]) {
-			Mutect2Engine::printVariationContext(vc);
+			//Mutect2Engine::printVariationContext(vc);
 		}
 		for (; sortedVC != MergedConcurrentResults.end(); ++sortedVC) {
 			if ((*sortedVC)->getStart() > sharedData.regions[i].getEnd())
 				break;
-			Mutect2Engine::printVariationContext(*sortedVC);
+			//Mutect2Engine::printVariationContext(*sortedVC);
 		}
 	}
 

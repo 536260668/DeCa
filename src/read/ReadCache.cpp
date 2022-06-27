@@ -367,7 +367,7 @@ void ReadCache::InsertPileToAlignment(pileRead* pile, std::list<pileRead*> & toA
 bool ReadCache::InsertPileToCache(pileRead *pile, std::list<pileRead *> & toAdd) {
     if(pile->activateStart > pile->activateStop)
         return false;
-    std::list<pileRead*>::iterator iter = toAdd.end();
+    auto iter = toAdd.end();
     iter--;
     while(iter != toAdd.begin())
     {
