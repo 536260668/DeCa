@@ -63,11 +63,11 @@ std::shared_ptr<ActivityProfileState> Mutect2Engine::isActive(AlignmentContext &
 
 	std::shared_ptr<std::vector<char>> tumorAltQuals = altQuals(tumorPileup, refBase, 40);
 	if (tumorAltQuals->empty())
-		return std::make_shared<ActivityProfileState>(refName.c_str(), pos, 0.0);
+		return std::make_shared<ActivityProfileState>(refName, pos, 0.0);
 	double tumorLogOdds = logLikelihoodRatio(tumorPileup.size() - tumorAltQuals->size(), tumorAltQuals);
 
 	if (tumorLogOdds < M2ArgumentCollection::getInitialLogOdds()) {
-		return std::make_shared<ActivityProfileState>(refName.c_str(), pos, 0.0);
+		return std::make_shared<ActivityProfileState>(refName, pos, 0.0);
 	} else if (hasNormal() && !MTAC.genotypeGermlineSites) {
 		ReadPileup normalPileup = context.makeNormalPileup();
 		std::shared_ptr<std::vector<char>> normalAltQuals = altQuals(normalPileup, refBase, 40);
@@ -77,10 +77,10 @@ std::shared_ptr<ActivityProfileState> Mutect2Engine::isActive(AlignmentContext &
 			normalQualSum += i;
 		}
 		if (normalAltCount > normalPileup.size() * 0.3 && normalQualSum > 100) {
-			return std::make_shared<ActivityProfileState>(refName.c_str(), pos, 0.0);
+			return std::make_shared<ActivityProfileState>(refName, pos, 0.0);
 		}
 	}
-	return std::make_shared<ActivityProfileState>(refName.c_str(), pos, 1.0);
+	return std::make_shared<ActivityProfileState>(refName, pos, 1.0);
 }
 
 
@@ -88,18 +88,14 @@ std::shared_ptr<std::vector<char>> Mutect2Engine::altQuals(ReadPileup &pileup, c
 	std::shared_ptr<std::vector<char>> result = std::make_shared<std::vector<char>>(std::vector<char>());
 	hts_pos_t pos = pileup.getPosition();
 
-	const std::list<pileRead *> &pileupElements = pileup.getPileupElements();
-
-	for (const pileRead *read: pileupElements) {
+	for (const pileRead *read: pileup.getPileupElements()) {
 		PeUtils pe(read->read.get(), pos);
 		int indelLength = getCurrentOrFollowingIndelLength(pe);
-
 		if (indelLength > 0) {
 			result->emplace_back(indelQual(indelLength));
 		} else if (isNextToUsefulSoftClip(pe)) {
 			result->emplace_back(indelQual(1));
 		} else if (pe.getBase() != refBase && pe.getQual() > MINIMUM_BASE_QUALITY) {
-
 			int mateStart = (!read->read->isProperlyPaired() || read->read->mateIsUnmapped()) ? INT32_MAX
 			                                                                                  : read->read->getMateStart();
 			bool overlapsMate = mateStart <= pos && pos < mateStart + read->read->getLength();

@@ -28,7 +28,7 @@ public:
 
     ActivityProfileState(ActivityProfileState const &activityProfileState);
 
-    ActivityProfileState(const char * refName, hts_pos_t pos, double activeProb);
+    ActivityProfileState(const std::string& refName, hts_pos_t pos, double activeProb);
 
     virtual ~ActivityProfileState() = default;
 

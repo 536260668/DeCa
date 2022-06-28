@@ -9,7 +9,7 @@ ReferenceContext::ReferenceContext(std::shared_ptr<SimpleInterval>  interval, ch
 
 }
 
-ReferenceContext::ReferenceContext(const ReferenceContext &other) : interval(std::move(other.interval)), refBase(other.refBase) {
+ReferenceContext::ReferenceContext(const ReferenceContext &other) : interval(other.interval), refBase(other.refBase) {
 }
 
 uint8_t ReferenceContext::getBase() {

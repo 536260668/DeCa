@@ -3,40 +3,39 @@
 //
 
 #include "ActivityProfileState.h"
-#include "Mutect2Utils.h"
 #include <iostream>
 
-double ActivityProfileState::isActiveProb() const {return activeProb;}
+double ActivityProfileState::isActiveProb() const { return activeProb; }
 
-void ActivityProfileState::setIsActiveProb(const double aP) {this->activeProb = aP;}
+void ActivityProfileState::setIsActiveProb(const double aP) { this->activeProb = aP; }
 
-ActivityProfileState::ActivityProfileState(SimpleInterval const &loc, const double activeProb) : loc(loc), activeProb(activeProb){
-    //Mutect2Utils::validateArg(this->loc.size() == 1, "Location for an ActivityProfileState must have to size 1 bp.");
-    //Mutect2Utils::validateArg(resultValue >= 0, "Result value isn't null and its < 0, which is illegal");
+ActivityProfileState::ActivityProfileState(SimpleInterval const &loc, const double activeProb)
+		: loc(loc), activeProb(activeProb) {
+	//Mutect2Utils::validateArg(this->loc.size() == 1, "Location for an ActivityProfileState must have to size 1 bp.");
+	//Mutect2Utils::validateArg(resultValue >= 0, "Result value isn't null and its < 0, which is illegal");
 }
 
-ActivityProfileState::ActivityProfileState(const ActivityProfileState &activityProfileState) : loc(activityProfileState.loc), activeProb(activityProfileState.activeProb){
-    //Mutect2Utils::validateArg(loc.size() == 1, "Location for an ActivityProfileState must have to size 1 bp.");
-    //Mutect2Utils::validateArg(resultValue >= 0, "Result value isn't null and its < 0, which is illegal");
+ActivityProfileState::ActivityProfileState(const ActivityProfileState &activityProfileState)
+		: loc(activityProfileState.loc), activeProb(activityProfileState.activeProb) {
+	//Mutect2Utils::validateArg(loc.size() == 1, "Location for an ActivityProfileState must have to size 1 bp.");
+	//Mutect2Utils::validateArg(resultValue >= 0, "Result value isn't null and its < 0, which is illegal");
 }
 
-ActivityProfileState::ActivityProfileState(const char *refName, hts_pos_t pos, double activeProb)
-{
-    this->loc = SimpleInterval(std::string(refName), pos, pos);
-    this->activeProb = activeProb;
+ActivityProfileState::ActivityProfileState(const std::string &refName, hts_pos_t pos, double activeProb)
+		: loc(refName, pos, pos), activeProb(activeProb) {
 }
 
 int ActivityProfileState::getOffset(Locatable *regionStartLoc) {
-    //Mutect2Utils::validateArg(regionStartLoc != nullptr, "Null object is not allowed here.");
-    return loc.getStart() - regionStartLoc->getStart();
+	//Mutect2Utils::validateArg(regionStartLoc != nullptr, "Null object is not allowed here.");
+	return loc.getStart() - regionStartLoc->getStart();
 }
 
-SimpleInterval& ActivityProfileState::getLoc() {
-    return loc;
+SimpleInterval &ActivityProfileState::getLoc() {
+	return loc;
 }
 
-std::ostream & operator<<(std::ostream & os, ActivityProfileState&  activityProfileState) {
-    std::cout << "loc:  " << activityProfileState.getLoc() << std::endl << "activeProb:" << activityProfileState.isActiveProb() << std::endl;
-    return os;
+std::ostream &operator<<(std::ostream &os, ActivityProfileState &activityProfileState) {
+	std::cout << "loc:  " << activityProfileState.getLoc() << std::endl << "activeProb:"
+	          << activityProfileState.isActiveProb() << std::endl;
+	return os;
 }
-

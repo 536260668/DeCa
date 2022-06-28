@@ -113,15 +113,13 @@ bool SimpleInterval::overlaps(const std::shared_ptr<Locatable> & other) {
 
 std::shared_ptr<SimpleInterval> SimpleInterval::intersect(const std::shared_ptr<Locatable> & other) {
     Mutect2Utils::validateArg(overlaps(other), "SimpleInterval::intersect(): The two intervals need to overlap.");
-    std::shared_ptr<SimpleInterval> ret = std::make_shared<SimpleInterval>(getContig(), std::max(start, other->getStart()), std::min(end, other->getEnd()));
-    return ret;
+    return std::make_shared<SimpleInterval>(getContig(), std::max(start, other->getStart()), std::min(end, other->getEnd()));
 }
 
 std::shared_ptr<SimpleInterval> SimpleInterval::mergeWithContiguous(const std::shared_ptr<Locatable> & other){
     Mutect2Utils::validateArg(other != nullptr, "Null object is not allowed here.");
     Mutect2Utils::validateArg(contiguous(other.get()), "The two intervals need to be contiguous.");
-    std::shared_ptr<SimpleInterval> ret = std::make_shared<SimpleInterval>(getContig(), std::min(start, other->getStart()), std::max(end, other->getEnd()));
-    return ret;
+    return std::make_shared<SimpleInterval>(getContig(), std::min(start, other->getStart()), std::max(end, other->getEnd()));
 }
 
 bool SimpleInterval::contiguous(Locatable *other) {
@@ -132,8 +130,7 @@ bool SimpleInterval::contiguous(Locatable *other) {
 std::shared_ptr<SimpleInterval> SimpleInterval::spanWith(const std::shared_ptr<Locatable> &other) {
     Mutect2Utils::validateArg(other != nullptr, "Null object is not allowed here.");
     Mutect2Utils::validateArg(contig == other->getContig(), "Cannot get span for intervals on different contigs.");
-    std::shared_ptr<SimpleInterval> ret = std::make_shared<SimpleInterval>(getContig(), std::min(start, other->getStart()), std::max(end, other->getEnd()));
-    return ret;
+    return std::make_shared<SimpleInterval>(getContig(), std::min(start, other->getStart()), std::max(end, other->getEnd()));
 }
 
 std::shared_ptr<SimpleInterval> SimpleInterval::expandWithinContig(const int padding, const int contigLength) {

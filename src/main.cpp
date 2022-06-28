@@ -148,8 +148,8 @@ void adjust_input_bam(std::vector<char*> & input_bam, std::string & normalSample
 }
 
 struct concurrentTask{
-	std::shared_ptr<AssemblyRegion> region = nullptr;
-	ReferenceContext referenceContext = ReferenceContext{std::make_shared<SimpleInterval>("", 0, 0), N};
+	std::shared_ptr<AssemblyRegion> region;
+	ReferenceContext referenceContext;
 
 	friend bool operator < (const concurrentTask& a, const concurrentTask & b){
 		return a.region->getReads().size() < b.region->getReads().size();
@@ -191,7 +191,9 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 	VariantAnnotatorEngine annotatiorEngine(makeInfoFieldAnnotation(), makeGenotypeAnnotation());
 	Mutect2Engine m2Engine(w->MTAC, w->header, w->modelPath, annotatiorEngine, false);
 	std::vector<SAMSequenceRecord> headerSequences = w->header->getSequenceDictionary().getSequences();
+	ReferenceContext defaultReferenceContext{std::make_shared<SimpleInterval>("", 0, 0), N};
 
+	// BQSR
 	std::shared_ptr<BQSRReadTransformer> tumorTransformer = nullptr;
 	std::shared_ptr<BQSRReadTransformer> normalTransformer = nullptr;
 	if(w->bqsr_within_mutect)
@@ -326,13 +328,12 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 			pendingRegions.pop();
 			m2Engine.fillNextAssemblyRegionWithReads(nextRegion, cache);
 			// ReferenceContext is not needed for the time being
-			ReferenceContext tmp{std::make_shared<SimpleInterval>(contig, 0, 0), N};
 			if (BOOST_LIKELY(w->numOfStep2Thread == 0)) {
-				std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, tmp);    // TODO: callRegion() needs pileupRefContext
+				std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, defaultReferenceContext);    // TODO: callRegion() needs pileupRefContext
 				w->results[currentTask].insert(w->results[currentTask].end(), variant.begin(), variant.end());
 			} else {
 				w->queueMutex.lock();
-				w->activeRegionQueue.push({nextRegion, tmp});
+				w->activeRegionQueue.push({nextRegion, defaultReferenceContext});
 				w->queueMutex.unlock();
 				w->queueCond.notify_all();
 			}
@@ -340,9 +341,9 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
  	}
 
 	w->allConcurrentMode = ++w->numOfStep2Thread == w->numOfThreads;
-	if (w->allConcurrentMode) std::cout << "All threads work concurrently.\n";
+	if (w->allConcurrentMode) std::cout << "All threads execute callRegion() concurrently.\n";
 
-	concurrentTask activeRegion;
+	concurrentTask activeRegion = {nullptr, defaultReferenceContext};
 	bool exitFlag = false;
 	while (true) {
 		while (true) {
@@ -562,8 +563,9 @@ int main(int argc, char *argv[])
 		for (const auto &vc: sharedData.results[i]) {
 			//Mutect2Engine::printVariationContext(vc);
 		}
+		int regionEnd = sharedData.regions[i].getEnd(), regionIndex = sharedData.regions[i].getK();
 		for (; sortedVC != MergedConcurrentResults.end(); ++sortedVC) {
-			if ((*sortedVC)->getStart() > sharedData.regions[i].getEnd())
+			if (sharedData.contigToIndex[(*sortedVC)->getContig()] != regionIndex || (*sortedVC)->getStart() > regionEnd)
 				break;
 			//Mutect2Engine::printVariationContext(*sortedVC);
 		}

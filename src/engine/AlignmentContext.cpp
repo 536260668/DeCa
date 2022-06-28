@@ -4,7 +4,7 @@
 
 #include "AlignmentContext.h"
 
-AlignmentContext::AlignmentContext(const std::list<pileRead*> & tumor, const std::list<pileRead*> & normal, SimpleInterval &loc, int tid, SAMFileHeader* header) : tumor(std::move(tumor)), normal(std::move(normal)), loc(loc),
+AlignmentContext::AlignmentContext(const std::list<pileRead*> & tumor, const std::list<pileRead*> & normal, SimpleInterval &loc, int tid, SAMFileHeader* header) : tumor(tumor), normal(normal), loc(loc),
 tid(tid), header(header){
 }
 
