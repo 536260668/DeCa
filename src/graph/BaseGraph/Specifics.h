@@ -12,9 +12,6 @@
 
 template<class V, class E>
 class Specifics {
-private:
-	static const long serialVersionUID = 785196247314761183L;
-
 public:
 	virtual void addVertex(const std::shared_ptr<V> &vertex) = 0;
 
@@ -25,11 +22,6 @@ public:
 
 	virtual std::shared_ptr<E>
 	getEdge(const std::shared_ptr<V> &sourceVertex, const std::shared_ptr<V> &targetVertex) = 0;
-
-	//Adds the specified edge to the edge containers of its source and target vertices.
-	//virtual void addEdgeToTouchingVertices(const std::shared_ptr<E>& e) = 0;
-
-	virtual int degreeOf(const std::shared_ptr<V> &vertex) = 0;
 
 	virtual std::unordered_set<std::shared_ptr<E>> edgesof(const std::shared_ptr<V> &vertex) = 0;
 
@@ -81,7 +73,6 @@ public:
 	}
 
 	virtual bool removeAllVertices(const std::vector<std::shared_ptr<V>> &vertices) = 0;
-	//todo: do nothing?
 
 	virtual bool removeAllEdges(const std::vector<std::shared_ptr<E>> &edges) = 0;
 };

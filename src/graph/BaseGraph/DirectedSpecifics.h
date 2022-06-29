@@ -20,10 +20,7 @@
 #include <algorithm>
 #include "DFS_CycleDetect.h"
 
-static const std::string NOT_IN_DIRECTED_GRAPH = "no such operation in a directed graph";
-
 static const std::string LOOPS_NOT_ALLOWED = "loops not allowed";
-
 
 template<class T, class E>
 class BaseGraphIterator;
@@ -32,7 +29,6 @@ class BaseGraphIterator;
 template<class V>
 class IntrusiveEdge {
 private:
-	static const long serialVersionUID = 3258408452177932855L;
 	std::shared_ptr<V> source;
 	std::shared_ptr<V> target;
 
@@ -47,8 +43,6 @@ public:
 template<class V, class E>
 class DirectedSpecifics : public Specifics<V, E> {
 private:
-	static const long serialVersionUID = 8971725103718958232L;
-
 	DirectedEdgeContainer<E> &getEdgeContainer(const std::shared_ptr<V> &vertex) {
 		auto miter = vertexMapDirected.find(vertex);
 		if (miter == vertexMapDirected.end()) {
@@ -62,10 +56,9 @@ private:
 	std::unordered_set<std::shared_ptr<V>> VertexSet;
 	std::unordered_set<std::shared_ptr<E>> EdgeSet;
 
-protected:
+public:
 	std::unordered_map<std::shared_ptr<V>, DirectedEdgeContainer<E>> vertexMapDirected;
 
-public:
 	std::unordered_map<std::shared_ptr<E>, IntrusiveEdge<V>> edgeMap;
 
 	DirectedSpecifics() = default;
@@ -75,7 +68,13 @@ public:
 
 	~DirectedSpecifics() = default;
 
-	int degreeOf(const std::shared_ptr<V> &vertex) { throw std::invalid_argument("input argument"); }
+	int getEdgesNum() {
+		return EdgeSet.size();
+	}
+
+	int getVertexNum() {
+		return VertexSet.size();
+	}
 
 	void addVertex(const std::shared_ptr<V> &v) {
 		if (v == nullptr)
@@ -159,12 +158,10 @@ public:
 	std::unordered_set<std::shared_ptr<E>>
 	getAllEdges(const std::shared_ptr<V> &sourceVertex, const std::shared_ptr<V> &targetVertex) {
 		std::unordered_set<std::shared_ptr<E>> edges;
-
 		if (VertexSet.find(sourceVertex) != VertexSet.end() && VertexSet.find(targetVertex) != VertexSet.end()) {
-			const DirectedEdgeContainer<E> &ec = getEdgeContainer(sourceVertex);
-			for (auto iter = ec.outgoing.begin(); iter != ec.outgoing.end(); iter++) {
-				if (getEdgeTarget(*iter) == targetVertex)
-					edges.insert(*iter);
+			for (auto &edge: getEdgeContainer(sourceVertex).outgoing) {
+				if (getEdgeTarget(edge) == targetVertex)
+					edges.insert(edge);
 			}
 		}
 		return edges;
@@ -173,10 +170,8 @@ public:
 	std::unordered_set<std::shared_ptr<V>> getAllTargets(const std::shared_ptr<V> &sourceVertex) {
 		std::unordered_set<std::shared_ptr<V>> res;
 		if (VertexSet.find(sourceVertex) != VertexSet.end()) {
-			const DirectedEdgeContainer<E> &ec = getEdgeContainer(sourceVertex);
-
-			for (auto iter = ec.outgoing.begin(); iter != ec.outgoing.end(); iter++) {
-				res.insert(getEdgeTarget(*iter));
+			for (auto &vertex: getEdgeContainer(sourceVertex).outgoing) {
+				res.insert(getEdgeTarget(vertex));
 			}
 		}
 		return res;
@@ -188,23 +183,13 @@ public:
 
 	std::shared_ptr<E> getEdge(const std::shared_ptr<V> &sourceVertex, const std::shared_ptr<V> &targetVertex) {
 		if (VertexSet.find(sourceVertex) != VertexSet.end() && VertexSet.find(targetVertex) != VertexSet.end()) {
-			const DirectedEdgeContainer<E> &ec = getEdgeContainer(sourceVertex);
-			//typename std::unordered_set<std::shared_ptr<E>>::iterator iter;
-			for (auto iter = ec.outgoing.begin(); iter != ec.outgoing.end(); iter++) {
-				if (getEdgeTarget(*iter) == targetVertex)
-					return *iter;
+			for (auto &edge: getEdgeContainer(sourceVertex).outgoing) {
+				if (getEdgeTarget(edge) == targetVertex)
+					return edge;
 			}
 		}
 		return nullptr;
 	}
-
-	/*void addEdgeToTouchingVertices(const std::shared_ptr<E> &e) {
-		std::shared_ptr<V> source = getEdgeSource(e);
-		std::shared_ptr<V> target = getEdgeTarget(e);
-
-		getEdgeContainer(source).addOutgoingEdge(e);
-		getEdgeContainer(target).addIncomingEdge(e);
-	}*/
 
 	std::shared_ptr<V> getEdgeSource(std::shared_ptr<E> e) {
 		return edgeMap.find(e)->second.getSource();
@@ -220,12 +205,10 @@ public:
 
 		if (allowingLoops) {
 			std::unordered_set<std::shared_ptr<E>> loops = getAllEdges(vertex, vertex);
-			for (typename std::unordered_set<std::shared_ptr<E>>::iterator iter = res.begin();
-			     iter != res.end(); iter++) {
-				if (loops.find(*iter) != loops.end()) {
-					loops.erase(iter);
-					res.erase(*iter);
-					//toRemove.insert(*iter);
+			for (auto &v: res) {
+				if (loops.find(v) != loops.end()) {
+					loops.erase(v);
+					res.erase(v);
 				}
 			}
 		}
@@ -347,7 +330,6 @@ public:
 
 	std::shared_ptr<E> removeEdge(const std::shared_ptr<V> &sourceVertex, const std::shared_ptr<V> &targetVertex) {
 		std::shared_ptr<E> e = getEdge(sourceVertex, targetVertex);
-
 		if (e != nullptr) {
 			removeEdgeFromTouchingVertices(e);
 			EdgeSet.erase(e);
@@ -399,7 +381,6 @@ public:
 		for (const auto &e: edges) {
 			modified |= removeEdge(e);
 		}
-
 		return modified;
 	}
 
@@ -408,7 +389,6 @@ public:
 		for (const auto &e: edges) {
 			modified |= removeEdge(e);
 		}
-
 		return modified;
 	}
 
@@ -417,13 +397,11 @@ public:
 		for (const auto &e: edges) {
 			modified |= removeEdge(e);
 		}
-
 		return modified;
 	}
 
 	bool removeAllVertices(const std::vector<std::shared_ptr<V>> &vertices) {
 		bool modified = false;
-
 		for (const std::shared_ptr<V> &v: vertices) {
 			modified |= removeVertex(v);
 		}
@@ -432,7 +410,6 @@ public:
 
 	bool removeAllVertices(const std::list<std::shared_ptr<V>> &vertices) {
 		bool modified = false;
-
 		for (const std::shared_ptr<V> &v: vertices) {
 			modified |= removeVertex(v);
 		}
@@ -441,7 +418,6 @@ public:
 
 	bool removeAllVertices(std::unordered_set<std::shared_ptr<V>> vertices) {
 		bool modified = false;
-
 		for (std::shared_ptr<V> v: vertices) {
 			modified |= removeVertex(v);
 		}
@@ -561,7 +537,6 @@ public:
 		}
 		std::vector<std::shared_ptr<V>> onPathFromRefSource;
 		BaseGraphIterator<V, E> sourceIter = BaseGraphIterator<V, E>(this, getReferenceSourceVertex(), false, true);
-		//onPathFromRefSource.reserve(size);
 		while (sourceIter.hasNext()) {
 			onPathFromRefSource.push_back(sourceIter.next());
 		}
@@ -650,10 +625,10 @@ public:
 	void cleanNonRefPaths() {
 		if (getReferenceSourceVertex() == nullptr || getReferenceSinkVertex() == nullptr)
 			return;
-		std::unordered_set<std::shared_ptr<E>> edgesToCheck;
+
+		std::unordered_set<std::shared_ptr<E>> edgesToCheck = incomingEdgesOf(getReferenceSourceVertex());
 		std::shared_ptr<E> e;
 
-		edgesToCheck = incomingEdgesOf(getReferenceSourceVertex());
 		while (!edgesToCheck.empty()) {
 			e = *(edgesToCheck.begin());
 			if (!e->getIsRef()) {
@@ -679,7 +654,6 @@ public:
 
 		Specifics<V, E>::removeSingletonOrphanVertices();
 	}
-
 
 	bool isRefSource(const std::shared_ptr<V> &v) {
 		return Specifics<V, E>::isRefSource(v);
