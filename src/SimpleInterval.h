@@ -78,14 +78,6 @@ public:
     static void validatePositions(int contig, int start, int end);
 
     /**
-      * Test that these are valid values for constructing a SimpleInterval:
-      *    contig cannot be null
-      *    start must be >= 1
-      *    end must be >= start
-      */
-    static bool isValid(const std::string& contig, int start, int end);
-
-    /**
      * Parses a number like 100000 or 1,000,000 into an int.
      */
     static int parsePosition(std::string pos);

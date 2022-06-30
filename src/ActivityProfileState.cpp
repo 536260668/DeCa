@@ -25,6 +25,10 @@ ActivityProfileState::ActivityProfileState(const std::string &refName, hts_pos_t
 		: loc(refName, pos, pos), activeProb(activeProb) {
 }
 
+ActivityProfileState::ActivityProfileState(int refName, hts_pos_t pos, double activeProb)
+		: loc(refName, pos, pos), activeProb(activeProb) {
+}
+
 int ActivityProfileState::getOffset(Locatable *regionStartLoc) {
 	//Mutect2Utils::validateArg(regionStartLoc != nullptr, "Null object is not allowed here.");
 	return loc.getStart() - regionStartLoc->getStart();

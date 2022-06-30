@@ -30,6 +30,8 @@ public:
 
     ActivityProfileState(const std::string& refName, hts_pos_t pos, double activeProb);
 
+    ActivityProfileState(int refName, hts_pos_t pos, double activeProb);
+
     virtual ~ActivityProfileState() = default;
 
     double isActiveProb() const;

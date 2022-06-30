@@ -189,7 +189,7 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 	std::queue<std::shared_ptr<AssemblyRegion>> pendingRegions;
 	ActivityProfile *activityProfile = new BandPassActivityProfile(w->MTAC.maxProbPropagationDistance, w->MTAC.activeProbThreshold, BandPassActivityProfile::MAX_FILTER_SIZE, BandPassActivityProfile::DEFAULT_SIGMA,true , w->header);
 	VariantAnnotatorEngine annotatiorEngine(makeInfoFieldAnnotation(), makeGenotypeAnnotation());
-	Mutect2Engine m2Engine(w->MTAC, w->header, w->modelPath, annotatiorEngine, false);
+	Mutect2Engine m2Engine(w->MTAC, w->header, w->modelPath, annotatiorEngine, true);
 	std::vector<SAMSequenceRecord> headerSequences = w->header->getSequenceDictionary().getSequences();
 	ReferenceContext defaultReferenceContext{std::make_shared<SimpleInterval>("", 0, 0), N};
 
@@ -250,9 +250,9 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 		start = tmpRegion.getStart();
 		end =  tmpRegion.getEnd();
 		k = tmpRegion.getK();
-		std::string contig = headerSequences[k].getSequenceName();
+
 		std::cout << "Processing " + std::to_string(currentTask + 1) + "/" + std::to_string(w->regions.size()) + '\t'
-			+ contig + ':' + std::to_string(start) + '-' + std::to_string(end) + '\n';
+			+ ContigMap::getContigString(k) + ':' + std::to_string(start) + '-' + std::to_string(end) + '\n';
 
 		ReadCache cache(data, w->input_bam, k, start, end, w->maxReadsPerAlignmentStart, w->MTAC.maxAssemblyRegionSize, w->refCaches[k], w->bqsr_within_mutect, tumorTransformer.get(), normalTransformer.get());
 		m2Engine.setReferenceCache(w->refCaches[k].get());
@@ -273,15 +273,15 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 			}
 
 			if(pileup.isEmpty()) {
-				std::shared_ptr<ActivityProfileState> state = std::make_shared<ActivityProfileState>(contig.c_str(), pileup.getPosition(), 0.0);
+				std::shared_ptr<ActivityProfileState> state = std::make_shared<ActivityProfileState>(k, pileup.getPosition(), 0.0);
 				activityProfile->add(state);
 				continue;
 			}
-			std::shared_ptr<SimpleInterval> pileupInterval = std::make_shared<SimpleInterval>(contig, (int)pileup.getPosition(), (int)pileup.getPosition());
+			std::shared_ptr<SimpleInterval> pileupInterval = std::make_shared<SimpleInterval>(k, (int)pileup.getPosition(), (int)pileup.getPosition());
 			char refBase = w->refCaches[k]->getBase(pileup.getPosition());
 			ReferenceContext pileupRefContext(pileupInterval, refBase); //---this variable is useful in annotationEngine
 
-			std::shared_ptr<ActivityProfileState> profile = m2Engine.isActive(pileup, contig);
+			std::shared_ptr<ActivityProfileState> profile = m2Engine.isActive(pileup, k);
 			activityProfile->add(profile);
 
 			if(!pendingRegions.empty() && pileup.getLocation().getStart() > (*pendingRegions.front()).getExtendedSpan()->getEnd()) {

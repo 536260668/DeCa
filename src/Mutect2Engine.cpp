@@ -51,7 +51,7 @@ Mutect2Engine::~Mutect2Engine() {
 }
 
 
-std::shared_ptr<ActivityProfileState> Mutect2Engine::isActive(AlignmentContext &context, const std::string& refName) {
+std::shared_ptr<ActivityProfileState> Mutect2Engine::isActive(AlignmentContext &context, int refName) {
 	hts_pos_t pos = context.getPosition();
 
 	if (context.getReadNum() > minCallableDepth)

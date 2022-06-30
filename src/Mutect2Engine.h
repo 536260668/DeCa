@@ -80,7 +80,7 @@ public:
 
 	~Mutect2Engine();
 
-	std::shared_ptr<ActivityProfileState> isActive(AlignmentContext &context, const std::string& refName);
+	std::shared_ptr<ActivityProfileState> isActive(AlignmentContext &context, int refName);
 
 	void fillNextAssemblyRegionWithReads(const std::shared_ptr<AssemblyRegion> &region, ReadCache &readCache) const;
 
