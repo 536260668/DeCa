@@ -44,7 +44,7 @@ void AssemblyRegion::checkStates(SimpleInterval &activeRegion) {
 		std::vector<std::shared_ptr<ActivityProfileState>>::iterator pr;
 		for (pr = supportingStates.begin(); pr != supportingStates.end() - 1; pr++) {
 			Mutect2Utils::validateArg((*(pr + 1))->getLoc().getStart() == (*pr)->getLoc().getStart() + 1 &&
-			                          (*(pr + 1))->getLoc().getContig() == (*pr)->getLoc().getContig(),
+			                          (*(pr + 1))->getLoc().getContigInt() == (*pr)->getLoc().getContigInt(),
 			                          "Supporting state has an invalid sequence");
 		}
 	}

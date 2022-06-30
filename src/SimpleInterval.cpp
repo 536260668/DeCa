@@ -12,6 +12,9 @@ SimpleInterval::SimpleInterval(const std::string& contig, int start, int end) : 
 SimpleInterval::SimpleInterval(std::string&& contig, int start, int end) : contig(ContigMap::getContigInt(contig)),start(start), end(end){
 }
 
+SimpleInterval::SimpleInterval(int contig, int start, int end) : contig(contig),start(start), end(end){
+}
+
 SimpleInterval::SimpleInterval(SimpleInterval const &simpleInterval) : contig(simpleInterval.contig), start(simpleInterval.start), end(simpleInterval.end){
     validatePositions(contig, start, end);
 }
@@ -111,7 +114,7 @@ std::shared_ptr<SimpleInterval> SimpleInterval::intersect(const std::shared_ptr<
 	if (!overlaps(other))
 		throw std::invalid_argument( "SimpleInterval::intersect(): The two intervals need to overlap.");
 
-    return std::make_shared<SimpleInterval>(getContig(), std::max(start, other->getStart()), std::min(end, other->getEnd()));
+    return std::make_shared<SimpleInterval>(getContigInt(), std::max(start, other->getStart()), std::min(end, other->getEnd()));
 }
 
 std::shared_ptr<SimpleInterval> SimpleInterval::mergeWithContiguous(const std::shared_ptr<Locatable> & other){
@@ -120,7 +123,7 @@ std::shared_ptr<SimpleInterval> SimpleInterval::mergeWithContiguous(const std::s
 	if (!contiguous(other.get()))
 		throw std::invalid_argument("The two intervals need to be contiguous.");
 
-    return std::make_shared<SimpleInterval>(getContig(), std::min(start, other->getStart()), std::max(end, other->getEnd()));
+    return std::make_shared<SimpleInterval>(getContigInt(), std::min(start, other->getStart()), std::max(end, other->getEnd()));
 }
 
 bool SimpleInterval::contiguous(Locatable *other) const {
@@ -133,7 +136,7 @@ std::shared_ptr<SimpleInterval> SimpleInterval::spanWith(const std::shared_ptr<L
 	if (contig != ContigMap::getContigInt(other->getContig()))
 		throw std::invalid_argument("Cannot get span for intervals on different contigs.");
 
-    return std::make_shared<SimpleInterval>(getContig(), std::min(start, other->getStart()), std::max(end, other->getEnd()));
+    return std::make_shared<SimpleInterval>(getContigInt(), std::min(start, other->getStart()), std::max(end, other->getEnd()));
 }
 
 std::shared_ptr<SimpleInterval> SimpleInterval::expandWithinContig(const int padding, const int contigLength) const {
@@ -154,7 +157,7 @@ std::shared_ptr<SimpleInterval> SimpleInterval::expandWithinContig(int padding, 
 	if (sequenceDictionary == nullptr)
 		throw std::invalid_argument("null is not allowed there");
 
-    SAMSequenceRecord& contigRecord = sequenceDictionary->getSequence(getContig());
+    SAMSequenceRecord& contigRecord = sequenceDictionary->getSequences()[contig];
     return expandWithinContig(padding, contigRecord.getSequenceLength());
 }
 

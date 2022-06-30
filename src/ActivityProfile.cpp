@@ -27,10 +27,10 @@ bool ActivityProfile::isEmpty()
 void ActivityProfile::add(const std::shared_ptr<ActivityProfileState> & state)
 {
 
-    if(regionStartLoc.getContig().empty()){
+    if(regionStartLoc.getContigInt() == -1){
         regionStartLoc = state->getLoc();
         regionStopLoc = regionStartLoc;
-        contigLength = header->getSequenceDictionary().getSequence(regionStartLoc.getContig()).getSequenceLength();
+        contigLength = header->getSequenceDictionary().getSequences()[regionStartLoc.getContigInt()].getSequenceLength();
     } else {
         // GATK requires the activityProfile to be contiguous with the previously added one
         assert(regionStopLoc.getStart() == state->getLoc().getStart() - 1);
@@ -55,7 +55,7 @@ optional<SimpleInterval> ActivityProfile::getLocForOffset(const SimpleInterval& 
     if(start < 0 || start >= contigLength)
         return std::nullopt;
     else
-        return std::optional<SimpleInterval>{SimpleInterval(regionStartLoc.getContig(), start, start)};
+        return std::optional<SimpleInterval>{SimpleInterval(regionStartLoc.getContigInt(), start, start)};
 }
 
 void ActivityProfile::incorporateSingleState(const std::shared_ptr<ActivityProfileState> &stateToAdd)
@@ -133,7 +133,7 @@ std::shared_ptr<AssemblyRegion> ActivityProfile::popReadyAssemblyRegion(int asse
     {
         regionStartLoc.clearContig();
         regionStopLoc.clearContig();
-        assert(regionStartLoc.getContig().empty());
+        assert(regionStartLoc.getContigInt() == -1);
 
     } else {
         regionStartLoc = stateList[0]->getLoc();
@@ -143,7 +143,7 @@ std::shared_ptr<AssemblyRegion> ActivityProfile::popReadyAssemblyRegion(int asse
     if(!isActiveRegion)
         return nullptr;
 
-    SimpleInterval regionLoc = SimpleInterval(first->getLoc().getContig(), first->getLoc().getStart(), first->getLoc().getStart() + offsetOfNextRegionEnd);
+    SimpleInterval regionLoc = SimpleInterval(first->getLoc().getContigInt(), first->getLoc().getStart(), first->getLoc().getStart() + offsetOfNextRegionEnd);
 
     return std::make_shared<AssemblyRegion>(regionLoc, sub, isActiveRegion, assemblyRegionExtension, header);
 }

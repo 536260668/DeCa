@@ -33,6 +33,8 @@ public:
 
     SimpleInterval(std::string&& contig, int start, int end);
 
+    SimpleInterval(int contig, int start, int end);
+
     SimpleInterval(SimpleInterval const &simpleInterval);
 
     /**
@@ -95,6 +97,8 @@ public:
     bool equal(const SimpleInterval& interval) const {return *this == interval;}
 
     std::string getContig() const override {return ContigMap::getContigString(contig);}
+
+	int getContigInt() const  {return contig;}
 
     int getStart() const override {return start;}
 

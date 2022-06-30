@@ -11,10 +11,6 @@
 #include <stdexcept>
 #include <xxhash.hpp>
 
-struct equal_contig {
-	bool operator()(const std::string &s1, const std::string &s2) const;
-};
-
 struct hash_contig {
 	xxh::hash64_t operator()(const std::string &s1) const;
 };
@@ -26,7 +22,7 @@ private:
 	 * stringToInt: {"", -1}, {"chr1", 0}, {"chr2", 1}, ...
 	 */
 	static std::vector<std::string> intToString;
-	static std::unordered_map<std::string, int, hash_contig, equal_contig> stringToInt;
+	static std::unordered_map<std::string, int, hash_contig> stringToInt;
 	static int mapSize;
 
 public:
