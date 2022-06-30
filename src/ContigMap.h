@@ -6,13 +6,28 @@
 #define MUTECT2CPP_MASTER_CONTIGMAP_H
 
 #include <unordered_map>
+#include <vector>
 #include <string>
 #include <stdexcept>
+#include <xxhash.hpp>
+
+struct equal_contig {
+	bool operator()(const std::string &s1, const std::string &s2) const;
+};
+
+struct hash_contig {
+	xxh::hash64_t operator()(const std::string &s1) const;
+};
 
 class ContigMap {
 private:
-	static std::unordered_map<int, std::string> intToString;
-	static std::unordered_map<std::string, int> stringToInt;
+	/**
+	 * intToString: {"", "chr1", "chr2", ...}
+	 * stringToInt: {"", -1}, {"chr1", 0}, {"chr2", 1}, ...
+	 */
+	static std::vector<std::string> intToString;
+	static std::unordered_map<std::string, int, hash_contig, equal_contig> stringToInt;
+	static int mapSize;
 
 public:
 	static void initial(int reserveSize);
