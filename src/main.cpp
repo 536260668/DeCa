@@ -26,6 +26,7 @@
 #include "ReferenceCache.h"
 #include "utils/BaseUtils.h"
 #include "variantcontext/VCFWriter.h"
+#include "ContigMap.h"
 
 // TODO: finish this method
 std::vector<shared_ptr<InfoFieldAnnotation>> makeInfoFieldAnnotation()
@@ -177,7 +178,6 @@ struct Shared{
 	std::mutex queueMutex;
 	std::condition_variable queueCond;
 	std::priority_queue<concurrentTask> activeRegionQueue;
-	std::unordered_map<std::string, int> contigToIndex;
 	std::atomic<int> indexOfRegion{0};
 	std::atomic<int> activeRegioncount{0};
 	std::atomic<int> indexOfRefCache{0};
@@ -358,7 +358,7 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 			if (exitFlag) break;
 		}
 		if (exitFlag) break;
-		int refInd = w->contigToIndex[activeRegion.region->getContig()];
+		int refInd = ContigMap::getContigInt(activeRegion.region->getContig());
 		m2Engine.setReferenceCache(w->refCaches[refInd].get());
 		std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(activeRegion.region, activeRegion.referenceContext);
 		w->queueCond.notify_all();
@@ -505,6 +505,7 @@ int main(int argc, char *argv[])
     smithwaterman_initial();
     QualityUtils::initial();
 	BaseUtils::initial();
+	ContigMap::initial(nref);
 
 	//start threads
 	std::vector<std::thread> threads;
@@ -518,7 +519,7 @@ int main(int argc, char *argv[])
     {
 	    if (!sharedData.chromosomeName.empty() && headerSequences[k].getSequenceName() != sharedData.chromosomeName)
 		    continue;
-		sharedData.contigToIndex.insert(std::make_pair(headerSequences[k].getSequenceName(), k));
+		ContigMap::insertPair(k, headerSequences[k].getSequenceName());
         hts_pos_t ref_len = sam_hdr_tid2len(data[0]->hdr, k);   // the length of reference sequence
         int start = 0;
         int end = ref_len < REGION_SIZE - 1 ? ref_len : REGION_SIZE - 1;
@@ -551,8 +552,8 @@ int main(int argc, char *argv[])
 
 	std::sort(MergedConcurrentResults.begin(), MergedConcurrentResults.end(),
 			  [&sharedData](const shared_ptr<VariantContext>& a, const shared_ptr<VariantContext>& b) -> bool {
-		int ind1 = sharedData.contigToIndex[a->getContig()];
-		int ind2 = sharedData.contigToIndex[b->getContig()];
+		int ind1 = ContigMap::getContigInt(a->getContig());
+		int ind2 = ContigMap::getContigInt(b->getContig());
 		if (ind1 != ind2)
 			return ind1 < ind2;
 		return a->getStart() < b->getStart();
@@ -565,7 +566,7 @@ int main(int argc, char *argv[])
 		}
 		int regionEnd = sharedData.regions[i].getEnd(), regionIndex = sharedData.regions[i].getK();
 		for (; sortedVC != MergedConcurrentResults.end(); ++sortedVC) {
-			if (sharedData.contigToIndex[(*sortedVC)->getContig()] != regionIndex || (*sortedVC)->getStart() > regionEnd)
+			if (ContigMap::getContigInt((*sortedVC)->getContig()) != regionIndex || (*sortedVC)->getStart() > regionEnd)
 				break;
 			//Mutect2Engine::printVariationContext(*sortedVC);
 		}

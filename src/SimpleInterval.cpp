@@ -5,12 +5,11 @@
 #include "SimpleInterval.h"
 #include <iostream>
 
-SimpleInterval::SimpleInterval(const std::string& contig, int start, int end) : contig(contig), start(start), end(end){
-    validatePositions(contig, start, end);
+SimpleInterval::SimpleInterval(const std::string& contig, int start, int end) : contig(ContigMap::getContigInt(contig)),start(start), end(end){
+    validatePositions(this->contig, start, end);
 }
 
-SimpleInterval::SimpleInterval(std::string&& contig, int start, int end) : contig(contig), start(start), end(end){
-
+SimpleInterval::SimpleInterval(std::string&& contig, int start, int end) : contig(ContigMap::getContigInt(contig)),start(start), end(end){
 }
 
 SimpleInterval::SimpleInterval(SimpleInterval const &simpleInterval) : contig(simpleInterval.contig), start(simpleInterval.start), end(simpleInterval.end){
@@ -18,7 +17,8 @@ SimpleInterval::SimpleInterval(SimpleInterval const &simpleInterval) : contig(si
 }
 
 SimpleInterval::SimpleInterval(std::string& str) {
-    Mutect2Utils::validateArg(!str.empty(), "Null object is not allowed here.");
+	if (str.empty())
+		throw std::invalid_argument("Null object is not allowed here.");
 
     std::string m_contig;
     int m_start;
@@ -50,23 +50,21 @@ SimpleInterval::SimpleInterval(std::string& str) {
         }
     }
 
-    validatePositions(m_contig, m_start, m_end);
-    contig = m_contig;
+    validatePositions(ContigMap::getContigInt(m_contig), m_start, m_end);
+    contig = ContigMap::getContigInt(m_contig);
     start = m_start;
     end = m_end;
 }
 
 void SimpleInterval::clearContig()
 {
-    this->contig.clear();
+    this->contig = -1;
 }
 
-void SimpleInterval::validatePositions(const std::string& contig, const int start, const int end) {
-    if(contig.empty() || start < 0 || start > end){
+void SimpleInterval::validatePositions(int contig, const int start, const int end) {
+    if(contig==-1 || start < 0 || start > end)
         throw std::invalid_argument("Argument input error.");
-    }
 }
-
 
 bool SimpleInterval::isValid(const std::string& contig, const int start, const int end) {
     return (!contig.empty()) && start > 0 && end >= start;
@@ -87,24 +85,22 @@ int SimpleInterval::parsePosition(std::string pos) {
 bool SimpleInterval::operator==(const SimpleInterval &interval) const {
     if (contig == interval.contig && start == interval.start && end == interval.end)
         return true;
-    else
-        return false;
+
+	return false;
 }
 
 int SimpleInterval::hashCode() const{
-    std::hash<std::string> h;
-    int result = start;
-    result = 31 * result + end;
-    result = 31 * result + h(contig);
-    return result;
+    return 31*31*start +31*end+contig;
 }
 
 bool SimpleInterval::overlapsWithMargin(const std::shared_ptr<Locatable> & other, const int margin) const {
-    Mutect2Utils::validateArg(margin >= 0, "Given margin is negative.");
+	if (margin < 0)
+		throw std::invalid_argument("Given margin is negative.");
+
     if( other == nullptr || other->getContig().empty())
         return false;
-    else
-        return (this->contig == other->getContig()) && this->start <= other->getEnd() + margin && other->getStart() - margin <= this->end;
+
+    return (this->contig == ContigMap::getContigInt(other->getContig())) && this->start <= other->getEnd() + margin && other->getStart() - margin <= this->end;
 }
 
 bool SimpleInterval::overlaps(const std::shared_ptr<Locatable> & other) {
@@ -112,32 +108,39 @@ bool SimpleInterval::overlaps(const std::shared_ptr<Locatable> & other) {
 }
 
 std::shared_ptr<SimpleInterval> SimpleInterval::intersect(const std::shared_ptr<Locatable> & other) {
-    Mutect2Utils::validateArg(overlaps(other), "SimpleInterval::intersect(): The two intervals need to overlap.");
+	if (!overlaps(other))
+		throw std::invalid_argument( "SimpleInterval::intersect(): The two intervals need to overlap.");
+
     return std::make_shared<SimpleInterval>(getContig(), std::max(start, other->getStart()), std::min(end, other->getEnd()));
 }
 
 std::shared_ptr<SimpleInterval> SimpleInterval::mergeWithContiguous(const std::shared_ptr<Locatable> & other){
-    Mutect2Utils::validateArg(other != nullptr, "Null object is not allowed here.");
-    Mutect2Utils::validateArg(contiguous(other.get()), "The two intervals need to be contiguous.");
+	if (other == nullptr)
+		throw std::invalid_argument("Null object is not allowed here.");
+	if (!contiguous(other.get()))
+		throw std::invalid_argument("The two intervals need to be contiguous.");
+
     return std::make_shared<SimpleInterval>(getContig(), std::min(start, other->getStart()), std::max(end, other->getEnd()));
 }
 
-bool SimpleInterval::contiguous(Locatable *other) {
-    Mutect2Utils::validateArg(other != nullptr, "Null object is not allowed here.");
-    return contig == other->getContig() && start <= other->getEnd() + 1 && other->getStart() <= end + 1;
+bool SimpleInterval::contiguous(Locatable *other) const {
+    return contig == ContigMap::getContigInt(other->getContig()) && start <= other->getEnd() + 1 && other->getStart() <= end + 1;
 }
 
-std::shared_ptr<SimpleInterval> SimpleInterval::spanWith(const std::shared_ptr<Locatable> &other) {
-    Mutect2Utils::validateArg(other != nullptr, "Null object is not allowed here.");
-    Mutect2Utils::validateArg(contig == other->getContig(), "Cannot get span for intervals on different contigs.");
+std::shared_ptr<SimpleInterval> SimpleInterval::spanWith(const std::shared_ptr<Locatable> &other) const {
+	if (other == nullptr)
+		throw std::invalid_argument("Null object is not allowed here.");
+	if (contig != ContigMap::getContigInt(other->getContig()))
+		throw std::invalid_argument("Cannot get span for intervals on different contigs.");
+
     return std::make_shared<SimpleInterval>(getContig(), std::min(start, other->getStart()), std::max(end, other->getEnd()));
 }
 
-std::shared_ptr<SimpleInterval> SimpleInterval::expandWithinContig(const int padding, const int contigLength) {
+std::shared_ptr<SimpleInterval> SimpleInterval::expandWithinContig(const int padding, const int contigLength) const {
     if(padding < 0)
         throw std::invalid_argument("Padding must be >= 0.");
 
-    return IntervalUtils::trimIntervalToContig(contig, start - padding, end + padding, contigLength);
+    return IntervalUtils::trimIntervalToContig(ContigMap::getContigString(contig), start - padding, end + padding, contigLength);
 }
 
 std::ostream & operator<<(std::ostream &os, const SimpleInterval& simpleInterval) {
@@ -145,17 +148,17 @@ std::ostream & operator<<(std::ostream &os, const SimpleInterval& simpleInterval
     return os;
 }
 
-SimpleInterval::SimpleInterval(const std::shared_ptr<Locatable> & pLocatable) : contig(pLocatable->getContig()), start(pLocatable->getStart()), end(pLocatable->getEnd()){}
+SimpleInterval::SimpleInterval(const std::shared_ptr<Locatable> & pLocatable) : contig(ContigMap::getContigInt(pLocatable->getContig())), start(pLocatable->getStart()), end(pLocatable->getEnd()){}
 
-std::shared_ptr<SimpleInterval> SimpleInterval::expandWithinContig(int padding, SAMSequenceDictionary *sequenceDictionary) {
-    Mutect2Utils::validateArg(sequenceDictionary, "null is not allowed there");
-    SAMSequenceRecord& contigRecord = sequenceDictionary->getSequence(contig);
+std::shared_ptr<SimpleInterval> SimpleInterval::expandWithinContig(int padding, SAMSequenceDictionary *sequenceDictionary) const {
+	if (sequenceDictionary == nullptr)
+		throw std::invalid_argument("null is not allowed there");
+
+    SAMSequenceRecord& contigRecord = sequenceDictionary->getSequence(getContig());
     return expandWithinContig(padding, contigRecord.getSequenceLength());
 }
 
-SimpleInterval::SimpleInterval() : start(0), end(0) {
-
-}
+SimpleInterval::SimpleInterval() : contig(-1) ,start(0), end(0) {}
 
 void SimpleInterval::printInfo() const {
 	std::cout << getContig() << " " << getStart() +1 << " " << getEnd() +1 << std::endl;

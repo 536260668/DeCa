@@ -6,7 +6,6 @@
 #include <random>
 #include <unordered_set>
 #include "ReadCache.h"
-#include "iostream"
 #include "ReadUtils.h"
 
 #define START_GAP 50

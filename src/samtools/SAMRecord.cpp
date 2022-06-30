@@ -8,7 +8,6 @@
 #include "SAMUtils.h"
 #include "ReadUtils.h"
 #include <memory>
-#include <sstream>
 #include <iostream>
 #include <utility>
 

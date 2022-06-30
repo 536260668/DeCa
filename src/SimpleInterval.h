@@ -14,6 +14,7 @@
 #include <algorithm>
 #include "samtools/SAMSequenceDictionary.h"
 #include "Locatable.h"
+#include "ContigMap.h"
 
 static const char CONTIG_SEPARATOR = ':';
 static const char START_END_SEPARATOR = '-';
@@ -24,8 +25,8 @@ class SimpleInterval : public Locatable
 private:
     int start;
     int end;
-    std::string contig;
-    bool contiguous(Locatable* other);
+    int contig;
+    bool contiguous(Locatable* other) const;
 
 public:
     SimpleInterval(const std::string& contig, int start, int end);
@@ -72,7 +73,7 @@ public:
      *    start must be >= 1
      *    end must be >= start
      */
-    static void validatePositions(const std::string& contig, int start, int end);
+    static void validatePositions(int contig, int start, int end);
 
     /**
       * Test that these are valid values for constructing a SimpleInterval:
@@ -93,7 +94,7 @@ public:
 
     bool equal(const SimpleInterval& interval) const {return *this == interval;}
 
-    std::string getContig() const override {return contig;}
+    std::string getContig() const override {return ContigMap::getContigString(contig);}
 
     int getStart() const override {return start;}
 
@@ -146,7 +147,7 @@ public:
       * @param other the other interval with which to calculate the span
       * @return a new SimpleInterval that represents the region between the endpoints of this and other.
       */
-    std::shared_ptr<SimpleInterval> spanWith(const std::shared_ptr<Locatable> & other);
+    std::shared_ptr<SimpleInterval> spanWith(const std::shared_ptr<Locatable> & other) const;
 
     /**
       * Returns a new SimpleInterval that represents this interval as expanded by the specified amount in both
@@ -157,9 +158,9 @@ public:
       * @return a new SimpleInterval that represents this interval as expanded by the specified amount in both
       *         directions, bounded by the contig start/stop if necessary.
       */
-    std::shared_ptr<SimpleInterval> expandWithinContig(int padding, int contigLength);
+    std::shared_ptr<SimpleInterval> expandWithinContig(int padding, int contigLength) const;
 
-    std::shared_ptr<SimpleInterval> expandWithinContig(int padding, SAMSequenceDictionary* sequenceDictionary);
+    std::shared_ptr<SimpleInterval> expandWithinContig(int padding, SAMSequenceDictionary* sequenceDictionary) const;
 
     //TODO:SimpleInterval* expandWithinContig(int padding, SAMSequenceDictionary sequenceDictionary);
 
