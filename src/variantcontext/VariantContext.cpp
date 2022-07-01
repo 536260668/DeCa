@@ -5,6 +5,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <cassert>
+#include "ContigMap.h"
 #include "VariantContext.h"
 
 VariantContext::VariantContext(std::string &source,
@@ -314,6 +315,10 @@ std::shared_ptr<std::map<std::string, AttributeValue>> VariantContext::getAttrib
 
 std::string &VariantContext::getContig() {
     return contig;
+}
+
+int VariantContext::getContigInt() {
+	return ContigMap::getContigInt(contig);
 }
 
 std::set<std::string> &VariantContext::getFilter() {

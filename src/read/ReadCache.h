@@ -46,6 +46,7 @@ private:
     int ExtendedEnd;
     int chr_len;    // the total length of current chromosome
     std::string chr_name;   // the name of current chromosome
+	int chr_name_int;   // convert chr_name to int
     std::vector<hts_idx_t *> hts_idxes;
     int currentPose;
     PalindromeArtifactClipReadTransformer readTransformer;
@@ -58,8 +59,6 @@ private:
 
 	// read data in a specific region and add it to the cache
     void readData(const string & region);
-
-    void advanceLoad();
 
     // clear all the reads in the cache
     void clear();

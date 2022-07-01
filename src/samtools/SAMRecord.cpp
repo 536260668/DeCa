@@ -352,6 +352,10 @@ std::string &SAMRecord::getContig() {
     return getReadUnmappedFlag() ? (std::string&)"" : mReferenceName;
 }
 
+int SAMRecord::getContigInt() {
+	return getReadUnmappedFlag() ? -1 : ContigMap::getContigInt(mReferenceName);
+}
+
 std::string SAMRecord::getAttributeAsString(std::string &attributeName) {
     ReadUtils::assertAttributeNameIsLegal(attributeName);
     if(mAttributes == nullptr) {

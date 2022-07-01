@@ -4,6 +4,7 @@
 
 #ifndef MUTECT2CPP_MASTER_SIMPLEINTERVAL_H
 #define MUTECT2CPP_MASTER_SIMPLEINTERVAL_H
+
 #include "Mutect2Utils.h"
 #include "IntervalUtils.h"
 #include <string>
@@ -20,150 +21,134 @@ static const char CONTIG_SEPARATOR = ':';
 static const char START_END_SEPARATOR = '-';
 static const std::string END_OF_CONTIG = "+";
 
-class SimpleInterval : public Locatable
-{
+class SimpleInterval : public Locatable {
 private:
-    int start;
-    int end;
-    int contig;
-    bool contiguous(Locatable* other) const;
+	int start;
+	int end;
+	int contig;
+
+	bool contiguous(Locatable *other) const;
 
 public:
-    SimpleInterval(const std::string& contig, int start, int end);
+	SimpleInterval(const std::string &contig, int start, int end);
 
-    SimpleInterval(std::string&& contig, int start, int end);
+	SimpleInterval(std::string &&contig, int start, int end);
 
-    SimpleInterval(int contig, int start, int end);
+	SimpleInterval(int contig, int start, int end);
 
-    SimpleInterval(SimpleInterval const &simpleInterval);
+	SimpleInterval(SimpleInterval const &simpleInterval);
 
-    /**
-     * Makes an interval by parsing the string.
-     *
-     * @warning this method does not fill in the true contig end values
-     * for intervals that reach to the end of their contig,
-     * uses {@link Integer#MAX_VALUE} instead.
-     *
-     * Semantics of start and end are defined in {@link Locatable}.
-     * The format is one of:
-     *
-     * contig           (Represents the whole contig, from position 1 to the {@link Integer#MAX_VALUE})
-     *
-     * contig:start     (Represents the 1-element range start-start on the given contig)
-     *
-     * contig:start-end (Represents the range start-end on the given contig)
-     *
-     * contig:start+    (Represents the prefix of the contig starting at the given start position and ending at {@link Integer#MAX_VALUE})
-     *
-     * examples (note that _all_ commas in numbers are simply ignored, for human convenience):
-     *
-     * 'chr2', 'chr2:1000000' or 'chr2:1,000,000-2,000,000' or 'chr2:1000000+'
-      *
-      * @param str non-empty string to be parsed
-     */
-    SimpleInterval(std::string& str);
+	/**
+	 * Makes an interval by parsing the string.
+	 *
+	 * @warning this method does not fill in the true contig end values
+	 * for intervals that reach to the end of their contig,
+	 * uses {@link Integer#MAX_VALUE} instead.
+	 *
+	 * Semantics of start and end are defined in {@link Locatable}.
+	 * The format is one of:
+	 *
+	 * contig           (Represents the whole contig, from position 1 to the {@link Integer#MAX_VALUE})
+	 *
+	 * contig:start     (Represents the 1-element range start-start on the given contig)
+	 *
+	 * contig:start-end (Represents the range start-end on the given contig)
+	 *
+	 * contig:start+    (Represents the prefix of the contig starting at the given start position and ending at {@link Integer#MAX_VALUE})
+	 *
+	 * examples (note that _all_ commas in numbers are simply ignored, for human convenience):
+	 *
+	 * 'chr2', 'chr2:1000000' or 'chr2:1,000,000-2,000,000' or 'chr2:1000000+'
+	  *
+	  * @param str non-empty string to be parsed
+	 */
+	SimpleInterval(std::string &str);
 
-    SimpleInterval();
+	SimpleInterval();
 
-    virtual ~SimpleInterval() = default;
+	virtual ~SimpleInterval() = default;
 
-    void clearContig();
+	void clearContig();
 
-    /**
-     * Test that these are valid values for constructing a SimpleInterval:
-     *    contig cannot be null
-     *    start must be >= 1
-     *    end must be >= start
-     */
-    static void validatePositions(int contig, int start, int end);
+	/**
+	 * Parses a number like 100000 or 1,000,000 into an int.
+	 */
+	static int parsePosition(std::string pos);
 
-    /**
-     * Parses a number like 100000 or 1,000,000 into an int.
-     */
-    static int parsePosition(std::string pos);
+	bool operator==(const SimpleInterval &interval) const;
 
-    bool operator==(const SimpleInterval& interval) const;
+	bool equal(const SimpleInterval &interval) const { return *this == interval; }
 
-    int hashCode() const;
+	std::string getContig() const override { return ContigMap::getContigString(contig); }
 
-    bool equal(const SimpleInterval& interval) const {return *this == interval;}
+	int getContigInt() const { return contig; }
 
-    std::string getContig() const override {return ContigMap::getContigString(contig);}
+	int getStart() const override { return start; }
 
-	int getContigInt() const  {return contig;}
+	int getEnd() const override { return end; }
 
-    int getStart() const override {return start;}
+	int size() const { return end - start + 1; }
 
-    /**
-    * @return the 0-based start position (from the GA4GH spec).
-    */
-    long getGA4GHStart() const {return start - 1;}
+	/**
+	  * Determines whether this interval comes within "margin" of overlapping the provided locatable.
+	  * This is the same as plain overlaps if margin=0.
+	  *
+	  * @param other interval to check
+	  * @param margin how many bases may be between the two interval for us to still consider them overlapping; must be non-negative
+	  * @return true if this interval overlaps other, otherwise false
+	  * @throws IllegalArgumentException if margin is negative
+	  */
+	bool overlapsWithMargin(const std::shared_ptr<SimpleInterval> &other, int margin) const;
 
-    int getEnd() const override {return end;}
+	/**
+	 * Determines whether this interval overlaps the provided locatable.
+	 *
+	 * @param other interval to check
+	 * @return true if this interval overlaps other, otherwise false
+	 */
+	bool overlaps(const std::shared_ptr<SimpleInterval> &other) const;
 
-    long getGA4GHEnd() const {return end;}
+	/**
+	  * Returns the intersection of the two intervals. The intervals must overlap or IllegalArgumentException will be thrown.
+	 */
+	std::shared_ptr<SimpleInterval> intersect(const std::shared_ptr<SimpleInterval> &other) const;
 
-    int size() const {return end - start + 1;}
+	/**
+	  * Returns a new SimpleInterval that represents the entire span of this and other.  Requires that
+	  * this and that SimpleInterval are contiguous.
+	  */
+	std::shared_ptr<SimpleInterval> mergeWithContiguous(const std::shared_ptr<SimpleInterval> &other);
 
-    /**
-      * Determines whether this interval comes within "margin" of overlapping the provided locatable.
-      * This is the same as plain overlaps if margin=0.
-      *
-      * @param other interval to check
-      * @param margin how many bases may be between the two interval for us to still consider them overlapping; must be non-negative
-      * @return true if this interval overlaps other, otherwise false
-      * @throws IllegalArgumentException if margin is negative
-      */
-    bool overlapsWithMargin(const std::shared_ptr<Locatable> & other, int margin) const;
+	/**
+	  * Returns a new SimpleInterval that represents the region between the endpoints of this and other.
+	  *
+	  * Unlike {@link #mergeWithContiguous}, the two intervals do not need to be contiguous
+	  *
+	  * @param other the other interval with which to calculate the span
+	  * @return a new SimpleInterval that represents the region between the endpoints of this and other.
+	  */
+	std::shared_ptr<SimpleInterval> spanWith(const std::shared_ptr<SimpleInterval> &other) const;
 
-    /**
-     * Determines whether this interval overlaps the provided locatable.
-     *
-     * @param other interval to check
-     * @return true if this interval overlaps other, otherwise false
-     */
-    bool overlaps(const std::shared_ptr<Locatable> & other) override;
+	/**
+	  * Returns a new SimpleInterval that represents this interval as expanded by the specified amount in both
+	  * directions, bounded by the contig start/stop if necessary.
+	  *
+	  * @param padding amount to expand this interval
+	  * @param contigLength length of this interval's contig
+	  * @return a new SimpleInterval that represents this interval as expanded by the specified amount in both
+	  *         directions, bounded by the contig start/stop if necessary.
+	  */
+	std::shared_ptr<SimpleInterval> expandWithinContig(int padding, int contigLength) const;
 
-    /**
-      * Returns the intersection of the two intervals. The intervals must overlap or IllegalArgumentException will be thrown.
-     */
-    std::shared_ptr<SimpleInterval> intersect(const std::shared_ptr<Locatable> & other);
+	std::shared_ptr<SimpleInterval> expandWithinContig(int padding, SAMSequenceDictionary *sequenceDictionary) const;
 
-    /**
-      * Returns a new SimpleInterval that represents the entire span of this and other.  Requires that
-      * this and that SimpleInterval are contiguous.
-      */
-    std::shared_ptr<SimpleInterval> mergeWithContiguous(const std::shared_ptr<Locatable> & other);
+	friend std::ostream &operator<<(std::ostream &os, const SimpleInterval &simpleInterval);
 
-    /**
-      * Returns a new SimpleInterval that represents the region between the endpoints of this and other.
-      *
-      * Unlike {@link #mergeWithContiguous}, the two intervals do not need to be contiguous
-      *
-      * @param other the other interval with which to calculate the span
-      * @return a new SimpleInterval that represents the region between the endpoints of this and other.
-      */
-    std::shared_ptr<SimpleInterval> spanWith(const std::shared_ptr<Locatable> & other) const;
-
-    /**
-      * Returns a new SimpleInterval that represents this interval as expanded by the specified amount in both
-      * directions, bounded by the contig start/stop if necessary.
-      *
-      * @param padding amount to expand this interval
-      * @param contigLength length of this interval's contig
-      * @return a new SimpleInterval that represents this interval as expanded by the specified amount in both
-      *         directions, bounded by the contig start/stop if necessary.
-      */
-    std::shared_ptr<SimpleInterval> expandWithinContig(int padding, int contigLength) const;
-
-    std::shared_ptr<SimpleInterval> expandWithinContig(int padding, SAMSequenceDictionary* sequenceDictionary) const;
-
-    //TODO:SimpleInterval* expandWithinContig(int padding, SAMSequenceDictionary sequenceDictionary);
-
-    friend std::ostream & operator<<(std::ostream &os, const SimpleInterval& simpleInterval);
-
-    SimpleInterval(const std::shared_ptr<Locatable> & pLocatable);
+	SimpleInterval(const std::shared_ptr<Locatable> &pLocatable);
 
 	void printInfo() const;
+
+	bool contiguous(SimpleInterval *other) const;
 };
+
 #endif //MUTECT2CPP_MASTER_SIMPLEINTERVAL_H

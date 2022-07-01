@@ -15,7 +15,7 @@
 
 class AssemblyRegion : public Locatable{
 private:
-    SAMFileHeader *header;
+    SAMFileHeader *header = nullptr;
 
     /**
      * The reads included in this assembly region.  May be empty upon creation, and expand / contract
@@ -78,7 +78,7 @@ private:
     * @param stop our stop as an arbitrary integer (may be negative, etc)
     * @return a valid genome loc over contig, or null if a meaningful genome loc cannot be created
     */
-    std::shared_ptr<SimpleInterval> trimIntervalToContig(std::string& contig, int start, int stop);
+    std::shared_ptr<SimpleInterval> trimIntervalToContig(int contig, int start, int stop);
 
     void checkStates(SimpleInterval& activeRegion);
 

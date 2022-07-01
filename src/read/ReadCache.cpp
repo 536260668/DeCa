@@ -65,6 +65,7 @@ tid(tid), data(data), bam_name(bam_name), readTransformer(cache, data[0]->header
     ExtendedStart = max(start - maxAssemblyRegionSize, 0);
     ExtendedEnd = min(end + maxAssemblyRegionSize, chr_len);
     chr_name = std::string(sam_hdr_tid2name(data[0]->hdr, tid));
+	chr_name_int = ContigMap::getContigInt(chr_name);
     currentPose = ExtendedStart - 1;
 
 	if (maxReadsPerAlignmentStart < 0)
@@ -280,7 +281,7 @@ AlignmentContext ReadCache::getAlignmentContext() {
         InsertPileToAlignment(*iter, normalReadsForAlignment);
         normalCache.erase(iter++);
     }
-    SimpleInterval loc(chr_name, currentPose, currentPose);
+    SimpleInterval loc(chr_name_int, currentPose, currentPose);
     return {tumorReadsForAlignment, normalReadsForAlignment, loc, tid, data[0]->header};
 }
 

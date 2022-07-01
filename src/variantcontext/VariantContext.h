@@ -148,6 +148,8 @@ public:
 
 	std::string &getContig();
 
+	int getContigInt();
+
 	std::set<std::string>& getFilter();
 
 	std::set<std::string> *getFiltersMaybeNull();

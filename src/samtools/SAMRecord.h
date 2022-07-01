@@ -124,6 +124,7 @@ public:
     int getSoftStart();
     int getSoftEnd();
     std::string & getContig();
+	int getContigInt();
     std::string getAttributeAsString(std::string & attributeName);
     bool isReverseStrand() const;
     bool mateIsReverseStrand();

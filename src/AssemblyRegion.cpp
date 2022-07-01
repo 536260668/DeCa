@@ -8,6 +8,7 @@
 #include "IntervalUtils.h"
 #include "clipping/ReadClipper.h"
 #include "read/ReadUtils.h"
+#include "boost/utility.hpp"
 
 AssemblyRegion::AssemblyRegion(SimpleInterval const &activeRegionLoc,
                                std::vector<std::shared_ptr<ActivityProfileState>> supportingStates, const bool isActive,
@@ -15,8 +16,7 @@ AssemblyRegion::AssemblyRegion(SimpleInterval const &activeRegionLoc,
 		: activeRegionLoc(std::make_shared<SimpleInterval>(activeRegionLoc)),
 		  supportingStates(std::move(supportingStates)), isActive(isActive), extension(extension), header(header) {
 
-	std::string contig = activeRegionLoc.getContig();
-	extendedLoc = trimIntervalToContig(contig, activeRegionLoc.getStart() - extension,
+	extendedLoc = trimIntervalToContig(activeRegionLoc.getContigInt(), activeRegionLoc.getStart() - extension,
 	                                   activeRegionLoc.getEnd() + extension);
 	spanIncludingReads = extendedLoc;
 	//checkStates(this->activeRegionLoc);
@@ -24,16 +24,15 @@ AssemblyRegion::AssemblyRegion(SimpleInterval const &activeRegionLoc,
 
 AssemblyRegion::AssemblyRegion(SimpleInterval const &activeRegionLoc, const int extension)
 		: activeRegionLoc(std::make_shared<SimpleInterval>(activeRegionLoc)), isActive(true), extension(extension) {
-	std::string contig = activeRegionLoc.getContig();
-	extendedLoc = trimIntervalToContig(contig, activeRegionLoc.getStart() - extension,
+	extendedLoc = trimIntervalToContig(activeRegionLoc.getContigInt(), activeRegionLoc.getStart() - extension,
 	                                   activeRegionLoc.getEnd() + extension);
 	spanIncludingReads = extendedLoc;
 	//checkStates(this->activeRegionLoc);
 }
 
 std::shared_ptr<SimpleInterval>
-AssemblyRegion::trimIntervalToContig(std::string &contig, const int start, const int stop) {
-	const int contigLength = header->getSequenceDictionary().getSequence(contig).getSequenceLength();
+AssemblyRegion::trimIntervalToContig(int contig, const int start, const int stop) {
+	const int contigLength = header->getSequenceDictionary().getSequences()[contig].getSequenceLength();
 	return IntervalUtils::trimIntervalToContig(contig, start, stop, contigLength);
 }
 
@@ -118,7 +117,7 @@ bool AssemblyRegion::readOverlapsRegion(std::shared_ptr<SAMRecord> &read) {
 	if (read->isEmpty() || read->getStart() > read->getEnd()) {
 		return false;
 	}
-	std::shared_ptr<SimpleInterval> readLoc = std::make_shared<SimpleInterval>(read->getContig(), read->getStart(),
+	std::shared_ptr<SimpleInterval> readLoc = std::make_shared<SimpleInterval>(read->getContigInt(), read->getStart(),
 	                                                                           read->getEnd());
 	return readLoc->overlaps(extendedLoc);
 }
@@ -143,12 +142,10 @@ std::shared_ptr<uint8_t[]> AssemblyRegion::getReference(ReferenceCache *referenc
 	Mutect2Utils::validateArg(referenceReader, "referenceReader cannot be null");
 	Mutect2Utils::validateArg(padding >= 0, "padding must be a positive integer but got");
 	Mutect2Utils::validateArg(genomeLoc->size() > 0, "GenomeLoc must have size > 0 but got ");
-	std::string contig = genomeLoc->getContig();
-	return referenceReader->getSubsequenceAt(header->getSequenceDictionary().getSequenceIndex(contig),
-	                                         std::max(0, genomeLoc->getStart() - padding),
-	                                         std::min(header->getSequenceDictionary().getSequence(
-			                                                  contig).getSequenceLength() - 1,
-	                                                  genomeLoc->getEnd() + padding), length);
+	int contig = genomeLoc->getContigInt();
+	return referenceReader->getSubsequenceAt(contig, std::max(0, genomeLoc->getStart() - padding), std::min(
+			header->getSequenceDictionary().getSequences()[contig].getSequenceLength() - 1,
+			genomeLoc->getEnd() + padding), length);
 }
 
 void AssemblyRegion::removeAll(const std::vector<std::shared_ptr<SAMRecord>> &readsToRemove) {
@@ -156,7 +153,7 @@ void AssemblyRegion::removeAll(const std::vector<std::shared_ptr<SAMRecord>> &re
 		reads.erase(std::find(reads.begin(), reads.end(), read));
 	}
 	spanIncludingReads = extendedLoc;
-	for (auto & read : reads) {
+	for (auto &read: reads) {
 		spanIncludingReads = spanIncludingReads->mergeWithContiguous(read->getLoc());
 	}
 }
@@ -167,11 +164,9 @@ void AssemblyRegion::add(std::shared_ptr<SAMRecord> &read) {
 
 	spanIncludingReads = spanIncludingReads->mergeWithContiguous(read->getLoc());
 
-	if (!reads.empty()) {
-		std::shared_ptr<SAMRecord> &lastRead = reads.back();
-		assert(lastRead->getContig() == read->getContig());
-		//assert(read->getStart() >= lastRead->getStart());  // TODO: Is this line necessary?
-	}
+	if (BOOST_LIKELY(!reads.empty()))
+		assert(reads.back()->getContig() == read->getContig());
+
 	reads.emplace_back(std::make_shared<SAMRecord>(*read));
 }
 
@@ -241,14 +236,14 @@ void AssemblyRegion::printRegionInfo() {
 	std::cout << "reads count: " << reads.size() << std::endl;
 	for (const auto &read: reads) {
 		std::cout << read->getName() << "\t" << read->getStart() + 1 << " " << read->getEnd() + 1 << "\t";
-		for (const auto &ce: read->getCigarElements()){
+		for (const auto &ce: read->getCigarElements()) {
 			std::cout << ce.getLength() << CigarOperatorUtils::enumToCharacter(ce.getOperator());
 		}
 		std::cout << std::endl;
 	}
 }
 
-std::shared_ptr<uint8_t[]>  AssemblyRegion::getFullReference(ReferenceCache *cache, int padding, int & length) {
-    return getReference(cache, padding, spanIncludingReads, length);
+std::shared_ptr<uint8_t[]> AssemblyRegion::getFullReference(ReferenceCache *cache, int padding, int &length) {
+	return getReference(cache, padding, spanIncludingReads, length);
 }
 

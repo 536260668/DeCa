@@ -60,7 +60,7 @@ AssemblyBasedCallerUtils::getPaddedReferenceLoc(const std::shared_ptr<AssemblyRe
 	int padRight = std::min(region->getExtendedSpan()->getEnd() + referencePadding,
 	                        header->getSequenceDictionary().getSequence(
 			                        region->getExtendedSpan()->getContig()).getSequenceLength() - 1);
-	return std::make_shared<SimpleInterval>(region->getExtendedSpan()->getContig(), padLeft, padRight);
+	return std::make_shared<SimpleInterval>(region->getExtendedSpan()->getContigInt(), padLeft, padRight);
 }
 
 void

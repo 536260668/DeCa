@@ -6,9 +6,9 @@
 #include "Mutect2Utils.h"
 
 std::shared_ptr<SimpleInterval>
-IntervalUtils::trimIntervalToContig(const std::string &contig, const int start, const int stop,
+IntervalUtils::trimIntervalToContig(int contig, const int start, const int stop,
                                     const int contigLength) {
-	if (contig.empty())
+	if (contig == -1)
 		throw std::invalid_argument("Null object is not allowed here.");
 	if (contigLength < 1)
 		throw std::invalid_argument("ContigLength should be at least 1.");

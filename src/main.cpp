@@ -189,9 +189,9 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 	std::queue<std::shared_ptr<AssemblyRegion>> pendingRegions;
 	ActivityProfile *activityProfile = new BandPassActivityProfile(w->MTAC.maxProbPropagationDistance, w->MTAC.activeProbThreshold, BandPassActivityProfile::MAX_FILTER_SIZE, BandPassActivityProfile::DEFAULT_SIGMA,true , w->header);
 	VariantAnnotatorEngine annotatiorEngine(makeInfoFieldAnnotation(), makeGenotypeAnnotation());
-	Mutect2Engine m2Engine(w->MTAC, w->header, w->modelPath, annotatiorEngine, true);
+	Mutect2Engine m2Engine(w->MTAC, w->header, w->modelPath, annotatiorEngine, false);
 	std::vector<SAMSequenceRecord> headerSequences = w->header->getSequenceDictionary().getSequences();
-	ReferenceContext defaultReferenceContext{std::make_shared<SimpleInterval>("", 0, 0), N};
+	ReferenceContext defaultReferenceContext{std::make_shared<SimpleInterval>(), N};
 
 	// BQSR
 	std::shared_ptr<BQSRReadTransformer> tumorTransformer = nullptr;
@@ -566,7 +566,7 @@ int main(int argc, char *argv[])
 		}
 		int regionEnd = sharedData.regions[i].getEnd(), regionIndex = sharedData.regions[i].getK();
 		for (; sortedVC != MergedConcurrentResults.end(); ++sortedVC) {
-			if (ContigMap::getContigInt((*sortedVC)->getContig()) != regionIndex || (*sortedVC)->getStart() > regionEnd)
+			if ((*sortedVC)->getContigInt() != regionIndex || (*sortedVC)->getStart() > regionEnd)
 				break;
 			//Mutect2Engine::printVariationContext(*sortedVC);
 		}
