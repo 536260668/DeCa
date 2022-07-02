@@ -9,25 +9,35 @@
 #include "SimpleInterval.h"
 
 
-
 class AlignmentContext {
 private:
-    const std::list<pileRead*> & tumor;
-    const std::list<pileRead*> & normal;
-    SimpleInterval loc;
-    int tid;
-    SAMFileHeader * header;
+	const std::list<pileRead *> &tumor;
+	const std::list<pileRead *> &normal;
+	int tumorSize;
+	int normalSize;
+	SimpleInterval loc;
+	int tid;
+	SAMFileHeader *header;
 
 public:
-    AlignmentContext(const std::list<pileRead*> & tumor, const std::list<pileRead*> & normal, SimpleInterval &loc, int tid, SAMFileHeader* header);
-    AlignmentContext() = delete;
-    int getReadNum() const;
-    std::string getRefName();
-    int getPosition() const;
-    ReadPileup makeTumorPileup();
-    ReadPileup makeNormalPileup();
-    bool isEmpty() const;
-    SimpleInterval& getLocation();
+	AlignmentContext(const std::list<pileRead *> &tumor, const std::list<pileRead *> &normal, int tumorSize,
+	                 int normalSize, SimpleInterval &loc, int tid, SAMFileHeader *header);
+
+	AlignmentContext() = delete;
+
+	int getReadNum() const;
+
+	std::string getRefName();
+
+	int getPosition() const;
+
+	ReadPileup makeTumorPileup();
+
+	ReadPileup makeNormalPileup();
+
+	bool isEmpty() const;
+
+	SimpleInterval &getLocation();
 };
 
 

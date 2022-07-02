@@ -448,7 +448,8 @@ bool SAMRecord::isReverseStrand() const {
 }
 
 bool SAMRecord::mateIsReverseStrand() {
-    Mutect2Utils::validateArg(isPaired(), "Cannot get mate information for an unpaired read");
+	if (!isPaired())
+		throw std::invalid_argument("Cannot get mate information for an unpaired read");
     requireReadPaired();
     return getMateNegativeStrandFlagUnchecked();
 }
@@ -620,7 +621,7 @@ mReferenceName(other.mReferenceName), mMateReferenceName(other.mMateReferenceNam
 }
 
 std::shared_ptr<SimpleInterval> SAMRecord::getLoc() {
-    return std::make_shared<SimpleInterval>(mReferenceName, mAlignmentStart, mAlignmentEnd);
+    return std::make_shared<SimpleInterval>(ContigMap::getContigInt(mReferenceName), mAlignmentStart, mAlignmentEnd);
 }
 
 int SAMRecord::getEndAfterFliter() const {

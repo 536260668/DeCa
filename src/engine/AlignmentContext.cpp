@@ -3,35 +3,41 @@
 //
 
 #include "AlignmentContext.h"
+#include <assert.h>
 
-AlignmentContext::AlignmentContext(const std::list<pileRead*> & tumor, const std::list<pileRead*> & normal, SimpleInterval &loc, int tid, SAMFileHeader* header) : tumor(tumor), normal(normal), loc(loc),
-tid(tid), header(header){
+AlignmentContext::AlignmentContext(const std::list<pileRead *> &tumor, const std::list<pileRead *> &normal,
+                                   int tumorSize, int normalSize, SimpleInterval &loc, int tid, SAMFileHeader *header)
+		: tumor(tumor), normal(normal), loc(loc),
+		  tid(tid), header(header), tumorSize(tumorSize), normalSize(normalSize) {
+	// for debug
+	// assert(tumorSize == tumor.size());
+	// assert(normalSize == normal.size());
 }
 
-int AlignmentContext::getReadNum() const{
-    return normal.size() + tumor.size();
+int AlignmentContext::getReadNum() const {
+	return normalSize + tumorSize;
 }
 
 std::string AlignmentContext::getRefName() {
-    return header->getSequenceDictionary().getSequences()[tid].getSequenceName();
+	return header->getSequenceDictionary().getSequences()[tid].getSequenceName();
 }
 
 int AlignmentContext::getPosition() const {
-    return loc.getStart();
+	return loc.getStart();
 }
 
 ReadPileup AlignmentContext::makeTumorPileup() {
-    return {tid, loc.getStart(), tumor};
+	return {tid, loc.getStart(), tumor};
 }
 
 ReadPileup AlignmentContext::makeNormalPileup() {
-    return {tid, loc.getStart(), normal};
+	return {tid, loc.getStart(), normal};
 }
 
 bool AlignmentContext::isEmpty() const {
-    return tumor.size() + normal.size() == 0;
+	return normalSize + tumorSize == 0;
 }
 
 SimpleInterval &AlignmentContext::getLocation() {
-    return loc;
+	return loc;
 }

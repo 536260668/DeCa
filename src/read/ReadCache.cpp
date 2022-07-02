@@ -220,18 +220,21 @@ AlignmentContext ReadCache::getAlignmentContext() {
     while(iter != tumorReadsForAlignment.end() && (*iter)->activateStop < currentPose) {
         delete *iter;
         tumorReadsForAlignment.erase(iter++);
+		tumorReadsForAlignmentSize--;
     }
     iter = normalReadsForAlignment.begin();
     while(iter != normalReadsForAlignment.end() && (*iter)->activateStop < currentPose) {
         delete *iter;
         normalReadsForAlignment.erase(iter++);
+		normalReadsForAlignmentSize--;
     }
 
     while(!tumorReads.empty() && (*tumorReads.front()).read->getStart() <= currentPose){
         if((*tumorReads.front()).activateStart <= currentPose) {
             if((*tumorReads.front()).activateStop >= currentPose) {
                 InsertPileToAlignment(tumorReads.front(), tumorReadsForAlignment);
-                tumorReadsForRegion.emplace_back(tumorReads.front()->read);
+				tumorReadsForAlignmentSize++;
+				tumorReadsForRegion.emplace_back(tumorReads.front()->read);
                 tumorReads.pop();
             } else {
                 tumorReadsForRegion.emplace_back(tumorReads.front()->read);
@@ -253,7 +256,8 @@ AlignmentContext ReadCache::getAlignmentContext() {
         if((*normalReads.front()).activateStart <= currentPose) {
             if((*normalReads.front()).activateStop >= currentPose) {
                 InsertPileToAlignment(normalReads.front(), normalReadsForAlignment);
-                normalReadsForRegion.emplace_back(normalReads.front()->read);
+	            normalReadsForAlignmentSize++;
+				normalReadsForRegion.emplace_back(normalReads.front()->read);
                 normalReads.pop();
             } else {
                 normalReadsForRegion.emplace_back(normalReads.front()->read);
@@ -274,15 +278,17 @@ AlignmentContext ReadCache::getAlignmentContext() {
     iter = tumorCache.begin();
     while (iter != tumorCache.end() && (*iter)->activateStart <= currentPose) {
         InsertPileToAlignment(*iter, tumorReadsForAlignment);
-        tumorCache.erase(iter++);
+	    tumorReadsForAlignmentSize++;
+		tumorCache.erase(iter++);
     }
     iter = normalCache.begin();
     while (iter != normalCache.end() && (*iter)->activateStart <= currentPose) {
         InsertPileToAlignment(*iter, normalReadsForAlignment);
-        normalCache.erase(iter++);
+	    normalReadsForAlignmentSize++;
+		normalCache.erase(iter++);
     }
     SimpleInterval loc(chr_name_int, currentPose, currentPose);
-    return {tumorReadsForAlignment, normalReadsForAlignment, loc, tid, data[0]->header};
+    return {tumorReadsForAlignment, normalReadsForAlignment, tumorReadsForAlignmentSize, normalReadsForAlignmentSize, loc, tid, data[0]->header};
 }
 
 std::vector<std::shared_ptr<SAMRecord>> ReadCache::getReadsForRegion(AssemblyRegion & region) {
@@ -334,7 +340,7 @@ pileRead *ReadCache::getpileRead(const std::shared_ptr<SAMRecord> &read) {
 }
 
 void ReadCache::InsertPileToAlignment(pileRead* pile, std::list<pileRead*> & toAdd) {
-    std::list<pileRead*>::iterator iter = toAdd.end();
+    auto iter = toAdd.end();
     iter--;
     while(iter != toAdd.begin())
     {
@@ -377,11 +383,13 @@ void ReadCache::clear()
         delete read;
     }
     tumorReadsForAlignment.clear();
+	tumorReadsForAlignmentSize = 0;
 
     for(pileRead* read : normalReadsForAlignment) {
         delete read;
     }
     normalReadsForAlignment.clear();
+	normalReadsForAlignmentSize = 0;
 
     for(pileRead* read : normalCache) {
         delete read;
@@ -393,13 +401,13 @@ void ReadCache::clear()
     }
     tumorCache.clear();
 
-    while(tumorReads.size())
+    while(!tumorReads.empty())
     {
         delete tumorReads.front();
         tumorReads.pop();
     }
 
-    while(normalReads.size())
+    while(!normalReads.empty())
     {
         delete normalReads.front();
         normalReads.pop();

@@ -98,7 +98,9 @@ void ReadThreadingGraph::determineNonUniques() {
 				for (auto &withNonUnique: iter.second) {
 					int len = withNonUnique.stop - withNonUnique.start;
 					seqAllKmers.clear();
-					seqAllKmers.reserve(len - kmerSize + 1);
+					if (seqAllKmers.bucket_count() < len - kmerSize + 1) {
+						seqAllKmers.reserve(len - kmerSize + 1);
+					}
 
 					//std::string str = reinterpret_cast<const char *>(withNonUnique.sequence.get());
 					//sequence[start, stop)
@@ -138,7 +140,9 @@ void ReadThreadingGraph::determineNonUniques() {
 				for (auto &withNonUnique: iter.second) {
 					int len = withNonUnique.stop - withNonUnique.start;
 					seqAllKmers.clear();
-					seqAllKmers.reserve(len - kmerSize + 1);
+					if (seqAllKmers.bucket_count() < len - kmerSize + 1) {
+						seqAllKmers.reserve(len - kmerSize + 1);
+					}
 
 					//std::string str = reinterpret_cast<const char *>(withNonUnique.sequence.get());
 					uint8_t *s = withNonUnique.sequence.get();
@@ -182,7 +186,9 @@ void ReadThreadingGraph::determineNonUniques() {
 			for (auto &withNonUnique: iter.second) {
 				int len = withNonUnique.stop - withNonUnique.start;
 				seqAllKmers.clear();
-				seqAllKmers.reserve(len - kmerSize + 1);
+				if (seqAllKmers.bucket_count() < len - kmerSize + 1) {
+					seqAllKmers.reserve(len - kmerSize + 1);
+				}
 
 				//std::string str = reinterpret_cast<const char *>(withNonUnique.sequence.get());
 				uint8_t *s = withNonUnique.sequence.get();

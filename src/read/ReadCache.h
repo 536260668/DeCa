@@ -37,6 +37,8 @@ private:
     std::list<std::shared_ptr<SAMRecord>> normalReadsForRegion;
     std::list<pileRead*> tumorReadsForAlignment;
     std::list<pileRead*> normalReadsForAlignment;
+	int tumorReadsForAlignmentSize;
+	int normalReadsForAlignmentSize;
     std::list<pileRead*> tumorCache;
     std::list<pileRead*> normalCache;
     std::vector<char*> bam_name;
@@ -73,12 +75,11 @@ public:
     ReadCache(aux_t **data, std::vector<char *> &bam_name, int tid, int start, int end, int maxReadsPerAlignmentStart, int maxAssemblyRegionSize, std::shared_ptr<ReferenceCache> & cache, bool bqsr_within_mutect = false, BQSRReadTransformer * tumorTransformer = nullptr, BQSRReadTransformer * normalTransformer = nullptr);
     int getNextPos();
     bool hasNextPos();
-    void InsertPileToAlignment(pileRead* stopPos, std::list<pileRead*> &);
-    bool InsertPileToCache(pileRead* stopPos, std::list<pileRead*> & toAdd);
+    static void InsertPileToAlignment(pileRead* stopPos, std::list<pileRead*> &);
+    static bool InsertPileToCache(pileRead* stopPos, std::list<pileRead*> & toAdd);
     AlignmentContext getAlignmentContext();
     std::vector<std::shared_ptr<SAMRecord>> getReadsForRegion(AssemblyRegion & region);
     static pileRead * getpileRead(const std::shared_ptr<SAMRecord> & read);
-	void downSample();
     ~ReadCache();
 };
 
