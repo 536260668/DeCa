@@ -6,7 +6,6 @@
 
 #include <utility>
 #include <vector>
-#include "param/ParamUtils.h"
 #include "utils/BaseUtils.h"
 #include "variantcontext/builder/VariantContextBuilder.h"
 #include <deque>
@@ -24,7 +23,8 @@ EventMap::EventMap(std::shared_ptr<Haplotype> haplotype, std::shared_ptr<uint8_t
 }
 
 void EventMap::processCigarForInitialEvents(int maxMnpDistance) {
-	ParamUtils::isPositiveOrZero(maxMnpDistance, "maxMnpDistance may not be negative.");
+	if (maxMnpDistance < 0)
+		throw std::invalid_argument("maxMnpDistance may not be negative.");
 	std::shared_ptr<Cigar> cigar = haplotype->getCigar();
 	std::shared_ptr<uint8_t[]> alignment = haplotype->getBases();
 	int alignmentLength = haplotype->getLength();

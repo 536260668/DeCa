@@ -55,6 +55,8 @@ public:
 
 	Haplotype(const std::shared_ptr<uint8_t[]> &bases, int length, std::shared_ptr<Locatable> loc);
 
+	Haplotype(const std::shared_ptr<uint8_t[]> &bases, int length, bool isRef, double score);
+
 	~Haplotype() = default;
 
 	/**

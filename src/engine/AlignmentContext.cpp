@@ -3,7 +3,6 @@
 //
 
 #include "AlignmentContext.h"
-#include <assert.h>
 
 AlignmentContext::AlignmentContext(const std::list<pileRead *> &tumor, const std::list<pileRead *> &normal,
                                    int tumorSize, int normalSize, SimpleInterval &loc, int tid, SAMFileHeader *header)

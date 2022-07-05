@@ -22,7 +22,5 @@ KBestHaplotype::KBestHaplotype(const std::shared_ptr<KBestHaplotype> &p, const s
 std::shared_ptr<Haplotype> KBestHaplotype::getHaplotype() {
 	int length = 0;
 	std::shared_ptr<uint8_t[]> base = getBases(length);
-	std::shared_ptr<Haplotype> haplotype = std::make_shared<Haplotype>(base, length, getIsReference());
-	haplotype->setScore(score);
-	return haplotype;
+	return std::make_shared<Haplotype>(base, length, getIsReference(), score);
 }

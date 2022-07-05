@@ -6,7 +6,6 @@
 
 #include <utility>
 #include <algorithm>
-#include "param/ParamUtils.h"
 
 bool AssemblyResultSet::add(const std::shared_ptr<Haplotype> &h, const std::shared_ptr<AssemblyResult> &ar) {
 	Mutect2Utils::validateArg(h.get(), "input haplotype cannot be null");
@@ -80,7 +79,8 @@ bool AssemblyResultSet::add(const std::shared_ptr<Haplotype> &h) {
 
 std::set<std::shared_ptr<VariantContext>, VariantContextComparator> &
 AssemblyResultSet::getVariationEvents(int maxMnpDistance) {
-	ParamUtils::isPositiveOrZero(maxMnpDistance, "maxMnpDistance may not be negative.");
+	if (maxMnpDistance < 0)
+		throw std::invalid_argument("maxMnpDistance may not be negative.");
 	bool sameMnpDistance = lastMaxMnpDistanceUsed != -1 && maxMnpDistance == lastMaxMnpDistanceUsed;
 	lastMaxMnpDistanceUsed = maxMnpDistance;
 	bool flag = false;

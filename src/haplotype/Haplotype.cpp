@@ -13,6 +13,9 @@ Haplotype::Haplotype(const std::shared_ptr<uint8_t[]> &bases, int length, bool i
                                                                                                length, isRef),
                                                                                         eventMap(nullptr) {}
 
+Haplotype::Haplotype(const std::shared_ptr<uint8_t[]> &bases, int length, bool isRef, double score)
+		: Allele(copyArray(bases, length), length, isRef), score(score), eventMap(nullptr) {}
+
 std::shared_ptr<uint8_t[]> Haplotype::copyArray(const std::shared_ptr<uint8_t[]> &base, int length) {
 	std::shared_ptr<uint8_t[]> res{new uint8_t[length + 1]{0}};
 	memcpy(res.get(), base.get(), length);
@@ -114,13 +117,11 @@ double Haplotype::getScore() const {
 	return score;
 }
 
-
-std::shared_ptr<Cigar> Haplotype::getConsolidatedPaddedCigar(int padSize)
-{
-    assert(padSize >= 0);
-    auto extendedHaplotypeCigar = std::make_shared<Cigar>(getCigar()->getCigarElements());
-    if ( padSize > 0 ) {
-        extendedHaplotypeCigar->add(CigarElement(padSize, CigarOperator::M));
-    }
-    return AlignmentUtils::consolidateCigar(extendedHaplotypeCigar);
+std::shared_ptr<Cigar> Haplotype::getConsolidatedPaddedCigar(int padSize) {
+	assert(padSize >= 0);
+	auto extendedHaplotypeCigar = std::make_shared<Cigar>(getCigar()->getCigarElements());
+	if (padSize > 0) {
+		extendedHaplotypeCigar->add(CigarElement(padSize, CigarOperator::M));
+	}
+	return AlignmentUtils::consolidateCigar(extendedHaplotypeCigar);
 }
