@@ -53,7 +53,7 @@ private:
 
 	std::shared_ptr<AssemblyResult>
 	createGraph(const std::vector<std::shared_ptr<SAMRecord>> &reads, std::shared_ptr<Haplotype> &refHaplotype,
-	            int kmerSize, bool allowLowComplexityGraphs, bool debugMode);
+	            int kmerSize, bool allowLowComplexityGraphs);
 
 	static void addResult(std::vector<std::shared_ptr<AssemblyResult>> &results,
 	                      const std::shared_ptr<AssemblyResult> &maybeNullResult);
@@ -75,11 +75,10 @@ public:
 	std::shared_ptr<AssemblyResultSet>
 	runLocalAssembly(const std::shared_ptr<AssemblyRegion> &assemblyRegion, std::shared_ptr<Haplotype> &refHaplotype,
 	                 const std::shared_ptr<uint8_t[]> &fullReferenceWithPadding, int refLength,
-	                 const std::shared_ptr<SimpleInterval> &refLoc, ReadErrorCorrector *readErrorCorrector,
-					 bool debugMode);
+	                 const std::shared_ptr<SimpleInterval> &refLoc, ReadErrorCorrector *readErrorCorrector);
 
 	std::vector<std::shared_ptr<AssemblyResult>>
-	assemble(std::vector<std::shared_ptr<SAMRecord>> &reads, std::shared_ptr<Haplotype> &refHaplotype, bool debugMode);
+	assemble(std::vector<std::shared_ptr<SAMRecord>> &reads, std::shared_ptr<Haplotype> &refHaplotype);
 
 	void setMinDanglingBranchLength(int minDanglingBranchLength);
 

@@ -11,4 +11,7 @@ aux_source_directory(./BaseGraph DIR_LIB_SRCS_BASEGRAPH)
 aux_source_directory(./utils DIR_LIB_SRCS_UTILS)
 add_library(GraphFunctions ${DIR_LIB_SRCS} ${DIR_LIB_SRCS_SET} ${DIR_LIB_SRCS_BASEGRAPH} ${DIR_LIB_SRCS_UTILS} KBestHaplotypeFinder.cpp KBestHaplotypeFinder.h KBestHaplotype.cpp KBestHaplotype.h)
 
+# Add this flag to turn on the sort mode for comparison with GATK
+# add_definitions(-DSORT_MODE)
+
 target_link_libraries(GraphFunctions SWFunctions)

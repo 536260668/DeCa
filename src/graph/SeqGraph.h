@@ -14,8 +14,6 @@ class SeqGraph : public DirectedSpecifics<SeqVertex, BaseEdge> {
 private:
 	int kmerSize;
 
-	bool debugMode;
-
 private:
 	/**
 	 * How many cycles of the graph simplifications algorithms will we run before
@@ -64,8 +62,7 @@ public:
 	static std::shared_ptr<BaseEdge>
 	createEdge(std::shared_ptr<SeqVertex> sourceVertex, std::shared_ptr<SeqVertex> targetVertrx);
 
-	SeqGraph(int kmer, bool debugMode) : kmerSize(kmer), debugMode(debugMode),
-	                                     DirectedSpecifics<SeqVertex, BaseEdge>() {}
+	SeqGraph(int kmer) : kmerSize(kmer), DirectedSpecifics<SeqVertex, BaseEdge>() {}
 
 	SeqGraph(SeqGraph &seqGraph);
 
@@ -94,9 +91,6 @@ public:
 	SeqGraph *clone();
 
 	void printGraphSize(const std::string &info);
-
-	bool isDebugMode() const;
-
 };
 
 

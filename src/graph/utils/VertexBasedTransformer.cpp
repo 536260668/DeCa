@@ -13,21 +13,15 @@ bool VertexBasedTransformer::transformUntilComplete() {
 	bool foundNodesToMerge = true;
 	while (foundNodesToMerge) {
 		foundNodesToMerge = false;
-		if (graph->isDebugMode()) {
-			for (const std::shared_ptr<SeqVertex> &v: graph->getSortedVertexList()) {
-				foundNodesToMerge = tryToTransform(v);
-				if (foundNodesToMerge) {
-					didAtLeastOneTransform = true;
-					break;
-				}
-			}
-		} else {
-			for (const std::shared_ptr<SeqVertex> &v: graph->getVertexSet()) {
-				foundNodesToMerge = tryToTransform(v);
-				if (foundNodesToMerge) {
-					didAtLeastOneTransform = true;
-					break;
-				}
+#ifdef SORT_MODE
+		for (const std::shared_ptr<SeqVertex> &v: graph->getSortedVertexList()) {
+#else
+		for (const std::shared_ptr<SeqVertex> &v: graph->getVertexSet()) {
+#endif
+			foundNodesToMerge = tryToTransform(v);
+			if (foundNodesToMerge) {
+				didAtLeastOneTransform = true;
+				break;
 			}
 		}
 	}

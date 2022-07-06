@@ -33,9 +33,8 @@ std::shared_ptr<AssemblyResultSet>
 AssemblyBasedCallerUtils::assembleReads(const std::shared_ptr<AssemblyRegion> &region,
                                         M2ArgumentCollection &argumentCollection,
                                         SAMFileHeader *header, ReferenceCache &cache,
-                                        ReadThreadingAssembler &assemblyEngine,
-										bool debugMode) {
-	finalizeRegion(region, false, false, 9, header, false, debugMode);
+                                        ReadThreadingAssembler &assemblyEngine) {
+	finalizeRegion(region, false, false, 9, header, false);
 	int refLength = 0;
 	std::shared_ptr<uint8_t[]> fullReferenceWithPadding = region->getAssemblyRegionReference(&cache,
 	                                                                                         REFERENCE_PADDING_FOR_ASSEMBLY,
@@ -48,8 +47,7 @@ AssemblyBasedCallerUtils::assembleReads(const std::shared_ptr<AssemblyRegion> &r
 	                                                                                       fullReferenceWithPadding,
 	                                                                                       refLength,
 	                                                                                       paddedReferenceLoc,
-	                                                                                       nullptr,
-																						   debugMode);
+	                                                                                       nullptr);
 	return assemblyResultSet;
 }
 
@@ -67,8 +65,7 @@ void
 AssemblyBasedCallerUtils::finalizeRegion(const std::shared_ptr<AssemblyRegion> &region, bool errorCorrectReads,
                                          bool dontUseSoftClippedBases,
                                          uint8_t minTailQuality, SAMFileHeader *header,
-                                         bool correctOverlappingBaseQualities,
-                                         bool debugMode) {
+                                         bool correctOverlappingBaseQualities) {
 	if (region->isFinalized())
 		return;
 	std::vector<std::shared_ptr<SAMRecord>> readsToUse;
@@ -92,9 +89,9 @@ AssemblyBasedCallerUtils::finalizeRegion(const std::shared_ptr<AssemblyRegion> &
 	}
 	region->clearReads();
 	region->addAll(readsToUse);
-	if (debugMode) {
-		region->sortReadsByCoordinate();
-	}
+#ifdef SORT_MODE
+	region->sortReadsByCoordinate();
+#endif
 	region->setFinalized(true);
 }
 
@@ -148,7 +145,7 @@ void AssemblyBasedCallerUtils::cleanOverlappingReadPairs(vector<shared_ptr<SAMRe
 }
 
 std::shared_ptr<AssemblyRegion> AssemblyBasedCallerUtils::assemblyRegionWithWellMappedReads(
-		const std::shared_ptr<AssemblyRegion> &originalAssemblyRegion, int minMappingQuality, SAMFileHeader *header, bool debugMode) {
+		const std::shared_ptr<AssemblyRegion> &originalAssemblyRegion, int minMappingQuality, SAMFileHeader *header) {
 	auto result = make_shared<AssemblyRegion>(*originalAssemblyRegion->getSpan(),
 	                                          originalAssemblyRegion->getSupportingStates(),
 	                                          originalAssemblyRegion->getIsActive(),
@@ -157,9 +154,9 @@ std::shared_ptr<AssemblyRegion> AssemblyBasedCallerUtils::assemblyRegionWithWell
 		if (read->getMappingQuality() >= minMappingQuality)
 			result->add(read);
 	}
-	if (debugMode) {
-		result->sortReadsByCoordinate();
-	}
+#ifdef SORT_MODE
+	result->sortReadsByCoordinate();
+#endif
 	return result;
 }
 

@@ -189,7 +189,7 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 	std::queue<std::shared_ptr<AssemblyRegion>> pendingRegions;
 	ActivityProfile *activityProfile = new BandPassActivityProfile(w->MTAC.maxProbPropagationDistance, w->MTAC.activeProbThreshold, BandPassActivityProfile::MAX_FILTER_SIZE, BandPassActivityProfile::DEFAULT_SIGMA,true , w->header);
 	VariantAnnotatorEngine annotatiorEngine(makeInfoFieldAnnotation(), makeGenotypeAnnotation());
-	Mutect2Engine m2Engine(w->MTAC, w->header, w->modelPath, annotatiorEngine, false);
+	Mutect2Engine m2Engine(w->MTAC, w->header, w->modelPath, annotatiorEngine);
 	std::vector<SAMSequenceRecord> headerSequences = w->header->getSequenceDictionary().getSequences();
 	ReferenceContext defaultReferenceContext{std::make_shared<SimpleInterval>(), N};
 
@@ -293,7 +293,7 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 				//std::cout << nextRegion->getContig() + " " + to_string(nextRegion->getStart()+1) + " " + to_string(nextRegion->getEnd()+1) + '\n';
 				pendingRegions.pop();
 
-				m2Engine.fillNextAssemblyRegionWithReads(nextRegion, cache);
+				Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
 				if (BOOST_LIKELY(w->numOfStep2Thread == 0)) {
 					std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext);
 					w->results[currentTask].insert(w->results[currentTask].end(), variant.begin(), variant.end());
@@ -326,7 +326,7 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 			//std::cout << nextRegion->getContig() + " " + to_string(nextRegion->getStart()+1) + " " + to_string(nextRegion->getEnd()+1) + '\n';
 
 			pendingRegions.pop();
-			m2Engine.fillNextAssemblyRegionWithReads(nextRegion, cache);
+			Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
 			// ReferenceContext is not needed for the time being
 			if (BOOST_LIKELY(w->numOfStep2Thread == 0)) {
 				std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, defaultReferenceContext);    // TODO: callRegion() needs pileupRefContext

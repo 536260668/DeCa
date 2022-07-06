@@ -60,7 +60,6 @@ private:
 	bool variationPresent{};
 	std::shared_ptr<Haplotype> refHaplotype;
 	bool wasTrimmed = false;
-	bool debugMode;
 	int lastMaxMnpDistanceUsed = -1;
 	std::set<int> kmerSizes;
 	std::set<std::shared_ptr<VariantContext>, VariantContextComparator> variationEvents;
@@ -77,7 +76,7 @@ private:
 	                   const std::shared_ptr<std::vector<std::shared_ptr<Haplotype>>> &haplotypeList);
 
 public:
-	AssemblyResultSet(bool debugMode) : debugMode(debugMode) {};
+	AssemblyResultSet() {};
 
 	bool add(const std::shared_ptr<Haplotype> &h, const std::shared_ptr<AssemblyResult> &ar);
 

@@ -58,6 +58,8 @@ add_subdirectory(./src/annotator)
 
 add_executable(Mutect2Cpp_master ${DIR_SRCS} src/model/model.cpp src/model/model.h src/engine/ReferenceContext.cpp src/engine/ReferenceContext.h src/engine/AlignmentContext.cpp src/engine/AlignmentContext.h src/pileRead.h)
 
+# Add this flag to turn on the sort mode for comparison with GATK
+# add_definitions(-DSORT_MODE)
 
 # counterpart of gcc -L
 if (CMAKE_SYSTEM_NAME MATCHES "Linux")

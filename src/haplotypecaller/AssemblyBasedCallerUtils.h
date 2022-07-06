@@ -33,7 +33,7 @@ public:
      */
     static std::shared_ptr<Haplotype> createReferenceHaplotype(const std::shared_ptr<AssemblyRegion> & region, const std::shared_ptr<SimpleInterval> &referencePadding, ReferenceCache & cache);
 
-    static std::shared_ptr<AssemblyResultSet> assembleReads(const std::shared_ptr<AssemblyRegion>& region, M2ArgumentCollection & argumentCollection, SAMFileHeader* header, ReferenceCache & cache, ReadThreadingAssembler& assemblyEngine, bool debugMode);
+    static std::shared_ptr<AssemblyResultSet> assembleReads(const std::shared_ptr<AssemblyRegion>& region, M2ArgumentCollection & argumentCollection, SAMFileHeader* header, ReferenceCache & cache, ReadThreadingAssembler& assemblyEngine);
 
     static const int REFERENCE_PADDING_FOR_ASSEMBLY = 500;
 
@@ -41,7 +41,7 @@ public:
 
     static std::shared_ptr<SimpleInterval> getPaddedReferenceLoc(const std::shared_ptr<AssemblyRegion>& region, int referencePadding, SAMFileHeader* header);
 
-    static void finalizeRegion(const std::shared_ptr<AssemblyRegion>& region, bool errorCorrectReads, bool dontUseSoftClippedBases, uint8_t minTailQuality, SAMFileHeader* header, bool correctOverlappingBaseQualities, bool debugMode);
+    static void finalizeRegion(const std::shared_ptr<AssemblyRegion>& region, bool errorCorrectReads, bool dontUseSoftClippedBases, uint8_t minTailQuality, SAMFileHeader* header, bool correctOverlappingBaseQualities);
 
     static std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>> splitReadsBySample(const std::vector<std::string>& sampleList, const std::string& normalSample, const std::vector<std::shared_ptr<SAMRecord>> & reads);
 
@@ -69,7 +69,7 @@ public:
 
     // create the assembly using just high quality reads (eg Q20 or higher).  We may want to use lower
     // quality reads in the PairHMM downstream, so we can't use a ReadFilter
-    static std::shared_ptr<AssemblyRegion> assemblyRegionWithWellMappedReads(const std::shared_ptr<AssemblyRegion>& originalAssemblyRegion, int minMappingQuality, SAMFileHeader * header, bool debugMode);
+    static std::shared_ptr<AssemblyRegion> assemblyRegionWithWellMappedReads(const std::shared_ptr<AssemblyRegion>& originalAssemblyRegion, int minMappingQuality, SAMFileHeader * header);
 
     /**
      * Returns a map with the original read as a key and the realigned read as the value.

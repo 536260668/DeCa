@@ -68,8 +68,6 @@ private:
 
 	static const bool INCREASE_COUNTS_BACKWARDS = true;
 
-	bool debugMode;
-
 	static const int MAX_CIGAR_COMPLEXITY = 3;
 
 	int maxMismatchesInDanglingHead = -1;
@@ -208,12 +206,12 @@ private:
 
 public:
 	ReadThreadingGraph(uint8_t minBaseQualityToUseInAssembly, int kmerSize, bool alreadyBuilt,
-	                   std::shared_ptr<Kmer> ref, int numPruningSamples, bool debugMode)
-			: minBaseQualityToUseInAssembly(minBaseQualityToUseInAssembly), kmerSize(kmerSize), debugMode(debugMode),
+	                   std::shared_ptr<Kmer> ref, int numPruningSamples)
+			: minBaseQualityToUseInAssembly(minBaseQualityToUseInAssembly), kmerSize(kmerSize),
 			  alreadyBuilt(false), refSource(std::move(ref)), numPruningSamples(numPruningSamples), nonUniqueKmers() {}
 
 	ReadThreadingGraph(int kmerSize, bool debugGraphTransformations, uint8_t minBaseQualityToUseInAssembly,
-	                   int numPruningSamples, bool debugMode);
+	                   int numPruningSamples);
 
 	/**
 	 * Build the read threaded assembly graph if it hasn't already been constructed from the sequences that have

@@ -16,17 +16,13 @@
 
 bool SeqGraph::zipLinearChains() {
 	std::vector<std::shared_ptr<SeqVertex>> zipStarts;
-	if (debugMode) {
-		for (auto &source: getSortedVertexList()) {
-			if (isLinearChainStart(source)) {
-				zipStarts.emplace_back(source);
-			}
-		}
-	} else {
-		for (auto &source: getVertexSet()) {
-			if (isLinearChainStart(source)) {
-				zipStarts.emplace_back(source);
-			}
+#ifdef SORT_MODE
+	for (auto &source: getSortedVertexList()) {
+#else
+	for (auto &source: getVertexSet()) {
+#endif
+		if (isLinearChainStart(source)) {
+			zipStarts.emplace_back(source);
 		}
 	}
 
@@ -165,7 +161,6 @@ SeqGraph::SeqGraph(SeqGraph &seqGraph) : kmerSize(seqGraph.kmerSize),
                                                                                 seqGraph.getEdgeSet()) {
 	vertexMapDirected = seqGraph.vertexMapDirected;
 	edgeMap = seqGraph.edgeMap;
-	debugMode = seqGraph.debugMode;
 }
 
 SeqGraph *SeqGraph::clone() {
@@ -176,9 +171,5 @@ void SeqGraph::printGraphSize(const std::string &info) {
 	if (!info.empty())
 		std::cout << info << "\t";
 	std::cout << "E: " << edgeMap.size() << "\t" << "V: " << vertexMapDirected.size() << std::endl;
-}
-
-bool SeqGraph::isDebugMode() const {
-	return debugMode;
 }
 

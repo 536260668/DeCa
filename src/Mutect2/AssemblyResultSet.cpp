@@ -98,9 +98,12 @@ AssemblyResultSet::getVariationEvents(int maxMnpDistance) {
 }
 
 void AssemblyResultSet::regenerateVariationEvents(int maxMnpDistance) {
-
-	std::shared_ptr<std::vector<std::shared_ptr<Haplotype>>> haplotypeList = debugMode ? getSortedHaplotypeList()
-	                                                                                   : getHaplotypeList();
+	std::shared_ptr<std::vector<std::shared_ptr<Haplotype>>> haplotypeList =
+#ifdef SORT_MODE
+			getSortedHaplotypeList();
+#else
+			getHaplotypeList();
+#endif
 	EventMap::buildEventMapsForHaplotypes(*haplotypeList, fullReferenceWithPadding, fullReferenceWithPaddingLength,
 	                                      paddedReferenceLoc, maxMnpDistance);
 	variationEvents = EventMap::getAllVariantContexts(*haplotypeList);
@@ -155,8 +158,12 @@ AssemblyResultSet::getHaplotypeList() {
 std::vector<std::pair<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>>>
 AssemblyResultSet::calculateOriginalByTrimmedHaplotypes(const std::shared_ptr<AssemblyRegion> &trimmedAssemblyRegion) {
 	std::shared_ptr<std::unordered_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype >>
-			originalByTrimmedHaplotypes = trimDownHaplotypes(trimmedAssemblyRegion,
-			                                                 debugMode ? getSortedHaplotypeList() : getHaplotypeList());
+			originalByTrimmedHaplotypes =
+#ifdef SORT_MODE
+			trimDownHaplotypes(trimmedAssemblyRegion, getSortedHaplotypeList());
+#else
+			trimDownHaplotypes(trimmedAssemblyRegion, getHaplotypeList());
+#endif
 	std::vector<std::pair<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>>> sortedOriginalByTrimmedHaplotypes;
 	sortedOriginalByTrimmedHaplotypes.reserve(originalByTrimmedHaplotypes->size());
 	for (const auto &element: *originalByTrimmedHaplotypes) {
@@ -209,7 +216,7 @@ AssemblyResultSet::trimTo(const std::shared_ptr<AssemblyRegion> &trimmedAssembly
 	if (refHaplotype == nullptr)
 		throw std::invalid_argument("refHaplotype is null");
 
-	std::shared_ptr<AssemblyResultSet> result = std::make_shared<AssemblyResultSet>(debugMode);
+	std::shared_ptr<AssemblyResultSet> result = std::make_shared<AssemblyResultSet>();
 	for (const auto &element: originalByTrimmedHaplotypes) {
 		const std::shared_ptr<Haplotype> &trimmed = element.first;
 		const std::shared_ptr<Haplotype> &original = element.second;
@@ -285,7 +292,7 @@ void AssemblyResultSet::printSortedHaplotypes() {
 			std::cout << "ref\t";
 		}
 		std::cout << baseStr.length() << " ";
-		for (const auto &ce: h->getCigar()->getCigarElements()){
+		for (const auto &ce: h->getCigar()->getCigarElements()) {
 			std::cout << ce.getLength() << CigarOperatorUtils::enumToCharacter(ce.getOperator());
 		}
 		std::cout << std::endl << baseStr << std::endl;;

@@ -12,22 +12,16 @@ SharedVertexSequenceSplitter::commonPrefixAndSuffixOfVertices(
 		const std::unordered_set<std::shared_ptr<SeqVertex>> &middleVertices) {
 	std::list<std::pair<std::shared_ptr<uint8_t[]>, int>> kmers;
 	int min = INT32_MAX;
-	if (outer->isDebugMode()) {
-		for (const std::shared_ptr<SeqVertex> &v: outer->sortedVerticesOf(middleVertices)) {
-			std::pair<std::shared_ptr<uint8_t[]>, int> tmp;
-			tmp.first = v->getSequence();
-			tmp.second = v->getLength();
-			kmers.emplace_back(tmp);
-			min = std::min(min, tmp.second);
-		}
-	} else {
-		for (const std::shared_ptr<SeqVertex> &v: middleVertices) {
-			std::pair<std::shared_ptr<uint8_t[]>, int> tmp;
-			tmp.first = v->getSequence();
-			tmp.second = v->getLength();
-			kmers.emplace_back(tmp);
-			min = std::min(min, tmp.second);
-		}
+#ifdef SORT_MODE
+	for (const std::shared_ptr<SeqVertex> &v: outer->sortedVerticesOf(middleVertices)) {
+#else
+	for (const std::shared_ptr<SeqVertex> &v: middleVertices) {
+#endif
+		std::pair<std::shared_ptr<uint8_t[]>, int> tmp;
+		tmp.first = v->getSequence();
+		tmp.second = v->getLength();
+		kmers.emplace_back(tmp);
+		min = std::min(min, tmp.second);
 	}
 	int prefixLen = GraphUtils::commonMaximumPrefixLength(kmers);
 	int suffixLen = GraphUtils::commonMaximumSuffixLength(kmers, min - prefixLen);
@@ -79,48 +73,29 @@ bool SharedVertexSequenceSplitter::splitAndUpdate(std::shared_ptr<SeqVertex> top
 }
 
 void SharedVertexSequenceSplitter::split() {
-	splitGraph = new SeqGraph(outer->getKmerSize(), outer->isDebugMode());
+	splitGraph = new SeqGraph(outer->getKmerSize());
 	splitGraph->addVertex(getPrefixV());
 	splitGraph->addVertex(getSuffixV());
-	if (outer->isDebugMode()) {
-		for (const std::shared_ptr<SeqVertex> &mid: outer->sortedVerticesOf(toSplits)) {
-			std::shared_ptr<BaseEdge> toMid = processEdgeToRemove(mid, outer->incomingEdgeOf(mid));
-			std::shared_ptr<BaseEdge> fromMid = processEdgeToRemove(mid, outer->outgoingEdgeOf(mid));
-
-			std::shared_ptr<SeqVertex> remaining = mid->withoutPrefixAndSuffix(getPrefixV()->getSequence(),
-			                                                                   getPrefixV()->getLength(),
-			                                                                   getSuffixV()->getSequence(),
-			                                                                   getSuffixV()->getLength());
-			if (remaining != nullptr) {
-				splitGraph->addVertex(remaining);
-				getNewMiddles().emplace_back(remaining);
-				splitGraph->addEdge(getPrefixV(), remaining, toMid);
-				splitGraph->addEdge(remaining, getSuffixV(), fromMid);
-			} else {
-				std::shared_ptr<BaseEdge> tmp(new BaseEdge(toMid->getIsRef(), toMid->getMultiplicity()));
-				tmp->add(*fromMid);
-				splitGraph->addOrUpdateEdge(getPrefixV(), getSuffixV(), tmp);
-			}
-		}
-	} else {
-		for (const std::shared_ptr<SeqVertex> &mid: toSplits) {
-			std::shared_ptr<BaseEdge> toMid = processEdgeToRemove(mid, outer->incomingEdgeOf(mid));
-			std::shared_ptr<BaseEdge> fromMid = processEdgeToRemove(mid, outer->outgoingEdgeOf(mid));
-
-			std::shared_ptr<SeqVertex> remaining = mid->withoutPrefixAndSuffix(getPrefixV()->getSequence(),
-			                                                                   getPrefixV()->getLength(),
-			                                                                   getSuffixV()->getSequence(),
-			                                                                   getSuffixV()->getLength());
-			if (remaining != nullptr) {
-				splitGraph->addVertex(remaining);
-				getNewMiddles().emplace_back(remaining);
-				splitGraph->addEdge(getPrefixV(), remaining, toMid);
-				splitGraph->addEdge(remaining, getSuffixV(), fromMid);
-			} else {
-				std::shared_ptr<BaseEdge> tmp(new BaseEdge(toMid->getIsRef(), toMid->getMultiplicity()));
-				tmp->add(*fromMid);
-				splitGraph->addOrUpdateEdge(getPrefixV(), getSuffixV(), tmp);
-			}
+#ifdef SORT_MODE
+	for (const std::shared_ptr<SeqVertex> &mid: outer->sortedVerticesOf(toSplits)) {
+#else
+	for (const std::shared_ptr<SeqVertex> &mid: toSplits) {
+#endif
+		std::shared_ptr<BaseEdge> toMid = processEdgeToRemove(mid, outer->incomingEdgeOf(mid));
+		std::shared_ptr<BaseEdge> fromMid = processEdgeToRemove(mid, outer->outgoingEdgeOf(mid));
+		std::shared_ptr<SeqVertex> remaining = mid->withoutPrefixAndSuffix(getPrefixV()->getSequence(),
+		                                                                   getPrefixV()->getLength(),
+		                                                                   getSuffixV()->getSequence(),
+		                                                                   getSuffixV()->getLength());
+		if (remaining != nullptr) {
+			splitGraph->addVertex(remaining);
+			getNewMiddles().emplace_back(remaining);
+			splitGraph->addEdge(getPrefixV(), remaining, toMid);
+			splitGraph->addEdge(remaining, getSuffixV(), fromMid);
+		} else {
+			std::shared_ptr<BaseEdge> tmp(new BaseEdge(toMid->getIsRef(), toMid->getMultiplicity()));
+			tmp->add(*fromMid);
+			splitGraph->addOrUpdateEdge(getPrefixV(), getSuffixV(), tmp);
 		}
 	}
 }
