@@ -38,6 +38,10 @@ void initNative(bool use_double, int max_threads);
 
 void computeLikelihoodsNative(std::vector<testcase>& testcases, std::vector<double>& likelihoodArray);
 
+void computeLikelihoodsNative_concurrent(std::vector<testcase>& testcases, std::vector<double>& likelihoodArray);
+
+void computeLikelihoodsNative_concurrent_i(std::vector<testcase> *testcases, std::vector<double> *likelihoodArray, unsigned long i);
+
 //#ifdef __cplusplus
 //}
 //#endif

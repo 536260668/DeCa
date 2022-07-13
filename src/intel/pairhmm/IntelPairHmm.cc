@@ -37,6 +37,9 @@
   #include "avx512_impl.h"
 #endif
 #include "Context.h"
+#include <thread>
+#include "boost/utility.hpp"
+#include "utils/pairhmm/PairHMMConcurrentControl.h"
 
 bool g_use_double;
 int g_max_threads;
@@ -274,10 +277,61 @@ void computeLikelihoodsNative(std::vector<testcase>& testcases, std::vector<doub
             }
 
             //javaResults[i] = result_final;
-            likelihoodArray.push_back(result_final);
+            likelihoodArray[i] = result_final;
             DBG("result = %e", result_final);
         }
     } catch (const char* message) {
         std::cout << message << std::endl;
     }
+}
+
+// native implementation of PairHMM algorithm modified by hlf
+void computeLikelihoodsNative_concurrent(std::vector<testcase>& testcases, std::vector<double>& likelihoodArray) {
+	for (int i = 0; i < testcases.size(); i++) {
+		if (BOOST_LIKELY((!PairHMMConcurrentControl::startPairHMMConcurrentMode) || testcases.size() - i < 1000)) {
+			computeLikelihoodsNative_concurrent_i(&testcases, &likelihoodArray, i);
+		} else {
+			std::shared_ptr<LikelihoodsTask> likelihoods = std::make_shared<LikelihoodsTask>(&testcases, &likelihoodArray, (unsigned long)i, testcases.size());
+			PairHMMConcurrentControl::pairHMMMutex.lock();
+			PairHMMConcurrentControl::pairHMMTaskQueue.push(likelihoods);
+			//std::cout << "push " + std::to_string(PairHMMConcurrentControl::pairHMMTaskQueue.size()) + '\n';
+			PairHMMConcurrentControl::pairHMMMutex.unlock();
+			//std::cout << std::to_string(testcases.size()) + " testcases\tpush [" + std::to_string(i) + ", " + std::to_string(testcases.size() - 1) + "] size: " +
+			//                                                                                                                                          std::to_string(testcases.size() - i ) + '\n';
+
+			for (unsigned long ind = likelihoods->index++; ind < likelihoods->testcasesSize; ind = likelihoods->index++) {
+				//std::cout << std::to_string(ind) + '\n';
+				computeLikelihoodsNative_concurrent_i(likelihoods->taskTestcases, likelihoods->taskLikelihoodArray, ind);
+				likelihoods->count++;
+			}
+
+			// make sure all calculations have been completed
+			while (likelihoods->count != likelihoods->testcasesSize)
+				std::this_thread::yield();
+
+			// Check the results of concurrent calculations
+			/*std::vector<double> newArray(testcases.size());
+			for (int new_i = 0; new_i < testcases.size(); new_i++) {
+				computeLikelihoodsNative_concurrent_i(&testcases, &newArray, new_i);
+				assert(abs(newArray[new_i] - likelihoodArray[new_i]) < 0.0000000001);
+			}*/
+
+			//std::cout << std::to_string(testcases.size()) + " testcases done.\n";
+			return;
+		}
+	}
+}
+
+void computeLikelihoodsNative_concurrent_i(std::vector<testcase> *testcases, std::vector<double> *likelihoodArray, unsigned long i) {
+	double result_final = 0;
+	float result_float = g_use_double ? 0.0f : g_compute_full_prob_float(&(*testcases)[i]);
+
+	if (result_float < MIN_ACCEPTED) {
+		double result_double = g_compute_full_prob_double(&(*testcases)[i]);
+		result_final = log10(result_double) - g_ctxd.LOG10_INITIAL_CONSTANT;
+	}
+	else {
+		result_final = (double)(log10f(result_float) - g_ctxf.LOG10_INITIAL_CONSTANT);
+	}
+	(*likelihoodArray)[i] = result_final;
 }

@@ -107,8 +107,8 @@ void VectorLoglessPairHMM::computeLog10Likelihoods(SampleMatrix<SAMRecord, Haplo
     }*/
 
     mLogLikelihoodArray.clear();
-    mLogLikelihoodArray.reserve(numReads * mHaplotypeDataArrayLength);
-    computeLikelihoodsNative(testcases, mLogLikelihoodArray);
+    mLogLikelihoodArray.resize(testcases.size());
+	computeLikelihoodsNative_concurrent(testcases, mLogLikelihoodArray);
 
     //---print the likelihoods calculated by PairHMM algorithm
 /*    for(double & likelihood: mLogLikelihoodArray)

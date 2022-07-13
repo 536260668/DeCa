@@ -27,6 +27,8 @@
 #include "utils/BaseUtils.h"
 #include "variantcontext/VCFWriter.h"
 #include "ContigMap.h"
+#include "utils/pairhmm/PairHMMConcurrentControl.h"
+#include "intel/pairhmm/IntelPairHmm.h"
 
 // TODO: finish this method
 std::vector<shared_ptr<InfoFieldAnnotation>> makeInfoFieldAnnotation()
@@ -148,11 +150,14 @@ void adjust_input_bam(std::vector<char*> & input_bam, std::string & normalSample
     }
 }
 
-struct concurrentTask{
+struct ActiveRegion{
 	std::shared_ptr<AssemblyRegion> region;
 	ReferenceContext referenceContext;
 
-	friend bool operator < (const concurrentTask& a, const concurrentTask & b){
+	ActiveRegion(const shared_ptr<AssemblyRegion> &region, const ReferenceContext &referenceContext)
+		: region(region), referenceContext(referenceContext) {}
+
+	friend bool operator < (const ActiveRegion& a, const ActiveRegion & b){
 		return a.region->getReads().size() < b.region->getReads().size();
 	}
 };
@@ -170,19 +175,17 @@ struct Shared{
 	char * normal_table = nullptr;
 
 	bool startFlag = false;
-	bool allConcurrentMode= false;
 	int numOfThreads = 1;
 	std::vector<Region> regions;
 	std::vector<std::vector<shared_ptr<VariantContext>>> results;
 	std::vector<std::vector<shared_ptr<VariantContext>>> concurrentResults;
 	std::mutex queueMutex;
-	std::condition_variable queueCond;
-	std::priority_queue<concurrentTask> activeRegionQueue;
+	std::priority_queue<ActiveRegion> activeRegionQueue;
 	std::atomic<int> indexOfRegion{0};
-	std::atomic<int> activeRegioncount{0};
+	// std::atomic<int> activeRegioncount{0};
 	std::atomic<int> indexOfRefCache{0};
 	std::atomic<int> numOfRefCache{0};
-	std::atomic<int> numOfStep2Thread{0};
+	std::atomic<int> numOfFreeThread{0};
 };
 
 void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
@@ -285,8 +288,7 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 			activityProfile->add(profile);
 
 			if(!pendingRegions.empty() && pileup.getLocation().getStart() > (*pendingRegions.front()).getExtendedSpan()->getEnd()) {
-				w->activeRegioncount++;
-
+				// w->activeRegioncount++;
 				std::shared_ptr<AssemblyRegion> nextRegion = pendingRegions.front();
 
 				//---print the region
@@ -294,14 +296,13 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 				pendingRegions.pop();
 
 				Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
-				if (BOOST_LIKELY(w->numOfStep2Thread == 0)) {
+				if (BOOST_LIKELY(!PairHMMConcurrentControl::startPairHMMConcurrentMode)) {
 					std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext);
 					w->results[currentTask].insert(w->results[currentTask].end(), variant.begin(), variant.end());
 				} else {
 					w->queueMutex.lock();
-					w->activeRegionQueue.push({nextRegion, pileupRefContext});
+					w->activeRegionQueue.emplace(nextRegion, pileupRefContext);
 					w->queueMutex.unlock();
-					w->queueCond.notify_all();
 				}
 			}
 		}
@@ -319,7 +320,7 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 
 		while(!pendingRegions.empty())
 		{
-			w->activeRegioncount++;
+			// w->activeRegioncount++;
 			std::shared_ptr<AssemblyRegion> nextRegion = pendingRegions.front();
 
 			//---print the region
@@ -328,41 +329,74 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 			pendingRegions.pop();
 			Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
 			// ReferenceContext is not needed for the time being
-			if (BOOST_LIKELY(w->numOfStep2Thread == 0)) {
+			if (BOOST_LIKELY(!PairHMMConcurrentControl::startPairHMMConcurrentMode)) {
 				std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, defaultReferenceContext);    // TODO: callRegion() needs pileupRefContext
 				w->results[currentTask].insert(w->results[currentTask].end(), variant.begin(), variant.end());
 			} else {
 				w->queueMutex.lock();
-				w->activeRegionQueue.push({nextRegion, defaultReferenceContext});
+				w->activeRegionQueue.emplace(nextRegion, defaultReferenceContext);
 				w->queueMutex.unlock();
-				w->queueCond.notify_all();
 			}
 		}
  	}
 
-	w->allConcurrentMode = ++w->numOfStep2Thread == w->numOfThreads;
-	if (w->allConcurrentMode) std::cout << "All threads execute callRegion() concurrently.\n";
+	// start concurrent mode
+	if (!PairHMMConcurrentControl::startPairHMMConcurrentMode)
+		std::cout << "start PairHMM concurrent mode.\n";
+	PairHMMConcurrentControl::startPairHMMConcurrentMode = true;
+	w->numOfFreeThread++;
 
-	concurrentTask activeRegion = {nullptr, defaultReferenceContext};
-	bool exitFlag = false;
+	ActiveRegion activeRegion(nullptr, defaultReferenceContext);
+	std::shared_ptr<LikelihoodsTask> likelihoods;
+
 	while (true) {
-		while (true) {
-			std::unique_lock<std::mutex> lock(w->queueMutex);
-			w->queueCond.wait(lock, [] { return true; });
+		activeRegion = ActiveRegion(nullptr, defaultReferenceContext);
+		if (w->queueMutex.try_lock()) { // try to get a new region to call
 			if (BOOST_LIKELY(!w->activeRegionQueue.empty())) {
 				activeRegion = w->activeRegionQueue.top();
 				w->activeRegionQueue.pop();
-				break;
-			}
-			exitFlag = w->allConcurrentMode;
-			if (exitFlag) break;
+				//std::cout << "activeRegion size: " + std::to_string(w->activeRegionQueue.size()) + '\n';
+				w->queueMutex.unlock();
+
+				if (BOOST_LIKELY(activeRegion.region != nullptr)) {   // call Region
+					w->numOfFreeThread--;
+					int refInd = ContigMap::getContigInt(activeRegion.region->getContig());
+					m2Engine.setReferenceCache(w->refCaches[refInd].get());
+					std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(activeRegion.region, activeRegion.referenceContext);
+					w->concurrentResults[threadID].insert(w->concurrentResults[threadID].end(), variant.begin(), variant.end());
+					w->numOfFreeThread++;
+				}
+			} else
+				w->queueMutex.unlock();
 		}
-		if (exitFlag) break;
-		int refInd = ContigMap::getContigInt(activeRegion.region->getContig());
-		m2Engine.setReferenceCache(w->refCaches[refInd].get());
-		std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(activeRegion.region, activeRegion.referenceContext);
-		w->queueCond.notify_all();
-		w->concurrentResults[threadID].insert(w->concurrentResults[threadID].end(), variant.begin(), variant.end());
+
+		likelihoods = nullptr;
+		if (PairHMMConcurrentControl::pairHMMMutex.try_lock()) {    // try to get a new PairHMM task to calculate
+			// pop finished tasks first
+			while (BOOST_LIKELY(!PairHMMConcurrentControl::pairHMMTaskQueue.empty()) &&
+			       BOOST_UNLIKELY(PairHMMConcurrentControl::pairHMMTaskQueue.top()->index >= PairHMMConcurrentControl::pairHMMTaskQueue.top()->testcasesSize))
+				PairHMMConcurrentControl::pairHMMTaskQueue.pop();
+
+			if (BOOST_LIKELY(!PairHMMConcurrentControl::pairHMMTaskQueue.empty())) {
+				likelihoods = PairHMMConcurrentControl::pairHMMTaskQueue.top();
+				//std::cout << "pairHMM size: " + std::to_string(PairHMMConcurrentControl::pairHMMTaskQueue.size()) + '\n';
+				PairHMMConcurrentControl::pairHMMMutex.unlock();
+
+				if (BOOST_LIKELY(likelihoods != nullptr)) {   // calcualte PairHMM
+					w->numOfFreeThread--;
+					for (unsigned long ind = likelihoods->index++; ind < likelihoods->testcasesSize; ind = likelihoods->index++) {
+						computeLikelihoodsNative_concurrent_i(likelihoods->taskTestcases, likelihoods->taskLikelihoodArray, ind);
+						likelihoods->count++;
+					}
+					w->numOfFreeThread++;
+				}
+			} else
+				PairHMMConcurrentControl::pairHMMMutex.unlock();
+		}
+
+		// activeRegionQueue & pairHMMTaskQueue is both empty
+		if (BOOST_UNLIKELY(activeRegion.region == nullptr && likelihoods == nullptr) && w->numOfFreeThread == w->numOfThreads)
+			break;
 	}
 
 	// free the space
@@ -506,6 +540,7 @@ int main(int argc, char *argv[])
     QualityUtils::initial();
 	BaseUtils::initial();
 	ContigMap::initial(nref);
+	PairHMMConcurrentControl::initial();
 
 	//start threads
 	std::vector<std::thread> threads;
