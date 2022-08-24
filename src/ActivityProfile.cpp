@@ -101,7 +101,7 @@ ActivityProfile::popReadyAssemblyRegion(int assemblyRegionExtension, int minRegi
 	if (stateList.empty())
 		return nullptr;
 
-	std::shared_ptr<ActivityProfileState> &first = stateList.front();
+	std::shared_ptr<ActivityProfileState> first = stateList.front();
 	bool isActiveRegion = first->isActiveProb() > activeProbThreshold;
 	int offsetOfNextRegionEnd = findEndOfRegion(isActiveRegion, minRegionSize, maxRegionSize, forceConversion);
 	if (offsetOfNextRegionEnd == -1)

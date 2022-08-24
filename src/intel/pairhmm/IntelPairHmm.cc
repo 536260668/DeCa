@@ -270,10 +270,10 @@ void computeLikelihoodsNative(std::vector<testcase>& testcases, std::vector<doub
 
             if (result_float < MIN_ACCEPTED) {
                 double result_double = g_compute_full_prob_double(&testcases[i]);
-                result_final = log10(result_double) - g_ctxd.LOG10_INITIAL_CONSTANT;
+                result_final = log10(result_double) - Context<double>::LOG10_INITIAL_CONSTANT;
             }
             else {
-                result_final = (double)(log10f(result_float) - g_ctxf.LOG10_INITIAL_CONSTANT);
+                result_final = (double)(log10f(result_float) - Context<float>::LOG10_INITIAL_CONSTANT);
             }
 
             //javaResults[i] = result_final;
@@ -288,7 +288,7 @@ void computeLikelihoodsNative(std::vector<testcase>& testcases, std::vector<doub
 // native implementation of PairHMM algorithm modified by hlf
 void computeLikelihoodsNative_concurrent(std::vector<testcase>& testcases, std::vector<double>& likelihoodArray) {
 	for (int i = 0; i < testcases.size(); i++) {
-		if (BOOST_LIKELY((!PairHMMConcurrentControl::startPairHMMConcurrentMode) || testcases.size() - i < 1000)) {
+		if (BOOST_LIKELY((!PairHMMConcurrentControl::startPairHMMConcurrentMode) || testcases.size() - i < 1024)) {
 			computeLikelihoodsNative_concurrent_i(&testcases, &likelihoodArray, i);
 		} else {
 			std::shared_ptr<LikelihoodsTask> likelihoods = std::make_shared<LikelihoodsTask>(&testcases, &likelihoodArray, (unsigned long)i, testcases.size());
@@ -323,15 +323,326 @@ void computeLikelihoodsNative_concurrent(std::vector<testcase>& testcases, std::
 }
 
 void computeLikelihoodsNative_concurrent_i(std::vector<testcase> *testcases, std::vector<double> *likelihoodArray, unsigned long i) {
-	double result_final = 0;
-	float result_float = g_use_double ? 0.0f : g_compute_full_prob_float(&(*testcases)[i]);
+//	 if ((*testcases)[i].haplen > 64 && (*testcases)[i].rslen > 64)
+//		test_compute(testcases,likelihoodArray,i);
 
-	if (result_float < MIN_ACCEPTED) {
+//	std::cout << "double\t" << Context<double>::INITIAL_CONSTANT << '\t' << Context<double>::LOG10_INITIAL_CONSTANT << '\t' << log10(compute_full_prob_double(&(*testcases)[i])) - Context<double>::LOG10_INITIAL_CONSTANT << std::endl;
+//	std::cout << "float\t" << Context<float>::INITIAL_CONSTANT << '\t' << Context<float>::LOG10_INITIAL_CONSTANT << '\t' << (double)(log10f(compute_full_prob_float(&(*testcases)[i]))) - Context<float>::LOG10_INITIAL_CONSTANT << std::endl << std::endl;
+
+	double result_final;
+	float result_float = (BOOST_UNLIKELY(g_use_double)) ? 0.0f : g_compute_full_prob_float(&(*testcases)[i]);
+
+	if (BOOST_UNLIKELY(result_float < MIN_ACCEPTED)) {
 		double result_double = g_compute_full_prob_double(&(*testcases)[i]);
-		result_final = log10(result_double) - g_ctxd.LOG10_INITIAL_CONSTANT;
+		result_final = log10(result_double) - Context<double>::LOG10_INITIAL_CONSTANT;
 	}
 	else {
-		result_final = (double)(log10f(result_float) - g_ctxf.LOG10_INITIAL_CONSTANT);
+		result_final = (double)(log10f(result_float) - Context<float>::LOG10_INITIAL_CONSTANT);
 	}
 	(*likelihoodArray)[i] = result_final;
 }
+
+void test_compute(std::vector<testcase> *testcases, std::vector<double> *likelihoodArray, unsigned long i){
+	auto startTime = std::chrono::system_clock::now(), endTime = std::chrono::system_clock::now();
+
+//	startTime = std::chrono::system_clock::now();
+//	compute_full_prob_Fixed64(&(*testcases)[i]);
+//	endTime = std::chrono::system_clock::now();
+//	std::cout << "Fixed64\t" << std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << std::endl;
+
+	startTime = std::chrono::system_clock::now();
+	compute_full_prob_float(&(*testcases)[i]);
+	endTime = std::chrono::system_clock::now();
+	std::cout << "float native\t" << std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << std::endl;
+
+	startTime = std::chrono::system_clock::now();
+	g_compute_full_prob_float(&(*testcases)[i]);
+	endTime = std::chrono::system_clock::now();
+	std::cout << "float intel\t" << std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << std::endl;
+
+	startTime = std::chrono::system_clock::now();
+	compute_full_prob_double(&(*testcases)[i]);
+	endTime = std::chrono::system_clock::now();
+	std::cout << "double native\t" << std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << std::endl;
+
+	startTime = std::chrono::system_clock::now();
+	g_compute_full_prob_double(&(*testcases)[i]);
+	endTime = std::chrono::system_clock::now();
+	std::cout << "double intel\t" << std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << std::endl;
+
+	std::cout << std::endl;
+}
+
+
+float compute_full_prob_float(testcase *tc) {
+	/*float ph2pr[128];
+	for (int i = 0; i < 128; i++)
+		ph2pr[i] = powf(10.f, -((float)i) / 10.f);
+	*/
+
+	int ROWS = tc->rslen + 1, COLS = tc->haplen + 1;
+
+	float distm[ROWS];
+	distm[0] = -1;  // distm[0] will not be used
+
+	float M[ROWS][COLS], X[ROWS][COLS], Y[ROWS][COLS], p[ROWS][6];
+	std::fill_n(p[0], 6, 0);
+	int MM = 0, GapM = 1, MX = 2, XX = 3, MY = 4, YY = 5;   //use #define ?
+	for (int r = 1; r < ROWS; r++) {
+		float delta = Context<float>::ph2pr[tc->d[r - 1] & 127];
+		float iota = Context<float>::ph2pr[tc->i[r - 1] & 127];
+		float epsilon = Context<float>::ph2pr[tc->c[r - 1] & 127];
+		p[r][MM] = 1.0f - iota - delta; // can be calculated and stored?
+		p[r][GapM] = 1.0f - epsilon;    // can be calculated and stored?
+		p[r][MX] = iota;
+		p[r][MY] = delta;
+		p[r][XX] = p[r][YY] = epsilon;
+
+		distm[r] = Context<float>::ph2pr[tc->q[r - 1] & 127];
+	}
+
+	// float init_Y = ldexpf(1.f, 120.f) / (float)tc->haplen;
+	// in double version, use ldexp(1.0, 1020.0)
+	float init_Y = Context<float>::INITIAL_CONSTANT / (float) tc->haplen;   // 防止数值下溢
+	for (int c = 0; c < COLS; c++) {
+		M[0][c] = 0;
+		X[0][c] = 0;
+		Y[0][c] = init_Y;
+	}
+
+	for (int r = 1; r < ROWS; r++) {
+		M[r][0] = 0;
+		X[r][0] = 0;
+		Y[r][0] = 0;
+	}
+
+	for (int r = 1; r < ROWS; r++) {
+		for (int c = 1; c < COLS; c++) {
+			// char _rs = tc->rs[r - 1];
+			// char _hap = tc->hap[c - 1];
+			// float _distm = _rs == _hap ? 1.0f - distm[r] : distm[r] / 3;
+
+			M[r][c] = (tc->rs[r - 1] == tc->hap[c - 1] ? 1.0f - distm[r] : distm[r] / 3)
+			          * (M[r - 1][c - 1] * p[r][MM] + X[r - 1][c - 1] * p[r][GapM] + Y[r - 1][c - 1] * p[r][GapM]);
+
+			X[r][c] = M[r - 1][c] * p[r][MX] + X[r - 1][c] * p[r][XX];
+
+			Y[r][c] = M[r][c - 1] * p[r][MY] + Y[r][c - 1] * p[r][YY];
+		}
+	}
+
+	float result = 0;
+	for (int c = 1; c < COLS; c++)
+		result += M[ROWS - 1][c] + X[ROWS - 1][c];
+
+	/*std::cout.precision(5);
+	std::cout.setf(std::ios::scientific);
+	for (int r = 0; r < ROWS; ++r)
+	{
+		for (int c = 0; c < COLS; ++c)
+		{
+			std::cout<<M[r][c]<<"\t";
+		}
+		std::cout << std::endl;
+	}
+	std::cout << "============\n";
+
+	for (int r = 0; r < ROWS; ++r)
+	{
+		for (int c = 0; c < COLS; ++c)
+		{
+			std::cout<<X[r][c]<<"\t";
+		}
+		std::cout << std::endl;
+	}
+	std::cout << "============\n";
+
+	for (int r = 0; r < ROWS; ++r)
+	{
+		for (int c = 0; c < COLS; ++c)
+		{
+			std::cout<<Y[r][c]<<"\t";
+		}
+		std::cout << std::endl;
+	}
+	std::cout << "============\n";*/
+
+	return result;
+}
+
+double compute_full_prob_double(testcase *tc) {
+	int ROWS = tc->rslen + 1, COLS = tc->haplen + 1;
+
+	double distm[ROWS];
+	distm[0] = -1;  // distm[0] will not be used
+
+	double M[ROWS][COLS], X[ROWS][COLS], Y[ROWS][COLS], p[ROWS][6];
+	std::fill_n(p[0], 6, 0);
+	int MM = 0, GapM = 1, MX = 2, XX = 3, MY = 4, YY = 5;   //use #define ?
+	for (int r = 1; r < ROWS; r++) {
+		double delta = Context<double>::ph2pr[tc->d[r - 1] & 127];
+		double iota = Context<double>::ph2pr[tc->i[r - 1] & 127];
+		double epsilon = Context<double>::ph2pr[tc->c[r - 1] & 127];
+		p[r][MM] = 1.0f - iota - delta;
+		p[r][GapM] = 1.0f - epsilon;
+		p[r][MX] = iota;
+		p[r][MY] = delta;
+		p[r][XX] = p[r][YY] = epsilon;
+
+		distm[r] = Context<double>::ph2pr[tc->q[r - 1] & 127];
+	}
+
+	// in double version, use ldexp(1.0, 1020.0)
+	double init_Y = Context<double>::INITIAL_CONSTANT / (double) tc->haplen;   // 防止数值下溢
+	for (int c = 0; c < COLS; c++) {
+		M[0][c] = 0;
+		X[0][c] = 0;
+		Y[0][c] = init_Y;
+	}
+
+	for (int r = 1; r < ROWS; r++) {
+		M[r][0] = 0;
+		X[r][0] = 0;
+		Y[r][0] = 0;
+	}
+
+	for (int r = 1; r < ROWS; r++) {
+		for (int c = 1; c < COLS; c++) {
+			// char _rs = tc->rs[r - 1];
+			// char _hap = tc->hap[c - 1];
+			// float _distm = _rs == _hap ? 1.0f - distm[r] : distm[r] / 3;
+
+			M[r][c] = (tc->rs[r - 1] == tc->hap[c - 1] ? 1.0f - distm[r] : distm[r] / 3)
+			          * (M[r - 1][c - 1] * p[r][MM] + X[r - 1][c - 1] * p[r][GapM] + Y[r - 1][c - 1] * p[r][GapM]);
+
+			X[r][c] = M[r - 1][c] * p[r][MX] + X[r - 1][c] * p[r][XX];
+
+			Y[r][c] = M[r][c - 1] * p[r][MY] + Y[r][c - 1] * p[r][YY];
+		}
+	}
+
+	double result = 0;
+	for (int c = 1; c < COLS; c++)
+		result += M[ROWS - 1][c] + X[ROWS - 1][c];
+
+	/*std::cout.precision(5);
+	std::cout.setf(std::ios::scientific);
+	for (int r = 0; r < ROWS; ++r)
+	{
+		for (int c = 0; c < COLS; ++c)
+		{
+			std::cout<<M[r][c]<<"\t";
+		}
+		std::cout << std::endl;
+	}
+	std::cout << "============\n";
+
+	for (int r = 0; r < ROWS; ++r)
+	{
+		for (int c = 0; c < COLS; ++c)
+		{
+			std::cout<<X[r][c]<<"\t";
+		}
+		std::cout << std::endl;
+	}
+	std::cout << "============\n";
+
+	for (int r = 0; r < ROWS; ++r)
+	{
+		for (int c = 0; c < COLS; ++c)
+		{
+			std::cout<<Y[r][c]<<"\t";
+		}
+		std::cout << std::endl;
+	}
+	std::cout << "============\n";*/
+
+	return result;
+}
+
+/*
+ * author: hlf
+ * get Fixed64.h from https://github.com/XMunkki/FixPointCS to use this function.
+ * This function has been discarded because of its low efficiency and low accuracy.
+ */
+
+/*
+double compute_full_prob_Fixed64(testcase *tc) {
+
+	int INITIAL_CONSTANT_INT = 1 << 30;
+	Fixed64::FP_LONG INITIAL_CONSTANT = Fixed64::FromInt(INITIAL_CONSTANT_INT);
+	float LOG10_INITIAL_CONSTANT = log10f((float)INITIAL_CONSTANT_INT);
+
+	Fixed64::FP_LONG ph2pr[128];
+	Fixed64::FP_LONG TEN = Fixed64::FromInt(10);
+	for (int i = 0; i < 128; i++) {
+		ph2pr[i] = Fixed64::Pow(TEN, Fixed64::Div(Fixed64::FromInt(-i), TEN));
+	}
+
+	int ROWS = tc->rslen + 1, COLS = tc->haplen + 1;
+
+	Fixed64::FP_LONG distm[ROWS];
+	distm[0] = Fixed64::MinValue;  // distm[0] will not be used
+
+	Fixed64::FP_LONG M[ROWS][COLS], X[ROWS][COLS], Y[ROWS][COLS], p[ROWS][6];
+	std::fill_n(p[0], 6, 0);
+
+	int MM = 0, GapM = 1, MX = 2, XX = 3, MY = 4, YY = 5;   //use #define ?
+	for (int r = 1; r < ROWS; r++) {
+		Fixed64::FP_LONG delta = ph2pr[tc->d[r - 1] & 127];
+		Fixed64::FP_LONG iota = ph2pr[tc->i[r - 1] & 127];
+		Fixed64::FP_LONG epsilon = ph2pr[tc->c[r - 1] & 127];
+		p[r][MM] = Fixed64::One - iota - delta; // can be calculated and stored?
+		p[r][GapM] = Fixed64::One - epsilon;    // can be calculated and stored?
+		p[r][MX] = iota;
+		p[r][MY] = delta;
+		p[r][XX] = p[r][YY] = epsilon;
+
+		distm[r] = ph2pr[tc->q[r - 1] & 127];
+	}
+
+	// float init_Y = ldexpf(1.f, 120.f) / (float)tc->haplen;
+	// in double version, use ldexp(1.0, 1020.0)
+	Fixed64::FP_LONG init_Y = Fixed64::Div(INITIAL_CONSTANT, Fixed64::FromInt(tc->haplen));   // 防止数值下溢
+	for (int c = 0; c < COLS; c++) {
+		M[0][c] = 0;
+		X[0][c] = 0;
+		Y[0][c] = init_Y;
+	}
+
+	for (int r = 1; r < ROWS; r++) {
+		M[r][0] = 0;
+		X[r][0] = 0;
+		Y[r][0] = 0;
+	}
+
+	for (int r = 1; r < ROWS; r++)
+		for (int c = 1; c < COLS; c++) {
+			// char _rs = tc->rs[r - 1];
+			// char _hap = tc->hap[c - 1];
+			// float _distm = (_rs == _hap || _rs == 'N' || _hap == 'N') ? 1.0f - distm[r] : distm[r] / 3;
+
+			// M[r][c] = (tc->rs[r - 1] == tc->hap[c - 1]  ? 1.0f - distm[r] : distm[r] / 3)
+			//           * (M[r - 1][c - 1] * p[r][MM] + X[r - 1][c - 1] * p[r][GapM] + Y[r - 1][c - 1] * p[r][GapM]);
+			Fixed64::FP_LONG _distm = tc->rs[r - 1] == tc->hap[c - 1] ? Fixed64::One - distm[r] : Fixed64::Div(distm[r],Fixed64::Three);
+			M[r][c] = Fixed64::Mul(_distm, Fixed64::Mul(M[r - 1][c - 1], p[r][MM]) + Fixed64::Mul(X[r - 1][c - 1] + Y[r - 1][c - 1], p[r][GapM]));
+
+			// X[r][c] = M[r - 1][c] * p[r][MX] + X[r - 1][c] * p[r][XX];
+			X[r][c] = Fixed64::Mul(M[r - 1][c], p[r][MX]) + Fixed64::Mul(X[r - 1][c], p[r][XX]);
+
+			// Y[r][c] = M[r][c - 1] * p[r][MY] + Y[r][c - 1] * p[r][YY];
+			Y[r][c] = Fixed64::Mul(M[r][c - 1], p[r][MY]) + Fixed64::Mul(Y[r][c - 1], p[r][YY]);
+		}
+
+	Fixed64::FP_LONG result = 0;
+	for (int c = 1; c < COLS; c++) {
+		result += M[ROWS - 1][c];
+		result += X[ROWS - 1][c];
+	}
+
+	double result_double = log10(Fixed64::ToDouble(result)) - LOG10_INITIAL_CONSTANT;
+	// std::cout << "Fixed64\t" << Fixed64::ToDouble(INITIAL_CONSTANT) << '\t' << LOG10_INITIAL_CONSTANT << '\t' << result_double << std::endl;;
+
+	return result_double;
+}
+*/

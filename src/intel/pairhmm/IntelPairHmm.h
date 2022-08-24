@@ -42,6 +42,14 @@ void computeLikelihoodsNative_concurrent(std::vector<testcase>& testcases, std::
 
 void computeLikelihoodsNative_concurrent_i(std::vector<testcase> *testcases, std::vector<double> *likelihoodArray, unsigned long i);
 
+void test_compute(std::vector<testcase> *testcases, std::vector<double> *likelihoodArray, unsigned long i);
+
+float compute_full_prob_float(testcase *tc);
+
+double compute_full_prob_double(testcase *tc);
+
+double compute_full_prob_Fixed64(testcase *tc);
+
 //#ifdef __cplusplus
 //}
 //#endif

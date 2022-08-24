@@ -242,7 +242,7 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion> &originalAssembl
 }
 
 void Mutect2Engine::removeUnmarkedDuplicates(const std::shared_ptr<AssemblyRegion> &assemblyRegion) {
-	// The order of reads may causes a diffrent result. at present, it seems to have little impact
+	// The order of reads may cause a diffrent result. at present, it seems to have little impact
 	// Therefore, we also sorted the gatk version's reads here in advance to facilitate program comparison
 	std::map<std::pair<std::string, int>, std::vector<std::shared_ptr<SAMRecord>>> possibleDuplicates;
 	for (auto &read: assemblyRegion->getReads()) {

@@ -5,6 +5,7 @@
 #include <cassert>
 #include <memory>
 #include <algorithm>
+#include <utility>
 #include "PairHMMLikelihoodCalculationEngine.h"
 #include "utils/pairhmm/VectorLoglessPairHMM.h"
 #include "MathUtils.h"
@@ -39,10 +40,7 @@ PairHMMLikelihoodCalculationEngine::PairHMMLikelihoodCalculationEngine(char cons
     this->baseQualityScoreThreshold = baseQualityScoreThreshold;
 }
 
-PairHMMLikelihoodCalculationEngine::~PairHMMLikelihoodCalculationEngine()
-{
-
-}
+PairHMMLikelihoodCalculationEngine::~PairHMMLikelihoodCalculationEngine() = default;
 
 char PairHMMLikelihoodCalculationEngine::getErrorModelAdjustedQual(int repeatLength, double rateFactor)
 {
@@ -80,7 +78,7 @@ AlleleLikelihoods<SAMRecord, Haplotype>* PairHMMLikelihoodCalculationEngine::com
     initializePairHMM(*haplotypeList, perSampleReadList);
 
     // Add likelihoods for each sample's reads to our result
-    AlleleLikelihoods<SAMRecord, Haplotype>* result = new AlleleLikelihoods<SAMRecord, Haplotype>(samples, haplotypeList, perSampleReadList);
+    auto* result = new AlleleLikelihoods<SAMRecord, Haplotype>(samples, haplotypeList, perSampleReadList);
 
     int sampleCount = samples.size();
     for(int i=0; i<sampleCount; i++)
@@ -272,10 +270,10 @@ uint8_t PairHMMLikelihoodCalculationEngine::setToFixedValueIfTooLow(uint8_t curr
 shared_ptr<SAMRecord> PairHMMLikelihoodCalculationEngine::createQualityModifiedRead(SAMRecord& read, int length, std::shared_ptr<uint8_t[]> readBases, std::shared_ptr<uint8_t[]> baseQualities, std::shared_ptr<uint8_t[]> baseInsertionQualities, std::shared_ptr<uint8_t[]> baseDeletionQualities)
 {
     shared_ptr<SAMRecord> processedRead = ReadUtils::emptyRead(read);
-    processedRead->setBases(readBases, length);
-    processedRead->setBaseQualities(baseQualities, length);
-    ReadUtils::setInsertionBaseQualities(processedRead, baseInsertionQualities, length);
-    ReadUtils::setDeletionBaseQualities(processedRead, baseDeletionQualities, length);
+    processedRead->setBases(std::move(readBases), length);
+    processedRead->setBaseQualities(std::move(baseQualities), length);
+    ReadUtils::setInsertionBaseQualities(processedRead, std::move(baseInsertionQualities), length);
+    ReadUtils::setDeletionBaseQualities(processedRead, std::move(baseDeletionQualities), length);
     return processedRead;
 }
 

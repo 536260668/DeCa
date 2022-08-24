@@ -579,6 +579,9 @@ int main(int argc, char *argv[])
 		thread.join();
 	}
 	std::cout << "All threads exited.\n";
+//	std::cout << "unique testcases summary:\n";
+//	std::cout << "read:\t" << PairHMMConcurrentControl::unique_reads << " / " << PairHMMConcurrentControl::all_reads << std::endl;
+//	std::cout << "case:\t" << PairHMMConcurrentControl::unique_cases << " / " << PairHMMConcurrentControl::all_cases << std::endl;
 
 	std::vector<std::shared_ptr<VariantContext>> MergedConcurrentResults;
 	for (const auto &results: sharedData.concurrentResults) {
@@ -586,7 +589,7 @@ int main(int argc, char *argv[])
 	}
 
 	std::sort(MergedConcurrentResults.begin(), MergedConcurrentResults.end(),
-			  [&sharedData](const shared_ptr<VariantContext>& a, const shared_ptr<VariantContext>& b) -> bool {
+			  [](const shared_ptr<VariantContext>& a, const shared_ptr<VariantContext>& b) -> bool {
 		int ind1 = ContigMap::getContigInt(a->getContig());
 		int ind2 = ContigMap::getContigInt(b->getContig());
 		if (ind1 != ind2)
