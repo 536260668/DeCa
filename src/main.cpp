@@ -374,11 +374,11 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 		if (PairHMMConcurrentControl::pairHMMMutex.try_lock()) {    // try to get a new PairHMM task to calculate
 			// pop finished tasks first
 			while (BOOST_LIKELY(!PairHMMConcurrentControl::pairHMMTaskQueue.empty()) &&
-			       BOOST_UNLIKELY(PairHMMConcurrentControl::pairHMMTaskQueue.top()->index >= PairHMMConcurrentControl::pairHMMTaskQueue.top()->testcasesSize))
+			       BOOST_UNLIKELY(PairHMMConcurrentControl::pairHMMTaskQueue.front()->index >= PairHMMConcurrentControl::pairHMMTaskQueue.front()->testcasesSize))
 				PairHMMConcurrentControl::pairHMMTaskQueue.pop();
 
 			if (BOOST_LIKELY(!PairHMMConcurrentControl::pairHMMTaskQueue.empty())) {
-				likelihoods = PairHMMConcurrentControl::pairHMMTaskQueue.top();
+				likelihoods = PairHMMConcurrentControl::pairHMMTaskQueue.front();
 				//std::cout << "pairHMM size: " + std::to_string(PairHMMConcurrentControl::pairHMMTaskQueue.size()) + '\n';
 				PairHMMConcurrentControl::pairHMMMutex.unlock();
 
@@ -582,6 +582,7 @@ int main(int argc, char *argv[])
 //	std::cout << "unique testcases summary:\n";
 //	std::cout << "read:\t" << PairHMMConcurrentControl::unique_reads << " / " << PairHMMConcurrentControl::all_reads << std::endl;
 //	std::cout << "case:\t" << PairHMMConcurrentControl::unique_cases << " / " << PairHMMConcurrentControl::all_cases << std::endl;
+//	std::cout << "use double case(s):\t" << PairHMMConcurrentControl::compute_double_cases << std::endl;
 
 	std::vector<std::shared_ptr<VariantContext>> MergedConcurrentResults;
 	for (const auto &results: sharedData.concurrentResults) {

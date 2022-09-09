@@ -8,6 +8,7 @@
 #include "ReadUtils.h"
 #include "haplotypecaller/ReadForPairHMM.h"
 #include "parallel_hashmap/phmap.h"
+#include "utils/pairhmm/PairHMMConcurrentControl.h"
 
 VectorLoglessPairHMM::VectorLoglessPairHMM(PairHMMNativeArgumentCollection &args) : mHaplotypeDataArrayLength(0) {
 	initNative(args.useDoublePrecision, args.pairHmmNativeThreads);
@@ -26,7 +27,7 @@ void VectorLoglessPairHMM::initialize(const std::vector<std::shared_ptr<Haplotyp
 	for (const std::shared_ptr<Haplotype> &currHaplotype: haplotypes) {
 		mHaplotypeDataArray[idx] = HaplotypeDataHolder(currHaplotype->getBases().get(),
 		                                               currHaplotype->getBasesLength());
-		haplotypeToHaplotypeListIdxMap.insert(pair<std::shared_ptr<Haplotype>, int>(currHaplotype, idx));
+		haplotypeToHaplotypeListIdxMap.emplace(currHaplotype, idx);
 		idx++;
 	}
 }
@@ -52,6 +53,8 @@ void VectorLoglessPairHMM::computeLog10Likelihoods(SampleMatrix<SAMRecord, Haplo
 	// An array that stores unique testcases and where all testcases are mapped to this array
 	// Therefore, the number of testcases to be computed is reduced, but the length of mloglikelihoodarray is unchanged
 	std::vector<testcase> uniqueTestcases;
+	/* For Debugging*/
+//	std::vector<testcase> old_uniqueTestcases;
 	std::vector<int> mapAlltoUnique;
 	uniqueTestcases.reserve(numReads * mHaplotypeDataArrayLength);
 	mapAlltoUnique.reserve(numReads * mHaplotypeDataArrayLength);
@@ -85,14 +88,17 @@ void VectorLoglessPairHMM::computeLog10Likelihoods(SampleMatrix<SAMRecord, Haplo
 			uniqueReadForPairHMM.emplace(readOfTestcase, uniqueTestcases.size());
 			for (int h = 0; h < mHaplotypeDataArrayLength; ++h) {
 				mapAlltoUnique.emplace_back(uniqueTestcases.size());
-				uniqueTestcases.emplace_back(_rslen, haplotypeLengths[h], readQuals, insGops[r].get(), delGops[r].get(),
-				                             gapConts, haplotypes[h], reads);
+				uniqueTestcases.emplace_back(haplotypeLengths[h], haplotypes[h], readOfTestcase);
+				/* For Debugging*/
+//				old_uniqueTestcases.emplace_back(haplotypeLengths[h], haplotypes[h], readOfTestcase);
 			}
 		} else {
 			// No element needs to be pushed into uniqueTestcases
 			int mapStart = readIt->second;
 			for (int h = 0; h < mHaplotypeDataArrayLength; ++h) {
 				mapAlltoUnique.emplace_back(mapStart++);
+				/* For Debugging*/
+//				old_uniqueTestcases.emplace_back(haplotypeLengths[h], haplotypes[h], readOfTestcase);
 			}
 		}
 	}
@@ -146,8 +152,12 @@ void VectorLoglessPairHMM::computeLog10Likelihoods(SampleMatrix<SAMRecord, Haplo
         }
     }*/
 
+	// initialize probaility arrays and distm
+	for (const auto &[readForPairHMM, _]: uniqueReadForPairHMM)
+		readForPairHMM->initializeFloatVector();
+
 	// Compute
-	vector<double> uniqueLogLikelihoodArray(uniqueTestcases.size());
+	std::vector<double> uniqueLogLikelihoodArray(uniqueTestcases.size());
 	computeLikelihoodsNative_concurrent(uniqueTestcases, uniqueLogLikelihoodArray);
 
 	// Mapping results
@@ -155,13 +165,20 @@ void VectorLoglessPairHMM::computeLog10Likelihoods(SampleMatrix<SAMRecord, Haplo
 	for (int i = 0; i < mapAlltoUnique.size(); ++i)
 		mLogLikelihoodArray[i] = uniqueLogLikelihoodArray[mapAlltoUnique[i]];
 
+	/* For Debugging*/
+//	std::vector<double> old_mLogLikelihoodArray(old_uniqueTestcases.size());
+//	computeLikelihoodsNative_concurrent(old_uniqueTestcases, old_mLogLikelihoodArray);
+//	assert(old_mLogLikelihoodArray == mLogLikelihoodArray);
+
 	//---print the likelihoods calculated by PairHMM algorithm
-/*    for(double & likelihood: mLogLikelihoodArray)
-    {
-        cerr.setf(ios::fixed);
-        cerr << setprecision(5) << likelihood << " ";
-    }
-    cerr << endl;*/
+//	cout << numReads << " " << mHaplotypeDataArrayLength << endl;
+//	for (int r = 0; r < numReads; ++r) {
+//		for (int h = 0; h < mHaplotypeDataArrayLength; ++h) {
+//			cout.setf(ios::fixed);
+//			cout << setprecision(5) << mLogLikelihoodArray[r * mHaplotypeDataArrayLength + h] << " ";
+//		}
+//		cout << endl;
+//	}
 
 	int readIdx = 0;
 	for (int r = 0; r < numReads; ++r) {

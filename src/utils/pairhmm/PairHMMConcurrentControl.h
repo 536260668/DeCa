@@ -30,12 +30,13 @@ struct LikelihoodsTask {
 class PairHMMConcurrentControl {
 public:
 	static std::mutex pairHMMMutex;
-	static std::priority_queue<std::shared_ptr<LikelihoodsTask>> pairHMMTaskQueue;
+	static std::queue<std::shared_ptr<LikelihoodsTask>> pairHMMTaskQueue;
 	static bool startPairHMMConcurrentMode;
 //	static std::atomic<unsigned long long> unique_reads;
 //	static std::atomic<unsigned long long> all_reads;
-//	static std::atomic<unsigned long long> all_cases;
 //	static std::atomic<unsigned long long> unique_cases;
+//	static std::atomic<unsigned long long> compute_double_cases;
+//	static std::atomic<unsigned long long> all_cases;
 
 	static void initial();
 };

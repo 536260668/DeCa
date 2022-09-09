@@ -60,7 +60,7 @@ void CONCAT(CONCAT(precompute_masks_,SIMD_ENGINE), PRECISION)(const testcase& tc
 void CONCAT(CONCAT(init_masks_for_row_,SIMD_ENGINE), PRECISION)(const testcase& tc, char* rsArr, MASK_TYPE* lastMaskShiftOut, int beginRowIndex, int numRowsToProcess) {
 
     for (int ri=0; ri < numRowsToProcess; ++ri) {
-        rsArr[ri] = ConvertChar::get(tc.rs[ri+beginRowIndex-1]) ;
+        rsArr[ri] = ConvertChar::get(tc.readForPairHmm->rs[ri+beginRowIndex-1]) ;
     }
 
     for (int ei=0; ei < AVX_LENGTH; ++ei) {
@@ -102,8 +102,8 @@ inline void CONCAT(CONCAT(computeDistVec,SIMD_ENGINE), PRECISION) (BITMASK_VEC& 
  * 1- Intializes probability values p_MM, p_XX, P_YY, p_MX, p_GAPM and pack them into vectors
  * 2- Precompute parts of "distm" which only depeneds on a row number and pack it into vector
  */
- 
-template<class NUMBER> void CONCAT(CONCAT(initializeVectors,SIMD_ENGINE), PRECISION)(int ROWS, int COLS, NUMBER* shiftOutM, NUMBER *shiftOutX, NUMBER *shiftOutY, Context<NUMBER> ctx, testcase *tc,  SIMD_TYPE *p_MM, SIMD_TYPE *p_GAPM, SIMD_TYPE *p_MX, SIMD_TYPE *p_XX, SIMD_TYPE *p_MY, SIMD_TYPE *p_YY, SIMD_TYPE *distm1D)
+
+template<class NUMBER> void CONCAT(CONCAT(initializeVectors,SIMD_ENGINE), PRECISION)(int ROWS, int COLS, NUMBER* shiftOutM, NUMBER *shiftOutX, NUMBER *shiftOutY, Context<NUMBER> ctx, testcase *tc)
 {
     NUMBER zero = ctx._(0.0);
     // Casting is fine because the algorithm is intended to have limited precision.
@@ -113,41 +113,6 @@ template<class NUMBER> void CONCAT(CONCAT(initializeVectors,SIMD_ENGINE), PRECIS
         shiftOutM[s] = zero;
         shiftOutX[s] = zero;
         shiftOutY[s] = init_Y;
-    }
-
-    NUMBER *ptr_p_MM = (NUMBER *)p_MM;
-    NUMBER *ptr_p_XX = (NUMBER *)p_XX;
-    NUMBER *ptr_p_YY = (NUMBER *)p_YY;
-    NUMBER *ptr_p_MX = (NUMBER *)p_MX;
-    NUMBER *ptr_p_MY = (NUMBER *)p_MY;
-    NUMBER *ptr_p_GAPM = (NUMBER *)p_GAPM;
-
-    *ptr_p_MM = ctx._(0.0);
-    *ptr_p_XX = ctx._(0.0);
-    *ptr_p_YY = ctx._(0.0);
-    *ptr_p_MX = ctx._(0.0);
-    *ptr_p_MY = ctx._(0.0);
-    *ptr_p_GAPM = ctx._(0.0);
-
-    for (int r = 1; r < ROWS; r++)
-    {
-        int _i = tc->i[r-1] & 127;
-        int _d = tc->d[r-1] & 127;
-        int _c = tc->c[r-1] & 127;
-
-        *(ptr_p_MM+r-1) = ctx.set_mm_prob(_i, _d);
-        *(ptr_p_GAPM+r-1) = ctx._(1.0) - ctx.ph2pr[_c];
-        *(ptr_p_MX+r-1) = ctx.ph2pr[_i];
-        *(ptr_p_XX+r-1) = ctx.ph2pr[_c];
-        *(ptr_p_MY+r-1) = ctx.ph2pr[_d];
-        *(ptr_p_YY+r-1) = ctx.ph2pr[_c];
-    }
-
-    NUMBER *ptr_distm1D = (NUMBER *)distm1D;
-    for (int r = 1; r < ROWS; r++)
-    {
-        int _q = tc->q[r-1] & 127;
-        ptr_distm1D[r-1] = ctx.ph2pr[_q];
     }
 }
 
@@ -234,16 +199,23 @@ inline void CONCAT(CONCAT(computeMXY,SIMD_ENGINE), PRECISION)(UNION_TYPE &M_t, U
 
 template<class NUMBER> NUMBER CONCAT(CONCAT(compute_full_prob_,SIMD_ENGINE), PRECISION) (testcase *tc)
 {
-    int ROWS = tc->rslen + 1;
+    int ROWS = tc->readForPairHmm->rslen + 1;
     int COLS = tc->haplen + 1;
     int MAVX_COUNT = (ROWS+AVX_LENGTH-1)/AVX_LENGTH;
 
-    /* Probaility arrays */
-    SIMD_TYPE p_MM   [MAVX_COUNT], p_GAPM [MAVX_COUNT], p_MX   [MAVX_COUNT];
-    SIMD_TYPE p_XX   [MAVX_COUNT], p_MY   [MAVX_COUNT], p_YY   [MAVX_COUNT];
+	/* Get initialized data */
+	NUMBER* initializedData = tc->readForPairHmm->getInitializedData<NUMBER>().get();
 
-    /* For distm precomputation */
-    SIMD_TYPE distm1D[MAVX_COUNT];
+	/* Probaility arrays */
+	auto* p_MM = (SIMD_TYPE*)initializedData;
+	auto* p_XX = (SIMD_TYPE*)initializedData + MAVX_COUNT;
+	auto* p_YY = (SIMD_TYPE*)initializedData + 2 * MAVX_COUNT;
+	auto* p_MX = (SIMD_TYPE*)initializedData + 3 * MAVX_COUNT;
+	auto* p_MY = (SIMD_TYPE*)initializedData + 4 * MAVX_COUNT;
+	auto* p_GAPM = (SIMD_TYPE*)initializedData + 5 * MAVX_COUNT;
+
+	/* For distm precomputation */
+	auto* distm1D = (SIMD_TYPE*)initializedData + 6 * MAVX_COUNT;
 
     /* Carries the values from each stripe to the next stripe */
     NUMBER shiftOutM[ROWS+COLS+AVX_LENGTH], shiftOutX[ROWS+COLS+AVX_LENGTH], shiftOutY[ROWS+COLS+AVX_LENGTH];
@@ -286,7 +258,7 @@ template<class NUMBER> NUMBER CONCAT(CONCAT(compute_full_prob_,SIMD_ENGINE), PRE
 
     /* Precompute initialization for probabilities and shift vector*/
     CONCAT(CONCAT(initializeVectors,SIMD_ENGINE), PRECISION)<NUMBER>(ROWS, COLS, shiftOutM, shiftOutX, shiftOutY,
-            ctx, tc, p_MM, p_GAPM, p_MX, p_XX, p_MY, p_YY, distm1D);
+																	 ctx, tc);
 
     for (int i=0;i<stripe_cnt-1;i++)
     {

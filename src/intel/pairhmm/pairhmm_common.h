@@ -32,6 +32,8 @@
 
 #include <assert.h>
 #include <stdint.h>
+#include <utility>
+#include "haplotypecaller/ReadForPairHMM.h"
 
 #define CAT(X,Y) X##Y
 #define CONCAT(X,Y) CAT(X,Y)
@@ -41,20 +43,15 @@
 #define AMBIG_CHAR 4
 
 struct testcase{
-  int rslen, haplen;
-  const char *q, *i, *d, *c;
-  const char *hap, *rs;
+  int haplen;
+  const char *hap;
+  std::shared_ptr<ReadForPairHMM> readForPairHmm;
 
-  testcase(int _rslen, int _haplen, uint8_t * readQuals, uint8_t* insGops, uint8_t* delGops, char* gapConts, uint8_t * haplotype, uint8_t *reads)
+  testcase(int _haplen, const uint8_t * haplotype, std::shared_ptr<ReadForPairHMM> _readForPairHmm)
   {
-      rslen = _rslen;
       haplen = _haplen;
-      q = (const char *)readQuals;
-      i = (const char *)insGops;
-      d = (const char *)delGops;
-      c = (const char *)gapConts;
       hap = (const char *)haplotype;
-      rs = (const char *)reads;
+	  readForPairHmm = std::move(_readForPairHmm);
   };
 } ;
 

@@ -64,7 +64,7 @@ private:
 		std::map<Path<V, E> *, double> chainLogOddsmap;
 
 		for (viter = chains.begin(); viter != chains.end(); viter++) {
-			chainLogOddsmap.insert(std::make_pair(*viter, chainLogOdds(*viter, graph, errorRate)));
+			chainLogOddsmap.template emplace(*viter, chainLogOdds(*viter, graph, errorRate));
 		}
 
 		for (typename std::map<Path<V, E> *, double>::iterator miter = chainLogOddsmap.begin();

@@ -335,6 +335,7 @@ void computeLikelihoodsNative_concurrent_i(std::vector<testcase> *testcases, std
 	if (BOOST_UNLIKELY(result_float < MIN_ACCEPTED)) {
 		double result_double = g_compute_full_prob_double(&(*testcases)[i]);
 		result_final = log10(result_double) - Context<double>::LOG10_INITIAL_CONSTANT;
+//		PairHMMConcurrentControl::compute_double_cases++;
 	}
 	else {
 		result_final = (double)(log10f(result_float) - Context<float>::LOG10_INITIAL_CONSTANT);
@@ -342,223 +343,224 @@ void computeLikelihoodsNative_concurrent_i(std::vector<testcase> *testcases, std
 	(*likelihoodArray)[i] = result_final;
 }
 
-void test_compute(std::vector<testcase> *testcases, std::vector<double> *likelihoodArray, unsigned long i){
-	auto startTime = std::chrono::system_clock::now(), endTime = std::chrono::system_clock::now();
-
+//void test_compute(std::vector<testcase> *testcases, std::vector<double> *likelihoodArray, unsigned long i){
+//	auto startTime = std::chrono::system_clock::now(), endTime = std::chrono::system_clock::now();
+//
+////	startTime = std::chrono::system_clock::now();
+////	compute_full_prob_Fixed64(&(*testcases)[i]);
+////	endTime = std::chrono::system_clock::now();
+////	std::cout << "Fixed64\t" << std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << std::endl;
+//
 //	startTime = std::chrono::system_clock::now();
-//	compute_full_prob_Fixed64(&(*testcases)[i]);
+//	compute_full_prob_float(&(*testcases)[i]);
 //	endTime = std::chrono::system_clock::now();
-//	std::cout << "Fixed64\t" << std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << std::endl;
-
-	startTime = std::chrono::system_clock::now();
-	compute_full_prob_float(&(*testcases)[i]);
-	endTime = std::chrono::system_clock::now();
-	std::cout << "float native\t" << std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << std::endl;
-
-	startTime = std::chrono::system_clock::now();
-	g_compute_full_prob_float(&(*testcases)[i]);
-	endTime = std::chrono::system_clock::now();
-	std::cout << "float intel\t" << std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << std::endl;
-
-	startTime = std::chrono::system_clock::now();
-	compute_full_prob_double(&(*testcases)[i]);
-	endTime = std::chrono::system_clock::now();
-	std::cout << "double native\t" << std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << std::endl;
-
-	startTime = std::chrono::system_clock::now();
-	g_compute_full_prob_double(&(*testcases)[i]);
-	endTime = std::chrono::system_clock::now();
-	std::cout << "double intel\t" << std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << std::endl;
-
-	std::cout << std::endl;
-}
-
-
-float compute_full_prob_float(testcase *tc) {
-	/*float ph2pr[128];
-	for (int i = 0; i < 128; i++)
-		ph2pr[i] = powf(10.f, -((float)i) / 10.f);
-	*/
-
-	int ROWS = tc->rslen + 1, COLS = tc->haplen + 1;
-
-	float distm[ROWS];
-	distm[0] = -1;  // distm[0] will not be used
-
-	float M[ROWS][COLS], X[ROWS][COLS], Y[ROWS][COLS], p[ROWS][6];
-	std::fill_n(p[0], 6, 0);
-	int MM = 0, GapM = 1, MX = 2, XX = 3, MY = 4, YY = 5;   //use #define ?
-	for (int r = 1; r < ROWS; r++) {
-		float delta = Context<float>::ph2pr[tc->d[r - 1] & 127];
-		float iota = Context<float>::ph2pr[tc->i[r - 1] & 127];
-		float epsilon = Context<float>::ph2pr[tc->c[r - 1] & 127];
-		p[r][MM] = 1.0f - iota - delta; // can be calculated and stored?
-		p[r][GapM] = 1.0f - epsilon;    // can be calculated and stored?
-		p[r][MX] = iota;
-		p[r][MY] = delta;
-		p[r][XX] = p[r][YY] = epsilon;
-
-		distm[r] = Context<float>::ph2pr[tc->q[r - 1] & 127];
-	}
-
-	// float init_Y = ldexpf(1.f, 120.f) / (float)tc->haplen;
-	// in double version, use ldexp(1.0, 1020.0)
-	float init_Y = Context<float>::INITIAL_CONSTANT / (float) tc->haplen;   // 防止数值下溢
-	for (int c = 0; c < COLS; c++) {
-		M[0][c] = 0;
-		X[0][c] = 0;
-		Y[0][c] = init_Y;
-	}
-
-	for (int r = 1; r < ROWS; r++) {
-		M[r][0] = 0;
-		X[r][0] = 0;
-		Y[r][0] = 0;
-	}
-
-	for (int r = 1; r < ROWS; r++) {
-		for (int c = 1; c < COLS; c++) {
-			// char _rs = tc->rs[r - 1];
-			// char _hap = tc->hap[c - 1];
-			// float _distm = _rs == _hap ? 1.0f - distm[r] : distm[r] / 3;
-
-			M[r][c] = (tc->rs[r - 1] == tc->hap[c - 1] ? 1.0f - distm[r] : distm[r] / 3)
-			          * (M[r - 1][c - 1] * p[r][MM] + X[r - 1][c - 1] * p[r][GapM] + Y[r - 1][c - 1] * p[r][GapM]);
-
-			X[r][c] = M[r - 1][c] * p[r][MX] + X[r - 1][c] * p[r][XX];
-
-			Y[r][c] = M[r][c - 1] * p[r][MY] + Y[r][c - 1] * p[r][YY];
-		}
-	}
-
-	float result = 0;
-	for (int c = 1; c < COLS; c++)
-		result += M[ROWS - 1][c] + X[ROWS - 1][c];
-
-	/*std::cout.precision(5);
-	std::cout.setf(std::ios::scientific);
-	for (int r = 0; r < ROWS; ++r)
-	{
-		for (int c = 0; c < COLS; ++c)
-		{
-			std::cout<<M[r][c]<<"\t";
-		}
-		std::cout << std::endl;
-	}
-	std::cout << "============\n";
-
-	for (int r = 0; r < ROWS; ++r)
-	{
-		for (int c = 0; c < COLS; ++c)
-		{
-			std::cout<<X[r][c]<<"\t";
-		}
-		std::cout << std::endl;
-	}
-	std::cout << "============\n";
-
-	for (int r = 0; r < ROWS; ++r)
-	{
-		for (int c = 0; c < COLS; ++c)
-		{
-			std::cout<<Y[r][c]<<"\t";
-		}
-		std::cout << std::endl;
-	}
-	std::cout << "============\n";*/
-
-	return result;
-}
-
-double compute_full_prob_double(testcase *tc) {
-	int ROWS = tc->rslen + 1, COLS = tc->haplen + 1;
-
-	double distm[ROWS];
-	distm[0] = -1;  // distm[0] will not be used
-
-	double M[ROWS][COLS], X[ROWS][COLS], Y[ROWS][COLS], p[ROWS][6];
-	std::fill_n(p[0], 6, 0);
-	int MM = 0, GapM = 1, MX = 2, XX = 3, MY = 4, YY = 5;   //use #define ?
-	for (int r = 1; r < ROWS; r++) {
-		double delta = Context<double>::ph2pr[tc->d[r - 1] & 127];
-		double iota = Context<double>::ph2pr[tc->i[r - 1] & 127];
-		double epsilon = Context<double>::ph2pr[tc->c[r - 1] & 127];
-		p[r][MM] = 1.0f - iota - delta;
-		p[r][GapM] = 1.0f - epsilon;
-		p[r][MX] = iota;
-		p[r][MY] = delta;
-		p[r][XX] = p[r][YY] = epsilon;
-
-		distm[r] = Context<double>::ph2pr[tc->q[r - 1] & 127];
-	}
-
-	// in double version, use ldexp(1.0, 1020.0)
-	double init_Y = Context<double>::INITIAL_CONSTANT / (double) tc->haplen;   // 防止数值下溢
-	for (int c = 0; c < COLS; c++) {
-		M[0][c] = 0;
-		X[0][c] = 0;
-		Y[0][c] = init_Y;
-	}
-
-	for (int r = 1; r < ROWS; r++) {
-		M[r][0] = 0;
-		X[r][0] = 0;
-		Y[r][0] = 0;
-	}
-
-	for (int r = 1; r < ROWS; r++) {
-		for (int c = 1; c < COLS; c++) {
-			// char _rs = tc->rs[r - 1];
-			// char _hap = tc->hap[c - 1];
-			// float _distm = _rs == _hap ? 1.0f - distm[r] : distm[r] / 3;
-
-			M[r][c] = (tc->rs[r - 1] == tc->hap[c - 1] ? 1.0f - distm[r] : distm[r] / 3)
-			          * (M[r - 1][c - 1] * p[r][MM] + X[r - 1][c - 1] * p[r][GapM] + Y[r - 1][c - 1] * p[r][GapM]);
-
-			X[r][c] = M[r - 1][c] * p[r][MX] + X[r - 1][c] * p[r][XX];
-
-			Y[r][c] = M[r][c - 1] * p[r][MY] + Y[r][c - 1] * p[r][YY];
-		}
-	}
-
-	double result = 0;
-	for (int c = 1; c < COLS; c++)
-		result += M[ROWS - 1][c] + X[ROWS - 1][c];
-
-	/*std::cout.precision(5);
-	std::cout.setf(std::ios::scientific);
-	for (int r = 0; r < ROWS; ++r)
-	{
-		for (int c = 0; c < COLS; ++c)
-		{
-			std::cout<<M[r][c]<<"\t";
-		}
-		std::cout << std::endl;
-	}
-	std::cout << "============\n";
-
-	for (int r = 0; r < ROWS; ++r)
-	{
-		for (int c = 0; c < COLS; ++c)
-		{
-			std::cout<<X[r][c]<<"\t";
-		}
-		std::cout << std::endl;
-	}
-	std::cout << "============\n";
-
-	for (int r = 0; r < ROWS; ++r)
-	{
-		for (int c = 0; c < COLS; ++c)
-		{
-			std::cout<<Y[r][c]<<"\t";
-		}
-		std::cout << std::endl;
-	}
-	std::cout << "============\n";*/
-
-	return result;
-}
+//	std::cout << "float native\t" << std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << std::endl;
+//
+//	startTime = std::chrono::system_clock::now();
+//	g_compute_full_prob_float(&(*testcases)[i]);
+//	endTime = std::chrono::system_clock::now();
+//	std::cout << "float intel\t" << std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << std::endl;
+//
+//	startTime = std::chrono::system_clock::now();
+//	compute_full_prob_double(&(*testcases)[i]);
+//	endTime = std::chrono::system_clock::now();
+//	std::cout << "double native\t" << std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << std::endl;
+//
+//	startTime = std::chrono::system_clock::now();
+//	g_compute_full_prob_double(&(*testcases)[i]);
+//	endTime = std::chrono::system_clock::now();
+//	std::cout << "double intel\t" << std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << std::endl;
+//
+//	std::cout << std::endl;
+//}
+//
+//
+//
+//float compute_full_prob_float(testcase *tc) {
+//	/*float ph2pr[128];
+//	for (int i = 0; i < 128; i++)
+//		ph2pr[i] = powf(10.f, -((float)i) / 10.f);
+//	*/
+//
+//	int ROWS = tc->rslen + 1, COLS = tc->haplen + 1;
+//
+//	float distm[ROWS];
+//	distm[0] = -1;  // distm[0] will not be used
+//
+//	float M[ROWS][COLS], X[ROWS][COLS], Y[ROWS][COLS], p[ROWS][6];
+//	std::fill_n(p[0], 6, 0);
+//	int MM = 0, GapM = 1, MX = 2, XX = 3, MY = 4, YY = 5;   //use #define ?
+//	for (int r = 1; r < ROWS; r++) {
+//		float delta = Context<float>::ph2pr[tc->d[r - 1] & 127];
+//		float iota = Context<float>::ph2pr[tc->i[r - 1] & 127];
+//		float epsilon = Context<float>::ph2pr[tc->c[r - 1] & 127];
+//		p[r][MM] = 1.0f - iota - delta; // can be calculated and stored?
+//		p[r][GapM] = 1.0f - epsilon;    // can be calculated and stored?
+//		p[r][MX] = iota;
+//		p[r][MY] = delta;
+//		p[r][XX] = p[r][YY] = epsilon;
+//
+//		distm[r] = Context<float>::ph2pr[tc->q[r - 1] & 127];
+//	}
+//
+//	// float init_Y = ldexpf(1.f, 120.f) / (float)tc->haplen;
+//	// in double version, use ldexp(1.0, 1020.0)
+//	float init_Y = Context<float>::INITIAL_CONSTANT / (float) tc->haplen;   // 防止数值下溢
+//	for (int c = 0; c < COLS; c++) {
+//		M[0][c] = 0;
+//		X[0][c] = 0;
+//		Y[0][c] = init_Y;
+//	}
+//
+//	for (int r = 1; r < ROWS; r++) {
+//		M[r][0] = 0;
+//		X[r][0] = 0;
+//		Y[r][0] = 0;
+//	}
+//
+//	for (int r = 1; r < ROWS; r++) {
+//		for (int c = 1; c < COLS; c++) {
+//			// char _rs = tc->rs[r - 1];
+//			// char _hap = tc->hap[c - 1];
+//			// float _distm = _rs == _hap ? 1.0f - distm[r] : distm[r] / 3;
+//
+//			M[r][c] = (tc->rs[r - 1] == tc->hap[c - 1] ? 1.0f - distm[r] : distm[r] / 3)
+//			          * (M[r - 1][c - 1] * p[r][MM] + X[r - 1][c - 1] * p[r][GapM] + Y[r - 1][c - 1] * p[r][GapM]);
+//
+//			X[r][c] = M[r - 1][c] * p[r][MX] + X[r - 1][c] * p[r][XX];
+//
+//			Y[r][c] = M[r][c - 1] * p[r][MY] + Y[r][c - 1] * p[r][YY];
+//		}
+//	}
+//
+//	float result = 0;
+//	for (int c = 1; c < COLS; c++)
+//		result += M[ROWS - 1][c] + X[ROWS - 1][c];
+//
+//	/*std::cout.precision(5);
+//	std::cout.setf(std::ios::scientific);
+//	for (int r = 0; r < ROWS; ++r)
+//	{
+//		for (int c = 0; c < COLS; ++c)
+//		{
+//			std::cout<<M[r][c]<<"\t";
+//		}
+//		std::cout << std::endl;
+//	}
+//	std::cout << "============\n";
+//
+//	for (int r = 0; r < ROWS; ++r)
+//	{
+//		for (int c = 0; c < COLS; ++c)
+//		{
+//			std::cout<<X[r][c]<<"\t";
+//		}
+//		std::cout << std::endl;
+//	}
+//	std::cout << "============\n";
+//
+//	for (int r = 0; r < ROWS; ++r)
+//	{
+//		for (int c = 0; c < COLS; ++c)
+//		{
+//			std::cout<<Y[r][c]<<"\t";
+//		}
+//		std::cout << std::endl;
+//	}
+//	std::cout << "============\n";*/
+//
+//	return result;
+//}
+//
+//double compute_full_prob_double(testcase *tc) {
+//	int ROWS = tc->rslen + 1, COLS = tc->haplen + 1;
+//
+//	double distm[ROWS];
+//	distm[0] = -1;  // distm[0] will not be used
+//
+//	double M[ROWS][COLS], X[ROWS][COLS], Y[ROWS][COLS], p[ROWS][6];
+//	std::fill_n(p[0], 6, 0);
+//	int MM = 0, GapM = 1, MX = 2, XX = 3, MY = 4, YY = 5;   //use #define ?
+//	for (int r = 1; r < ROWS; r++) {
+//		double delta = Context<double>::ph2pr[tc->d[r - 1] & 127];
+//		double iota = Context<double>::ph2pr[tc->i[r - 1] & 127];
+//		double epsilon = Context<double>::ph2pr[tc->c[r - 1] & 127];
+//		p[r][MM] = 1.0f - iota - delta;
+//		p[r][GapM] = 1.0f - epsilon;
+//		p[r][MX] = iota;
+//		p[r][MY] = delta;
+//		p[r][XX] = p[r][YY] = epsilon;
+//
+//		distm[r] = Context<double>::ph2pr[tc->q[r - 1] & 127];
+//	}
+//
+//	// in double version, use ldexp(1.0, 1020.0)
+//	double init_Y = Context<double>::INITIAL_CONSTANT / (double) tc->haplen;   // 防止数值下溢
+//	for (int c = 0; c < COLS; c++) {
+//		M[0][c] = 0;
+//		X[0][c] = 0;
+//		Y[0][c] = init_Y;
+//	}
+//
+//	for (int r = 1; r < ROWS; r++) {
+//		M[r][0] = 0;
+//		X[r][0] = 0;
+//		Y[r][0] = 0;
+//	}
+//
+//	for (int r = 1; r < ROWS; r++) {
+//		for (int c = 1; c < COLS; c++) {
+//			// char _rs = tc->rs[r - 1];
+//			// char _hap = tc->hap[c - 1];
+//			// float _distm = _rs == _hap ? 1.0f - distm[r] : distm[r] / 3;
+//
+//			M[r][c] = (tc->rs[r - 1] == tc->hap[c - 1] ? 1.0f - distm[r] : distm[r] / 3)
+//			          * (M[r - 1][c - 1] * p[r][MM] + X[r - 1][c - 1] * p[r][GapM] + Y[r - 1][c - 1] * p[r][GapM]);
+//
+//			X[r][c] = M[r - 1][c] * p[r][MX] + X[r - 1][c] * p[r][XX];
+//
+//			Y[r][c] = M[r][c - 1] * p[r][MY] + Y[r][c - 1] * p[r][YY];
+//		}
+//	}
+//
+//	double result = 0;
+//	for (int c = 1; c < COLS; c++)
+//		result += M[ROWS - 1][c] + X[ROWS - 1][c];
+//
+//	/*std::cout.precision(5);
+//	std::cout.setf(std::ios::scientific);
+//	for (int r = 0; r < ROWS; ++r)
+//	{
+//		for (int c = 0; c < COLS; ++c)
+//		{
+//			std::cout<<M[r][c]<<"\t";
+//		}
+//		std::cout << std::endl;
+//	}
+//	std::cout << "============\n";
+//
+//	for (int r = 0; r < ROWS; ++r)
+//	{
+//		for (int c = 0; c < COLS; ++c)
+//		{
+//			std::cout<<X[r][c]<<"\t";
+//		}
+//		std::cout << std::endl;
+//	}
+//	std::cout << "============\n";
+//
+//	for (int r = 0; r < ROWS; ++r)
+//	{
+//		for (int c = 0; c < COLS; ++c)
+//		{
+//			std::cout<<Y[r][c]<<"\t";
+//		}
+//		std::cout << std::endl;
+//	}
+//	std::cout << "============\n";*/
+//
+//	return result;
+//}
 
 /*
  * author: hlf
