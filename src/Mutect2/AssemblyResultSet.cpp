@@ -157,7 +157,7 @@ AssemblyResultSet::getHaplotypeList() {
 
 std::vector<std::pair<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>>>
 AssemblyResultSet::calculateOriginalByTrimmedHaplotypes(const std::shared_ptr<AssemblyRegion> &trimmedAssemblyRegion) {
-	std::shared_ptr<std::unordered_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype >>
+	std::shared_ptr<phmap::flat_hash_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype >>
 			originalByTrimmedHaplotypes =
 #ifdef SORT_MODE
 			trimDownHaplotypes(trimmedAssemblyRegion, getSortedHaplotypeList());
@@ -186,11 +186,11 @@ AssemblyResultSet::calculateOriginalByTrimmedHaplotypes(const std::shared_ptr<As
 	return sortedOriginalByTrimmedHaplotypes;
 }
 
-std::shared_ptr<std::unordered_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype>>
+std::shared_ptr<phmap::flat_hash_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype>>
 AssemblyResultSet::trimDownHaplotypes(const std::shared_ptr<AssemblyRegion> &trimmedAssemblyRegion,
                                       const std::shared_ptr<std::vector<std::shared_ptr<Haplotype>>> &haplotypeList) {
-	std::shared_ptr<std::unordered_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype>>
-			originalByTrimmedHaplotypes = std::make_shared<std::unordered_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype>>();
+	std::shared_ptr<phmap::flat_hash_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype>>
+			originalByTrimmedHaplotypes = std::make_shared<phmap::flat_hash_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype>>();
 	for (const auto &h: *haplotypeList) {
 		std::shared_ptr<Haplotype> trimmed = h->trim(trimmedAssemblyRegion->getExtendedSpan());
 		if (trimmed != nullptr) {

@@ -34,7 +34,7 @@ void VectorLoglessPairHMM::initialize(const std::vector<std::shared_ptr<Haplotyp
 
 void VectorLoglessPairHMM::computeLog10Likelihoods(SampleMatrix<SAMRecord, Haplotype> *logLikelihoods,
                                                    vector<shared_ptr<SAMRecord>> &processedReads,
-                                                   unordered_map<SAMRecord *, shared_ptr<char[]>> *gcp) {
+                                                   phmap::flat_hash_map<SAMRecord *, shared_ptr<char[]>> *gcp) {
 	if (processedReads.empty())
 		return;
 

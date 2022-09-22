@@ -5,7 +5,7 @@
 #ifndef MUTECT2CPP_MASTER_CALLEDHAPLOTYPES_H
 #define MUTECT2CPP_MASTER_CALLEDHAPLOTYPES_H
 
-#include <unordered_set>
+#include "parallel_hashmap/phmap.h"
 #include "Haplotype.h"
 #include "VariantContext.h"
 
@@ -15,10 +15,10 @@
 class CalledHaplotypes {
 private:
     std::shared_ptr<std::vector<std::shared_ptr<VariantContext>>> calls;
-    std::shared_ptr<std::unordered_set<std::shared_ptr<Haplotype>>> calledHaplotypes;
+    std::shared_ptr<phmap::flat_hash_set<std::shared_ptr<Haplotype>>> calledHaplotypes;
 
 public:
-    CalledHaplotypes(std::shared_ptr<std::vector<std::shared_ptr<VariantContext>>> calls, std::shared_ptr<std::unordered_set<std::shared_ptr<Haplotype>>> calledHaplotypes);
+    CalledHaplotypes(std::shared_ptr<std::vector<std::shared_ptr<VariantContext>>> calls, std::shared_ptr<phmap::flat_hash_set<std::shared_ptr<Haplotype>>> calledHaplotypes);
 
     /**
      * Get the list of calls made at this location
@@ -30,7 +30,7 @@ public:
      * Get the set of haplotypes that we actually called (i.e., underlying one of the VCs in getCalls().
      * @return a non-null set of haplotypes
      */
-    std::shared_ptr<std::unordered_set<std::shared_ptr<Haplotype>>> getCalledHaplotypes();
+    std::shared_ptr<phmap::flat_hash_set<std::shared_ptr<Haplotype>>> getCalledHaplotypes();
 };
 
 

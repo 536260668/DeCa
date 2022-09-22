@@ -4,7 +4,7 @@
 
 #include "GenoTypesContext.h"
 #include <utility>
-#include <unordered_map>
+#include "parallel_hashmap/phmap.h"
 #include <cassert>
 
 
@@ -18,10 +18,10 @@ GenoTypesContext::GenoTypesContext(std::vector<std::shared_ptr<Genotype>> & geno
 
 std::shared_ptr<GenoTypesContext> GenoTypesContext::NO_GENOTYPES = std::make_shared<GenoTypesContext>(nullptr, nullptr, nullptr, true);
 
-GenoTypesContext::GenoTypesContext(std::vector<std::shared_ptr<Genotype>> *genotypes, std::unordered_map<std::string, int> *sampleNameToOffset,
+GenoTypesContext::GenoTypesContext(std::vector<std::shared_ptr<Genotype>> *genotypes, phmap::flat_hash_map<std::string, int> *sampleNameToOffset,
                                    std::vector<std::string> *sampleNamesInOrder) : maxPloidy(-1), immutable(false), notToBeDirectlyAccessedGenotypes(genotypes), sampleNamesInOrder(sampleNamesInOrder), sampleNameToOffset(sampleNameToOffset){}
 
-GenoTypesContext::GenoTypesContext(std::vector<std::shared_ptr<Genotype>> *genotypes, std::unordered_map<std::string, int> *sampleNameToOffset,
+GenoTypesContext::GenoTypesContext(std::vector<std::shared_ptr<Genotype>> *genotypes, phmap::flat_hash_map<std::string, int> *sampleNameToOffset,
                                                                       std::vector<std::string> *sampleNamesInOrder, bool immutable) : maxPloidy(-1), immutable(immutable), notToBeDirectlyAccessedGenotypes(genotypes), sampleNamesInOrder(sampleNamesInOrder), sampleNameToOffset(sampleNameToOffset){}
 
 GenoTypesContext::~GenoTypesContext() noexcept {
@@ -62,7 +62,7 @@ std::shared_ptr<Genotype> GenoTypesContext::get(int i) {
 void GenoTypesContext::ensureSampleNameMap() {
     if(sampleNameToOffset == nullptr)
     {
-        sampleNameToOffset = new std::unordered_map<std::string, int>(getSize());
+        sampleNameToOffset = new phmap::flat_hash_map<std::string, int>(getSize());
 
         for(int i=0; i<getSize(); i++)
         {

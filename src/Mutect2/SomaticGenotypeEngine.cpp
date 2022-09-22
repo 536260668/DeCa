@@ -29,7 +29,7 @@ CalledHaplotypes SomaticGenotypeEngine::callMutations(AlleleLikelihoods<SAMRecor
             startPosKeySet.push_back(startPosKey);
     }
 
-    auto calledHaplotypes = make_shared<unordered_set<shared_ptr<Haplotype>>>();
+    auto calledHaplotypes = make_shared<phmap::flat_hash_set<shared_ptr<Haplotype>>>();
     vector<shared_ptr<VariantContext>> returnCalls;
 
     if(MTAC.likelihoodArgs.phredScaledGlobalReadMismappingRate > 0)

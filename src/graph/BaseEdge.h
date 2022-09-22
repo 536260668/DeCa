@@ -6,7 +6,7 @@
 #define MUTECT2CPP_MASTER_BASEEDGE_H
 
 #include <string>
-#include <unordered_set>
+#include "parallel_hashmap/phmap.h"
 #include <memory>
 #include <vector>
 
@@ -67,7 +67,7 @@ public:
 	static std::shared_ptr<BaseEdge> makeOREdge(const std::vector<std::shared_ptr<BaseEdge>> &edges, int multiplicity);
 
 	static std::shared_ptr<BaseEdge>
-	makeOREdge(const std::unordered_set<std::shared_ptr<BaseEdge>> &edges, int multiplicity);
+	makeOREdge(const phmap::flat_hash_set<std::shared_ptr<BaseEdge>> &edges, int multiplicity);
 
 };
 

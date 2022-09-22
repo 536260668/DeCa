@@ -23,6 +23,7 @@ private:
 	// the graph from which this path originated
 	std::shared_ptr<DirectedSpecifics<T, E>> graph;
 
+    double logOdds;
 
 public:
 	/**
@@ -141,6 +142,12 @@ public:
 	}
 
 	std::shared_ptr<T> getLastVertex() { return lastVertex; }
+
+    double getLogOdds() {return logOdds;}
+
+    void setLogOdds(double score) {
+        this->logOdds = score;
+    }
 };
 
 #endif //MUTECT2CPP_MASTER_PATH_H

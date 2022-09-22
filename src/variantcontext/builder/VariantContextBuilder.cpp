@@ -43,7 +43,7 @@ VariantContextBuilder* VariantContextBuilder::setAlleles(const std::shared_ptr<s
     return this;
 }
 
-VariantContextBuilder* VariantContextBuilder::setAlleles(std::unordered_set<std::shared_ptr<Allele>> &alleles) {
+VariantContextBuilder* VariantContextBuilder::setAlleles(phmap::flat_hash_set<std::shared_ptr<Allele>> &alleles) {
     this->alleles = std::make_shared<std::vector<std::shared_ptr<Allele>>>();
     for(const auto & allele : alleles)
     {

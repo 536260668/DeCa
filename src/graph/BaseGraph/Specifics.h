@@ -5,7 +5,7 @@
 #ifndef MUTECT2CPP_MASTER_SPECIFICS_H
 #define MUTECT2CPP_MASTER_SPECIFICS_H
 
-#include <unordered_set>
+#include "parallel_hashmap/phmap.h"
 #include <memory>
 #include <stdexcept>
 #include <vector>
@@ -15,23 +15,23 @@ class Specifics {
 public:
 	virtual void addVertex(const std::shared_ptr<V> &vertex) = 0;
 
-	virtual std::unordered_set<std::shared_ptr<V>> &getVertexSet() = 0;
+	virtual phmap::flat_hash_set<std::shared_ptr<V>> &getVertexSet() = 0;
 
-	virtual std::unordered_set<std::shared_ptr<E>>
+	virtual phmap::flat_hash_set<std::shared_ptr<E>>
 	getAllEdges(const std::shared_ptr<V> &sourceVertex, const std::shared_ptr<V> &targetVertex) = 0;
 
 	virtual std::shared_ptr<E>
 	getEdge(const std::shared_ptr<V> &sourceVertex, const std::shared_ptr<V> &targetVertex) = 0;
 
-	virtual std::unordered_set<std::shared_ptr<E>> edgesof(const std::shared_ptr<V> &vertex) = 0;
+	virtual phmap::flat_hash_set<std::shared_ptr<E>> edgesof(const std::shared_ptr<V> &vertex) = 0;
 
 	virtual int inDegreeOf(const std::shared_ptr<V> &vertex) = 0;
 
-	virtual std::unordered_set<std::shared_ptr<E>> &incomingEdgesOf(const std::shared_ptr<V> &vertex) = 0;
+	virtual phmap::flat_hash_set<std::shared_ptr<E>> &incomingEdgesOf(const std::shared_ptr<V> &vertex) = 0;
 
 	virtual int outDegreeOf(const std::shared_ptr<V> &vertex) = 0;
 
-	virtual std::unordered_set<std::shared_ptr<E>> &outgoingEdgesOf(const std::shared_ptr<V> &vertex) = 0;
+	virtual phmap::flat_hash_set<std::shared_ptr<E>> &outgoingEdgesOf(const std::shared_ptr<V> &vertex) = 0;
 
 	virtual void removeEdgeFromTouchingVertices(const std::shared_ptr<E> &e) = 0;
 
@@ -62,8 +62,8 @@ public:
 
 	virtual void removeSingletonOrphanVertices() {
 		std::vector<std::shared_ptr<V>> toRemove;
-		std::unordered_set<std::shared_ptr<V>> &allvertex = getVertexSet();
-		typename std::unordered_set<std::shared_ptr<V>>::iterator viter;
+        phmap::flat_hash_set<std::shared_ptr<V>> &allvertex = getVertexSet();
+		typename phmap::flat_hash_set<std::shared_ptr<V>>::iterator viter;
 		for (viter = allvertex.begin(); viter != allvertex.end(); viter++) {
 			if (isSingletonOrphan(*viter)) {
 				toRemove.template emplace_back(*viter);

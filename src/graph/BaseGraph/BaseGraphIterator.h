@@ -7,7 +7,7 @@
 
 #include <queue>
 #include "DirectedSpecifics.h"
-#include <unordered_set>
+#include "parallel_hashmap/phmap.h"
 
 template<class V, class E>
 class DirectedSpecifics;
@@ -15,7 +15,7 @@ class DirectedSpecifics;
 template<class T, class E>
 class BaseGraphIterator {
 private:
-	std::unordered_set<std::shared_ptr<T>> visited;
+    phmap::flat_hash_set<std::shared_ptr<T>> visited;
 	std::queue<std::shared_ptr<T>> toVisit;
 	DirectedSpecifics<T, E> *graph;
 	bool followIncomingEdges;

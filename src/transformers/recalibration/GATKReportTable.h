@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <unordered_map>
+#include "parallel_hashmap/phmap.h"
 #include "GATKReportColumn.h"
 #include "SamRead.h"
 
@@ -31,7 +31,7 @@ private:
     Sorting sortingWay;
 
     vector<vector<string>> underlyingData;
-    unordered_map<string, int> columnNameToIndex;
+    phmap::flat_hash_map<string, int> columnNameToIndex;
     vector<GATKReportColumn>* columnInfo;
     map<int, int> rowIdToIndex;
 

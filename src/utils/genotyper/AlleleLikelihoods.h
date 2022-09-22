@@ -12,13 +12,14 @@
 #include <cmath>
 #include <cassert>
 #include <functional>
-#include <unordered_set>
+#include "parallel_hashmap/phmap.h"
 #include <cassert>
 #include "Allele.h"
 #include "samtools/SAMRecord.h"
 #include "MathUtils.h"
 #include "Fragment.h"
 #include "Haplotype.h"
+#include "parallel_hashmap/phmap.h"
 
 using namespace std;
 
@@ -165,7 +166,7 @@ private:
         }
     }
 
-    unordered_map<shared_ptr<E>, int>& getEvidenceIndexBySampleIndex(int sampleIndex)
+    phmap::flat_hash_map<shared_ptr<E>, int>& getEvidenceIndexBySampleIndex(int sampleIndex)
     {
         if(evidenceIndexBySampleIndex.size() <= sampleIndex)
         {
@@ -205,7 +206,7 @@ protected:
     * <p>In order to save CPU time the indices contained in this array (not the array itself) is
     * lazily initialized by invoking {@link #evidenceIndexBySampleIndex(int)}.</p>
     */
-    vector<unordered_map<shared_ptr<E>, int>> evidenceIndexBySampleIndex;
+    vector<phmap::flat_hash_map<shared_ptr<E>, int>> evidenceIndexBySampleIndex;
 
     double maximumLikelihoodOverAllAlleles(int sampleIndex, int evidenceIndex) {
         double result = -numeric_limits<double>::infinity();
@@ -574,7 +575,7 @@ public:
     }
 
     // TODO: is evidenceIndexBySampleIndex useful ?
-    void changeEvidence(shared_ptr<unordered_map<shared_ptr<E>, shared_ptr<E>>> evidenceReplacements)
+    void changeEvidence(shared_ptr<phmap::flat_hash_map<shared_ptr<E>, shared_ptr<E>>> evidenceReplacements)
     {
         int sampleCount = samples.size();
         for(int s = 0; s < sampleCount; s++)
@@ -635,7 +636,7 @@ public:
          {
              vector<shared_ptr<vector<shared_ptr<E>>>> evidenceGroups;  //---Maybe this variable is unnecessary
              vector<shared_ptr<E>> & sampleEvidence = (*evidenceBySampleIndex)[s];
-             unordered_map<string, shared_ptr<vector<shared_ptr<E>>>> map;
+             phmap::flat_hash_map<string, shared_ptr<vector<shared_ptr<E>>>> map;
              for(auto& evidence : sampleEvidence)
              {
                  string & groupingKey = groupingFunction(evidence);
@@ -697,7 +698,7 @@ public:
      *  or its values contain reference to non-existing alleles in this evidence-likelihood collection. Also no new allele
      *  can have zero old alleles mapping nor two new alleles can make reference to the same old allele.
      */
-     AlleleLikelihoods<E, Allele>* marginalize(std::shared_ptr<std::unordered_map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Haplotype>>>, hash_Allele, equal_Allele>> newToOldAlleleMap, shared_ptr<SimpleInterval> overlap)
+     AlleleLikelihoods<E, Allele>* marginalize(std::shared_ptr<phmap::flat_hash_map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Haplotype>>>, hash_Allele, equal_Allele>> newToOldAlleleMap, shared_ptr<SimpleInterval> overlap)
      {
          assert(newToOldAlleleMap != nullptr);
          if(overlap == nullptr)
@@ -748,7 +749,7 @@ public:
      }
 
 
-     AlleleLikelihoods<E, Allele>* marginalize(std::shared_ptr<std::unordered_map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Haplotype>>>, hash_Allele, equal_Allele>> newToOldAlleleMap)
+     AlleleLikelihoods<E, Allele>* marginalize(std::shared_ptr<phmap::flat_hash_map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Haplotype>>>, hash_Allele, equal_Allele>> newToOldAlleleMap)
      {
         assert(newToOldAlleleMap != nullptr);
         shared_ptr<vector<shared_ptr<Allele>>> newAlleles = make_shared<vector<shared_ptr<Allele>>>();
@@ -820,7 +821,7 @@ public:
      }
 
      // calculates an old to new allele index map array.
-     shared_ptr<vector<int>> oldToNewAlleleIndexMap(std::shared_ptr<std::unordered_map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Haplotype>>>, hash_Allele, equal_Allele>> newToOldAlleleMap, int oldAlleleCount,  vector<shared_ptr<Allele>>& newAlleles)
+     shared_ptr<vector<int>> oldToNewAlleleIndexMap(std::shared_ptr<phmap::flat_hash_map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Haplotype>>>, hash_Allele, equal_Allele>> newToOldAlleleMap, int oldAlleleCount,  vector<shared_ptr<Allele>>& newAlleles)
      {
          for(auto& h : newAlleles)
              assert(h);

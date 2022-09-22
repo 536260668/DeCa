@@ -8,13 +8,13 @@
 #include "samtools/SAMRecord.h"
 #include "MultiDeBruijnVertex.h"
 #include "MultiSampleEdge.h"
-#include <unordered_map>
+#include "parallel_hashmap/phmap.h"
 #include <string>
 #include <utility>
 #include <vector>
 #include <deque>
 #include <list>
-#include <unordered_set>
+#include "parallel_hashmap/phmap.h"
 #include "Kmer.h"
 #include "BaseGraph/DirectedSpecifics.h"
 #include "DanglingChainMergeHelper.h"
@@ -54,9 +54,9 @@ private:
 
 	std::shared_ptr<Kmer> refSource;
 
-	std::unordered_set<std::shared_ptr<Kmer>, hash_kmer, equal_kmer> nonUniqueKmers;
+    phmap::flat_hash_set<std::shared_ptr<Kmer>, hash_kmer, equal_kmer> nonUniqueKmers;
 
-	std::unordered_map<std::shared_ptr<Kmer>, std::shared_ptr<MultiDeBruijnVertex>, hash_kmer, equal_kmer> uniqueKmers;
+    phmap::flat_hash_map<std::shared_ptr<Kmer>, std::shared_ptr<MultiDeBruijnVertex>, hash_kmer, equal_kmer> uniqueKmers;
 
 	const uint8_t minBaseQualityToUseInAssembly;
 

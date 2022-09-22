@@ -2,7 +2,7 @@
 // Created by lhh on 5/24/22.
 //
 
-#include <unordered_set>
+#include "parallel_hashmap/phmap.h"
 #include "VariantContextUtils.h"
 
 int VariantContextUtils::getSize(std::shared_ptr<VariantContext> &vc)
@@ -12,7 +12,7 @@ int VariantContextUtils::getSize(std::shared_ptr<VariantContext> &vc)
 
 void VariantContextUtils::calculateChromosomeCounts(std::shared_ptr<VariantContext> vc, std::map<std::string,std::string> &attributes,
                                                     bool removeStaleValues) {
-    std::unordered_set<std::string> founderIds;
+    phmap::flat_hash_set<std::string> founderIds;
     int AN = vc->getCalledChrCount();
 
     // if everyone is a no-call, remove the old attributes if requested

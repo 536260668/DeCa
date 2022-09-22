@@ -4,7 +4,7 @@
 
 #ifndef MUTECT2CPP_MASTER_GENOTYPESCONTEXT_H
 #define MUTECT2CPP_MASTER_GENOTYPESCONTEXT_H
-#include <unordered_map>
+#include "parallel_hashmap/phmap.h"
 #include "Genotype.h"
 
 class Genotype;
@@ -12,7 +12,7 @@ class Genotype;
 class GenoTypesContext {
 protected:
     std::vector<std::string> * sampleNamesInOrder;
-    std::unordered_map<std::string, int> * sampleNameToOffset;
+    phmap::flat_hash_map<std::string, int> * sampleNameToOffset;
     std::vector<std::shared_ptr<Genotype>> * notToBeDirectlyAccessedGenotypes;
 
 
@@ -29,8 +29,8 @@ public:
 
     explicit GenoTypesContext(int n = 10);
     explicit GenoTypesContext(std::vector<std::shared_ptr<Genotype>> & genotypes);
-    GenoTypesContext(std::vector<std::shared_ptr<Genotype>> * genotypes, std::unordered_map<std::string, int> * sampleNameToOffset, std::vector<std::string> * sampleNamesInOrder);
-    GenoTypesContext(std::vector<std::shared_ptr<Genotype>> * genotypes, std::unordered_map<std::string, int> * sampleNameToOffset, std::vector<std::string> * sampleNamesInOrder, bool immutable);
+    GenoTypesContext(std::vector<std::shared_ptr<Genotype>> * genotypes, phmap::flat_hash_map<std::string, int> * sampleNameToOffset, std::vector<std::string> * sampleNamesInOrder);
+    GenoTypesContext(std::vector<std::shared_ptr<Genotype>> * genotypes, phmap::flat_hash_map<std::string, int> * sampleNameToOffset, std::vector<std::string> * sampleNamesInOrder, bool immutable);
     ~GenoTypesContext();
 
     std::vector<std::shared_ptr<Genotype>> * getGenotypes();

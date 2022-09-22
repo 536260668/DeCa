@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <VariantContext.h>
 #include "Locatable.h"
+#include "parallel_hashmap/phmap.h"
 
 enum FilteredRecordMergeType {
     /**
@@ -47,10 +48,10 @@ enum GenotypeMergeType {
 class AlleleMapper {
 private:
     std::shared_ptr<VariantContext> vc;
-    std::shared_ptr<std::unordered_map<std::shared_ptr<Allele>, std::shared_ptr<Allele>, hash_Allele, equal_Allele>> map;
+    std::shared_ptr<phmap::flat_hash_map<std::shared_ptr<Allele>, std::shared_ptr<Allele>, hash_Allele, equal_Allele>> map;
 public:
     AlleleMapper(std::shared_ptr<VariantContext> vc);
-    AlleleMapper(std::shared_ptr<std::unordered_map<std::shared_ptr<Allele>, std::shared_ptr<Allele>, hash_Allele, equal_Allele>> map);
+    AlleleMapper(std::shared_ptr<phmap::flat_hash_map<std::shared_ptr<Allele>, std::shared_ptr<Allele>, hash_Allele, equal_Allele>> map);
 
     bool needsRemapping();
 
@@ -61,7 +62,7 @@ public:
 
 class GATKVariantContextUtils {
 private:
-    static bool compareVariantContext(std::shared_ptr<VariantContext>& vc1, std::shared_ptr<VariantContext>& vc2, std::unordered_map<std::string, int>& ComparatorMap);
+    static bool compareVariantContext(std::shared_ptr<VariantContext>& vc1, std::shared_ptr<VariantContext>& vc2, phmap::flat_hash_map<std::string, int>& ComparatorMap);
 
 
     static std::shared_ptr<Allele> determineReferenceAllele(std::vector<std::shared_ptr<VariantContext>> & VCs);
@@ -145,9 +146,9 @@ public:
     * @param currentAlleles     the list of alleles already created
     * @return a non-null mapping of original alleles to new (extended) ones
     */
-    static std::shared_ptr<std::map<std::shared_ptr<Allele>, std::shared_ptr<Allele>>> createAlleleMapping(std::shared_ptr<Allele> refAllele, std::shared_ptr<VariantContext> oneVc, std::unordered_set<std::shared_ptr<Allele>> &currentAlleles);
+    static std::shared_ptr<std::map<std::shared_ptr<Allele>, std::shared_ptr<Allele>>> createAlleleMapping(std::shared_ptr<Allele> refAllele, std::shared_ptr<VariantContext> oneVc, phmap::flat_hash_set<std::shared_ptr<Allele>> &currentAlleles);
 
-    static std::shared_ptr<std::unordered_map<std::shared_ptr<Allele>, std::shared_ptr<Allele>, hash_Allele, equal_Allele>> createAlleleMapping(std::shared_ptr<Allele> refAllele, std::shared_ptr<VariantContext> oneVc, const std::vector<std::shared_ptr<Allele>> &currentAlleles);
+    static std::shared_ptr<phmap::flat_hash_map<std::shared_ptr<Allele>, std::shared_ptr<Allele>, hash_Allele, equal_Allele>> createAlleleMapping(std::shared_ptr<Allele> refAllele, std::shared_ptr<VariantContext> oneVc, const std::vector<std::shared_ptr<Allele>> &currentAlleles);
 
     static std::shared_ptr<GenoTypesContext> stripPLsAndAD(std::shared_ptr<GenoTypesContext> genotypes);
 

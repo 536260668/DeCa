@@ -141,7 +141,7 @@ ReadThreadingAssembler::getMinKmerSize(std::shared_ptr<Haplotype> &refHaplotype,
 
 	if (justACGT) {
 		while (candidateKmerSizes[k] <= 30) {
-			std::unordered_set<long long> valueSet;
+            phmap::flat_hash_set<long long> valueSet;
 			valueSet.reserve(len - candidateKmerSizes[k] + 1);
 			long long val = 0L, mask = (1L << (candidateKmerSizes[k] * 2)) - 1;
 			for (i = 0; i < candidateKmerSizes[k]; ++i) val = (val << 2) | charToU8[i];
@@ -350,7 +350,7 @@ void ReadThreadingAssembler::findBestPaths(const std::vector<std::shared_ptr<Seq
                                            const std::shared_ptr<SimpleInterval> &activeRegionWindow,
                                            const std::map<std::shared_ptr<SeqGraph>, std::shared_ptr<AssemblyResult>> &assemblyResultByGraph,
                                            std::shared_ptr<AssemblyResultSet> &assemblyResultSet) const {
-	std::unordered_set<std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype> returnHaplotypes;
+    phmap::flat_hash_set<std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype> returnHaplotypes;
 	int activeRegionStart = refHaplotype->getAlignmentStartHapwrtRef();
 	//int failedCigars = 0;
 

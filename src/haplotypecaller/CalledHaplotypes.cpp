@@ -8,7 +8,7 @@
 #include "CalledHaplotypes.h"
 
 
-CalledHaplotypes::CalledHaplotypes(std::shared_ptr<std::vector<std::shared_ptr<VariantContext>>> calls, std::shared_ptr<std::unordered_set<std::shared_ptr<Haplotype>>> calledHaplotypes) : calls(calls), calledHaplotypes(calledHaplotypes)
+CalledHaplotypes::CalledHaplotypes(std::shared_ptr<std::vector<std::shared_ptr<VariantContext>>> calls, std::shared_ptr<phmap::flat_hash_set<std::shared_ptr<Haplotype>>> calledHaplotypes) : calls(calls), calledHaplotypes(calledHaplotypes)
 {
     assert(calls->empty() == calledHaplotypes->empty());
 
@@ -18,6 +18,6 @@ std::shared_ptr<std::vector<std::shared_ptr<VariantContext>>> CalledHaplotypes::
     return calls;
 }
 
-std::shared_ptr<std::unordered_set<std::shared_ptr<Haplotype>>> CalledHaplotypes::getCalledHaplotypes() {
+std::shared_ptr<phmap::flat_hash_set<std::shared_ptr<Haplotype>>> CalledHaplotypes::getCalledHaplotypes() {
     return calledHaplotypes;
 }

@@ -17,7 +17,7 @@ DepthPerAlleleBySample::annotate(ReferenceContext &ref, shared_ptr<VariantContex
 pair<int *, int> DepthPerAlleleBySample::annotateWithLikelihoods(shared_ptr<VariantContext> vc, std::shared_ptr<Genotype> g,
                                                                  vector<shared_ptr<Allele>> &alleles,
                                                                  AlleleLikelihoods<SAMRecord, Allele> *likelihoods) {
-    unordered_map<Allele*, int> alleleCounts;
+    phmap::flat_hash_map<Allele*, int> alleleCounts;
     for(auto allele : vc->getAlleles())
     {
         alleleCounts.insert({allele.get(), 0});

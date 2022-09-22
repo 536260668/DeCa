@@ -4,13 +4,14 @@
 
 #include "KBestHaplotypeFinder.h"
 #include "BaseGraph/DFS_CycleDetect.h"
+#include "parallel_hashmap/phmap.h"
 #include <memory>
 #include <queue>
 #include <utility>
 
 KBestHaplotypeFinder::KBestHaplotypeFinder(const std::shared_ptr<SeqGraph> &graph,
-                                           std::unordered_set<std::shared_ptr<SeqVertex>> &sources,
-                                           std::unordered_set<std::shared_ptr<SeqVertex>> &sinks) : graph(graph) {
+                                           phmap::flat_hash_set<std::shared_ptr<SeqVertex>> &sources,
+                                           phmap::flat_hash_set<std::shared_ptr<SeqVertex>> &sinks) : graph(graph) {
 	Mutect2Utils::validateArg(graph.get(), "graph cannot be null");
 	Mutect2Utils::validateArg(!sources.empty(), "sources cannot be null");
 	Mutect2Utils::validateArg(!sinks.empty(), "sinks cannot be null");
@@ -25,14 +26,14 @@ KBestHaplotypeFinder::KBestHaplotypeFinder(const std::shared_ptr<SeqGraph> &grap
 
 std::shared_ptr<SeqGraph>
 KBestHaplotypeFinder::removeCyclesAndVerticesThatDontLeadToSinks(const std::shared_ptr<SeqGraph> &original,
-                                                                 std::unordered_set<std::shared_ptr<SeqVertex>> &sources,
-                                                                 std::unordered_set<std::shared_ptr<SeqVertex>> &sinks) {
-	std::unordered_set<std::shared_ptr<BaseEdge>> edgesToRemove;
-	std::unordered_set<std::shared_ptr<SeqVertex>> vertexToRemove;
+                                                                 phmap::flat_hash_set<std::shared_ptr<SeqVertex>> &sources,
+                                                                 phmap::flat_hash_set<std::shared_ptr<SeqVertex>> &sinks) {
+    phmap::flat_hash_set<std::shared_ptr<BaseEdge>> edgesToRemove;
+    phmap::flat_hash_set<std::shared_ptr<SeqVertex>> vertexToRemove;
 
 	bool foundSomePath = false;
 	for (const auto &source: sources) {
-		std::unordered_set<std::shared_ptr<SeqVertex>> parentVertices;
+        phmap::flat_hash_set<std::shared_ptr<SeqVertex>> parentVertices;
 		foundSomePath = findGuiltyVerticesAndEdgesToRemoveCycles(original, source, sinks, edgesToRemove, vertexToRemove,
 		                                                         parentVertices) || foundSomePath;
 	}
@@ -50,14 +51,14 @@ KBestHaplotypeFinder::removeCyclesAndVerticesThatDontLeadToSinks(const std::shar
 
 bool KBestHaplotypeFinder::findGuiltyVerticesAndEdgesToRemoveCycles(const std::shared_ptr<SeqGraph> &graph,
                                                                     const std::shared_ptr<SeqVertex> &currentVertex,
-                                                                    std::unordered_set<std::shared_ptr<SeqVertex>> &sinks,
-                                                                    std::unordered_set<std::shared_ptr<BaseEdge>> &edgesToRemove,
-                                                                    std::unordered_set<std::shared_ptr<SeqVertex>> &verticesToRemove,
-                                                                    std::unordered_set<std::shared_ptr<SeqVertex>> &parentVertices) {
+                                                                    phmap::flat_hash_set<std::shared_ptr<SeqVertex>> &sinks,
+                                                                    phmap::flat_hash_set<std::shared_ptr<BaseEdge>> &edgesToRemove,
+                                                                    phmap::flat_hash_set<std::shared_ptr<SeqVertex>> &verticesToRemove,
+                                                                    phmap::flat_hash_set<std::shared_ptr<SeqVertex>> &parentVertices) {
 	if (sinks.find(currentVertex) != sinks.end()) {
 		return true;
 	}
-	std::unordered_set<std::shared_ptr<BaseEdge>> outgoingEdges = graph->outgoingEdgesOf(currentVertex);
+    phmap::flat_hash_set<std::shared_ptr<BaseEdge>> outgoingEdges = graph->outgoingEdgesOf(currentVertex);
 	parentVertices.insert(currentVertex);
 
 	bool reachesSink = false;
@@ -93,7 +94,7 @@ std::vector<std::shared_ptr<KBestHaplotype>> KBestHaplotypeFinder::findBestHaplo
 	for (const auto &source: sources) {
 		queue.push(std::make_shared<KBestHaplotype>(source, graph));
 	}
-	std::unordered_map<std::shared_ptr<SeqVertex>, int> vertexCounts;
+	phmap::flat_hash_map<std::shared_ptr<SeqVertex>, int> vertexCounts;
 	vertexCounts.reserve(graph->getVertexSet().size());
 	for (const auto &v: graph->getVertexSet()) {
 		vertexCounts.insert(std::make_pair(v, 0));
@@ -112,7 +113,7 @@ std::vector<std::shared_ptr<KBestHaplotype>> KBestHaplotypeFinder::findBestHaplo
 			result.emplace_back(pathToExtend);
 		} else {
 			if (vertexCounts[vertexToExtend]++ < maxNumberOfHaplotypes) {
-				std::unordered_set<std::shared_ptr<BaseEdge>> outgoingEdges = graph->outgoingEdgesOf(vertexToExtend);
+                phmap::flat_hash_set<std::shared_ptr<BaseEdge>> outgoingEdges = graph->outgoingEdgesOf(vertexToExtend);
 				int totalOutgoingMultiplicity = 0;
 				for (const auto &edge: outgoingEdges) {
 					totalOutgoingMultiplicity += edge->getMultiplicity();

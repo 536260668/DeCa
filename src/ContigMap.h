@@ -5,7 +5,7 @@
 #ifndef MUTECT2CPP_MASTER_CONTIGMAP_H
 #define MUTECT2CPP_MASTER_CONTIGMAP_H
 
-#include <unordered_map>
+#include "parallel_hashmap/phmap.h"
 #include <vector>
 #include <string>
 #include <stdexcept>
@@ -22,7 +22,7 @@ private:
 	 * stringToInt: {"", -1}, {"chr1", 0}, {"chr2", 1}, ...
 	 */
 	static std::vector<std::string> intToString;
-	static std::unordered_map<std::string, int, hash_contig> stringToInt;
+	static phmap::flat_hash_map<std::string, int, hash_contig> stringToInt;
 	static int mapSize;
 
 public:

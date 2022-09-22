@@ -9,7 +9,7 @@
 #include <memory>
 #include <cassert>
 #include <string>
-#include <unordered_map>
+#include "parallel_hashmap/phmap.h"
 #include "samtools/SAMRecord.h"
 
 /**
@@ -49,7 +49,7 @@ public:
         int lastStart = -1;
         std::vector<std::shared_ptr<T>> singletons;
         std::vector<std::pair<std::shared_ptr<T>, std::shared_ptr<T>>> overlapping;
-        std::unordered_map<std::string, std::shared_ptr<T>> nameMap;
+        phmap::flat_hash_map<std::string, std::shared_ptr<T>> nameMap;
 
         // build an initial map, grabbing all of the multi-read fragments
         for(auto & read : reads)

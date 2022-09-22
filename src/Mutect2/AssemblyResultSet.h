@@ -5,7 +5,7 @@
 #ifndef MUTECT2CPP_MASTER_ASSEMBLYRESULTSET_H
 #define MUTECT2CPP_MASTER_ASSEMBLYRESULTSET_H
 
-#include <map>
+#include "parallel_hashmap/phmap.h"
 #include "AssemblyResult.h"
 #include "Haplotype.h"
 #include "AssemblyRegion.h"
@@ -71,7 +71,7 @@ private:
 	std::vector<std::pair<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>>> calculateOriginalByTrimmedHaplotypes(
 			const std::shared_ptr<AssemblyRegion> &trimmedAssemblyRegion);
 
-	static std::shared_ptr<std::unordered_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype>>
+	static std::shared_ptr<phmap::flat_hash_map<std::shared_ptr<Haplotype>, std::shared_ptr<Haplotype>, hash_Haplotype, equal_Haplotype>>
 	trimDownHaplotypes(const std::shared_ptr<AssemblyRegion> &trimmedAssemblyRegion,
 	                   const std::shared_ptr<std::vector<std::shared_ptr<Haplotype>>> &haplotypeList);
 

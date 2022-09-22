@@ -5,7 +5,7 @@
 #include "boost/utility.hpp"
 
 std::vector<std::string> ContigMap::intToString;
-std::unordered_map<std::string, int, hash_contig> ContigMap::stringToInt;
+phmap::flat_hash_map<std::string, int, hash_contig> ContigMap::stringToInt;
 int ContigMap::mapSize;
 
 void ContigMap::initial(int reserveSize) {

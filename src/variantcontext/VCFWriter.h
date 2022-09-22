@@ -24,7 +24,7 @@
 
 
 class VCFWriter {
-	std::unordered_map<std::string, std::string> mInfoMetaData = {{VCFConstants::MEDIAN_BASE_QUALITY_KEY,         "INFO=<ID=MBQ,Number=R,Type=Integer,Description=\"median base quality\">"},
+    phmap::flat_hash_map<std::string, std::string> mInfoMetaData = {{VCFConstants::MEDIAN_BASE_QUALITY_KEY,         "INFO=<ID=MBQ,Number=R,Type=Integer,Description=\"median base quality\">"},
 	                                                              {VCFConstants::DEPTH_KEY,                       "INFO=<ID=DP,Number=1,Type=Integer,Description=\"Approximate read depth; some reads may have been filtered\">"},
 	                                                              {VCFConstants::MEDIAN_FRAGMENT_LENGTH_KEY,      "INFO=<ID=MFRL,Number=R,Type=Integer,Description=\"median fragment length\">"},
 	                                                              {VCFConstants::MEDIAN_MAPPING_QUALITY_KEY,      "INFO=<ID=MMQ,Number=R,Type=Integer,Description=\"median mapping quality\">"},
@@ -48,7 +48,7 @@ class VCFWriter {
 	                                                              {VCFConstants::N_COUNT_KEY,                     "INFO=<ID=NCount,Number=1,Type=Integer,Description=\"Count of N bases in the pileup\">"},
 	                                                              {VCFConstants::UNIQUE_ALT_READ_SET_COUNT_KEY,   "INFO=<ID=UNIQ_ALT_READ_COUNT,Number=1,Type=Integer,Description=\"Number of ALT reads with unique start and mate end positions at a variant site\">"}};
 
-	std::unordered_map<std::string, std::string> mFormatMetaData = {{VCFConstants::GENOTYPE_ALLELE_DEPTHS,          "FORMAT=<ID=AD,Number=R,Type=Integer,Description=\"Allelic depths for the ref and alt alleles in the order listed\">"},
+    phmap::flat_hash_map<std::string, std::string> mFormatMetaData = {{VCFConstants::GENOTYPE_ALLELE_DEPTHS,          "FORMAT=<ID=AD,Number=R,Type=Integer,Description=\"Allelic depths for the ref and alt alleles in the order listed\">"},
 	                                                                {VCFConstants::DEPTH_KEY,                       "FORMAT=<ID=DP,Number=1,Type=Integer,Description=\"Approximate read depth (reads with MQ=255 or with bad mates are filtered)\">"},
 	                                                                {VCFConstants::F1R2_KEY,                        "FORMAT=<ID=F1R2,Number=R,Type=Integer,Description=\"Count of reads in F1R2 pair orientation supporting each allele\">"},
 	                                                                {VCFConstants::F2R1_KEY,                        "FORMAT=<ID=F2R1,Number=R,Type=Integer,Description=\"Count of reads in F2R1 pair orientation supporting each allele\">"},
@@ -62,7 +62,7 @@ class VCFWriter {
 	                                                                {VCFConstants::PHASE_SET_KEY,                   "FORMAT=<ID=PS,Number=1,Type=Integer,Description=\"Phasing set (typically the position of the first variant in the set)\">"}};
 
 	std::vector<std::string> contigMetaData;
-	std::unordered_map<std::string, std::string> mOtherMetaData;
+    phmap::flat_hash_map<std::string, std::string> mOtherMetaData;
 	std::vector<std::string> sampleNamesInOrder;
 	std::vector<std::string> metaDataInSortedOrder;
 	std::string outPath;

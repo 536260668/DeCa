@@ -277,9 +277,9 @@ shared_ptr<SAMRecord> PairHMMLikelihoodCalculationEngine::createQualityModifiedR
     return processedRead;
 }
 
-unordered_map<SAMRecord*, shared_ptr<char[]>>* PairHMMLikelihoodCalculationEngine::buildGapContinuationPenalties(vector<shared_ptr<SAMRecord>>& reads, char gapPenalty)
+phmap::flat_hash_map<SAMRecord*, shared_ptr<char[]>>* PairHMMLikelihoodCalculationEngine::buildGapContinuationPenalties(vector<shared_ptr<SAMRecord>>& reads, char gapPenalty)
 {
-    auto result = new unordered_map<SAMRecord*, shared_ptr<char[]>>(reads.size());
+    auto result = new phmap::flat_hash_map<SAMRecord*, shared_ptr<char[]>>(reads.size());
     for(auto& read: reads)
     {
         result->emplace(pair<SAMRecord*, shared_ptr<char[]>>(read.get(), Utils::dupBytes(gapPenalty, read->getLength())));

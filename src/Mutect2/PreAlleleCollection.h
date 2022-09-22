@@ -5,7 +5,7 @@
 #ifndef MUTECT2CPP_MASTER_PREALLELECOLLECTION_H
 #define MUTECT2CPP_MASTER_PREALLELECOLLECTION_H
 
-#include <unordered_map>
+#include "parallel_hashmap/phmap.h"
 #include <memory>
 #include <cassert>
 #include "Allele.h"
@@ -22,7 +22,7 @@ public:
 private:
     std::shared_ptr<Allele> refAllele;
     X refValue;
-    std::unordered_map<Allele*, X> altAlleleValueMap;   // map of Allele* tp value, you should make sure Allele* is a valid pointer
+    phmap::flat_hash_map<Allele*, X> altAlleleValueMap;   // map of Allele* tp value, you should make sure Allele* is a valid pointer
     Type type;
 
 public:

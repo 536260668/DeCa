@@ -113,7 +113,7 @@ private:
     */
     static shared_ptr<SAMRecord> createQualityModifiedRead(SAMRecord& read, int length, std::shared_ptr<uint8_t[]> readBases, std::shared_ptr<uint8_t[]> baseQualities, std::shared_ptr<uint8_t[]> baseInsertionQualities, std::shared_ptr<uint8_t[]> baseDeletionQualities);
 
-    static unordered_map<SAMRecord*, shared_ptr<char[]>>* buildGapContinuationPenalties(vector<shared_ptr<SAMRecord>>& reads, char gapPenalty);
+    static phmap::flat_hash_map<SAMRecord*, shared_ptr<char[]>>* buildGapContinuationPenalties(vector<shared_ptr<SAMRecord>>& reads, char gapPenalty);
 
 public:
     static double INITIAL_QSCORE;

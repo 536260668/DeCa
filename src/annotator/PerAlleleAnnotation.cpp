@@ -10,7 +10,7 @@ std::shared_ptr<std::map<std::string, AttributeValue>> PerAlleleAnnotation::anno
     if(!likelihoods)
         return nullptr;
 
-    unordered_map<Allele*, vector<int>> values;
+    phmap::flat_hash_map<Allele*, vector<int>> values;
     for(auto& allele: likelihoods->getAlleles())
     {
         values.emplace(allele.get(), vector<int>());

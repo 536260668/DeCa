@@ -160,11 +160,11 @@ std::shared_ptr<AssemblyRegion> AssemblyBasedCallerUtils::assemblyRegionWithWell
 	return result;
 }
 
-shared_ptr<unordered_map<shared_ptr<SAMRecord>, shared_ptr<SAMRecord>>> AssemblyBasedCallerUtils::realignReadsToTheirBestHaplotype(
+shared_ptr<phmap::flat_hash_map<shared_ptr<SAMRecord>, shared_ptr<SAMRecord>>> AssemblyBasedCallerUtils::realignReadsToTheirBestHaplotype(
         AlleleLikelihoods<SAMRecord, Haplotype> &originalReadLikelihoods, shared_ptr<Haplotype> &refHaplotype, shared_ptr<SimpleInterval>& paddedReferenceLoc,
         SmithWatermanAligner *aligner) {
     auto bestAlleles = originalReadLikelihoods.bestAllelesBreakingTies(&AssemblyBasedCallerUtils::HAPLOTYPE_ALIGNMENT_TIEBREAKING_PRIORITY);
-    auto result = std::make_shared<unordered_map<shared_ptr<SAMRecord>, shared_ptr<SAMRecord>>>(bestAlleles->size());
+    auto result = std::make_shared<phmap::flat_hash_map<shared_ptr<SAMRecord>, shared_ptr<SAMRecord>>>(bestAlleles->size());
 
     for(auto & bestAllele : *bestAlleles)
     {
@@ -190,7 +190,7 @@ shared_ptr<vector<shared_ptr<VariantContext>>>
 AssemblyBasedCallerUtils::getVariantContextsFromActiveHaplotypes(int loc, vector<shared_ptr<Haplotype>> &haplotypes,
                                                                  bool includeSpanningEvents) {
     shared_ptr<vector<shared_ptr<VariantContext>>> results = make_shared<vector<shared_ptr<VariantContext>>>();
-    unordered_set<shared_ptr<LocationAndAlleles>, hash_LocationAndAlleles, equal_LocationAndAlleles> uniqueLocationsAndAlleles;
+    phmap::flat_hash_set<shared_ptr<LocationAndAlleles>, hash_LocationAndAlleles, equal_LocationAndAlleles> uniqueLocationsAndAlleles;
 
     // transform a haplotype to a stream of VariantContext
 
@@ -232,10 +232,10 @@ AssemblyBasedCallerUtils::makeMergedVariantContext(shared_ptr<vector<shared_ptr<
     return GATKVariantContextUtils::simpleMerge(vcs, haplotypeSources, FilteredRecordMergeType::KEEP_IF_ANY_UNFILTERED, GenotypeMergeType::PRIORITIZE, false);
 }
 
-shared_ptr<std::unordered_map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Haplotype>>>, hash_Allele, equal_Allele>>
+shared_ptr<phmap::flat_hash_map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Haplotype>>>, hash_Allele, equal_Allele>>
 AssemblyBasedCallerUtils::createAlleleMapper(shared_ptr<VariantContext> mergedVC, int loc,
                                              vector<shared_ptr<Haplotype>> &haplotypes) {
-    auto result = make_shared<std::unordered_map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Haplotype>>>, hash_Allele, equal_Allele>>();
+    auto result = make_shared<phmap::flat_hash_map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Haplotype>>>, hash_Allele, equal_Allele>>();
 
     auto ref = mergedVC->getReference();
     result->insert({ref, make_shared<vector<shared_ptr<Haplotype>>>()});
@@ -271,7 +271,7 @@ AssemblyBasedCallerUtils::createAlleleMapper(shared_ptr<VariantContext> mergedVC
                 } else if(spanningEvent->getReference()->getLength() < mergedVC->getReference()->getLength())
                 {
                     // spanning event has shorter ref allele than merged VC; we need to pad out its alt allele
-                    std::unordered_set<std::shared_ptr<Allele>> currentAlleles;
+                    phmap::flat_hash_set<std::shared_ptr<Allele>> currentAlleles;
                     auto spanningEventAlleleMappingToMergedVc = GATKVariantContextUtils::createAlleleMapping(mergedVC->getReference(), spanningEvent, currentAlleles);
                     auto remappedSpanningEventAltAllele = spanningEventAlleleMappingToMergedVc->at(spanningEvent->getAlternateAllele(0));
                     // in the case of GGA mode the spanning event might not match an allele in the mergedVC
@@ -300,7 +300,7 @@ AssemblyBasedCallerUtils::createAlleleMapper(shared_ptr<VariantContext> mergedVC
 
 shared_ptr<vector<shared_ptr<VariantContext>>>
 AssemblyBasedCallerUtils::phaseCalls(vector<shared_ptr<VariantContext>> &calls,
-                                     unordered_set<shared_ptr<Haplotype>> &calledHaplotypes) {
+                                     phmap::flat_hash_set<shared_ptr<Haplotype>> &calledHaplotypes) {
     // construct a mapping from alternate allele to the set of haplotypes that contain that allele
     auto haplotypeMap = constructHaplotypeMapping(calls, calledHaplotypes);
 
@@ -321,10 +321,10 @@ bool contains(vector<shared_ptr<Allele>> alleles, shared_ptr<Allele> alt)
     return false;
 }
 
-shared_ptr<map<VariantContext*, shared_ptr<unordered_set<Haplotype*>>>>
+shared_ptr<map<VariantContext*, shared_ptr<phmap::flat_hash_set<Haplotype*>>>>
 AssemblyBasedCallerUtils::constructHaplotypeMapping(vector<shared_ptr<VariantContext>> &originalCalls,
-                                                    unordered_set<shared_ptr<Haplotype>> &calledHaplotypes) {
-    auto haplotypeMap = make_shared<map<VariantContext*, shared_ptr<unordered_set<Haplotype*>>>>();
+                                                    phmap::flat_hash_set<shared_ptr<Haplotype>> &calledHaplotypes) {
+    auto haplotypeMap = make_shared<map<VariantContext*, shared_ptr<phmap::flat_hash_set<Haplotype*>>>>();
     for(auto call : originalCalls)
     {
         // don't try to phase if there is not exactly 1 alternate allele
@@ -336,7 +336,7 @@ AssemblyBasedCallerUtils::constructHaplotypeMapping(vector<shared_ptr<VariantCon
         // keep track of the haplotypes that contain this particular alternate allele
         auto alt = call->getAlternateAllele(0);
 
-        shared_ptr<unordered_set<Haplotype*>> hapsWithAllele = make_shared<unordered_set<Haplotype*>>();
+        shared_ptr<phmap::flat_hash_set<Haplotype*>> hapsWithAllele = make_shared<phmap::flat_hash_set<Haplotype*>>();
         for(auto h : calledHaplotypes)
         {
             bool match = false;
@@ -374,7 +374,7 @@ bool AssemblyBasedCallerUtils::isBiallelic(shared_ptr<VariantContext> vc) {
 }
 
 //---whether set1 contain all of the elements of set2
-bool containAll(unordered_set<Haplotype*>& set1, unordered_set<Haplotype*>& set2)
+bool containAll(phmap::flat_hash_set<Haplotype*>& set1, phmap::flat_hash_set<Haplotype*>& set2)
 {
     for(auto h : set2)
     {
@@ -385,7 +385,7 @@ bool containAll(unordered_set<Haplotype*>& set1, unordered_set<Haplotype*>& set2
 }
 
 //---just like Java set retainAll
-void retainAll(unordered_set<Haplotype*>& set1, unordered_set<Haplotype*>& set2)
+void retainAll(phmap::flat_hash_set<Haplotype*>& set1, phmap::flat_hash_set<Haplotype*>& set2)
 {
     for (auto h = set1.begin(), last = set1.end(); h != last; ) {
         if (set2.find(*h) == set2.end()) {
@@ -397,7 +397,7 @@ void retainAll(unordered_set<Haplotype*>& set1, unordered_set<Haplotype*>& set2)
 }
 
 int AssemblyBasedCallerUtils::constructPhaseSetMapping(vector<shared_ptr<VariantContext>> &originalCalls,
-                                                       map<VariantContext*, shared_ptr<unordered_set<Haplotype*>>> &haplotypeMap,
+                                                       map<VariantContext*, shared_ptr<phmap::flat_hash_set<Haplotype*>>> &haplotypeMap,
                                                        int totalAvailableHaplotypes,
                                                        map<VariantContext*, pair<int, string>> &phaseSetMapping) {
     int numCalls = originalCalls.size();
@@ -406,7 +406,7 @@ int AssemblyBasedCallerUtils::constructPhaseSetMapping(vector<shared_ptr<Variant
     // use the haplotype mapping to connect variants that are always/never present on the same haplotypes
     for ( int i = 0; i < numCalls - 1; i++ ) {
         shared_ptr<VariantContext>& call = originalCalls[i];
-        shared_ptr<unordered_set<Haplotype*>> haplotypesWithCall = haplotypeMap.at(call.get());  // this variable can be nullptr
+        shared_ptr<phmap::flat_hash_set<Haplotype*>> haplotypesWithCall = haplotypeMap.at(call.get());  // this variable can be nullptr
         if(haplotypesWithCall == nullptr || haplotypesWithCall->empty())
             continue;
 
@@ -451,7 +451,7 @@ int AssemblyBasedCallerUtils::constructPhaseSetMapping(vector<shared_ptr<Variant
             }
             // if the variants are apart on *all* haplotypes, record that fact
             else if ( haplotypesWithCall->size() + haplotypesWithComp->size() == totalAvailableHaplotypes ) {
-                unordered_set<Haplotype*> intersection;
+                phmap::flat_hash_set<Haplotype*> intersection;
                 intersection = *haplotypesWithCall;
                 retainAll(intersection, *haplotypesWithComp);
                 //intersection.retainAll(haplotypesWithComp);

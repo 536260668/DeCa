@@ -4,10 +4,9 @@
 
 #include <cassert>
 #include <utils/Utils.h>
-#include <unordered_map>
+#include "parallel_hashmap/phmap.h"
 #include <algorithm>
-#include <unordered_set>
-#include <iostream>
+#include "parallel_hashmap/phmap.h"
 #include "GATKVariantContextUtils.h"
 #include "VariantContextUtils.h"
 #include "variantcontext/builder/GenotypeBuilder.h"
@@ -17,7 +16,7 @@ AlleleMapper::AlleleMapper(std::shared_ptr<VariantContext> vc): vc(vc) {
 
 }
 
-AlleleMapper::AlleleMapper(std::shared_ptr<std::unordered_map<std::shared_ptr<Allele>, std::shared_ptr<Allele>, hash_Allele, equal_Allele>> map): map(map){
+AlleleMapper::AlleleMapper(std::shared_ptr<phmap::flat_hash_map<std::shared_ptr<Allele>, std::shared_ptr<Allele>, hash_Allele, equal_Allele>> map): map(map){
 
 }
 
@@ -303,9 +302,9 @@ bool GATKVariantContextUtils::hasPLIncompatibleAlleles(std::vector<std::shared_p
 }
 
 class CompareByPriority{
-    std::unordered_map<std::string, int>& ComparatorMap;
+    phmap::flat_hash_map<std::string, int>& ComparatorMap;
 public:
-    explicit CompareByPriority(std::unordered_map<std::string, int>& ComparatorMap) :ComparatorMap(ComparatorMap) {};
+    explicit CompareByPriority(phmap::flat_hash_map<std::string, int>& ComparatorMap) :ComparatorMap(ComparatorMap) {};
 
     // Comparator function
     bool operator()(std::shared_ptr<VariantContext>& vc1, std::shared_ptr<VariantContext>& vc2){
@@ -323,7 +322,7 @@ std::shared_ptr<std::vector<std::shared_ptr<VariantContext>>> GATKVariantContext
     if ( priorityListOfVCs.empty() || mergeOption == GenotypeMergeType::UNSORTED )
         return unsortedVCs;
 
-    std::unordered_map<std::string, int> ComparatorMap;
+    phmap::flat_hash_map<std::string, int> ComparatorMap;
     for(int i=0; i<priorityListOfVCs.size(); i++)
     {
         if(ComparatorMap.find(priorityListOfVCs[i]) == ComparatorMap.end())
@@ -380,7 +379,7 @@ std::shared_ptr<AlleleMapper> GATKVariantContextUtils::resolveIncompatibleAllele
 
 std::shared_ptr<std::map<std::shared_ptr<Allele>, std::shared_ptr<Allele>>>
 GATKVariantContextUtils::createAlleleMapping(std::shared_ptr<Allele> refAllele, std::shared_ptr<VariantContext> oneVc,
-                                             std::unordered_set<std::shared_ptr<Allele>> &currentAlleles) {
+                                             phmap::flat_hash_set<std::shared_ptr<Allele>> &currentAlleles) {
     auto myRef = oneVc->getReference();
     assert(refAllele->getLength() > myRef->getLength());
 
@@ -411,7 +410,7 @@ GATKVariantContextUtils::createAlleleMapping(std::shared_ptr<Allele> refAllele, 
     return map;
 }
 
-std::shared_ptr<std::unordered_map<std::shared_ptr<Allele>, std::shared_ptr<Allele>, hash_Allele, equal_Allele>>
+std::shared_ptr<phmap::flat_hash_map<std::shared_ptr<Allele>, std::shared_ptr<Allele>, hash_Allele, equal_Allele>>
 GATKVariantContextUtils::createAlleleMapping(std::shared_ptr<Allele> refAllele, std::shared_ptr<VariantContext> oneVc, const std::vector<std::shared_ptr<Allele>> &currentAlleles)
 {
     auto myRef = oneVc->getReference();
@@ -423,7 +422,7 @@ GATKVariantContextUtils::createAlleleMapping(std::shared_ptr<Allele> refAllele, 
     std::shared_ptr<uint8_t[]> extraBases(new uint8_t[refAlleleLength - myRefLength]);
     memcpy(extraBases.get(), refAlleleBases.get() + myRefLength, refAlleleLength - myRefLength);
 
-    std::shared_ptr<std::unordered_map<std::shared_ptr<Allele>, std::shared_ptr<Allele>, hash_Allele, equal_Allele>> map(new std::unordered_map<std::shared_ptr<Allele>, std::shared_ptr<Allele>, hash_Allele, equal_Allele>);
+    std::shared_ptr<phmap::flat_hash_map<std::shared_ptr<Allele>, std::shared_ptr<Allele>, hash_Allele, equal_Allele>> map(new phmap::flat_hash_map<std::shared_ptr<Allele>, std::shared_ptr<Allele>, hash_Allele, equal_Allele>);
     for(auto a : oneVc->getAlternateAlleles())
     {
         if(isNonSymbolicExtendableAllele(a))
@@ -488,7 +487,7 @@ GATKVariantContextUtils::trimAlleles(std::shared_ptr<VariantContext> inputVC, in
         return inputVC;
 
     auto alleles = std::make_shared<std::vector<std::shared_ptr<Allele>>>();
-    auto originalToTrimmedAlleleMap = std::make_shared<std::unordered_map<std::shared_ptr<Allele>, std::shared_ptr<Allele>, hash_Allele, equal_Allele>>();
+    auto originalToTrimmedAlleleMap = std::make_shared<phmap::flat_hash_map<std::shared_ptr<Allele>, std::shared_ptr<Allele>, hash_Allele, equal_Allele>>();
 
     for(auto a : inputVC->getAlleles())
     {

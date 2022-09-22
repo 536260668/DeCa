@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 #include <set>
-#include <unordered_set>
+#include "parallel_hashmap/phmap.h"
 #include "Allele.h"
 #include "variantcontext/GenoTypesContext.h"
 #include "variantcontext/AttributeValue.h"
@@ -64,7 +64,7 @@ public:
     *
     * @param alleles an hash set of alleles to set as the alleles of this builder
     */
-    VariantContextBuilder* setAlleles(std::unordered_set<std::shared_ptr<Allele>>& alleles);
+    VariantContextBuilder* setAlleles(phmap::flat_hash_set<std::shared_ptr<Allele>>& alleles);
 
     /**
      * Tells us that the resulting VariantContext should have source field set to source

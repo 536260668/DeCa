@@ -8,7 +8,6 @@
 
 #include <cstdint>
 #include <memory>
-#include <unordered_set>
 #include "xxhash.hpp"
 
 class Kmer {

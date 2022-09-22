@@ -14,6 +14,7 @@
 #include "NaturalLogUtils.h"
 #include "AssemblyResultSet.h"
 #include "haplotypecaller/AssemblyBasedCallerUtils.h"
+#include "parallel_hashmap/phmap.h"
 
 Mutect2Engine::Mutect2Engine(M2ArgumentCollection &MTAC, SAMFileHeader *samFileHeader, const std::string &modelPath,
                              VariantAnnotatorEngine &annotatorEngine) : MTAC(MTAC),
@@ -218,7 +219,7 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion> &originalAssembl
 	auto readLikelihoods = likelihoodCalculationEngine->computeReadLikelihoods(*assemblyResult, samplesList, *reads);
 	readLikelihoods->switchToNaturalLog();
 
-	shared_ptr<unordered_map<shared_ptr<SAMRecord>, shared_ptr<SAMRecord>>> readRealignments
+	shared_ptr<phmap::flat_hash_map<shared_ptr<SAMRecord>, shared_ptr<SAMRecord>>> readRealignments
 			= AssemblyBasedCallerUtils::realignReadsToTheirBestHaplotype(*readLikelihoods,
 			                                                             assemblyResult->getReferenceHaplotype(),
 			                                                             assemblyResult->getPaddedReferenceLoc(),

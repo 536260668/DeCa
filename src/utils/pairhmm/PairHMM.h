@@ -44,7 +44,7 @@ public:
      */
     virtual void computeLog10Likelihoods(SampleMatrix<SAMRecord, Haplotype>* logLikelihoods,
                                  vector<shared_ptr<SAMRecord>>& processedReads,
-                                 unordered_map<SAMRecord*, shared_ptr<char[]>>* gcp) = 0;
+                                         phmap::flat_hash_map<SAMRecord*, shared_ptr<char[]>>* gcp) = 0;
 
 protected:
     bool constantsAreInitialized = false;

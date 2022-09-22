@@ -78,7 +78,7 @@ public:
      * </p>
      * @return never {@code null}
      */
-    static shared_ptr<unordered_map<shared_ptr<SAMRecord>, shared_ptr<SAMRecord>>> realignReadsToTheirBestHaplotype(AlleleLikelihoods<SAMRecord, Haplotype>& originalReadLikelihoods, shared_ptr<Haplotype>& refHaplotype, shared_ptr<SimpleInterval>& paddedReferenceLoc, SmithWatermanAligner* aligner);
+    static shared_ptr<phmap::flat_hash_map<shared_ptr<SAMRecord>, shared_ptr<SAMRecord>>> realignReadsToTheirBestHaplotype(AlleleLikelihoods<SAMRecord, Haplotype>& originalReadLikelihoods, shared_ptr<Haplotype>& refHaplotype, shared_ptr<SimpleInterval>& paddedReferenceLoc, SmithWatermanAligner* aligner);
 
     static double HAPLOTYPE_ALIGNMENT_TIEBREAKING_PRIORITY(shared_ptr<Haplotype> h);
 
@@ -104,7 +104,7 @@ public:
      * @param haplotypes Haplotypes for the current active region
      * @return
      */
-    static shared_ptr<std::unordered_map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Haplotype>>>, hash_Allele, equal_Allele>> createAlleleMapper(shared_ptr<VariantContext> mergedVC, int loc, vector<shared_ptr<Haplotype>>& haplotypes);
+    static shared_ptr<phmap::flat_hash_map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Haplotype>>>, hash_Allele, equal_Allele>> createAlleleMapper(shared_ptr<VariantContext> mergedVC, int loc, vector<shared_ptr<Haplotype>>& haplotypes);
 
     /**
      * Tries to phase the individual alleles based on pairwise comparisons to the other alleles based on all called haplotypes
@@ -113,9 +113,9 @@ public:
      * @param calledHaplotypes  the set of haplotypes used for calling
      * @return a non-null list which represents the possibly phased version of the calls
      */
-    static shared_ptr<vector<shared_ptr<VariantContext>>> phaseCalls(vector<shared_ptr<VariantContext>>& calls, unordered_set<shared_ptr<Haplotype>>& calledHaplotypes);
+    static shared_ptr<vector<shared_ptr<VariantContext>>> phaseCalls(vector<shared_ptr<VariantContext>>& calls, phmap::flat_hash_set<shared_ptr<Haplotype>>& calledHaplotypes);
 
-    static shared_ptr<map<VariantContext*, shared_ptr<unordered_set<Haplotype*>>>> constructHaplotypeMapping(vector<shared_ptr<VariantContext>>& originalCalls, unordered_set<shared_ptr<Haplotype>>& calledHaplotypes);
+    static shared_ptr<map<VariantContext*, shared_ptr<phmap::flat_hash_set<Haplotype*>>>> constructHaplotypeMapping(vector<shared_ptr<VariantContext>>& originalCalls, phmap::flat_hash_set<shared_ptr<Haplotype>>& calledHaplotypes);
 
     /**
     * Construct the mapping from call (variant context) to phase set ID
@@ -127,7 +127,7 @@ public:
     *                         note that it is okay for this method NOT to populate the phaseSetMapping at all (e.g. in an impossible-to-phase situation)
     * @return the next incremental unique index
     */
-    static int constructPhaseSetMapping(vector<shared_ptr<VariantContext>> &originalCalls, map<VariantContext*, shared_ptr<unordered_set<Haplotype*>>>& haplotypeMap, int totalAvailableHaplotypes, map<VariantContext*, pair<int, string>>& phaseSetMapping);
+    static int constructPhaseSetMapping(vector<shared_ptr<VariantContext>> &originalCalls, map<VariantContext*, shared_ptr<phmap::flat_hash_set<Haplotype*>>>& haplotypeMap, int totalAvailableHaplotypes, map<VariantContext*, pair<int, string>>& phaseSetMapping);
 
     static shared_ptr<vector<shared_ptr<VariantContext>>> constructPhaseGroups(vector<shared_ptr<VariantContext>> &originalCalls, map<VariantContext*, pair<int, string>>& phaseSetMapping, int indexTo);
 

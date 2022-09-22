@@ -17,7 +17,7 @@ private:
     //---two-dimensional array ?
     //std::shared_ptr<std::shared_ptr<HaplotypeDataHolder>[]> mHaplotypeDataArray;
     vector<HaplotypeDataHolder> mHaplotypeDataArray;
-    std::unordered_map<std::shared_ptr<Haplotype>, int, hash_Haplotype, equal_Haplotype> haplotypeToHaplotypeListIdxMap;
+    phmap::flat_hash_map<std::shared_ptr<Haplotype>, int, hash_Haplotype, equal_Haplotype> haplotypeToHaplotypeListIdxMap;
     unsigned mHaplotypeDataArrayLength;
 
 public:
@@ -35,7 +35,7 @@ public:
 
     void computeLog10Likelihoods(SampleMatrix<SAMRecord, Haplotype>* logLikelihoods,
                                  vector<shared_ptr<SAMRecord>>& processedReads,
-                                 unordered_map<SAMRecord*, shared_ptr<char[]>>* gcp);
+                                 phmap::flat_hash_map<SAMRecord*, shared_ptr<char[]>>* gcp);
 };
 
 

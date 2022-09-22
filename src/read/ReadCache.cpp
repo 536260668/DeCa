@@ -4,7 +4,6 @@
 
 #include <cassert>
 #include <random>
-#include <unordered_set>
 #include "ReadCache.h"
 #include "ReadUtils.h"
 

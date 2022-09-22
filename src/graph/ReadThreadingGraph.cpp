@@ -92,7 +92,7 @@ void ReadThreadingGraph::determineNonUniques() {
 	if (justACGT) {
 		if (kmerSize <= 30) {  //when kmerSize_ <= 30, use Bit Operation (long long)
 			std::set<long long> nonUniquesFromSeqSet;
-			std::unordered_set<long long> seqAllKmers;
+            phmap::flat_hash_set<long long> seqAllKmers;
 
 			for (auto &iter: pending) {
 				for (auto &withNonUnique: iter.second) {
@@ -134,7 +134,7 @@ void ReadThreadingGraph::determineNonUniques() {
 			}
 		} else {    //when kmerSize_ > 30, use dynamic bitset
 			std::set<boost::dynamic_bitset<>> nonUniquesFromSeqSet;
-			std::unordered_set<boost::dynamic_bitset<>> seqAllKmers;
+            phmap::flat_hash_set<boost::dynamic_bitset<>> seqAllKmers;
 
 			for (auto &iter: pending) {
 				for (auto &withNonUnique: iter.second) {
@@ -180,7 +180,7 @@ void ReadThreadingGraph::determineNonUniques() {
 		}
 	} else {   // not justACGT, use 4 bits to solve
 		std::set<boost::dynamic_bitset<>> nonUniquesFromSeqSet;
-		std::unordered_set<boost::dynamic_bitset<>> seqAllKmers;
+        phmap::flat_hash_set<boost::dynamic_bitset<>> seqAllKmers;
 
 		for (auto &iter: pending) {
 			for (auto &withNonUnique: iter.second) {
@@ -423,8 +423,8 @@ bool ReadThreadingGraph::removeVertex(const std::shared_ptr<MultiDeBruijnVertex>
 
 void ReadThreadingGraph::removeSingletonOrphanVertices() {
 	std::vector<std::shared_ptr<MultiDeBruijnVertex>> toRemove;
-	std::unordered_set<std::shared_ptr<MultiDeBruijnVertex>> &allvertex = getVertexSet();
-	typename std::unordered_set<std::shared_ptr<MultiDeBruijnVertex>>::iterator viter;
+    phmap::flat_hash_set<std::shared_ptr<MultiDeBruijnVertex>> &allvertex = getVertexSet();
+	typename phmap::flat_hash_set<std::shared_ptr<MultiDeBruijnVertex>>::iterator viter;
 	for (viter = allvertex.begin(); viter != allvertex.end(); viter++) {
 		if (inDegreeOf(*viter) == 0 && outDegreeOf(*viter) == 0) {
 			toRemove.emplace_back(*viter);
@@ -527,7 +527,7 @@ bool ReadThreadingGraph::hasIncidentRefEdge(const std::shared_ptr<MultiDeBruijnV
 
 std::shared_ptr<MultiSampleEdge>
 ReadThreadingGraph::getHeaviestIncomingEdge(const std::shared_ptr<MultiDeBruijnVertex> &v) {
-	std::unordered_set<std::shared_ptr<MultiSampleEdge>> incomingEdges = incomingEdgesOf(v);
+    phmap::flat_hash_set<std::shared_ptr<MultiSampleEdge>> incomingEdges = incomingEdgesOf(v);
 	std::shared_ptr<MultiSampleEdge> ret;
 	ret = *incomingEdges.begin();
 	for (const auto &incomingEdge: incomingEdges) {
@@ -734,7 +734,7 @@ ReadThreadingGraph::findPathDownwardsToHighestCommonDescendantOfReference(std::s
 
 std::shared_ptr<MultiSampleEdge>
 ReadThreadingGraph::getHeaviestOutgoingEdge(const std::shared_ptr<MultiDeBruijnVertex> &v) {
-	std::unordered_set<std::shared_ptr<MultiSampleEdge>> outgoing = outgoingEdgesOf(v);
+    phmap::flat_hash_set<std::shared_ptr<MultiSampleEdge>> outgoing = outgoingEdgesOf(v);
 	std::shared_ptr<MultiSampleEdge> ret;
 	ret = *outgoing.begin();
 	for (const auto &iter: outgoing) {
@@ -848,7 +848,7 @@ std::shared_ptr<SeqGraph> ReadThreadingGraph::toSequenceGraph() {
 	int reserveSize = (int) ((double) getVertexSet().size() * 1.3);
 	std::shared_ptr<SeqGraph> seqGraph(new SeqGraph(kmerSize));
 	seqGraph->reserveSpace(reserveSize);
-	std::unordered_map<std::shared_ptr<MultiDeBruijnVertex>, std::shared_ptr<SeqVertex>> vertexMap;
+    phmap::flat_hash_map<std::shared_ptr<MultiDeBruijnVertex>, std::shared_ptr<SeqVertex>> vertexMap;
 	vertexMap.reserve(reserveSize);
 	for (auto &dv: DirectedSpecifics<MultiDeBruijnVertex, MultiSampleEdge>::getVertexSet()) {
 		std::shared_ptr<SeqVertex> sv(new SeqVertex(dv->getAdditionalSequence(
