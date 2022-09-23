@@ -11,7 +11,7 @@
 class SharedSequenceMerger {
 public:
 	static bool canMerge(SeqGraph *graph, const std::shared_ptr<SeqVertex> &v,
-                         phmap::flat_hash_set<std::shared_ptr<SeqVertex>> incomingVertices);
+                         std::unordered_set<std::shared_ptr<SeqVertex>> incomingVertices);
 
 	static bool merge(SeqGraph *graph, const std::shared_ptr<SeqVertex> &v);
 };

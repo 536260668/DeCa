@@ -47,7 +47,7 @@ std::shared_ptr<BaseEdge> BaseEdge::makeOREdge(const std::vector<std::shared_ptr
 }
 
 std::shared_ptr<BaseEdge>
-BaseEdge::makeOREdge(const phmap::flat_hash_set<std::shared_ptr<BaseEdge>> &edges, int multiplicity) {
+BaseEdge::makeOREdge(const std::unordered_set<std::shared_ptr<BaseEdge>> &edges, int multiplicity) {
 	if (edges.empty())
 		throw std::invalid_argument("have no edge");
 	bool anyRef = false;

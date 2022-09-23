@@ -13,7 +13,7 @@ private:
 	SeqGraph *outer;
 	std::shared_ptr<SeqVertex> prefixV;
 	std::shared_ptr<SeqVertex> suffixV;
-    phmap::flat_hash_set<std::shared_ptr<SeqVertex>> toSplits;
+    std::unordered_set<std::shared_ptr<SeqVertex>> toSplits;
 	SeqGraph *splitGraph = nullptr;
 	std::list<std::shared_ptr<SeqVertex>> newMiddles;
 	std::list<std::shared_ptr<BaseEdge>> edgesToRemove;
@@ -29,10 +29,10 @@ private:
 	void addEdgesToBottomNode(const std::shared_ptr<SeqVertex>& botForConnect);
 
 public:
-	SharedVertexSequenceSplitter(SeqGraph *graph, const phmap::flat_hash_set<std::shared_ptr<SeqVertex>>& toSplitsArg);
+	SharedVertexSequenceSplitter(SeqGraph *graph, const std::unordered_set<std::shared_ptr<SeqVertex>>& toSplitsArg);
 
 	std::pair<std::shared_ptr<SeqVertex>, std::shared_ptr<SeqVertex>>
-	commonPrefixAndSuffixOfVertices(const phmap::flat_hash_set<std::shared_ptr<SeqVertex>>& middleVertices);
+	commonPrefixAndSuffixOfVertices(const std::unordered_set<std::shared_ptr<SeqVertex>>& middleVertices);
 
 	bool meetsMinMergableSequenceForEitherPrefixOrSuffix(int minCommonSequence);
 

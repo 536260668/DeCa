@@ -5,25 +5,25 @@
 #ifndef MUTECT2CPP_MASTER_DIRECTEDEDGECONTAINER_H
 #define MUTECT2CPP_MASTER_DIRECTEDEDGECONTAINER_H
 
-#include "parallel_hashmap/phmap.h"
+#include <unordered_set>
 #include <memory>
 
 template<class EE>
 class DirectedEdgeContainer {
 public:
-    phmap::flat_hash_set<std::shared_ptr<EE>> incoming;
+    std::unordered_set<std::shared_ptr<EE>> incoming;
 
-    phmap::flat_hash_set<std::shared_ptr<EE>> outgoing;
+    std::unordered_set<std::shared_ptr<EE>> outgoing;
 
 	void addIncomingEdge(const std::shared_ptr<EE> &e) { incoming.insert(e); }
 
 	void addOutgoingEdge(const std::shared_ptr<EE> &e) { outgoing.insert(e); }
 
-    phmap::flat_hash_set<std::shared_ptr<EE>> &getUnmodifiableIncomingEdges() {
+    std::unordered_set<std::shared_ptr<EE>> &getUnmodifiableIncomingEdges() {
 		return incoming;
 	}
 
-    phmap::flat_hash_set<std::shared_ptr<EE>> &getUnmodifiableOutgoingEdges() {
+    std::unordered_set<std::shared_ptr<EE>> &getUnmodifiableOutgoingEdges() {
 		return outgoing;
 	}
 

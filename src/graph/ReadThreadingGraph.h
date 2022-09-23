@@ -8,13 +8,13 @@
 #include "samtools/SAMRecord.h"
 #include "MultiDeBruijnVertex.h"
 #include "MultiSampleEdge.h"
-#include "parallel_hashmap/phmap.h"
+#include <unordered_map>
 #include <string>
 #include <utility>
 #include <vector>
 #include <deque>
 #include <list>
-#include "parallel_hashmap/phmap.h"
+#include <unordered_set>
 #include "Kmer.h"
 #include "BaseGraph/DirectedSpecifics.h"
 #include "DanglingChainMergeHelper.h"

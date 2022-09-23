@@ -34,7 +34,7 @@ public:
 		return false;
 	}
 
-	void printAllChains(phmap::flat_hash_set<Path<V, E> *> chains) {
+	void printAllChains(std::unordered_set<Path<V, E> *> chains) {
 		std::vector<Path<V, E> *> chainsVector{};
 		for (const auto &chain: chains) {
 			chainsVector.push_back(chain);
@@ -62,7 +62,7 @@ public:
 	void pruneLowWeightChains(std::shared_ptr<DirectedSpecifics<V, E>> graph) {
 		std::vector<Path<V, E> *> chains = findAllChains(graph);
 		//printAllChains(chains);
-        phmap::flat_hash_set<Path<V, E> *> chainsToRemoveset = chainsToRemove(chains);
+        std::unordered_set<Path<V, E> *> chainsToRemoveset = chainsToRemove(chains);
 		//printAllChains(chainsToRemoveset);
 		//std::cout << "chains: " << chains.size() << "\t" << "remove: " << chainsToRemoveset.size() << std::endl;
 		for (Path<V, E> *path: chainsToRemoveset)
@@ -73,7 +73,7 @@ public:
 
 	std::vector<Path<V, E> *> findAllChains(std::shared_ptr<DirectedSpecifics<V, E>> graph) {
 		std::deque<std::shared_ptr<V>> chainStarts;
-        phmap::flat_hash_set<std::shared_ptr<V>> alreadySeen;
+        std::unordered_set<std::shared_ptr<V>> alreadySeen;
 		for (auto &viter: graph->getVertexSet()) {
 			if (graph->isSource(viter)) {
 				chainStarts.push_front(viter);
@@ -103,7 +103,7 @@ private:
 		edges.emplace_back(startEdge);
 		std::shared_ptr<V> firstVertex = graph->getEdgeSource(startEdge);
 		std::shared_ptr<V> lastVertex = graph->getEdgeTarget(startEdge);
-        phmap::flat_hash_set<std::shared_ptr<E>> outEdges;
+        std::unordered_set<std::shared_ptr<E>> outEdges;
 		while (true) {
 			outEdges = graph->outgoingEdgesOf(lastVertex);
 			if (outEdges.size() != 1 || graph->inDegreeOf(lastVertex) > 1 || lastVertex == firstVertex) {
@@ -117,7 +117,7 @@ private:
 	}
 
 protected:
-	virtual phmap::flat_hash_set<Path<V, E> *> chainsToRemove(std::vector<Path<V, E> *> chains) = 0;
+	virtual std::unordered_set<Path<V, E> *> chainsToRemove(std::vector<Path<V, E> *> chains) = 0;
 };
 
 

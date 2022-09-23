@@ -7,7 +7,8 @@
 
 
 #include "SeqGraph.h"
-#include <set>
+#include <unordered_map>
+#include <unordered_set>
 
 class CommonSuffixSplitter {
 public:
@@ -15,18 +16,18 @@ public:
 
 private:
 	static std::shared_ptr<SeqVertex>
-	commonSuffix(SeqGraph *graph, std::shared_ptr<SeqVertex> v, phmap::flat_hash_set<std::shared_ptr<SeqVertex>> toSplit);
+	commonSuffix(SeqGraph *graph, std::shared_ptr<SeqVertex> v, std::unordered_set<std::shared_ptr<SeqVertex>> toSplit);
 
 	static bool safeToSplit(SeqGraph *graph, std::shared_ptr<SeqVertex> bot,
-                            phmap::flat_hash_set<std::shared_ptr<SeqVertex>> toSplit);
+                            std::unordered_set<std::shared_ptr<SeqVertex>> toSplit);
 
-	static std::shared_ptr<SeqVertex> commonSuffix(const phmap::flat_hash_set<std::shared_ptr<SeqVertex>> &toSplit);
+	static std::shared_ptr<SeqVertex> commonSuffix(const std::unordered_set<std::shared_ptr<SeqVertex>> &toSplit);
 
 	static bool wouldEliminateRefSource(SeqGraph *graph, std::shared_ptr<SeqVertex> commonSuffix,
-                                        phmap::flat_hash_set<std::shared_ptr<SeqVertex>> toSplit);
+                                        std::unordered_set<std::shared_ptr<SeqVertex>> toSplit);
 
 	static bool allVerticesAreTheCommonSuffix(const std::shared_ptr<SeqVertex> &commonSuffix,
-                                              phmap::flat_hash_set<std::shared_ptr<SeqVertex>> toSplits);
+                                              std::unordered_set<std::shared_ptr<SeqVertex>> toSplits);
 };
 
 

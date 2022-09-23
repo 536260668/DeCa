@@ -7,7 +7,7 @@
 #include "SharedSequenceMerger.h"
 
 bool SharedSequenceMerger::canMerge(SeqGraph *graph, const std::shared_ptr<SeqVertex> &v,
-                                    phmap::flat_hash_set<std::shared_ptr<SeqVertex>> incomingVertices) {
+                                    std::unordered_set<std::shared_ptr<SeqVertex>> incomingVertices) {
 	if (incomingVertices.empty()) {
 		return false;
 	}
@@ -33,9 +33,9 @@ bool SharedSequenceMerger::canMerge(SeqGraph *graph, const std::shared_ptr<SeqVe
 
 bool SharedSequenceMerger::merge(SeqGraph *graph, const std::shared_ptr<SeqVertex> &v) {
 	Mutect2Utils::validateArg(graph, "graph cannot be null");
-	phmap::flat_hash_set<std::shared_ptr<SeqVertex>> &allVertex = graph->getVertexSet();
+    std::unordered_set<std::shared_ptr<SeqVertex>> &allVertex = graph->getVertexSet();
 	Mutect2Utils::validateArg(allVertex.find(v) != allVertex.end(), "graph doesn't contain vertex");
-    phmap::flat_hash_set<std::shared_ptr<SeqVertex>> prevs = graph->incomingVerticesOf(v);
+    std::unordered_set<std::shared_ptr<SeqVertex>> prevs = graph->incomingVerticesOf(v);
 	if (!canMerge(graph, v, prevs)) {
 		return false;
 	} else {
