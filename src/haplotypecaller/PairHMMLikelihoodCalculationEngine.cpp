@@ -66,7 +66,8 @@ void PairHMMLikelihoodCalculationEngine::computeReadLikelihoods(SampleMatrix<SAM
     auto gapContinuationPenalties = buildGapContinuationPenalties(*processedReads, constantGCP);
 
     // Run the PairHMM to calculate the log10 likelihood of each (processed) reads' arising from each haplotype
-    pairHMM->computeLog10Likelihoods(likelihoods, *processedReads, gapContinuationPenalties);
+    //pairHMM->computeLog10Likelihoods(likelihoods, *processedReads, gapContinuationPenalties);
+    pairHMM->computeLog10Likelihoods_tiretree(likelihoods, *processedReads, gapContinuationPenalties);
     delete gapContinuationPenalties;
 }
 

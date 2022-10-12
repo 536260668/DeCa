@@ -46,6 +46,10 @@ public:
                                  vector<shared_ptr<SAMRecord>>& processedReads,
                                          phmap::flat_hash_map<SAMRecord*, shared_ptr<char[]>>* gcp) = 0;
 
+    virtual void computeLog10Likelihoods_tiretree(SampleMatrix<SAMRecord, Haplotype>* logLikelihoods,
+                                         vector<shared_ptr<SAMRecord>>& processedReads,
+                                         phmap::flat_hash_map<SAMRecord*, shared_ptr<char[]>>* gcp) = 0;
+
 protected:
     bool constantsAreInitialized = false;
     int hapStartIndex;

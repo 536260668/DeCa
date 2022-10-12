@@ -34,6 +34,9 @@
 #include <stdint.h>
 #include <utility>
 #include "haplotypecaller/ReadForPairHMM.h"
+#include "tiretree/tireTreeNode.h"
+#include <vector>
+#include "haplotype/Haplotype.h"
 
 #define CAT(X,Y) X##Y
 #define CONCAT(X,Y) CAT(X,Y)
@@ -53,6 +56,19 @@ struct testcase{
       hap = (const char *)haplotype;
 	  readForPairHmm = std::move(_readForPairHmm);
   };
+} ;
+
+struct tiretree_testcase{
+    std::vector<std::shared_ptr<Haplotype>> haps;
+    std::shared_ptr<ReadForPairHMM> readForPairHmm;
+    tireTreeNode *root;
+
+    tiretree_testcase(std::vector<std::shared_ptr<Haplotype>> haplotypes, std::shared_ptr<ReadForPairHMM> _readForPairHmm, tireTreeNode *node)
+    {
+        haps = std::move(haplotypes);
+        readForPairHmm = std::move(_readForPairHmm);
+        root = node;
+    };
 } ;
 
 

@@ -11,6 +11,7 @@
 #include "HaplotypeDataHolder.h"
 #include "AssemblyResultSet.h"
 #include "haplotypecaller/PairHMMNativeArgumentCollection.h"
+#include "tiretree/buildTreeUtils.h"
 
 class VectorLoglessPairHMM : public PairHMM{
 private:
@@ -19,6 +20,8 @@ private:
     vector<HaplotypeDataHolder> mHaplotypeDataArray;
     phmap::flat_hash_map<std::shared_ptr<Haplotype>, int, hash_Haplotype, equal_Haplotype> haplotypeToHaplotypeListIdxMap;
     unsigned mHaplotypeDataArrayLength;
+    vector<std::shared_ptr<Haplotype>> haps;
+    tireTreeNode *root;
 
 public:
     VectorLoglessPairHMM(PairHMMNativeArgumentCollection& args);
@@ -36,6 +39,10 @@ public:
     void computeLog10Likelihoods(SampleMatrix<SAMRecord, Haplotype>* logLikelihoods,
                                  vector<shared_ptr<SAMRecord>>& processedReads,
                                  phmap::flat_hash_map<SAMRecord*, shared_ptr<char[]>>* gcp);
+
+    void computeLog10Likelihoods_tiretree(SampleMatrix<SAMRecord, Haplotype>* logLikelihoods,
+                                          vector<shared_ptr<SAMRecord>>& processedReads,
+                                          phmap::flat_hash_map<SAMRecord*, shared_ptr<char[]>>* gcp);
 };
 
 

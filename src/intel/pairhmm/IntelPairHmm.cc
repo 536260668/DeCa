@@ -40,6 +40,7 @@
 #include <thread>
 #include "boost/utility.hpp"
 #include "utils/pairhmm/PairHMMConcurrentControl.h"
+#include "tiretree/buildTreeUtils.h"
 
 bool g_use_double;
 int g_max_threads;
@@ -48,7 +49,9 @@ Context<float> g_ctxf;
 Context<double> g_ctxd;
 
 float (*g_compute_full_prob_float)(testcase *tc);
+std::vector<float> (*g_compute_full_prob_t_float)(tiretree_testcase *tc);
 double (*g_compute_full_prob_double)(testcase *tc);
+std::vector<double> (*g_compute_full_prob_t_double)(tiretree_testcase *tc);
 
 /*
  * Class:     com_intel_gkl_pairhmm_IntelPairHmm
@@ -233,6 +236,8 @@ void initNative(bool use_double, int max_threads)
         DBG("Using CPU-supported AVX-512 instructions");
         g_compute_full_prob_float = compute_fp_avx512s;
         g_compute_full_prob_double = compute_fp_avx512d;
+        g_compute_full_prob_t_float = compute_fp_t_avx512s;
+        g_compute_full_prob_t_double = compute_fp_t_avx512d;
 #else
         assert(false);
 #endif
@@ -241,6 +246,8 @@ void initNative(bool use_double, int max_threads)
     {
         g_compute_full_prob_float = compute_fp_avxs;
         g_compute_full_prob_double = compute_fp_avxd;
+        g_compute_full_prob_t_float = compute_fp_t_avxs;
+        g_compute_full_prob_t_double = compute_fp_t_avxd;
     }
 
     // init convert char table
@@ -648,3 +655,35 @@ double compute_full_prob_Fixed64(testcase *tc) {
 	return result_double;
 }
 */
+
+void computeLikelihoodsNative_concurrent_tiretree(std::vector<tiretree_testcase> *testcases, std::vector<std::vector<double>> *likelihoodArray) {
+    for(auto & tc : *testcases) {
+        std::vector<double> result_final;
+        std::vector<float> result_float = (BOOST_UNLIKELY(g_use_double)) ? std::vector<float>() : g_compute_full_prob_t_float(&tc);
+        bool flag = true;
+        for(float f : result_float) {
+            if(f < MIN_ACCEPTED) {
+                flag = false;
+                break;
+            }
+        }
+        if (BOOST_UNLIKELY(!flag || result_float.empty())) {
+            tireTreeNode *tmp = tc.root;
+            tc.root = buildTreeUtils::buildTreeWithHaplotype(tc.haps, false);
+            std::vector<double> result_double = g_compute_full_prob_t_double(&tc);
+            buildTreeUtils::deleteTree(tc.root);
+            tc.root = tmp;
+            for(double d : result_double) {
+                result_final.emplace_back(log10(d) - Context<double>::LOG10_INITIAL_CONSTANT);
+            }
+//		PairHMMConcurrentControl::compute_double_cases++;
+        }
+        else {
+            for(double d : result_float) {
+                result_final.emplace_back(log10(d) - Context<double>::LOG10_INITIAL_CONSTANT);
+                std::cout << "d" << (log10(d) - Context<double>::LOG10_INITIAL_CONSTANT) << std::endl;
+            }
+        }
+        (*likelihoodArray).emplace_back(result_final);
+    }
+}

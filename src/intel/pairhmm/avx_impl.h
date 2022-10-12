@@ -28,6 +28,8 @@
 
 extern float (*compute_fp_avxs)(testcase*);
 extern double (*compute_fp_avxd)(testcase*);
+extern std::vector<float> (*compute_fp_t_avxs)(tiretree_testcase *);
+extern std::vector<double> (*compute_fp_t_avxd)(tiretree_testcase *);
 
 #endif //AVX_IMPL_H
 

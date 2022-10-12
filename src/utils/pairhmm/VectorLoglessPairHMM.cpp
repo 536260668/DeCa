@@ -9,6 +9,7 @@
 #include "haplotypecaller/ReadForPairHMM.h"
 #include "parallel_hashmap/phmap.h"
 #include "utils/pairhmm/PairHMMConcurrentControl.h"
+#include "intel/common/avx.h"
 
 VectorLoglessPairHMM::VectorLoglessPairHMM(PairHMMNativeArgumentCollection &args) : mHaplotypeDataArrayLength(0) {
 	initNative(args.useDoublePrecision, args.pairHmmNativeThreads);
@@ -30,6 +31,9 @@ void VectorLoglessPairHMM::initialize(const std::vector<std::shared_ptr<Haplotyp
 		haplotypeToHaplotypeListIdxMap.emplace(currHaplotype, idx);
 		idx++;
 	}
+    haps = haplotypes;
+    root = buildTreeUtils::buildTreeWithHaplotype(haplotypes, true);
+    //buildTreeUtils::printLayerTree(root);
 }
 
 void VectorLoglessPairHMM::computeLog10Likelihoods(SampleMatrix<SAMRecord, Haplotype> *logLikelihoods,
@@ -193,3 +197,59 @@ void VectorLoglessPairHMM::computeLog10Likelihoods(SampleMatrix<SAMRecord, Haplo
 		readIdx += mHaplotypeDataArrayLength;
 	}
 }
+
+void VectorLoglessPairHMM::computeLog10Likelihoods_tiretree(SampleMatrix<SAMRecord, Haplotype>* logLikelihoods,
+                                              vector<shared_ptr<SAMRecord>>& processedReads,
+                                              phmap::flat_hash_map<SAMRecord*, shared_ptr<char[]>>* gcp) {
+    if (processedReads.empty())
+        return;
+
+    int numReads = processedReads.size();
+
+    std::vector<tiretree_testcase> uniqueTestcases;
+    uniqueTestcases.reserve(numReads * mHaplotypeDataArrayLength);
+
+    // Where do all the testcases related to a read start
+    phmap::flat_hash_map<std::shared_ptr<ReadForPairHMM>, int, ReadForPairHMMHash, ReadForPairHMMEqual> uniqueReadForPairHMM;
+    uniqueReadForPairHMM.reserve(numReads);
+
+    // Generate unique testcases
+    int _rslen;
+    char *gapConts;
+    uint8_t *reads, *readQuals;
+    std::vector<shared_ptr<uint8_t[]>> insGops, delGops;
+    insGops.reserve(numReads);
+    delGops.reserve(numReads);
+    for (int r = 0; r < numReads; ++r) {
+        _rslen = processedReads[r]->getLength();
+        insGops.emplace_back(ReadUtils::getBaseInsertionQualities(processedReads[r], _rslen));
+        delGops.emplace_back(ReadUtils::getBaseDeletionQualities(processedReads[r], _rslen));
+        gapConts = (*gcp)[processedReads[r].get()].get();
+        readQuals = processedReads[r]->getBaseQualitiesNoCopy().get();
+        reads = processedReads[r]->getBasesNoCopy().get();
+
+        std::shared_ptr<ReadForPairHMM> readOfTestcase = std::make_shared<ReadForPairHMM>(_rslen, readQuals,
+                                                                                          insGops[r].get(),
+                                                                                          delGops[r].get(), gapConts,
+                                                                                          reads);
+        readOfTestcase->initializeFloatVector();
+        uniqueTestcases.emplace_back(haps, readOfTestcase, root);
+    }
+
+    // initialize probaility arrays and distm
+//    for (const auto &[readForPairHMM, _]: uniqueReadForPairHMM)
+//        readForPairHMM->initializeFloatVector();
+
+    // Compute
+    std::vector<std::vector<double>> uniqueLogLikelihoodArray;
+    uniqueLogLikelihoodArray.reserve(uniqueTestcases.size());
+    computeLikelihoodsNative_concurrent_tiretree(&uniqueTestcases, &uniqueLogLikelihoodArray);
+    for(int i = 0; i < uniqueLogLikelihoodArray.size(); i++) {
+        for(int j = 0; j < uniqueLogLikelihoodArray[i].size(); j++) {
+            mLogLikelihoodArray.emplace_back(uniqueLogLikelihoodArray[i][j]);
+        }
+    }
+    buildTreeUtils::deleteTree(root);
+}
+
+

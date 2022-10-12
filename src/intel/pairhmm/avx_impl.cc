@@ -26,4 +26,6 @@
 
 float (*compute_fp_avxs)(testcase*) = &compute_full_prob_avxs;
 double (*compute_fp_avxd)(testcase*) = &compute_full_prob_avxd;
+std::vector<float> (*compute_fp_t_avxs)(tiretree_testcase *) = &compute_full_prob_t_avxs;
+std::vector<double> (*compute_fp_t_avxd)(tiretree_testcase *) = &compute_full_prob_t_avxd;
 

@@ -42,6 +42,8 @@ void computeLikelihoodsNative_concurrent(std::vector<testcase>& testcases, std::
 
 void computeLikelihoodsNative_concurrent_i(std::vector<testcase> *testcases, std::vector<double> *likelihoodArray, unsigned long i);
 
+void computeLikelihoodsNative_concurrent_tiretree(std::vector<tiretree_testcase> *testcases, std::vector<std::vector<double>> *likelihoodArray);
+
 void test_compute(std::vector<testcase> *testcases, std::vector<double> *likelihoodArray, unsigned long i);
 
 float compute_full_prob_float(testcase *tc);
