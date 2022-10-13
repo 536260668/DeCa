@@ -681,7 +681,6 @@ void computeLikelihoodsNative_concurrent_tiretree(std::vector<tiretree_testcase>
         else {
             for(double d : result_float) {
                 result_final.emplace_back(log10(d) - Context<double>::LOG10_INITIAL_CONSTANT);
-                std::cout << "d" << (log10(d) - Context<double>::LOG10_INITIAL_CONSTANT) << std::endl;
             }
         }
         (*likelihoodArray).emplace_back(result_final);

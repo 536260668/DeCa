@@ -42,8 +42,8 @@ tireTreeNode* buildTreeUtils::buildTreeWithHaplotype(const std::vector<std::shar
         }
         int baseLen = haplotypes[j]->getBasesLength();
         char* bases = reinterpret_cast<char*>(haplotypes[j]->getBases().get());
-        int i = 0;
-        tireTreeNode *father = root;
+        i = 0;
+        father = root;
         while(i * avxLen < baseLen) {
             i++;
             bool flag = false;
@@ -60,7 +60,7 @@ tireTreeNode* buildTreeUtils::buildTreeWithHaplotype(const std::vector<std::shar
                 } else {
                     char *nodebases = reinterpret_cast<char*>(haplotypes[node->getIndex()[0]]->getBases().get());
                     int nodebaseLen =  haplotypes[node->getIndex()[0]]->getBasesLength();
-                    if(referenceLength == nodebaseLen && isEqual(nodebases+(i-1)*avxLen, bases+(i-1)*avxLen, baseLen-avxLen*(i-1))) {
+                    if(baseLen == nodebaseLen && isEqual(nodebases+(i-1)*avxLen, bases+(i-1)*avxLen, baseLen-avxLen*(i-1))) {
                         throw std::invalid_argument("there are two same haplotypes");
                     }
                 }

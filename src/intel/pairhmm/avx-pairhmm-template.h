@@ -356,7 +356,7 @@ template<class NUMBER> NUMBER CONCAT(CONCAT(compute_full_prob_,SIMD_ENGINE), PRE
         sumMX.d = VEC_ADD(sumM, sumX);
         result_avx2 = sumMX.f[remainingRows-1];
     }
-    std::cout << result_avx2 << std::endl;
+    //std::cout << result_avx2 << std::endl;
     return result_avx2;
 }
 
@@ -669,7 +669,7 @@ template<class NUMBER> void CONCAT(CONCAT(compute_full_prob_with_tiretree,SIMD_E
             NUMBER result_avx2;
             sumMX.d = VEC_ADD(sumM, sumX);
             result_avx2 = sumMX.f[remainingRows-1];
-            std::cout << "node : " << node->getIndex()[0] << "  val : " << result_avx2 << std::endl;
+            //std::cout << "node : " << node->getIndex()[0] << "  val : " << result_avx2 << std::endl;
             result[node->getIndex()[0]] = result_avx2;
         }
     }
