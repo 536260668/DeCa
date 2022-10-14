@@ -6,7 +6,7 @@
 
 bool MergeTails::tryToTransform(std::shared_ptr<SeqVertex> top) {
     Mutect2Utils::validateArg(top.get(), "null is not allowed there");
-    std::unordered_set<std::shared_ptr<SeqVertex>> tails = getGraph()->outgoingVerticesOf(top);
+	phmap::flat_hash_set<std::shared_ptr<SeqVertex>> tails = getGraph()->outgoingVerticesOf(top);
     if(tails.size() <= 1) {
         return false;
     }

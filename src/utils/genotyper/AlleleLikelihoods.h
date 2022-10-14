@@ -177,7 +177,6 @@ private:
         if(evidenceIndexBySampleIndex[sampleIndex].empty()){
             auto& sampleEvidence = evidenceBySampleIndex->operator[](sampleIndex);
             int sampleEvidenceCount = sampleEvidence.size();
-            //evidenceIndexBySampleIndex[sampleIndex] = unordered_map<shared_ptr<E>, int>();
             for(int r=0; r<sampleEvidenceCount; r++)
             {
                 evidenceIndexBySampleIndex[sampleIndex].template emplace(sampleEvidence[r], r);

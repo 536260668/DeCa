@@ -15,7 +15,8 @@ template<class V, class E>
 class DFS_CycleDetect {
 public:
 	bool detectCycles() {
-		for (const std::shared_ptr<V> &v: graph->getVertexSet()) {
+		phmap::flat_hash_set<std::shared_ptr<V>> vertexSet = graph->getVertexSet();
+		for (const std::shared_ptr<V> &v: vertexSet) {
 			if (colorMap[v] == WHITE && hasCycle(v))
 				return true;
 		}
@@ -33,7 +34,8 @@ public:
 	}
 
 	explicit DFS_CycleDetect(DirectedSpecifics<V, E> *graph) : graph(graph) {
-		for (const std::shared_ptr<V> &v: graph->getVertexSet()) {
+		phmap::flat_hash_set<std::shared_ptr<V>> vertexSet = graph->getVertexSet();
+		for (const std::shared_ptr<V> &v: vertexSet) {
 			colorMap.insert(std::make_pair(v, WHITE));
 		}
 	}

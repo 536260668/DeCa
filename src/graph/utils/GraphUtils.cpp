@@ -55,7 +55,7 @@ std::list<std::pair<std::shared_ptr<uint8_t[]>, int>> GraphUtils::getKmers(const
 }
 
 std::list<std::pair<std::shared_ptr<uint8_t[]>, int>>
-GraphUtils::getKmers(const std::unordered_set<std::shared_ptr<SeqVertex>>& vertices) {
+GraphUtils::getKmers(const phmap::flat_hash_set<std::shared_ptr<SeqVertex>>& vertices) {
     Mutect2Utils::validateArg(!vertices.empty(), "no vertex");
     std::list<std::pair<std::shared_ptr<uint8_t[]>, int>> ret;
     for(std::shared_ptr<SeqVertex> v : vertices) {

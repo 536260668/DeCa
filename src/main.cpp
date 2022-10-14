@@ -412,7 +412,7 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 		}
 
 		// activeRegionQueue & pairHMMTaskQueue is both empty
-        std::cout << "activeRegion.region == nullptr : " << (activeRegion.region == nullptr) << " likelihoods == nullptr : " << (likelihoods == nullptr) << " w->numOfFreeThread : " << w->numOfFreeThread << std::endl;
+        // std::cout << "activeRegion.region == nullptr : " << (activeRegion.region == nullptr) << " likelihoods == nullptr : " << (likelihoods == nullptr) << " w->numOfFreeThread : " << w->numOfFreeThread << std::endl;
 		if (BOOST_UNLIKELY(activeRegion.region == nullptr && likelihoods == nullptr) && w->numOfFreeThread == w->numOfThreads)
 			break;
 	}

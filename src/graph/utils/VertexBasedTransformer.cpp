@@ -14,10 +14,11 @@ bool VertexBasedTransformer::transformUntilComplete() {
 	while (foundNodesToMerge) {
 		foundNodesToMerge = false;
 #ifdef SORT_MODE
-		for (const std::shared_ptr<SeqVertex> &v: graph->getSortedVertexList()) {
+		std::vector<std::shared_ptr<SeqVertex>> vertexSet = graph->getSortedVertexList();
 #else
-		for (const std::shared_ptr<SeqVertex> &v: graph->getVertexSet()) {
+		phmap::flat_hash_set<std::shared_ptr<SeqVertex>> vertexSet = graph->getVertexSet();
 #endif
+		for (const std::shared_ptr<SeqVertex> &v: vertexSet) {
 			foundNodesToMerge = tryToTransform(v);
 			if (foundNodesToMerge) {
 				didAtLeastOneTransform = true;

@@ -9,7 +9,7 @@
 
 std::pair<std::shared_ptr<SeqVertex>, std::shared_ptr<SeqVertex>>
 SharedVertexSequenceSplitter::commonPrefixAndSuffixOfVertices(
-		const std::unordered_set<std::shared_ptr<SeqVertex>> &middleVertices) {
+		const phmap::flat_hash_set<std::shared_ptr<SeqVertex>> &middleVertices) {
 	std::list<std::pair<std::shared_ptr<uint8_t[]>, int>> kmers;
 	int min = INT32_MAX;
 #ifdef SORT_MODE
@@ -38,12 +38,12 @@ SharedVertexSequenceSplitter::commonPrefixAndSuffixOfVertices(
 }
 
 SharedVertexSequenceSplitter::SharedVertexSequenceSplitter(SeqGraph *graph,
-                                                           const std::unordered_set<std::shared_ptr<SeqVertex>> &toSplitsArg)
+                                                           const phmap::flat_hash_set<std::shared_ptr<SeqVertex>> &toSplitsArg)
 		: outer(graph), toSplits(toSplitsArg) {
 	Mutect2Utils::validateArg(graph, "graph cannot be null");
 	Mutect2Utils::validateArg(toSplitsArg.size() > 1, "Can only split at least 2 vertices");
 	for (const std::shared_ptr<SeqVertex> &v: toSplitsArg) {
-        std::unordered_set<std::shared_ptr<SeqVertex>> &allVertex = graph->getVertexSet();
+		phmap::flat_hash_set<std::shared_ptr<SeqVertex>> &allVertex = graph->getVertexSet();
 		if (allVertex.find(v) == allVertex.end())
 			throw std::invalid_argument("graph doesn't contain all of the vertices to split");
 	}
@@ -113,7 +113,7 @@ SharedVertexSequenceSplitter::processEdgeToRemove(std::shared_ptr<SeqVertex> v, 
 void SharedVertexSequenceSplitter::updateGraph(const std::shared_ptr<SeqVertex> &top,
                                                const std::shared_ptr<SeqVertex> &bot) {
 	for (const std::shared_ptr<SeqVertex> &v: toSplits) {
-        std::unordered_set<std::shared_ptr<SeqVertex>> &allVertex = outer->getVertexSet();
+		phmap::flat_hash_set<std::shared_ptr<SeqVertex>> &allVertex = outer->getVertexSet();
 		if (allVertex.find(v) == allVertex.end())
 			throw std::invalid_argument("graph doesn't contain all of the vertices to split");
 	}

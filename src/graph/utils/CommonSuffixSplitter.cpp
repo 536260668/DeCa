@@ -10,15 +10,19 @@
 bool CommonSuffixSplitter::split(SeqGraph *graph, std::shared_ptr<SeqVertex> v) {
 	Mutect2Utils::validateArg(graph, "graph cannot be null");
 	Mutect2Utils::validateArg(v.get(), "v cannot be null");
-    std::unordered_set<std::shared_ptr<SeqVertex>> &allVertex = graph->getVertexSet();
+	phmap::flat_hash_set<std::shared_ptr<SeqVertex>> &allVertex = graph->getVertexSet();
 	Mutect2Utils::validateArg(allVertex.find(v) != allVertex.end(), "graph doesn't contain vertex v ");
-    std::unordered_set<std::shared_ptr<SeqVertex>> toSplit = graph->incomingVerticesOf(v);
+	phmap::flat_hash_set<std::shared_ptr<SeqVertex>> toSplit = graph->incomingVerticesOf(v);
 	std::shared_ptr<SeqVertex> suffixVTemplate = commonSuffix(graph, v, toSplit);
 	if (suffixVTemplate == nullptr) {
 		return false;
 	}
 	std::list<std::shared_ptr<BaseEdge>> edgesToRemove;
+#ifdef SORT_MODE
 	for (const std::shared_ptr<SeqVertex> &mid: graph->sortedVerticesOf(toSplit)) {
+#else
+	for (const std::shared_ptr<SeqVertex> &mid: toSplit) {
+#endif
 		std::shared_ptr<SeqVertex> suffixV = std::make_shared<SeqVertex>(suffixVTemplate->getSequence(),
 		                                                                 suffixVTemplate->getLength());
 		graph->addVertex(suffixV);
@@ -35,7 +39,7 @@ bool CommonSuffixSplitter::split(SeqGraph *graph, std::shared_ptr<SeqVertex> v) 
 		}
 		graph->addEdge(suffixV, graph->getEdgeTarget(out),
 		               std::make_shared<BaseEdge>(out->getIsRef(), out->getMultiplicity()));
-		for (std::shared_ptr<BaseEdge> in: graph->incomingEdgesOf(mid)) {
+		for (const std::shared_ptr<BaseEdge> &in: graph->incomingEdgesOf(mid)) {
 			graph->addEdge(graph->getEdgeSource(in), incomingTarget,
 			               std::make_shared<BaseEdge>(in->getIsRef(), in->getMultiplicity()));
 			edgesToRemove.emplace_back(in);
@@ -47,7 +51,7 @@ bool CommonSuffixSplitter::split(SeqGraph *graph, std::shared_ptr<SeqVertex> v) 
 }
 
 std::shared_ptr<SeqVertex> CommonSuffixSplitter::commonSuffix(SeqGraph *graph, std::shared_ptr<SeqVertex> v,
-                                                              std::unordered_set<std::shared_ptr<SeqVertex>> toSplit) {
+                                                              const phmap::flat_hash_set<std::shared_ptr<SeqVertex>> &toSplit) {
 	if (toSplit.size() < 2) {
 		return nullptr;
 	} else if (!safeToSplit(graph, v, toSplit)) {
@@ -65,16 +69,16 @@ std::shared_ptr<SeqVertex> CommonSuffixSplitter::commonSuffix(SeqGraph *graph, s
 	}
 }
 
-bool CommonSuffixSplitter::safeToSplit(SeqGraph *graph, std::shared_ptr<SeqVertex> bot,
-                                       std::unordered_set<std::shared_ptr<SeqVertex>> toMerge) {
-    std::unordered_set<std::shared_ptr<SeqVertex>> outgoingVertices = graph->outgoingVerticesOf(bot);
-    std::unordered_set<std::shared_ptr<SeqVertex>> outgoingOfBot;
+bool CommonSuffixSplitter::safeToSplit(SeqGraph *graph, const std::shared_ptr<SeqVertex> &bot,
+                                       const phmap::flat_hash_set<std::shared_ptr<SeqVertex>> &toMerge) {
+	phmap::flat_hash_set<std::shared_ptr<SeqVertex>> outgoingVertices = graph->outgoingVerticesOf(bot);
+	phmap::flat_hash_set<std::shared_ptr<SeqVertex>> outgoingOfBot;
 	for (const std::shared_ptr<SeqVertex> &v: outgoingVertices) {
 		outgoingOfBot.insert(v);
 	}
 	for (const std::shared_ptr<SeqVertex> &m: toMerge) {
-        std::unordered_set<std::shared_ptr<BaseEdge>> outs = graph->outgoingEdgesOf(m);
-        std::unordered_set<std::shared_ptr<SeqVertex>> tmp = graph->outgoingVerticesOf(m);
+		phmap::flat_hash_set<std::shared_ptr<BaseEdge>> outs = graph->outgoingEdgesOf(m);
+		phmap::flat_hash_set<std::shared_ptr<SeqVertex>> tmp = graph->outgoingVerticesOf(m);
 		if (m == bot || outs.size() != 1 || tmp.find(bot) == tmp.end()) {
 			return false;
 		}
@@ -86,7 +90,7 @@ bool CommonSuffixSplitter::safeToSplit(SeqGraph *graph, std::shared_ptr<SeqVerte
 }
 
 std::shared_ptr<SeqVertex>
-CommonSuffixSplitter::commonSuffix(const std::unordered_set<std::shared_ptr<SeqVertex>> &middleVertices) {
+CommonSuffixSplitter::commonSuffix(const phmap::flat_hash_set<std::shared_ptr<SeqVertex>> &middleVertices) {
 	std::list<std::pair<std::shared_ptr<uint8_t[]>, int>> kmers = GraphUtils::getKmers(middleVertices);
 	int min = GraphUtils::minKmerLength(kmers);
 	int suffixLen = GraphUtils::commonMaximumSuffixLength(kmers, min);
@@ -99,8 +103,8 @@ CommonSuffixSplitter::commonSuffix(const std::unordered_set<std::shared_ptr<SeqV
 }
 
 bool
-CommonSuffixSplitter::wouldEliminateRefSource(SeqGraph *graph, std::shared_ptr<SeqVertex> commonSuffix,
-                                              std::unordered_set<std::shared_ptr<SeqVertex>> toSplits) {
+CommonSuffixSplitter::wouldEliminateRefSource(SeqGraph *graph, const std::shared_ptr<SeqVertex> &commonSuffix,
+                                              const phmap::flat_hash_set<std::shared_ptr<SeqVertex>> &toSplits) {
 	for (const std::shared_ptr<SeqVertex> &toSplit: toSplits) {
 		if (graph->isRefSource(toSplit)) {
 			return toSplit->getLength() == commonSuffix->getLength();
@@ -110,7 +114,7 @@ CommonSuffixSplitter::wouldEliminateRefSource(SeqGraph *graph, std::shared_ptr<S
 }
 
 bool CommonSuffixSplitter::allVerticesAreTheCommonSuffix(const std::shared_ptr<SeqVertex> &commonSuffix,
-                                                         std::unordered_set<std::shared_ptr<SeqVertex>> toSplits) {
+                                                         const phmap::flat_hash_set<std::shared_ptr<SeqVertex>> &toSplits) {
 	for (const std::shared_ptr<SeqVertex> &toSplit: toSplits) {
 		if (toSplit->getLength() != commonSuffix->getLength()) {
 			return false;

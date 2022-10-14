@@ -9,8 +9,6 @@
 #include "SeqGraph.h"
 #include "KBestHaplotype.h"
 #include <vector>
-#include <unordered_set>
-#include <unordered_map>
 
 struct KBestHaplotypeComp {
 	bool operator()(const std::shared_ptr<KBestHaplotype> &a, const std::shared_ptr<KBestHaplotype> &b) {
@@ -34,25 +32,25 @@ struct KBestHaplotypeComp {
 class KBestHaplotypeFinder {
 private:
 	std::shared_ptr<SeqGraph> graph;
-    std::unordered_set<std::shared_ptr<SeqVertex>> sinks;
-    std::unordered_set<std::shared_ptr<SeqVertex>> sources;
+	phmap::flat_hash_set<std::shared_ptr<SeqVertex>> sinks;
+	phmap::flat_hash_set<std::shared_ptr<SeqVertex>> sources;
 
 	static std::shared_ptr<SeqGraph>
 	removeCyclesAndVerticesThatDontLeadToSinks(const std::shared_ptr<SeqGraph> &original,
-                                               std::unordered_set<std::shared_ptr<SeqVertex>> &sources,
-                                               std::unordered_set<std::shared_ptr<SeqVertex>> &sinks);
+	                                           phmap::flat_hash_set<std::shared_ptr<SeqVertex>> &sources,
+	                                           phmap::flat_hash_set<std::shared_ptr<SeqVertex>> &sinks);
 
 	static bool findGuiltyVerticesAndEdgesToRemoveCycles(const std::shared_ptr<SeqGraph> &graph,
 	                                                     const std::shared_ptr<SeqVertex> &currentVertex,
-                                                         std::unordered_set<std::shared_ptr<SeqVertex>> &sinks,
-                                                         std::unordered_set<std::shared_ptr<BaseEdge>> &edgesToRemove,
-                                                         std::unordered_set<std::shared_ptr<SeqVertex>> &verticesToRemove,
-                                                         std::unordered_set<std::shared_ptr<SeqVertex>> &parentVertices);
+	                                                     phmap::flat_hash_set<std::shared_ptr<SeqVertex>> &sinks,
+	                                                     phmap::flat_hash_set<std::shared_ptr<BaseEdge>> &edgesToRemove,
+	                                                     phmap::flat_hash_set<std::shared_ptr<SeqVertex>> &verticesToRemove,
+	                                                     phmap::flat_hash_set<std::shared_ptr<SeqVertex>> &parentVertices);
 
 public:
 	KBestHaplotypeFinder(const std::shared_ptr<SeqGraph> &graph,
-                         std::unordered_set<std::shared_ptr<SeqVertex>> &sources,
-                         std::unordered_set<std::shared_ptr<SeqVertex>> &sinks);
+	                     phmap::flat_hash_set<std::shared_ptr<SeqVertex>> &sources,
+	                     phmap::flat_hash_set<std::shared_ptr<SeqVertex>> &sinks);
 
 	KBestHaplotypeFinder(std::shared_ptr<SeqGraph> graph, const std::shared_ptr<SeqVertex> &source,
 	                     const std::shared_ptr<SeqVertex> &sink);

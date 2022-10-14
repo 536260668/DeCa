@@ -12,9 +12,8 @@
  * In order to assign the memory address of the pre-processing array to the SIMD type pointer,
  * it is necessary to align the memory according to the SIMD_TYPE data.
  * */
-bool use_avx512 = is_avx512_supported();
-size_t SIMD_size = use_avx512 ? sizeof(__m512) : sizeof(__m256);
-std::align_val_t SIMD_align = (std::align_val_t) (use_avx512 ? alignof(__m512) : alignof(__m256));
+static bool use_avx512 = is_avx512_supported();
+static size_t SIMD_size = use_avx512 ? sizeof(__m512) : sizeof(__m256);
 
 ReadForPairHMM::ReadForPairHMM(int _rslen, const uint8_t *readQuals, const uint8_t *insGops, const uint8_t *delGops,
                                const char *gapConts, const uint8_t *reads) : rslen(_rslen), rs(reads) {
@@ -42,14 +41,17 @@ template<typename NUMBER>
 std::shared_ptr<NUMBER> ReadForPairHMM::initializeData() {
 	Context<NUMBER> ctx;
 	int AVX_LENGTH = SIMD_size / sizeof(NUMBER);
-	int NUMBER_COUNT = (rslen + AVX_LENGTH) / AVX_LENGTH * AVX_LENGTH;
+	int SIMD_COUNT = (rslen + AVX_LENGTH) / AVX_LENGTH;
+	int NUMBER_COUNT = SIMD_COUNT * AVX_LENGTH;
 
 	/**
 	 * In order to better adapt to SIMD registers, the actual array size is larger than ROW.
 	 * For calculation of a certain precision, AVX_LENGTH is fixed.
 	 * */
 
-	std::shared_ptr<NUMBER> ret(new(SIMD_align) NUMBER[7 * NUMBER_COUNT], initializedDataDeleter<NUMBER>);
+	std::shared_ptr<NUMBER> ret(
+			use_avx512 ? (NUMBER *) new __m512[7 * SIMD_COUNT] : (NUMBER *) new __m256[7 * SIMD_COUNT]);
+
 	NUMBER *p_MM = ret.get();
 	NUMBER *p_XX = ret.get() + NUMBER_COUNT;
 	NUMBER *p_YY = ret.get() + 2 * NUMBER_COUNT;
@@ -95,9 +97,3 @@ void ReadForPairHMM::initializeFloatVector() {
 ReadForPairHMM::~ReadForPairHMM() {
 	delete[] charCombination;
 }
-
-template<typename NUMBER>
-void ReadForPairHMM::initializedDataDeleter(NUMBER *p) {
-	operator delete[](p, SIMD_align);
-}
-

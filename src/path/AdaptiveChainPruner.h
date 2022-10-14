@@ -29,16 +29,16 @@ public:
 	}
 
 protected:
-    std::unordered_set<Path<V, E> *> chainsToRemove(std::vector<Path<V, E> *> chains) {
+	phmap::flat_hash_set<Path<V, E> *> chainsToRemove(std::vector<Path<V, E> *> chains) {
 		if (chains.empty()) {
-            std::unordered_set<Path<V, E> *> result;
+			phmap::flat_hash_set<Path<V, E> *> result;
 			return result;
 		}
 
 		std::shared_ptr<DirectedSpecifics<V, E>> graph = chains[0]->getGraph();
-        std::unordered_set<Path<V, E> *> probableErrorChains = likelyErrorChains(chains, graph, 0.001);
+		phmap::flat_hash_set<Path<V, E> *> probableErrorChains = likelyErrorChains(chains, graph, 0.001);
 		int errorCount = 0, totalBases = 0;
-		for (typename std::unordered_set<Path<V, E> *>::iterator siter = probableErrorChains.begin();
+		for (typename phmap::flat_hash_set<Path<V, E> *>::iterator siter = probableErrorChains.begin();
 		     siter != probableErrorChains.end(); siter++) {
 			errorCount += (*siter)->getLastEdge()->getMultiplicity();
 		}
@@ -55,11 +55,11 @@ protected:
 	}
 
 private:
-    std::unordered_set<Path<V, E> *>
+	phmap::flat_hash_set<Path<V, E> *>
 	likelyErrorChains(std::vector<Path<V, E> *> &chains, std::shared_ptr<DirectedSpecifics<V, E>> graph,
 	                  double errorRate) {
 		typename std::vector<Path<V, E> *>::iterator viter;
-        std::unordered_set<Path<V, E> *> result;
+		phmap::flat_hash_set<Path<V, E> *> result;
 		result.reserve(chains.size());
 
 		for (viter = chains.begin(); viter != chains.end(); viter++) {
@@ -100,9 +100,9 @@ private:
 				return POSITIVE_INFINITY;
 		}
 		int leftTotalMultiplicity = 0, rightTotalMultiplicity = 0;
-        std::unordered_set<std::shared_ptr<E>> outgoing = graph->outgoingEdgesOf(chain->getFirstVertex());
-        std::unordered_set<std::shared_ptr<E>> incoming = graph->incomingEdgesOf(chain->getLastVertex());
-		typename std::unordered_set<std::shared_ptr<E>>::iterator eiter;
+		phmap::flat_hash_set<std::shared_ptr<E>> outgoing = graph->outgoingEdgesOf(chain->getFirstVertex());
+		phmap::flat_hash_set<std::shared_ptr<E>> incoming = graph->incomingEdgesOf(chain->getLastVertex());
+		typename phmap::flat_hash_set<std::shared_ptr<E>>::iterator eiter;
 		for (eiter = outgoing.begin(); eiter != outgoing.end(); eiter++) {
 			leftTotalMultiplicity += (*eiter)->getMultiplicity();
 		}
@@ -127,10 +127,10 @@ private:
 		if (baseString == "CCTTTACCCCTTTCAGCGATGTCCATTTTGTAA" || baseString == "TCTGTGAAGAGAAATGTACCCAGATCTATCATT") {
 			std::cout << baseString <<" found\n\n";
 		}*/
-		typename std::unordered_set<std::shared_ptr<E>>::iterator eiter;
+		typename phmap::flat_hash_set<std::shared_ptr<E>>::iterator eiter;
 		int leftTotalMultiplicity = 0, rightTotalMultiplicity = 0;
-        std::unordered_set<std::shared_ptr<E>> outgoing = graph->outgoingEdgesOf(chain->getFirstVertex());
-        std::unordered_set<std::shared_ptr<E>> incoming = graph->incomingEdgesOf(chain->getLastVertex());
+		phmap::flat_hash_set<std::shared_ptr<E>> outgoing = graph->outgoingEdgesOf(chain->getFirstVertex());
+		phmap::flat_hash_set<std::shared_ptr<E>> incoming = graph->incomingEdgesOf(chain->getLastVertex());
 		for (eiter = outgoing.begin(); eiter != outgoing.end(); eiter++) {
 			leftTotalMultiplicity += (*eiter)->getMultiplicity();
 		}

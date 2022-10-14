@@ -17,7 +17,7 @@ std::shared_ptr<std::map<std::string, AttributeValue>> PerAlleleAnnotation::anno
     }
 
     auto bestAlleles = likelihoods->bestAllelesBreakingTies();
-    for(auto ba: *bestAlleles)
+    for(const auto& ba: *bestAlleles)
     {
         if(ba->isInformative() && isUsableRead(ba->evidence))
         {

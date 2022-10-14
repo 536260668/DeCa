@@ -18,19 +18,19 @@ pair<int *, int> DepthPerAlleleBySample::annotateWithLikelihoods(shared_ptr<Vari
                                                                  vector<shared_ptr<Allele>> &alleles,
                                                                  AlleleLikelihoods<SAMRecord, Allele> *likelihoods) {
     phmap::flat_hash_map<Allele*, int> alleleCounts;
-    for(auto allele : vc->getAlleles())
+    for(const auto& allele : vc->getAlleles())
     {
         alleleCounts.insert({allele.get(), 0});
     }
 
     auto alleleSubset = make_shared<std::map<shared_ptr<Allele>, shared_ptr<vector<shared_ptr<Allele>>>>>();
-    for(auto allele: alleles)
+    for(const auto& allele: alleles)
     {
         alleleSubset->insert({allele, make_shared<vector<shared_ptr<Allele>>>(1, allele)});
     }
     auto subsettedLikelihoods = likelihoods->marginalize(alleleSubset);
     auto bestAllels = subsettedLikelihoods->bestAllelesBreakingTies(g->getSampleName());
-    for(auto ba : *bestAllels)
+    for(const auto& ba : *bestAllels)
     {
         if(ba->isInformative())
         {

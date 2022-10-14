@@ -9,7 +9,6 @@
 #include "parallel_hashmap/phmap.h"
 #include <memory>
 #include <vector>
-#include <unordered_set>
 
 class BaseEdge {
 
@@ -68,7 +67,7 @@ public:
 	static std::shared_ptr<BaseEdge> makeOREdge(const std::vector<std::shared_ptr<BaseEdge>> &edges, int multiplicity);
 
 	static std::shared_ptr<BaseEdge>
-	makeOREdge(const std::unordered_set<std::shared_ptr<BaseEdge>> &edges, int multiplicity);
+	makeOREdge(const phmap::flat_hash_set<std::shared_ptr<BaseEdge>> &edges, int multiplicity);
 
 };
 

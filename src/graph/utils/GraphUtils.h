@@ -21,16 +21,16 @@ public:
 
     static std::list<std::pair<std::shared_ptr<uint8_t[]>, int>> getKmers(const std::vector<std::shared_ptr<SeqVertex>>& vertices);
 
-    static std::list<std::pair<std::shared_ptr<uint8_t[]>, int>> getKmers(const std::unordered_set<std::shared_ptr<SeqVertex>>& vertices);
+    static std::list<std::pair<std::shared_ptr<uint8_t[]>, int>> getKmers(const phmap::flat_hash_set<std::shared_ptr<SeqVertex>>& vertices);
 
     template<class T, class E>
             static bool graphEquals(DirectedSpecifics<T,E>* g1, DirectedSpecifics<T,E>* g2){
         Mutect2Utils::validateArg(g1, "g1");
         Mutect2Utils::validateArg(g2, "g2");
-        std::unordered_set<std::shared_ptr<T>> vertices1 = g1->getVertexSet();
-        std::unordered_set<std::shared_ptr<T>> vertices2 = g2->getVertexSet();
-        std::unordered_set<std::shared_ptr<E>> edges1 = g1->getEdgeSet();
-        std::unordered_set<std::shared_ptr<E>> edges2 = g2->getEdgeSet();
+	    phmap::flat_hash_set<std::shared_ptr<T>> vertices1 = g1->getVertexSet();
+	    phmap::flat_hash_set<std::shared_ptr<T>> vertices2 = g2->getVertexSet();
+	    phmap::flat_hash_set<std::shared_ptr<E>> edges1 = g1->getEdgeSet();
+	    phmap::flat_hash_set<std::shared_ptr<E>> edges2 = g2->getEdgeSet();
         if(vertices1.size() != vertices2.size() || edges1.size() != edges2.size())
             return false;
         for(std::shared_ptr<BaseVertex> v1 : vertices1) {

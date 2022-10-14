@@ -94,6 +94,8 @@ bool buildTreeUtils::isEqual(char *c1, char *c2, int len) {
 }
 
 void buildTreeUtils::deleteTree(tireTreeNode *root) {
+	if (root == nullptr)
+		return;
     for(auto & node : root->getChild()) {
         deleteTree(node);
     }

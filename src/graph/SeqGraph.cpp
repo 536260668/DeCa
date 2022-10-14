@@ -17,10 +17,11 @@
 bool SeqGraph::zipLinearChains() {
 	std::vector<std::shared_ptr<SeqVertex>> zipStarts;
 #ifdef SORT_MODE
-	for (auto &source: getSortedVertexList()) {
+	std::vector<std::shared_ptr<SeqVertex>> allvertexSet = getSortedVertexList();
 #else
-	for (auto &source: getVertexSet()) {
+	phmap::flat_hash_set<std::shared_ptr<SeqVertex>> vertexSet = getVertexSet();
 #endif
+	for (auto &source: allvertexSet) {
 		if (isLinearChainStart(source)) {
 			zipStarts.emplace_back(source);
 		}
@@ -84,7 +85,7 @@ bool SeqGraph::mergeLinearChain(std::list<std::shared_ptr<SeqVertex>> &linearCha
 		addEdge(addedVertex, getEdgeTarget(edge),
 		        std::make_shared<BaseEdge>(edge->getIsRef(), edge->getMultiplicity()));
 	}
-	//std::unordered_set<std::shared_ptr<BaseEdge>> set1 = incomingEdgesOf(first);
+
 	for (auto &edge: incomingEdgesOf(first)) {
 		addEdge(getEdgeSource(edge), addedVertex,
 		        std::make_shared<BaseEdge>(edge->getIsRef(), edge->getMultiplicity()));

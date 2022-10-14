@@ -198,7 +198,7 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion> &originalAssembl
 		untrimmedAssemblyResult->deleteEventMap();
 		return {};
 	}
-	//assemblyResult->printSortedHaplotypes();
+	assemblyResult->printSortedHaplotypes();
 
 	std::shared_ptr<AssemblyRegion> regionForGenotyping = assemblyResult->getRegionForGenotyping();
 	removeReadStubs(regionForGenotyping);
@@ -232,8 +232,8 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion> &originalAssembl
 
 	//---print the called variant
 	std::shared_ptr<std::vector<std::shared_ptr<VariantContext>>> calls = calledHaplotypes.getCalls();
-	//if (!(*calls).empty())
-	//	printVariationContexts(assemblyActiveRegion, *calls);
+	if (!(*calls).empty())
+		printVariationContexts(assemblyActiveRegion, *calls);
 
 	// Break the circular reference of pointer
 	untrimmedAssemblyResult->deleteEventMap();

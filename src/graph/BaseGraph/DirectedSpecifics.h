@@ -14,8 +14,6 @@
 #include <deque>
 #include <list>
 #include <map>
-#include <unordered_map>
-#include <unordered_set>
 #include <fstream>
 #include <algorithm>
 #include "DFS_CycleDetect.h"
@@ -53,18 +51,18 @@ private:
 
 	bool allowingLoops = true;
 	bool allowingMultipleEdges = false;
-    std::unordered_set<std::shared_ptr<V>> VertexSet;
-    std::unordered_set<std::shared_ptr<E>> EdgeSet;
+	phmap::flat_hash_set<std::shared_ptr<V>> VertexSet;
+	phmap::flat_hash_set<std::shared_ptr<E>> EdgeSet;
 
 public:
-    std::unordered_map<std::shared_ptr<V>, DirectedEdgeContainer<E>> vertexMapDirected;
+	phmap::flat_hash_map<std::shared_ptr<V>, DirectedEdgeContainer<E>> vertexMapDirected;
 
-    std::unordered_map<std::shared_ptr<E>, IntrusiveEdge<V>> edgeMap;
+	phmap::flat_hash_map<std::shared_ptr<E>, IntrusiveEdge<V>> edgeMap;
 
 	DirectedSpecifics() = default;
 
-	DirectedSpecifics(const std::unordered_set<std::shared_ptr<V>> &vertexSet,
-	                  const std::unordered_set<std::shared_ptr<E>> &edgeSet) : VertexSet(vertexSet), EdgeSet(edgeSet) {}
+	DirectedSpecifics(const phmap::flat_hash_set<std::shared_ptr<V>> &vertexSet,
+	                  const phmap::flat_hash_set<std::shared_ptr<E>> &edgeSet) : VertexSet(vertexSet), EdgeSet(edgeSet) {}
 
 	~DirectedSpecifics() = default;
 
@@ -85,7 +83,7 @@ public:
 		VertexSet.insert(v);
 	}
 
-	std::vector<std::shared_ptr<V>> sortedVerticesOf(std::unordered_set<std::shared_ptr<V>> vertices) {
+	std::vector<std::shared_ptr<V>> sortedVerticesOf(phmap::flat_hash_set<std::shared_ptr<V>> vertices) {
 		std::vector<std::shared_ptr<V>> ret;
 		ret.reserve(vertices.size());
 		for (auto &v: vertices) {
@@ -103,13 +101,13 @@ public:
 				return seq1[i] < seq2[i];
 			}
 
-            std::unordered_set<std::shared_ptr<E>> in1 = incomingEdgesOf(v1);
-            std::unordered_set<std::shared_ptr<E>> in2 = incomingEdgesOf(v2);
+			phmap::flat_hash_set<std::shared_ptr<E>> in1 = incomingEdgesOf(v1);
+			phmap::flat_hash_set<std::shared_ptr<E>> in2 = incomingEdgesOf(v2);
 			if (in1.size() != in2.size())
 				return in1.size() > in2.size();
 
-            std::unordered_set<std::shared_ptr<E>> out1 = outgoingEdgesOf(v1);
-            std::unordered_set<std::shared_ptr<E>> out2 = outgoingEdgesOf(v2);
+			phmap::flat_hash_set<std::shared_ptr<E>> out1 = outgoingEdgesOf(v1);
+			phmap::flat_hash_set<std::shared_ptr<E>> out2 = outgoingEdgesOf(v2);
 			if (out1.size() != out2.size())
 				return out1.size() > out2.size();
 
@@ -151,13 +149,13 @@ public:
 		return sortedVerticesOf(VertexSet);
 	}
 
-    std::unordered_set<std::shared_ptr<V>> &getVertexSet() {
+	phmap::flat_hash_set<std::shared_ptr<V>> &getVertexSet() {
 		return VertexSet;
 	}
 
-    std::unordered_set<std::shared_ptr<E>>
+	phmap::flat_hash_set<std::shared_ptr<E>>
 	getAllEdges(const std::shared_ptr<V> &sourceVertex, const std::shared_ptr<V> &targetVertex) {
-        std::unordered_set<std::shared_ptr<E>> edges;
+		phmap::flat_hash_set<std::shared_ptr<E>> edges;
 		if (VertexSet.find(sourceVertex) != VertexSet.end() && VertexSet.find(targetVertex) != VertexSet.end()) {
 			for (auto &edge: getEdgeContainer(sourceVertex).outgoing) {
 				if (getEdgeTarget(edge) == targetVertex)
@@ -167,8 +165,8 @@ public:
 		return edges;
 	}
 
-    std::unordered_set<std::shared_ptr<V>> getAllTargets(const std::shared_ptr<V> &sourceVertex) {
-        std::unordered_set<std::shared_ptr<V>> res;
+	phmap::flat_hash_set<std::shared_ptr<V>> getAllTargets(const std::shared_ptr<V> &sourceVertex) {
+		phmap::flat_hash_set<std::shared_ptr<V>> res;
 		if (VertexSet.find(sourceVertex) != VertexSet.end()) {
 			for (auto &vertex: getEdgeContainer(sourceVertex).outgoing) {
 				res.insert(getEdgeTarget(vertex));
@@ -195,16 +193,16 @@ public:
 		return edgeMap.find(e)->second.getSource();
 	}
 
-    std::unordered_set<std::shared_ptr<E>> edgesof(const std::shared_ptr<V> &vertex) {
-        std::unordered_set<std::shared_ptr<E>> res = getEdgeContainer(vertex).incoming;
-		const std::unordered_set<std::shared_ptr<E>> &outgoing = getEdgeContainer(vertex).outgoing;
+	phmap::flat_hash_set<std::shared_ptr<E>> edgesof(const std::shared_ptr<V> &vertex) {
+		phmap::flat_hash_set<std::shared_ptr<E>> res = getEdgeContainer(vertex).incoming;
+		const phmap::flat_hash_set<std::shared_ptr<E>> &outgoing = getEdgeContainer(vertex).outgoing;
 		res.reserve(res.size() + outgoing.size());
 		for (const std::shared_ptr<E> &e: outgoing) {
 			res.insert(e);
 		}
 
 		if (allowingLoops) {
-            std::unordered_set<std::shared_ptr<E>> loops = getAllEdges(vertex, vertex);
+			phmap::flat_hash_set<std::shared_ptr<E>> loops = getAllEdges(vertex, vertex);
 			for (auto &v: res) {
 				if (loops.find(v) != loops.end()) {
 					loops.erase(v);
@@ -248,12 +246,12 @@ public:
 		return getEdgeContainer(vector).outgoing.size();
 	}
 
-    std::unordered_set<std::shared_ptr<E>> &incomingEdgesOf(const std::shared_ptr<V> &vertex) {
+	phmap::flat_hash_set<std::shared_ptr<E>> &incomingEdgesOf(const std::shared_ptr<V> &vertex) {
 		return getEdgeContainer(vertex).getUnmodifiableIncomingEdges();
 	}
 
 
-    std::unordered_set<std::shared_ptr<E>> &outgoingEdgesOf(const std::shared_ptr<V> &vertex) {
+	phmap::flat_hash_set<std::shared_ptr<E>> &outgoingEdgesOf(const std::shared_ptr<V> &vertex) {
 		return getEdgeContainer(vertex).getUnmodifiableOutgoingEdges();
 	}
 
@@ -392,7 +390,7 @@ public:
 		return modified;
 	}
 
-	bool removeAllEdges(std::unordered_set<std::shared_ptr<E>> edges) {
+	bool removeAllEdges(phmap::flat_hash_set<std::shared_ptr<E>> edges) {
 		bool modified = false;
 		for (const auto &e: edges) {
 			modified |= removeEdge(e);
@@ -416,7 +414,7 @@ public:
 		return modified;
 	}
 
-	bool removeAllVertices(std::unordered_set<std::shared_ptr<V>> vertices) {
+	bool removeAllVertices(phmap::flat_hash_set<std::shared_ptr<V>> vertices) {
 		bool modified = false;
 		for (std::shared_ptr<V> v: vertices) {
 			modified |= removeVertex(v);
@@ -444,7 +442,7 @@ public:
 	std::shared_ptr<E> incomingEdgeOf(const std::shared_ptr<V> &v) {
 		if (v.get() == nullptr)
 			throw std::invalid_argument("Attempting to test a null vertex.");
-        std::unordered_set<std::shared_ptr<E>> &edgesSet = incomingEdgesOf(v);
+		phmap::flat_hash_set<std::shared_ptr<E>> &edgesSet = incomingEdgesOf(v);
 		if (edgesSet.size() > 1) {
 			throw std::invalid_argument("Cannot get a single incoming edge for a vertex with multiple incoming edges");
 		}
@@ -454,7 +452,7 @@ public:
 	std::shared_ptr<E> outgoingEdgeOf(const std::shared_ptr<V> &v) {
 		if (v.get() == nullptr)
 			throw std::invalid_argument("Attempting to test a null vertex.");
-        std::unordered_set<std::shared_ptr<E>> &edgesSet = outgoingEdgesOf(v);
+		phmap::flat_hash_set<std::shared_ptr<E>> &edgesSet = outgoingEdgesOf(v);
 		if (edgesSet.size() > 1) {
 			throw std::invalid_argument("Cannot get a single incoming edge for a vertex with multiple incoming edges");
 		}
@@ -499,7 +497,7 @@ public:
 	bool isReferenceNode(const std::shared_ptr<V> &v) {
 		if (v.get() == nullptr)
 			throw std::invalid_argument("Attempting to test a null vertex.");
-        std::unordered_set<std::shared_ptr<E>> edges = edgesof(v);
+		phmap::flat_hash_set<std::shared_ptr<E>> edges = edgesof(v);
 		for (const std::shared_ptr<E> &edge: edges) {
 			if (edge->getIsRef())
 				return true;
@@ -541,14 +539,14 @@ public:
 			onPathFromRefSource.push_back(sourceIter.next());
 		}
 
-        std::unordered_set<std::shared_ptr<V>> onPathFromRefSink;
+		phmap::flat_hash_set<std::shared_ptr<V>> onPathFromRefSink;
 		BaseGraphIterator<V, E> sinkIter = BaseGraphIterator<V, E>(this, getReferenceSinkVertex(), true, false);
 		onPathFromRefSink.reserve(size);
 		while (sinkIter.hasNext()) {
 			onPathFromRefSink.insert(sinkIter.next());
 		}
 
-        std::unordered_set<std::shared_ptr<V>> verticesToRemove = getVertexSet();
+		phmap::flat_hash_set<std::shared_ptr<V>> verticesToRemove = getVertexSet();
 		for (typename std::vector<std::shared_ptr<V>>::iterator iter = onPathFromRefSource.begin();
 		     iter != onPathFromRefSource.end(); iter++) {
 			if (onPathFromRefSink.find(*iter) != onPathFromRefSink.end())
@@ -564,20 +562,20 @@ public:
 			throw std::length_error("hould have eliminated all but the reference source");
 	}
 
-    std::unordered_set<std::shared_ptr<V>> incomingVerticesOf(const std::shared_ptr<V> &v) {
+	phmap::flat_hash_set<std::shared_ptr<V>> incomingVerticesOf(const std::shared_ptr<V> &v) {
 		if (v.get() == nullptr)
 			throw std::invalid_argument("Attempting to test a null vertex.");
-        std::unordered_set<std::shared_ptr<V>> ret;
+		phmap::flat_hash_set<std::shared_ptr<V>> ret;
 		for (const std::shared_ptr<E> &e: incomingEdgesOf(v)) {
 			ret.insert(getEdgeSource(e));
 		}
 		return ret;
 	}
 
-    std::unordered_set<std::shared_ptr<V>> outgoingVerticesOf(const std::shared_ptr<V> &v) {
+	phmap::flat_hash_set<std::shared_ptr<V>> outgoingVerticesOf(const std::shared_ptr<V> &v) {
 		if (v.get() == nullptr)
 			throw std::invalid_argument("Attempting to test a null vertex.");
-        std::unordered_set<std::shared_ptr<V>> ret;
+	    phmap::flat_hash_set<std::shared_ptr<V>> ret;
 		for (const std::shared_ptr<E> &e: outgoingEdgesOf(v)) {
 			ret.insert(getEdgeTarget(e));
 		}
@@ -604,8 +602,8 @@ public:
 		return ret;
 	}
 
-    std::unordered_set<std::shared_ptr<V>> getSinks() {
-        std::unordered_set<std::shared_ptr<V>> ret;
+	phmap::flat_hash_set<std::shared_ptr<V>> getSinks() {
+		phmap::flat_hash_set<std::shared_ptr<V>> ret;
 		for (const std::shared_ptr<V> &v: VertexSet) {
 			if (isSink(v))
 				ret.insert(v);
@@ -613,8 +611,8 @@ public:
 		return ret;
 	}
 
-    std::unordered_set<std::shared_ptr<V>> getSources() {
-        std::unordered_set<std::shared_ptr<V>> ret;
+	phmap::flat_hash_set<std::shared_ptr<V>> getSources() {
+		phmap::flat_hash_set<std::shared_ptr<V>> ret;
 		for (const std::shared_ptr<V> &v: VertexSet) {
 			if (isSource(v))
 				ret.insert(v);
@@ -626,7 +624,7 @@ public:
 		if (getReferenceSourceVertex() == nullptr || getReferenceSinkVertex() == nullptr)
 			return;
 
-        std::unordered_set<std::shared_ptr<E>> edgesToCheck = incomingEdgesOf(getReferenceSourceVertex());
+		phmap::flat_hash_set<std::shared_ptr<E>> edgesToCheck = incomingEdgesOf(getReferenceSourceVertex());
 		std::shared_ptr<E> e;
 
 		while (!edgesToCheck.empty()) {
@@ -660,7 +658,7 @@ public:
 	}
 
 	void removeVerticesNotConnectedToRefRegardlessOfEdgeDirection() {
-        std::unordered_set<std::shared_ptr<V>> toRemove = VertexSet;
+        phmap::flat_hash_set<std::shared_ptr<V>> toRemove = VertexSet;
 		std::shared_ptr<V> refV = getReferenceSourceVertex();
 		if (refV != nullptr) {
 			BaseGraphIterator<V, E> iter = BaseGraphIterator<V, E>(this, refV, true, true);
@@ -688,11 +686,11 @@ public:
 		}
 	}
 
-    std::unordered_set<std::shared_ptr<E>> getEdgeSet() {
+	phmap::flat_hash_set<std::shared_ptr<E>> getEdgeSet() {
 		return EdgeSet;
 	}
 
-	bool containsAllVertices(std::unordered_set<std::shared_ptr<V>> &vertices) {
+	bool containsAllVertices(phmap::flat_hash_set<std::shared_ptr<V>> &vertices) {
 		if (vertices.empty())
 			throw std::invalid_argument("null vertex");
 		for (std::shared_ptr<V> v: vertices) {

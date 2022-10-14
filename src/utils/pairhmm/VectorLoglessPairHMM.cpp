@@ -93,6 +93,7 @@ void VectorLoglessPairHMM::computeLog10Likelihoods(SampleMatrix<SAMRecord, Haplo
 		if (BOOST_LIKELY(readIt == uniqueReadForPairHMM.end())) {
 			// Push testcases into uniqueTestcases and mark the index where the first testcase appears
 			uniqueReadForPairHMM.emplace(readOfTestcase, uniqueTestcases.size());
+			readOfTestcase->initializeFloatVector();    // initialize probaility arrays and distm
 			for (int h = 0; h < mHaplotypeDataArrayLength; ++h) {
 				mapAlltoUnique.emplace_back(uniqueTestcases.size());
 				uniqueTestcases.emplace_back(haplotypeLengths[h], haplotypes[h], readOfTestcase);
@@ -159,10 +160,6 @@ void VectorLoglessPairHMM::computeLog10Likelihoods(SampleMatrix<SAMRecord, Haplo
         }
     }*/
 
-	// initialize probaility arrays and distm
-	for (const auto &[readForPairHMM, _]: uniqueReadForPairHMM)
-		readForPairHMM->initializeFloatVector();
-
 	// Compute
 	std::vector<double> uniqueLogLikelihoodArray(uniqueTestcases.size());
 	computeLikelihoodsNative_concurrent(uniqueTestcases, uniqueLogLikelihoodArray);
@@ -178,14 +175,14 @@ void VectorLoglessPairHMM::computeLog10Likelihoods(SampleMatrix<SAMRecord, Haplo
 //	assert(old_mLogLikelihoodArray == mLogLikelihoodArray);
 
 	//---print the likelihoods calculated by PairHMM algorithm
-//	cout << numReads << " " << mHaplotypeDataArrayLength << endl;
-//	for (int r = 0; r < numReads; ++r) {
-//		for (int h = 0; h < mHaplotypeDataArrayLength; ++h) {
-//			cout.setf(ios::fixed);
-//			cout << setprecision(5) << mLogLikelihoodArray[r * mHaplotypeDataArrayLength + h] << " ";
-//		}
-//		cout << endl;
-//	}
+	cout << numReads << " " << mHaplotypeDataArrayLength << endl;
+	for (int r = 0; r < numReads; ++r) {
+		for (int h = 0; h < mHaplotypeDataArrayLength; ++h) {
+			cout.setf(ios::fixed);
+			cout << setprecision(5) << mLogLikelihoodArray[r * mHaplotypeDataArrayLength + h] << " ";
+		}
+	}
+	cout << endl;
 
 	int readIdx = 0;
 	for (int r = 0; r < numReads; ++r) {
@@ -208,6 +205,7 @@ void VectorLoglessPairHMM::computeLog10Likelihoods_tiretree(SampleMatrix<SAMReco
         return;
 
     int numReads = processedReads.size();
+	mLogLikelihoodArray.clear();
 
     std::vector<tiretree_testcase> uniqueTestcases;
     uniqueTestcases.reserve(numReads * mHaplotypeDataArrayLength);
@@ -253,6 +251,13 @@ void VectorLoglessPairHMM::computeLog10Likelihoods_tiretree(SampleMatrix<SAMReco
         }
     }
 
+	for (int r = 0; r < numReads; ++r) {
+		for (int h = 0; h < mHaplotypeDataArrayLength; ++h) {
+			cout.setf(ios::fixed);
+			cout << setprecision(5) << mLogLikelihoodArray[r * mHaplotypeDataArrayLength + h] << " ";
+		}
+	}
+	cout << endl;
 }
 
 VectorLoglessPairHMM::~VectorLoglessPairHMM() {
