@@ -32,6 +32,9 @@ void VectorLoglessPairHMM::initialize(const std::vector<std::shared_ptr<Haplotyp
 		idx++;
 	}
     haps = haplotypes;
+    if(root) {
+        buildTreeUtils::deleteTree(root);
+    }
     root = buildTreeUtils::buildTreeWithHaplotype(haplotypes, true);
     //buildTreeUtils::printLayerTree(root);
 }
@@ -249,6 +252,10 @@ void VectorLoglessPairHMM::computeLog10Likelihoods_tiretree(SampleMatrix<SAMReco
             mLogLikelihoodArray.emplace_back(uniqueLogLikelihoodArray[i][j]);
         }
     }
+
+}
+
+VectorLoglessPairHMM::~VectorLoglessPairHMM() {
     buildTreeUtils::deleteTree(root);
 }
 

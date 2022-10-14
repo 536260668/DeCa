@@ -26,6 +26,8 @@ private:
 public:
     VectorLoglessPairHMM(PairHMMNativeArgumentCollection& args);
 
+    virtual ~VectorLoglessPairHMM();
+
     /**
      * Create a VectorLoglessPairHMM
      *

@@ -13,7 +13,7 @@
 class PairHMM {
 public:
     PairHMM() = default;
-    virtual ~PairHMM() = default;
+    virtual ~PairHMM();
 
     const static char BASE_QUALITY_SCORE_THRESHOLD = 18;    // Base quals less than this value are squashed down to min possible qual
 

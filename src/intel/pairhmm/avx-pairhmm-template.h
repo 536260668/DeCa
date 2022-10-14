@@ -828,6 +828,7 @@ template<class NUMBER> std::vector<NUMBER> CONCAT(CONCAT(compute_full_prob_t_,SI
         }
         delete maskArr[k];
     }
+    delete[] maskArr;
     return result;
 }
 

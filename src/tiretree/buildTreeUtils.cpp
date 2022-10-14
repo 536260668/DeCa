@@ -7,6 +7,7 @@
 #include <iostream>
 #include <deque>
 
+
 tireTreeNode* buildTreeUtils::buildTreeWithHaplotype(const std::vector<std::shared_ptr<Haplotype>> &haplotypes, bool isFloat) {
     if(haplotypes.empty()) {
         return nullptr;
@@ -67,6 +68,7 @@ tireTreeNode* buildTreeUtils::buildTreeWithHaplotype(const std::vector<std::shar
             }
             if(!flag) {
                 tireTreeNode *child = new tireTreeNode({j});
+                i++;
                 father->addChild(child);
                 father = child;
             } else {
@@ -92,14 +94,10 @@ bool buildTreeUtils::isEqual(char *c1, char *c2, int len) {
 }
 
 void buildTreeUtils::deleteTree(tireTreeNode *root) {
-    if(root->getChild().empty()) {
-        delete root;
-    } else {
-        for(auto & node : root->getChild()) {
-            deleteTree(node);
-        }
-        delete root;
+    for(auto & node : root->getChild()) {
+        deleteTree(node);
     }
+    delete root;
 }
 
 void buildTreeUtils::printLayerTree(tireTreeNode *root) {

@@ -25,3 +25,7 @@ void PairHMM::initialize(int readMaxLength, int haplotypeMaxLength)
     constantsAreInitialized = false;
     initialized = true;
 }
+
+PairHMM::~PairHMM() {
+
+}

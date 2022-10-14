@@ -667,6 +667,7 @@ void computeLikelihoodsNative_concurrent_tiretree(std::vector<tiretree_testcase>
                 break;
             }
         }
+        flag = true;
         if (BOOST_UNLIKELY(!flag || result_float.empty())) {
             tireTreeNode *tmp = tc.root;
             tc.root = buildTreeUtils::buildTreeWithHaplotype(tc.haps, false);
