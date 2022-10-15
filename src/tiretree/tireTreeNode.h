@@ -12,15 +12,18 @@ private:
     int size;
     std::vector<int> index;
     std::vector<tireTreeNode *> childs;
+    int stopNode;
 
 public:
     tireTreeNode();
     ~tireTreeNode();
-    tireTreeNode(const std::vector<int> &index);
+    tireTreeNode(const std::vector<int> &index, int node);
     void addChild(tireTreeNode *node);
     std::vector<tireTreeNode *> getChild();
     tireTreeNode & operator=(tireTreeNode const& node);
     void addIndex(int child);
+    void addStopNode(int node);
+    int getStopNode() const;
     std::vector<int> getIndex() const;
 };
 

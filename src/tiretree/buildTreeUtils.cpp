@@ -30,13 +30,16 @@ tireTreeNode* buildTreeUtils::buildTreeWithHaplotype(const std::vector<std::shar
     int i = 0;
     tireTreeNode *root = new tireTreeNode();
     tireTreeNode *father = root;
-    while(referenceLength > i * avxLen) {
+    tireTreeNode *child = nullptr;
+    while(referenceLength - avxLen > i * avxLen) {
         i++;
-        tireTreeNode *child = nullptr;
-        child = new tireTreeNode({record});
+        child = new tireTreeNode({record}, -1);
         father->addChild(child);
         father = child;
     }
+    child = new tireTreeNode({record}, record);
+    father->addChild(child);
+    father = child;
     for(int j = 0; j < haplotypes.size(); j++) {
         if(haplotypes[j]->getIsReference()) {
             continue;
@@ -45,7 +48,7 @@ tireTreeNode* buildTreeUtils::buildTreeWithHaplotype(const std::vector<std::shar
         char* bases = reinterpret_cast<char*>(haplotypes[j]->getBases().get());
         i = 0;
         father = root;
-        while(i * avxLen < baseLen) {
+        while(i * avxLen < baseLen - avxLen) {
             i++;
             bool flag = false;
             tireTreeNode *tmp;
@@ -67,14 +70,42 @@ tireTreeNode* buildTreeUtils::buildTreeWithHaplotype(const std::vector<std::shar
                 }
             }
             if(!flag) {
-                tireTreeNode *child = new tireTreeNode({j});
-                i++;
+                tireTreeNode *child = new tireTreeNode({j}, -1);
                 father->addChild(child);
                 father = child;
             } else {
                 tmp->addIndex(j);
                 father = tmp;
             }
+        }
+        bool flag = false;
+        tireTreeNode *tmp;
+        for(const auto & node : father->getChild()) {
+            if(i * avxLen < baseLen) {
+                char *nodebases = reinterpret_cast<char*>(haplotypes[node->getIndex()[0]]->getBases().get());
+                int nodebaseLen =  haplotypes[node->getIndex()[0]]->getBasesLength();
+                if(i * avxLen < nodebaseLen && isEqual(nodebases+(i-1)*avxLen, bases+(i-1)*avxLen, avxLen)) {
+                    flag = true;
+                    tmp = node;
+                    break;
+                }
+            } else {
+                char *nodebases = reinterpret_cast<char*>(haplotypes[node->getIndex()[0]]->getBases().get());
+                int nodebaseLen =  haplotypes[node->getIndex()[0]]->getBasesLength();
+                if(baseLen == nodebaseLen && isEqual(nodebases+(i-1)*avxLen, bases+(i-1)*avxLen, baseLen-avxLen*(i-1))) {
+                    throw std::invalid_argument("there are two same haplotypes");
+                }
+            }
+        }
+        if(!flag) {
+            tireTreeNode *child = new tireTreeNode({j}, j);
+            i++;
+            father->addChild(child);
+            father = child;
+        } else {
+            tmp->addIndex(j);
+            tmp->addStopNode(j);
+            father = tmp;
         }
     }
     return root;
