@@ -18,7 +18,7 @@ tireTreeNode &tireTreeNode::operator=(tireTreeNode const&node) {
 }
 
 
-std::vector<int> tireTreeNode::getIndex() const {
+std::vector<int>& tireTreeNode::getIndex(){
     return index;
 }
 
@@ -40,7 +40,7 @@ void tireTreeNode::addChild(tireTreeNode *node) {
     childs.emplace_back(node);
 }
 
-std::vector<tireTreeNode *> tireTreeNode::getChild() {
+std::vector<tireTreeNode *>& tireTreeNode::getChild() {
     return childs;
 }
 

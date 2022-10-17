@@ -19,12 +19,12 @@ public:
     ~tireTreeNode();
     tireTreeNode(const std::vector<int> &index, int node);
     void addChild(tireTreeNode *node);
-    std::vector<tireTreeNode *> getChild();
+    std::vector<tireTreeNode *>& getChild();
     tireTreeNode & operator=(tireTreeNode const& node);
     void addIndex(int child);
     void addStopNode(int node);
     int getStopNode() const;
-    std::vector<int> getIndex() const;
+    std::vector<int>& getIndex();
 };
 
 
