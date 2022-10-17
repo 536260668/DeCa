@@ -78,4 +78,8 @@ inline void CONCAT(CONCAT(_vector_shift_last,SIMD_ENGINE), PRECISION) (UNION_TYP
     x.d = VEC_INSERT_VAL(x.d, xhigh.f, 1);
 }
 
+inline void CONCAT(CONCAT(_vector_to_vector,SIMD_ENGINE), PRECISION) (UNION_TYPE &x, UNION_TYPE &y) {
+    y.d = x.d;
+}
+
 #endif

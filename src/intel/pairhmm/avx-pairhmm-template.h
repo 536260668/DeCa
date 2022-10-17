@@ -525,18 +525,18 @@ template<class NUMBER> void CONCAT(CONCAT(compute_full_prob_with_tiretree,SIMD_E
                 CONCAT(CONCAT(computeMXY,SIMD_ENGINE), PRECISION)(M_t, X_t, Y_t, M_t_y, M_t_2, X_t_2, Y_t_2, M_t_1, X_t_1, M_t_1_y, Y_t_1,
                                                                   pMM, pGAPM, pMX, pXX, pMY, pYY, distmChosen);
 
-                UNION_TYPE M_t_tmp, X_t_tmp, Y_t_tmp;
-                for(int j : node->getIndex()) {
-                    M_t_tmp = M_t;
-                    X_t_tmp = X_t;
-                    Y_t_tmp = Y_t_1;
-                    CONCAT(CONCAT(_vector_shift,SIMD_ENGINE), PRECISION)(M_t_tmp, shiftOutM[j][ShiftIdx], shiftOutM[j][begin_d+mbi]);
+                std::vector<int> indexs = node->getIndex();
+                int j = indexs[0];
+                CONCAT(CONCAT(_vector_shift,SIMD_ENGINE), PRECISION)(M_t, shiftOutM[j][ShiftIdx], shiftOutM[j][begin_d+mbi]);
 
-                    CONCAT(CONCAT(_vector_shift,SIMD_ENGINE), PRECISION)(X_t_tmp, shiftOutX[j][ShiftIdx], shiftOutX[j][begin_d+mbi]);
+                CONCAT(CONCAT(_vector_shift,SIMD_ENGINE), PRECISION)(X_t, shiftOutX[j][ShiftIdx], shiftOutX[j][begin_d+mbi]);
 
-                    CONCAT(CONCAT(_vector_shift,SIMD_ENGINE), PRECISION)(Y_t_tmp, shiftOutY[j][ShiftIdx], shiftOutY[j][begin_d+mbi]);
+                CONCAT(CONCAT(_vector_shift,SIMD_ENGINE), PRECISION)(Y_t, shiftOutY[j][ShiftIdx], shiftOutY[j][begin_d+mbi]);
+                for(int i = 1; i < node->getIndex().size(); i++) {
+                    shiftOutM[indexs[i]][begin_d+mbi] = shiftOutM[j][begin_d+mbi];
+                    shiftOutX[indexs[i]][begin_d+mbi] = shiftOutX[j][begin_d+mbi];
+                    shiftOutY[indexs[i]][begin_d+mbi] = shiftOutY[j][begin_d+mbi];
                 }
-                M_t = M_t_tmp; X_t = X_t_tmp; Y_t_1 = Y_t_tmp;
 
                 M_t_2 = M_t_1; M_t_1 = M_t; X_t_2 = X_t_1; X_t_1 = X_t;
                 Y_t_2 = Y_t_1; Y_t_1 = Y_t; M_t_1_y = M_t_y;
@@ -593,22 +593,13 @@ template<class NUMBER> void CONCAT(CONCAT(compute_full_prob_with_tiretree,SIMD_E
                 CONCAT(CONCAT(computeMXY,SIMD_ENGINE), PRECISION)(M_t, X_t, Y_t, M_t_y, M_t_2, X_t_2, Y_t_2, M_t_1, X_t_1, M_t_1_y, Y_t_1,
                                                                   pMM, pGAPM, pMX, pXX, pMY, pYY, distmChosen);
 
-                UNION_TYPE M_t_tmp, X_t_tmp, Y_t_tmp;
                 sumM  = VEC_ADD(sumM, M_t.d);
-                for(int j : node->getIndex()) {
-                    M_t_tmp = M_t;
-                    CONCAT(CONCAT(_vector_shift_last,SIMD_ENGINE), PRECISION)(M_t_tmp, shiftOutM[j][ShiftIdx]);
-                }
+                int j = node->getIndex()[0];
+                CONCAT(CONCAT(_vector_shift_last,SIMD_ENGINE), PRECISION)(M_t, shiftOutM[j][ShiftIdx]);
 
                 sumX  = VEC_ADD(sumX, X_t.d);
-                for(int j : node->getIndex()) {
-                    X_t_tmp = X_t;
-                    Y_t_tmp = Y_t_1;
-                    CONCAT(CONCAT(_vector_shift_last,SIMD_ENGINE), PRECISION)(X_t_tmp, shiftOutX[j][ShiftIdx]);
-
-                    CONCAT(CONCAT(_vector_shift_last,SIMD_ENGINE), PRECISION)(Y_t_tmp, shiftOutY[j][ShiftIdx]);
-                }
-                M_t = M_t_tmp; X_t = X_t_tmp; Y_t_1 = Y_t_tmp;
+                CONCAT(CONCAT(_vector_shift_last,SIMD_ENGINE), PRECISION)(X_t, shiftOutX[j][ShiftIdx]);
+                CONCAT(CONCAT(_vector_shift_last,SIMD_ENGINE), PRECISION)(Y_t, shiftOutY[j][ShiftIdx]);
                 M_t_2 = M_t_1; M_t_1 = M_t; X_t_2 = X_t_1; X_t_1 = X_t;
                 Y_t_2 = Y_t_1; Y_t_1 = Y_t; M_t_1_y = M_t_y;
             }
@@ -629,10 +620,6 @@ template<class NUMBER> void CONCAT(CONCAT(compute_full_prob_with_tiretree,SIMD_E
         }
 
         if(!node->getChild().empty()) {
-            MASK_TYPE lastMaskShiftOut_tmp[AVX_LENGTH] ;
-            for(int i = 0; i < AVX_LENGTH; i++) {
-                lastMaskShiftOut_tmp[i] = lastMaskShiftOut[i];
-            }
             for(auto tmp : node->getChild()) {
                 CONCAT(CONCAT(compute_full_prob_with_tiretree,SIMD_ENGINE), PRECISION)(tmp, isLastStrip, begin_d, COLS,  bitMaskVec, maskArr, rsArr, lastMaskShiftOut, maskBitCnt, distm, _1_distm,
                                                                                        distmChosen, M_t, X_t, Y_t, M_t_y, M_t_2, X_t_2, Y_t_2, M_t_1, X_t_1, M_t_1_y, Y_t_1,
@@ -640,11 +627,7 @@ template<class NUMBER> void CONCAT(CONCAT(compute_full_prob_with_tiretree,SIMD_E
             }
             if(node->getStopNode() >= 0) {
                 tireTreeNode *tmp = new tireTreeNode({node->getStopNode()}, node->getStopNode());
-                MASK_TYPE lastMaskShiftOut_tmp[AVX_LENGTH] ;
-                for(int i = 0; i < AVX_LENGTH; i++) {
-                    lastMaskShiftOut_tmp[i] = lastMaskShiftOut[i];
-                }
-                CONCAT(CONCAT(compute_full_prob_with_tiretree,SIMD_ENGINE), PRECISION)(tmp, isLastStrip, begin_d, COLS,  bitMaskVec, maskArr, rsArr, lastMaskShiftOut_tmp, maskBitCnt, distm, _1_distm,
+                CONCAT(CONCAT(compute_full_prob_with_tiretree,SIMD_ENGINE), PRECISION)(tmp, isLastStrip, begin_d, COLS,  bitMaskVec, maskArr, rsArr, lastMaskShiftOut, maskBitCnt, distm, _1_distm,
                                                                                        distmChosen, M_t, X_t, Y_t, M_t_y, M_t_2, X_t_2, Y_t_2, M_t_1, X_t_1, M_t_1_y, Y_t_1,
                                                                                        pMM, pGAPM, pMX, pXX, pMY, pYY, shiftOutX, shiftOutM, shiftOutY, sumM, sumX, remainingRows, result);
                 delete tmp;
