@@ -23,6 +23,7 @@ tireTreeNode* buildTreeUtils::buildTreeWithHaplotype(const std::vector<std::shar
             break;
         }
     }
+
     if(reference == nullptr) {
         throw std::invalid_argument("there is no refHaplotypes");
     }
@@ -31,14 +32,12 @@ tireTreeNode* buildTreeUtils::buildTreeWithHaplotype(const std::vector<std::shar
     tireTreeNode *root = new tireTreeNode();
     tireTreeNode *father = root;
     tireTreeNode *child = nullptr;
-    while(referenceLength - avxLen > i * avxLen) {
+    while(referenceLength > i * avxLen) {
         i++;
-        child = new tireTreeNode({record}, -1);
+        child = new tireTreeNode({record});
         father->addChild(child);
         father = child;
     }
-    child = new tireTreeNode({record}, record);
-    father->addChild(child);
     for(int j = 0; j < haplotypes.size(); j++) {
         if(haplotypes[j]->getIsReference()) {
             continue;
@@ -69,7 +68,7 @@ tireTreeNode* buildTreeUtils::buildTreeWithHaplotype(const std::vector<std::shar
                 }
             }
             if(!flag) {
-                tireTreeNode *child = new tireTreeNode({j}, -1);
+                tireTreeNode *child = new tireTreeNode({j});
                 father->addChild(child);
                 father = child;
             } else {
@@ -77,15 +76,11 @@ tireTreeNode* buildTreeUtils::buildTreeWithHaplotype(const std::vector<std::shar
                 father = tmp;
             }
         }
-        bool flag = false;
-        tireTreeNode *tmp;
         for(const auto & node : father->getChild()) {
             if(i * avxLen < baseLen) {
                 char *nodebases = reinterpret_cast<char*>(haplotypes[node->getIndex()[0]]->getBases().get());
                 int nodebaseLen =  haplotypes[node->getIndex()[0]]->getBasesLength();
                 if(i * avxLen < nodebaseLen && isEqual(nodebases+i*avxLen, bases+i*avxLen, avxLen)) {
-                    flag = true;
-                    tmp = node;
                     break;
                 }
             } else {
@@ -96,13 +91,8 @@ tireTreeNode* buildTreeUtils::buildTreeWithHaplotype(const std::vector<std::shar
                 }
             }
         }
-        if(!flag) {
-            tireTreeNode *child = new tireTreeNode({j}, j);
-            father->addChild(child);
-        } else {
-            tmp->addIndex(j);
-            tmp->addStopNode(j);
-        }
+        tireTreeNode *child = new tireTreeNode({j});
+        father->addChild(child);
     }
     return root;
 }

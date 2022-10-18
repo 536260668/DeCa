@@ -30,10 +30,9 @@ tireTreeNode::~tireTreeNode() {
 
 }
 
-tireTreeNode::tireTreeNode(const std::vector<int> &index, int node) {
+tireTreeNode::tireTreeNode(const std::vector<int> &index) {
     this->index = index;
     size = index.size();
-    stopNode = node;
 }
 
 void tireTreeNode::addChild(tireTreeNode *node) {
@@ -44,12 +43,5 @@ std::vector<tireTreeNode *>& tireTreeNode::getChild() {
     return childs;
 }
 
-int tireTreeNode::getStopNode() const{
-    return stopNode;
-}
-
-void tireTreeNode::addStopNode(int node) {
-    stopNode = node;
-}
 
 
