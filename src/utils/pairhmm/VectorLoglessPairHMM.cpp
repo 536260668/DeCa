@@ -36,7 +36,10 @@ void VectorLoglessPairHMM::initialize(const std::vector<std::shared_ptr<Haplotyp
         buildTreeUtils::deleteTree(root);
     }
     root = buildTreeUtils::buildTreeWithHaplotype(haplotypes, true);
-    //buildTreeUtils::printLayerTree(root);
+    if(haplotypes.size() == 12) {
+        buildTreeUtils::printLayerTree(root);
+    }
+
 }
 
 void VectorLoglessPairHMM::computeLog10Likelihoods(SampleMatrix<SAMRecord, Haplotype> *logLikelihoods,
