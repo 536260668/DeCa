@@ -342,7 +342,7 @@ template<class NUMBER> NUMBER CONCAT(CONCAT(compute_full_prob_,SIMD_ENGINE), PRE
         sumMX.d = VEC_ADD(sumM, sumX);
         result_avx2 = sumMX.f[remainingRows-1];
     }
-    std::cout << result_avx2 << std::endl;
+    // std::cout << result_avx2 << std::endl;
     return result_avx2;
 }
 
@@ -584,7 +584,7 @@ template<class NUMBER> void CONCAT(CONCAT(compute_full_prob_with_tiretree,SIMD_E
             NUMBER result_avx2;
             sumMX.d = VEC_ADD(sumM, sumX);
             result_avx2 = sumMX.f[remainingRows-1];
-            std::cout << "node : " << node->getIndex()[0] << "  val : " << result_avx2 << std::endl;
+            // std::cout << "node : " << node->getIndex()[0] << "  val : " << result_avx2 << std::endl;
             result[node->getIndex()[0]] = result_avx2;
         }
     }
@@ -599,12 +599,12 @@ template<class NUMBER> std::vector<NUMBER> CONCAT(CONCAT(compute_full_prob_t_,SI
     tireTreeNode *root = tc->root;
 
     for(int i = 0; i < haps.size(); i++) {
-        int tmp = haps[i]->getBasesLength();
+        // int tmp = haps[i]->getBasesLength();
         COLS.template emplace_back(haps[i]->getBasesLength()+1);
     }
-    if(COLS.size() == 2 && COLS[0] == 51) {
-        std::cout << "hello" <<std::endl;
-    }
+//    if(COLS.size() == 2 && COLS[0] == 51) {
+//        std::cout << "hello" <<std::endl;
+//    }
     int MAVX_COUNT = (ROWS+AVX_LENGTH-1)/AVX_LENGTH;
 
     /* Get initialized data */

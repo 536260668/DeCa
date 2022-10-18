@@ -241,6 +241,7 @@ void VectorLoglessPairHMM::computeLog10Likelihoods_tiretree(SampleMatrix<SAMReco
 //        readForPairHMM->initializeFloatVector();
 
     // Compute
+	mLogLikelihoodArray.clear();
     std::vector<std::vector<double>> uniqueLogLikelihoodArray;
     uniqueLogLikelihoodArray.reserve(uniqueTestcases.size());
     computeLikelihoodsNative_concurrent_tiretree(&uniqueTestcases, &uniqueLogLikelihoodArray);
@@ -257,6 +258,19 @@ void VectorLoglessPairHMM::computeLog10Likelihoods_tiretree(SampleMatrix<SAMReco
 		}
 	}
 	cout << endl;
+
+	int readIdx = 0;
+	for (int r = 0; r < numReads; ++r) {
+		int hapIdx = 0;
+		for (auto &haplotype: logLikelihoods->alleles()) {
+			//Since the order of haplotypes in the List<Haplotype> and alleleHaplotypeMap is different,
+			//get idx of current haplotype in the list and use this idx to get the right likelihoodValue
+			int idxInsideHaplotypeList = haplotypeToHaplotypeListIdxMap.at(haplotype);
+			logLikelihoods->set(hapIdx, r, mLogLikelihoodArray[readIdx + idxInsideHaplotypeList]);
+			hapIdx++;
+		}
+		readIdx += mHaplotypeDataArrayLength;
+	}
 }
 
 VectorLoglessPairHMM::~VectorLoglessPairHMM() {
