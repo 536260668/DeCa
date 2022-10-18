@@ -55,6 +55,40 @@ protected:
 	}
 
 private:
+	// Avoid getting bases multiple times
+	struct chainWithBases {
+		Path<V, E> *path = nullptr;
+		int len = 0;
+		std::shared_ptr<uint8_t[]> bases = nullptr;
+		bool alreadyGotBases = false;
+
+		explicit chainWithBases(Path<V, E> *path) : path(path) {}
+
+		//.sorted(Comparator.comparingDouble((ToDoubleFunction<Path<V, E>>) chainLogOdds::get)
+		//                        .reversed().thenComparingInt(Path::length))
+		//according to JAVA version, chainLogOdds in descending order, if chainsLogOdds equal, length ascending order
+		friend bool operator<(chainWithBases &a, chainWithBases &b) {
+			if (a.path->getLogOdds() == b.path->getLogOdds()) {
+				if (!a.alreadyGotBases)
+					a.bases = a.path->getBases(a.len);
+
+				if (!b.alreadyGotBases)
+					b.bases = b.path->getBases(b.len);
+
+				if (a.len != b.len)
+					return a.len > b.len;
+
+				for (int i = 0; i < a.len; ++i) {
+					if (a.bases[i] == b.bases[i])
+						continue;
+					return a.bases[i] < b.bases[i];
+				}
+				return false;
+			}
+			return a.path->getLogOdds() > b.path->getLogOdds();
+		}
+	};
+
 	phmap::flat_hash_set<Path<V, E> *>
 	likelyErrorChains(std::vector<Path<V, E> *> &chains, std::shared_ptr<DirectedSpecifics<V, E>> graph,
 	                  double errorRate) {
@@ -63,31 +97,23 @@ private:
 		result.reserve(chains.size());
 
 		for (viter = chains.begin(); viter != chains.end(); viter++) {
-            (*viter)->setLogOdds(chainLogOdds(*viter, graph, errorRate));
-            if((*viter)->getLogOdds() < 2.302585092994046) {
-                result.insert(*viter);
-            }
+			(*viter)->setLogOdds(chainLogOdds(*viter, graph, errorRate));
+			if ((*viter)->getLogOdds() < 2.302585092994046) {
+				result.insert(*viter);
+			}
 		}
 
-		std::vector<Path<V, E> *> newchains;
+		std::vector<chainWithBases> newchains;
 		for (viter = chains.begin(); viter != chains.end(); viter++) {
 			if (isChainPossibleVariant(*viter, graph))
 				newchains.template emplace_back(*viter);
 		}
-
-		//.sorted(Comparator.comparingDouble((ToDoubleFunction<Path<V, E>>) chainLogOdds::get)
-		//                        .reversed().thenComparingInt(Path::length))
-		//according to JAVA version, chainLogOdds in descending order, if chainsLogOdds equal, length ascending order
-		std::sort(newchains.begin(), newchains.end(), [this](Path<V, E> *a, Path<V, E> *b) -> bool {
-			if (a->getLogOdds() == b->getLogOdds())
-				return this->sortPathByStr(a,b);
-			return a->getLogOdds() > b->getLogOdds();
-		});
+		std::sort(newchains.begin(), newchains.end());
 
 		//maxUnprunedVariants = 100
 		if (newchains.size() > 100) {
-			for (viter = newchains.begin() + 100; viter != newchains.end(); viter++) {
-				result.insert(*viter);
+			for (auto iter = newchains.begin() + 100; iter != newchains.end(); iter++) {
+				result.insert(iter->path);
 			}
 		}
 		return result;

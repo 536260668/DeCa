@@ -17,11 +17,11 @@
 bool SeqGraph::zipLinearChains() {
 	std::vector<std::shared_ptr<SeqVertex>> zipStarts;
 #ifdef SORT_MODE
-	std::vector<std::shared_ptr<SeqVertex>> allvertexSet = getSortedVertexList();
+	std::vector<std::shared_ptr<SeqVertex>> vertexSet = getSortedVertexList();
 #else
 	phmap::flat_hash_set<std::shared_ptr<SeqVertex>> vertexSet = getVertexSet();
 #endif
-	for (auto &source: allvertexSet) {
+	for (auto &source: vertexSet) {
 		if (isLinearChainStart(source)) {
 			zipStarts.emplace_back(source);
 		}
