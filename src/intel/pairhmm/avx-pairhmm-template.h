@@ -318,9 +318,7 @@ template<class NUMBER> NUMBER CONCAT(CONCAT(compute_full_prob_,SIMD_ENGINE), PRE
         {
             int numMaskBitsToProcess = std::min(MAIN_TYPE_SIZE, COLS+remainingRows-1-begin_d) ;
             CONCAT(CONCAT(update_masks_for_cols_,SIMD_ENGINE),PRECISION)((begin_d-1)/MAIN_TYPE_SIZE, bitMaskVec, maskArr, rsArr, lastMaskShiftOut, maskBitCnt) ;
-
             for (int mbi=0; mbi < numMaskBitsToProcess; ++mbi) {
-
                 CONCAT(CONCAT(computeDistVec,SIMD_ENGINE), PRECISION) (bitMaskVec, distm, _1_distm, distmChosen) ;
                 int ShiftIdx = begin_d + mbi +AVX_LENGTH;
                 CONCAT(CONCAT(computeMXY,SIMD_ENGINE), PRECISION)(M_t, X_t, Y_t, M_t_y, M_t_2, X_t_2, Y_t_2, M_t_1, X_t_1, M_t_1_y, Y_t_1,
@@ -538,9 +536,7 @@ template<class NUMBER> void CONCAT(CONCAT(compute_full_prob_with_tiretree,SIMD_E
             std::vector<int>& indexs = node->getIndex();
             int numMaskBitsToProcess = std::min(MAIN_TYPE_SIZE, COLS[indexs[0]]+remainingRows-1-begin_d) ;
             CONCAT(CONCAT(update_masks_for_cols_,SIMD_ENGINE),PRECISION)((begin_d-1)/MAIN_TYPE_SIZE, bitMaskVec, maskArr, rsArr, lastMaskShiftOut, maskBitCnt, node) ;
-
             for (int mbi=0; mbi < numMaskBitsToProcess; ++mbi) {
-
                 CONCAT(CONCAT(computeDistVec,SIMD_ENGINE), PRECISION) (bitMaskVec, distm, _1_distm, distmChosen) ;
                 int ShiftIdx = begin_d + mbi +AVX_LENGTH;
                 CONCAT(CONCAT(computeMXY,SIMD_ENGINE), PRECISION)(M_t, X_t, Y_t, M_t_y, M_t_2, X_t_2, Y_t_2, M_t_1, X_t_1, M_t_1_y, Y_t_1,
@@ -570,11 +566,11 @@ template<class NUMBER> void CONCAT(CONCAT(compute_full_prob_with_tiretree,SIMD_E
         }
 
         if(!node->getChild().empty()) {
-            MASK_TYPE lastMaskShiftOut_tmp[AVX_LENGTH] ;
-            for(int i = 0; i < AVX_LENGTH; i++) {
-                lastMaskShiftOut_tmp[i] = lastMaskShiftOut[i];
-            }
             for(auto tmp : node->getChild()) {
+                MASK_TYPE lastMaskShiftOut_tmp[AVX_LENGTH] ;
+                for(int i = 0; i < AVX_LENGTH; i++) {
+                    lastMaskShiftOut_tmp[i] = lastMaskShiftOut[i];
+                }
                 CONCAT(CONCAT(compute_full_prob_with_tiretree,SIMD_ENGINE), PRECISION)(tmp, isLastStrip, begin_d, COLS,  bitMaskVec, maskArr, rsArr, lastMaskShiftOut_tmp, maskBitCnt, distm, _1_distm,
                                                                                        distmChosen, M_t, X_t, Y_t, M_t_y, M_t_2, X_t_2, Y_t_2, M_t_1, X_t_1, M_t_1_y, Y_t_1,
                                                                                        pMM, pGAPM, pMX, pXX, pMY, pYY, shiftOutX, shiftOutM, shiftOutY, sumM, sumX, remainingRows, result);
@@ -602,9 +598,6 @@ template<class NUMBER> std::vector<NUMBER> CONCAT(CONCAT(compute_full_prob_t_,SI
         // int tmp = haps[i]->getBasesLength();
         COLS.template emplace_back(haps[i]->getBasesLength()+1);
     }
-//    if(COLS.size() == 2 && COLS[0] == 51) {
-//        std::cout << "hello" <<std::endl;
-//    }
     int MAVX_COUNT = (ROWS+AVX_LENGTH-1)/AVX_LENGTH;
 
     /* Get initialized data */
@@ -675,7 +668,6 @@ template<class NUMBER> std::vector<NUMBER> CONCAT(CONCAT(compute_full_prob_t_,SI
         }
     }
     CONCAT(CONCAT(precompute_masks_,SIMD_ENGINE), PRECISION)(*tc, COLS, numMaskVecs, maskArr) ;
-
     char rsArr[AVX_LENGTH] ;
     MASK_TYPE lastMaskShiftOut[AVX_LENGTH] ;
 
