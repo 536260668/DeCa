@@ -31,8 +31,10 @@ tireTreeNode* buildTreeUtils::buildTreeWithHaplotype(const std::vector<std::shar
     int i = 0;
     tireTreeNode *root = new tireTreeNode();
     tireTreeNode *father = root;
-    tireTreeNode *child = nullptr;
-    while(referenceLength > i * avxLen) {
+    tireTreeNode *child = new tireTreeNode({record});
+    father->addChild(child);
+    father = child;
+    while(referenceLength - 1 > i * avxLen) {
         i++;
         child = new tireTreeNode({record});
         father->addChild(child);
@@ -46,7 +48,19 @@ tireTreeNode* buildTreeUtils::buildTreeWithHaplotype(const std::vector<std::shar
         char* bases = reinterpret_cast<char*>(haplotypes[j]->getBases().get());
         i = 0;
         father = root;
-        while(i * avxLen < baseLen - avxLen) {
+        for(const auto & node : father->getChild()) {
+            char *nodebases = reinterpret_cast<char*>(haplotypes[node->getIndex()[0]]->getBases().get());
+            if(nodebases[0] == bases[0]) {
+                father = node;
+                node->addIndex(j);
+                break;
+            } else {
+                tireTreeNode *child = new tireTreeNode({j});
+                father->addChild(child);
+                father = child;
+            }
+        }
+        while(1 + i * avxLen < baseLen - avxLen) {
             i++;
             bool flag = false;
             tireTreeNode *tmp;
@@ -54,7 +68,7 @@ tireTreeNode* buildTreeUtils::buildTreeWithHaplotype(const std::vector<std::shar
                 if(i * avxLen < baseLen) {
                     char *nodebases = reinterpret_cast<char*>(haplotypes[node->getIndex()[0]]->getBases().get());
                     int nodebaseLen =  haplotypes[node->getIndex()[0]]->getBasesLength();
-                    if(i * avxLen < nodebaseLen && isEqual(nodebases+(i-1)*avxLen, bases+(i-1)*avxLen, avxLen)) {
+                    if(i * avxLen < nodebaseLen && isEqual(nodebases+(i-1)*avxLen+1, bases+(i-1)*avxLen+1, avxLen+1)) {
                         flag = true;
                         tmp = node;
                         break;
@@ -62,7 +76,7 @@ tireTreeNode* buildTreeUtils::buildTreeWithHaplotype(const std::vector<std::shar
                 } else {
                     char *nodebases = reinterpret_cast<char*>(haplotypes[node->getIndex()[0]]->getBases().get());
                     int nodebaseLen =  haplotypes[node->getIndex()[0]]->getBasesLength();
-                    if(baseLen == nodebaseLen && isEqual(nodebases+(i-1)*avxLen, bases+(i-1)*avxLen, baseLen-avxLen*(i-1))) {
+                    if(baseLen == nodebaseLen && isEqual(nodebases+(i-1)*avxLen+1, bases+(i-1)*avxLen+1, baseLen-avxLen*(i-1)-1)) {
                         throw std::invalid_argument("there are two same haplotypes");
                     }
                 }
@@ -77,16 +91,16 @@ tireTreeNode* buildTreeUtils::buildTreeWithHaplotype(const std::vector<std::shar
             }
         }
         for(const auto & node : father->getChild()) {
-            if(i * avxLen < baseLen) {
+            if(1+i * avxLen < baseLen) {
                 char *nodebases = reinterpret_cast<char*>(haplotypes[node->getIndex()[0]]->getBases().get());
                 int nodebaseLen =  haplotypes[node->getIndex()[0]]->getBasesLength();
-                if(i * avxLen < nodebaseLen && isEqual(nodebases+i*avxLen, bases+i*avxLen, avxLen)) {
+                if(i * avxLen < nodebaseLen && isEqual(nodebases+i*avxLen+1, bases+i*avxLen+1, avxLen)) {
                     break;
                 }
             } else {
                 char *nodebases = reinterpret_cast<char*>(haplotypes[node->getIndex()[0]]->getBases().get());
                 int nodebaseLen =  haplotypes[node->getIndex()[0]]->getBasesLength();
-                if(baseLen == nodebaseLen && isEqual(nodebases+i*avxLen, bases+i*avxLen, baseLen-avxLen*i)) {
+                if(baseLen == nodebaseLen && isEqual(nodebases+i*avxLen+1, bases+i*avxLen+1, baseLen-avxLen*i-1)) {
                     throw std::invalid_argument("there are two same haplotypes");
                 }
             }
