@@ -12,6 +12,7 @@
 class buildTreeUtils {
 public:
     static tireTreeNode* buildTreeWithHaplotype(const std::vector<std::shared_ptr<Haplotype>> &haplotypes, bool isFloat);
+    static tireTreeNode* buildTreeWithHaplotype_same_height(const std::vector<std::shared_ptr<Haplotype>> &haplotypes, bool isFloat);
     static void printLayerTree(tireTreeNode *root);
     static void deleteTree(tireTreeNode *root);
 
