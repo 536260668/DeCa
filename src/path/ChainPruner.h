@@ -25,13 +25,7 @@ public:
 		std::shared_ptr<uint8_t[]> bases2 = p2->getBases(len2);
 		if (len1 != len2)
 			return len1 > len2;
-		uint8_t *seq1 = bases1.get();
-		uint8_t *seq2 = bases2.get();
-		for (int i = 0; i < len1; ++i) {
-			if (seq1[i] == seq2[i]) continue;
-			return seq1[i] < seq2[i];
-		}
-		return false;
+		return memcmp(bases1.get(), bases2.get(), len1) < 0;
 	}
 
 	void printAllChains(phmap::flat_hash_set<Path<V, E> *> chains) {

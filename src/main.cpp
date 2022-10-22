@@ -358,7 +358,7 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 	w->numOfFreeThread++;
 
 	ActiveRegion activeRegion(nullptr, defaultReferenceContext);
-	std::shared_ptr<LikelihoodsTask> likelihoods;
+	std::shared_ptr<LikelihoodsTask_trie> likelihoods;
 
 	while (true) {
 		activeRegion = ActiveRegion(nullptr, defaultReferenceContext);
@@ -390,19 +390,19 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 		likelihoods = nullptr;
 		if (PairHMMConcurrentControl::pairHMMMutex.try_lock()) {    // try to get a new PairHMM task to calculate
 			// pop finished tasks first
-			while (BOOST_LIKELY(!PairHMMConcurrentControl::pairHMMTaskQueue.empty()) &&
-			       BOOST_UNLIKELY(PairHMMConcurrentControl::pairHMMTaskQueue.front()->index >= PairHMMConcurrentControl::pairHMMTaskQueue.front()->testcasesSize))
-				PairHMMConcurrentControl::pairHMMTaskQueue.pop();
+			while (BOOST_LIKELY(!PairHMMConcurrentControl::pairHMMTaskQueue_trie.empty()) &&
+			       BOOST_UNLIKELY(PairHMMConcurrentControl::pairHMMTaskQueue_trie.front()->index >= PairHMMConcurrentControl::pairHMMTaskQueue_trie.front()->testcasesSize))
+				PairHMMConcurrentControl::pairHMMTaskQueue_trie.pop();
 
-			if (BOOST_LIKELY(!PairHMMConcurrentControl::pairHMMTaskQueue.empty())) {
-				likelihoods = PairHMMConcurrentControl::pairHMMTaskQueue.front();
+			if (BOOST_LIKELY(!PairHMMConcurrentControl::pairHMMTaskQueue_trie.empty())) {
+				likelihoods = PairHMMConcurrentControl::pairHMMTaskQueue_trie.front();
 				//std::cout << "pairHMM size: " + std::to_string(PairHMMConcurrentControl::pairHMMTaskQueue.size()) + '\n';
 				PairHMMConcurrentControl::pairHMMMutex.unlock();
 
 				if (BOOST_LIKELY(likelihoods != nullptr)) {   // calcualte PairHMM
 					w->numOfFreeThread--;
 					for (unsigned long ind = likelihoods->index++; ind < likelihoods->testcasesSize; ind = likelihoods->index++) {
-						computeLikelihoodsNative_concurrent_i(likelihoods->taskTestcases, likelihoods->taskLikelihoodArray, ind);
+						computeLikelihoodsNative_concurrent_trie_i(likelihoods->taskTestcases, likelihoods->taskLikelihoodArray, ind);
 						likelihoods->count++;
 					}
 					w->numOfFreeThread++;

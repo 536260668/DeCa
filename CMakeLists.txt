@@ -56,10 +56,10 @@ add_subdirectory(./src/samtools)
 add_subdirectory(./src/clipping)
 add_subdirectory(./src/annotator)
 
-add_executable(Mutect2Cpp_master ${DIR_SRCS} src/model/model.cpp src/model/model.h src/engine/ReferenceContext.cpp src/engine/ReferenceContext.h src/engine/AlignmentContext.cpp src/engine/AlignmentContext.h src/pileRead.h src/tiretree/tireTreeNode.cpp src/tiretree/tireTreeNode.h src/tiretree/buildTreeUtils.cpp src/tiretree/buildTreeUtils.h)
+add_executable(Mutect2Cpp_master ${DIR_SRCS} src/model/model.cpp src/model/model.h src/engine/ReferenceContext.cpp src/engine/ReferenceContext.h src/engine/AlignmentContext.cpp src/engine/AlignmentContext.h src/pileRead.h src/trie/trieNode.cpp src/trie/trieNode.h src/trie/buildTreeUtils.cpp src/trie/buildTreeUtils.h)
 
 # Add this flag to turn on the sort mode for comparison with GATK
-add_definitions(-DSORT_MODE)
+# add_definitions(-DSORT_MODE)
 
 # counterpart of gcc -L
 if (CMAKE_SYSTEM_NAME MATCHES "Linux")

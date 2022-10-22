@@ -175,7 +175,7 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion> &originalAssembl
 
 	std::shared_ptr<AssemblyRegion> assemblyActiveRegion = AssemblyBasedCallerUtils::assemblyRegionWithWellMappedReads(
 			originalAssemblyRegion, READ_QUALITY_FILTER_THRESHOLD, header);
-	if (assemblyActiveRegion->getEnd() + 1 < 16865283 || assemblyActiveRegion->getStart() + 1 > 16865357) return {};
+	//if (assemblyActiveRegion->getEnd() + 1 < 10481666 || assemblyActiveRegion->getStart() + 1 > 10481771) return {};
 	//assemblyActiveRegion->printRegionInfo();
 	std::shared_ptr<AssemblyResultSet> untrimmedAssemblyResult
 			= AssemblyBasedCallerUtils::assembleReads(assemblyActiveRegion, MTAC, header, *refCache, assemblyEngine);
@@ -198,7 +198,7 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion> &originalAssembl
 		untrimmedAssemblyResult->deleteEventMap();
 		return {};
 	}
-	assemblyResult->printSortedHaplotypes();
+	//assemblyResult->printSortedHaplotypes();
 
 	std::shared_ptr<AssemblyRegion> regionForGenotyping = assemblyResult->getRegionForGenotyping();
 	removeReadStubs(regionForGenotyping);
@@ -232,8 +232,7 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion> &originalAssembl
 
 	//---print the called variant
 	std::shared_ptr<std::vector<std::shared_ptr<VariantContext>>> calls = calledHaplotypes.getCalls();
-	if (!(*calls).empty())
-		printVariationContexts(assemblyActiveRegion, *calls);
+	//printVariationContexts(assemblyActiveRegion, *calls);
 
 	// Break the circular reference of pointer
 	untrimmedAssemblyResult->deleteEventMap();
@@ -311,6 +310,8 @@ void Mutect2Engine::setReferenceCache(ReferenceCache *cache) {
 
 void Mutect2Engine::printVariationContexts(const shared_ptr<AssemblyRegion> &region,
                                            const vector<std::shared_ptr<VariantContext>> &vcs) {
+	if (vcs.empty())
+		return;
 	std::cout << "region: " << region->getContig() << ":" << region->getStart() + 1 << "-" << region->getEnd() + 1
 	          << std::endl;
 	std::cout << "allVariationEvents " << vcs.size() << std::endl;

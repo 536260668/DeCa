@@ -11,40 +11,47 @@
 #include "HaplotypeDataHolder.h"
 #include "AssemblyResultSet.h"
 #include "haplotypecaller/PairHMMNativeArgumentCollection.h"
-#include "tiretree/buildTreeUtils.h"
+#include "trie/buildTreeUtils.h"
 
-class VectorLoglessPairHMM : public PairHMM{
+class VectorLoglessPairHMM : public PairHMM {
 private:
-    //---two-dimensional array ?
-    //std::shared_ptr<std::shared_ptr<HaplotypeDataHolder>[]> mHaplotypeDataArray;
-    vector<HaplotypeDataHolder> mHaplotypeDataArray;
-    phmap::flat_hash_map<std::shared_ptr<Haplotype>, int, hash_Haplotype, equal_Haplotype> haplotypeToHaplotypeListIdxMap;
-    unsigned mHaplotypeDataArrayLength;
-    vector<std::shared_ptr<Haplotype>> haps;
-    tireTreeNode *root;
+	//---two-dimensional array ?
+	//std::shared_ptr<std::shared_ptr<HaplotypeDataHolder>[]> mHaplotypeDataArray;
+	vector<HaplotypeDataHolder> mHaplotypeDataArray;
+	phmap::flat_hash_map<std::shared_ptr<Haplotype>, int, hash_Haplotype, equal_Haplotype> haplotypeToHaplotypeListIdxMap;
+	unsigned mHaplotypeDataArrayLength;
+	vector<std::shared_ptr<Haplotype>> haps;
+	trieNode *root;
 
 public:
-    VectorLoglessPairHMM(PairHMMNativeArgumentCollection& args);
+	explicit VectorLoglessPairHMM(PairHMMNativeArgumentCollection &args);
 
-    virtual ~VectorLoglessPairHMM();
+	~VectorLoglessPairHMM() override;
 
-    /**
-     * Create a VectorLoglessPairHMM
-     *
-     * @param implementation    which implementation to use (AVX or OMP)
-     * @param args              arguments to the native GKL implementation
-     */
-    void initialize(const std::vector<std::shared_ptr<Haplotype>> & haplotypes,
-                    const std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>> & perSampleReadList,
-                    int readMaxLength, int haplotypeMaxLength);
+	/**
+	 * Create a VectorLoglessPairHMM
+	 *
+	 * @param implementation    which implementation to use (AVX or OMP)
+	 * @param args              arguments to the native GKL implementation
+	 */
+	void initialize(const std::vector<std::shared_ptr<Haplotype>> &haplotypes,
+	                const std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>> &perSampleReadList,
+	                int readMaxLength, int haplotypeMaxLength) override;
 
-    void computeLog10Likelihoods(SampleMatrix<SAMRecord, Haplotype>* logLikelihoods,
-                                 vector<shared_ptr<SAMRecord>>& processedReads,
-                                 phmap::flat_hash_map<SAMRecord*, shared_ptr<char[]>>* gcp);
+	// unique reads version updated by hlf
+	void computeLog10Likelihoods(SampleMatrix<SAMRecord, Haplotype> *logLikelihoods,
+	                             vector<shared_ptr<SAMRecord>> &processedReads,
+	                             phmap::flat_hash_map<SAMRecord *, shared_ptr<char[]>> *gcp) override;
 
-    void computeLog10Likelihoods_tiretree(SampleMatrix<SAMRecord, Haplotype>* logLikelihoods,
-                                          vector<shared_ptr<SAMRecord>>& processedReads,
-                                          phmap::flat_hash_map<SAMRecord*, shared_ptr<char[]>>* gcp);
+	// all reads but using trie version by lxy
+	void computeLog10Likelihoods_trie(SampleMatrix<SAMRecord, Haplotype> *logLikelihoods,
+	                                      vector<shared_ptr<SAMRecord>> &processedReads,
+	                                      phmap::flat_hash_map<SAMRecord *, shared_ptr<char[]>> *gcp) override;
+
+	// combine trie version and unique version, edited by hlf
+	void computeLog10Likelihoods_trie_unique(SampleMatrix<SAMRecord, Haplotype> *logLikelihoods,
+	                                             vector<shared_ptr<SAMRecord>> &processedReads,
+	                                             phmap::flat_hash_map<SAMRecord *, shared_ptr<char[]>> *gcp) override;
 };
 
 

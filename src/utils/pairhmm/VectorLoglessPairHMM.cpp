@@ -20,22 +20,19 @@ void VectorLoglessPairHMM::initialize(const std::vector<std::shared_ptr<Haplotyp
                                       const int readMaxLength, const int haplotypeMaxLength) {
 
 	mHaplotypeDataArrayLength = haplotypes.size();
-	//mHaplotypeDataArray = std::shared_ptr<std::shared_ptr<HaplotypeDataHolder>[]>(new std::shared_ptr<HaplotypeDataHolder>[mHaplotypeDataArrayLength]);
-	//mHaplotypeDataArray = std::shared_ptr<HaplotypeDataHolder[]>(new HaplotypeDataHolder[]());
+	mHaplotypeDataArray.clear();
 	mHaplotypeDataArray.reserve(mHaplotypeDataArrayLength);
-	int idx = 0;
 	haplotypeToHaplotypeListIdxMap.clear();
+	haplotypeToHaplotypeListIdxMap.reserve(mHaplotypeDataArrayLength);
+	int idx = 0;
 	for (const std::shared_ptr<Haplotype> &currHaplotype: haplotypes) {
-		mHaplotypeDataArray[idx] = HaplotypeDataHolder(currHaplotype->getBases().get(),
-		                                               currHaplotype->getBasesLength());
-		haplotypeToHaplotypeListIdxMap.emplace(currHaplotype, idx);
-		idx++;
+		mHaplotypeDataArray.emplace_back(currHaplotype->getBases().get(), currHaplotype->getBasesLength());
+		haplotypeToHaplotypeListIdxMap.emplace(currHaplotype, idx++);
 	}
-    haps = haplotypes;
-    if(root) {
-        buildTreeUtils::deleteTree(root);
-    }
-    root = buildTreeUtils::buildTreeWithHaplotype(haplotypes, true);
+	haps = haplotypes;
+
+	buildTreeUtils::deleteTree(root);
+	root = buildTreeUtils::buildTreeWithHaplotype_same_height(haplotypes, true);
 }
 
 void VectorLoglessPairHMM::computeLog10Likelihoods(SampleMatrix<SAMRecord, Haplotype> *logLikelihoods,
@@ -45,16 +42,6 @@ void VectorLoglessPairHMM::computeLog10Likelihoods(SampleMatrix<SAMRecord, Haplo
 		return;
 
 	int numReads = processedReads.size();
-
-	// Get haplotypes
-	std::vector<uint8_t *> haplotypes;
-	std::vector<int> haplotypeLengths;
-	haplotypes.reserve(mHaplotypeDataArrayLength);
-	haplotypeLengths.reserve(mHaplotypeDataArrayLength);
-	for (int i = 0; i < mHaplotypeDataArrayLength; ++i) {
-		haplotypes.emplace_back(mHaplotypeDataArray[i].haplotypeBases);
-		haplotypeLengths.emplace_back(mHaplotypeDataArray[i].length);
-	}
 
 	// An array that stores unique testcases and where all testcases are mapped to this array
 	// Therefore, the number of testcases to be computed is reduced, but the length of mloglikelihoodarray is unchanged
@@ -95,7 +82,8 @@ void VectorLoglessPairHMM::computeLog10Likelihoods(SampleMatrix<SAMRecord, Haplo
 			readOfTestcase->initializeFloatVector();    // initialize probaility arrays and distm
 			for (int h = 0; h < mHaplotypeDataArrayLength; ++h) {
 				mapAlltoUnique.emplace_back(uniqueTestcases.size());
-				uniqueTestcases.emplace_back(haplotypeLengths[h], haplotypes[h], readOfTestcase);
+				uniqueTestcases.emplace_back(mHaplotypeDataArray[h].length, mHaplotypeDataArray[h].haplotypeBases,
+				                             readOfTestcase);
 				/* For Debugging*/
 //				old_uniqueTestcases.emplace_back(haplotypeLengths[h], haplotypes[h], readOfTestcase);
 			}
@@ -120,68 +108,21 @@ void VectorLoglessPairHMM::computeLog10Likelihoods(SampleMatrix<SAMRecord, Haplo
 //		std::cout << "case:\t" << uniqueTestcases.size() << " / " << numReads * mHaplotypeDataArrayLength << std::endl;
 //	}
 
-	//---for debugging
-/*    for(int i=0; i<testcases.size(); i++)
-    {
-        for(int r=0; r<numReads; r++)
-        {
-            for(int i=0; i<testcases[r].rslen; i++)
-            {
-                cerr << testcases[r].rs[i];
-            }
-            cerr << endl;
-            for(int i=0; i<testcases[r].rslen; i++)
-            {
-                cerr << (int)testcases[r].q[i] << " ";
-            }
-            cerr << endl;
-            for(int i=0; i<testcases[r].rslen; i++)
-            {
-                cerr << (int)testcases[r].i[i] << " ";
-            }
-            cerr << endl;
-            for(int i=0; i<testcases[r].rslen; i++)
-            {
-                cerr << (int)testcases[r].d[i] << " ";
-            }
-            cerr << endl;
-            for(int i=0; i<testcases[r].rslen; i++)
-            {
-                cerr << (int)testcases[r].c[i] << " ";
-            }
-            cerr << endl;
-            for(int i=0; i<testcases[r].haplen; i++)
-            {
-                cerr << testcases[r].hap[i];
-            }
-            cerr << endl;
-            cerr << endl;
-        }
-    }*/
-
 	// Compute
 	std::vector<double> uniqueLogLikelihoodArray(uniqueTestcases.size());
 	computeLikelihoodsNative_concurrent(uniqueTestcases, uniqueLogLikelihoodArray);
 
 	// Mapping results
-	mLogLikelihoodArray.resize(mapAlltoUnique.size());
+	mLogLikelihoodArray_1D.resize(mapAlltoUnique.size());
 	for (int i = 0; i < mapAlltoUnique.size(); ++i)
-		mLogLikelihoodArray[i] = uniqueLogLikelihoodArray[mapAlltoUnique[i]];
+		mLogLikelihoodArray_1D[i] = uniqueLogLikelihoodArray[mapAlltoUnique[i]];
 
 	/* For Debugging*/
 //	std::vector<double> old_mLogLikelihoodArray(old_uniqueTestcases.size());
 //	computeLikelihoodsNative_concurrent(old_uniqueTestcases, old_mLogLikelihoodArray);
 //	assert(old_mLogLikelihoodArray == mLogLikelihoodArray);
 
-	//---print the likelihoods calculated by PairHMM algorithm
-	cout << numReads << " " << mHaplotypeDataArrayLength << endl;
-	for (int r = 0; r < numReads; ++r) {
-		for (int h = 0; h < mHaplotypeDataArrayLength; ++h) {
-			cout.setf(ios::fixed);
-			cout << setprecision(5) << mLogLikelihoodArray[r * mHaplotypeDataArrayLength + h] << " ";
-		}
-	}
-	cout << endl;
+	std::cout.setf(ios::fixed);
 
 	int readIdx = 0;
 	for (int r = 0; r < numReads; ++r) {
@@ -190,91 +131,147 @@ void VectorLoglessPairHMM::computeLog10Likelihoods(SampleMatrix<SAMRecord, Haplo
 			//Since the order of haplotypes in the List<Haplotype> and alleleHaplotypeMap is different,
 			//get idx of current haplotype in the list and use this idx to get the right likelihoodValue
 			int idxInsideHaplotypeList = haplotypeToHaplotypeListIdxMap.at(haplotype);
-			logLikelihoods->set(hapIdx, r, mLogLikelihoodArray[readIdx + idxInsideHaplotypeList]);
+			std::cout << setprecision(5) << mLogLikelihoodArray_1D[readIdx + idxInsideHaplotypeList] << " ";
+			logLikelihoods->set(hapIdx, r, mLogLikelihoodArray_1D[readIdx + idxInsideHaplotypeList]);
 			hapIdx++;
 		}
 		readIdx += mHaplotypeDataArrayLength;
 	}
+	std::cout << std::endl;
 }
 
-void VectorLoglessPairHMM::computeLog10Likelihoods_tiretree(SampleMatrix<SAMRecord, Haplotype>* logLikelihoods,
-                                              vector<shared_ptr<SAMRecord>>& processedReads,
-                                              phmap::flat_hash_map<SAMRecord*, shared_ptr<char[]>>* gcp) {
-    if (processedReads.empty())
-        return;
+void VectorLoglessPairHMM::computeLog10Likelihoods_trie(SampleMatrix<SAMRecord, Haplotype> *logLikelihoods,
+                                                        vector<shared_ptr<SAMRecord>> &processedReads,
+                                                        phmap::flat_hash_map<SAMRecord *, shared_ptr<char[]>> *gcp) {
+	if (processedReads.empty())
+		return;
 
-    int numReads = processedReads.size();
-	mLogLikelihoodArray.clear();
+	int numReads = processedReads.size();
 
-    std::vector<tiretree_testcase> uniqueTestcases;
-    uniqueTestcases.reserve(numReads * mHaplotypeDataArrayLength);
+	std::vector<trie_testcase> uniqueTestcases;
+	uniqueTestcases.reserve(numReads * mHaplotypeDataArrayLength);
 
-    // Where do all the testcases related to a read start
-    phmap::flat_hash_map<std::shared_ptr<ReadForPairHMM>, int, ReadForPairHMMHash, ReadForPairHMMEqual> uniqueReadForPairHMM;
-    uniqueReadForPairHMM.reserve(numReads);
-
-    // Generate unique testcases
-    int _rslen;
-    char *gapConts;
-    uint8_t *reads, *readQuals;
-    std::vector<shared_ptr<uint8_t[]>> insGops, delGops;
-    insGops.reserve(numReads);
-    delGops.reserve(numReads);
-    for (int r = 0; r < numReads; ++r) {
-        _rslen = processedReads[r]->getLength();
-        insGops.emplace_back(ReadUtils::getBaseInsertionQualities(processedReads[r], _rslen));
-        delGops.emplace_back(ReadUtils::getBaseDeletionQualities(processedReads[r], _rslen));
-        gapConts = (*gcp)[processedReads[r].get()].get();
-        readQuals = processedReads[r]->getBaseQualitiesNoCopy().get();
-        reads = processedReads[r]->getBasesNoCopy().get();
-
-        std::shared_ptr<ReadForPairHMM> readOfTestcase = std::make_shared<ReadForPairHMM>(_rslen, readQuals,
-                                                                                          insGops[r].get(),
-                                                                                          delGops[r].get(), gapConts,
-                                                                                          reads);
-        readOfTestcase->initializeFloatVector();
-        uniqueTestcases.emplace_back(haps, readOfTestcase, root);
-    }
-
-    // initialize probaility arrays and distm
-//    for (const auto &[readForPairHMM, _]: uniqueReadForPairHMM)
-//        readForPairHMM->initializeFloatVector();
-
-    // Compute
-	mLogLikelihoodArray.clear();
-    std::vector<std::vector<double>> uniqueLogLikelihoodArray;
-    uniqueLogLikelihoodArray.reserve(uniqueTestcases.size());
-    computeLikelihoodsNative_concurrent_tiretree(&uniqueTestcases, &uniqueLogLikelihoodArray);
-    for(int i = 0; i < uniqueLogLikelihoodArray.size(); i++) {
-        for(int j = 0; j < uniqueLogLikelihoodArray[i].size(); j++) {
-            mLogLikelihoodArray.emplace_back(uniqueLogLikelihoodArray[i][j]);
-        }
-    }
-
+	// Generate unique testcases
+	int _rslen;
+	char *gapConts;
+	uint8_t *reads, *readQuals;
+	std::vector<shared_ptr<uint8_t[]>> insGops, delGops;
+	insGops.reserve(numReads);
+	delGops.reserve(numReads);
 	for (int r = 0; r < numReads; ++r) {
-		for (int h = 0; h < mHaplotypeDataArrayLength; ++h) {
-			cout.setf(ios::fixed);
-			cout << setprecision(5) << mLogLikelihoodArray[r * mHaplotypeDataArrayLength + h] << " ";
-		}
-	}
-	cout << endl;
+		_rslen = processedReads[r]->getLength();
+		insGops.emplace_back(ReadUtils::getBaseInsertionQualities(processedReads[r], _rslen));
+		delGops.emplace_back(ReadUtils::getBaseDeletionQualities(processedReads[r], _rslen));
+		gapConts = (*gcp)[processedReads[r].get()].get();
+		readQuals = processedReads[r]->getBaseQualitiesNoCopy().get();
+		reads = processedReads[r]->getBasesNoCopy().get();
 
-	int readIdx = 0;
+		std::shared_ptr<ReadForPairHMM> readOfTestcase = std::make_shared<ReadForPairHMM>(_rslen, readQuals,
+		                                                                                  insGops[r].get(),
+		                                                                                  delGops[r].get(), gapConts,
+		                                                                                  reads);
+		readOfTestcase->initializeFloatVector();
+		uniqueTestcases.emplace_back(haps, readOfTestcase, root);
+	}
+
+	// Compute
+	mLogLikelihoodArray_2D.clear();
+	mLogLikelihoodArray_2D.resize(uniqueTestcases.size());
+	for (auto &array: mLogLikelihoodArray_2D) {
+		array.reserve(mHaplotypeDataArrayLength);
+	}
+	computeLikelihoodsNative_concurrent_trie(uniqueTestcases, mLogLikelihoodArray_2D);
+
+	std::cout.setf(ios::fixed);
+
 	for (int r = 0; r < numReads; ++r) {
 		int hapIdx = 0;
 		for (auto &haplotype: logLikelihoods->alleles()) {
 			//Since the order of haplotypes in the List<Haplotype> and alleleHaplotypeMap is different,
 			//get idx of current haplotype in the list and use this idx to get the right likelihoodValue
 			int idxInsideHaplotypeList = haplotypeToHaplotypeListIdxMap.at(haplotype);
-			logLikelihoods->set(hapIdx, r, mLogLikelihoodArray[readIdx + idxInsideHaplotypeList]);
-			hapIdx++;
+			std::cout << setprecision(5) << mLogLikelihoodArray_2D[r][idxInsideHaplotypeList] << " ";
+			logLikelihoods->set(hapIdx++, r, mLogLikelihoodArray_2D[r][idxInsideHaplotypeList]);
 		}
-		readIdx += mHaplotypeDataArrayLength;
 	}
+	std::cout << std::endl;
+}
+
+void VectorLoglessPairHMM::computeLog10Likelihoods_trie_unique(SampleMatrix<SAMRecord, Haplotype> *logLikelihoods,
+                                                               vector<shared_ptr<SAMRecord>> &processedReads,
+                                                               phmap::flat_hash_map<SAMRecord *, shared_ptr<char[]>> *gcp) {
+	if (processedReads.empty())
+		return;
+
+	int numReads = processedReads.size();
+
+	std::vector<trie_testcase> uniqueTestcases;
+	uniqueTestcases.reserve(numReads);
+	std::vector<int> mapAlltoUnique;
+	mapAlltoUnique.reserve(numReads);
+
+	// map the results of unique trie_testcases to all trie_testcases
+	phmap::flat_hash_map<std::shared_ptr<ReadForPairHMM>, int, ReadForPairHMMHash, ReadForPairHMMEqual> uniqueReadForPairHMM;
+	uniqueReadForPairHMM.reserve(numReads);
+
+	// Generate unique testcases
+	int _rslen;
+	char *gapConts;
+	uint8_t *reads, *readQuals;
+	std::vector<shared_ptr<uint8_t[]>> insGops, delGops;
+	insGops.reserve(numReads);
+	delGops.reserve(numReads);
+	for (int r = 0; r < numReads; ++r) {
+		_rslen = processedReads[r]->getLength();
+		insGops.emplace_back(ReadUtils::getBaseInsertionQualities(processedReads[r], _rslen));
+		delGops.emplace_back(ReadUtils::getBaseDeletionQualities(processedReads[r], _rslen));
+		gapConts = (*gcp)[processedReads[r].get()].get();
+		readQuals = processedReads[r]->getBaseQualitiesNoCopy().get();
+		reads = processedReads[r]->getBasesNoCopy().get();
+
+		std::shared_ptr<ReadForPairHMM> readOfTestcase = std::make_shared<ReadForPairHMM>(_rslen, readQuals,
+		                                                                                  insGops[r].get(),
+		                                                                                  delGops[r].get(), gapConts,
+		                                                                                  reads);
+		auto readIt = uniqueReadForPairHMM.find(readOfTestcase);
+		if (BOOST_LIKELY(readIt == uniqueReadForPairHMM.end())) {
+			// Push testcases into uniqueTestcases and mark the index where the testcase appears
+			uniqueReadForPairHMM.emplace(readOfTestcase, uniqueTestcases.size());
+			mapAlltoUnique.emplace_back(uniqueTestcases.size());
+			uniqueTestcases.emplace_back(haps, readOfTestcase, root);
+			readOfTestcase->initializeFloatVector();    // initialize probaility arrays and distm
+		} else {
+			// No element needs to be pushed into uniqueTestcases
+			mapAlltoUnique.emplace_back(readIt->second);
+		}
+	}
+
+	// Compute
+	mLogLikelihoodArray_2D.clear();
+	mLogLikelihoodArray_2D.resize(uniqueTestcases.size());
+	for (auto &array: mLogLikelihoodArray_2D) {
+		array.reserve(mHaplotypeDataArrayLength);
+	}
+	computeLikelihoodsNative_concurrent_trie(uniqueTestcases, mLogLikelihoodArray_2D);
+
+	//std::cout.setf(ios::fixed);
+
+	for (int r = 0; r < numReads; ++r) {
+		int target = mapAlltoUnique[r];
+		int hapIdx = 0;
+		for (auto &haplotype: logLikelihoods->alleles()) {
+			//Since the order of haplotypes in the List<Haplotype> and alleleHaplotypeMap is different,
+			//get idx of current haplotype in the list and use this idx to get the right likelihoodValue
+			int idxInsideHaplotypeList = haplotypeToHaplotypeListIdxMap.at(haplotype);
+			//std::cout << setprecision(5) << mLogLikelihoodArray_2D[target][idxInsideHaplotypeList] << " ";
+			logLikelihoods->set(hapIdx++, r, mLogLikelihoodArray_2D[target][idxInsideHaplotypeList]);
+		}
+	}
+	//std::cout << std::endl;
 }
 
 VectorLoglessPairHMM::~VectorLoglessPairHMM() {
-    buildTreeUtils::deleteTree(root);
+	buildTreeUtils::deleteTree(root);
 }
 
 

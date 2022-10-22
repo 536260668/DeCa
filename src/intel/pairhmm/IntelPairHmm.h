@@ -36,13 +36,18 @@
 
 void initNative(bool use_double, int max_threads);
 
-void computeLikelihoodsNative(std::vector<testcase>& testcases, std::vector<double>& likelihoodArray);
+void computeLikelihoodsNative(std::vector<testcase> &testcases, std::vector<double> &likelihoodArray);
 
-void computeLikelihoodsNative_concurrent(std::vector<testcase>& testcases, std::vector<double>& likelihoodArray);
+void computeLikelihoodsNative_concurrent(std::vector<testcase> &testcases, std::vector<double> &likelihoodArray);
 
-void computeLikelihoodsNative_concurrent_i(std::vector<testcase> *testcases, std::vector<double> *likelihoodArray, unsigned long i);
+void computeLikelihoodsNative_concurrent_i(std::vector<testcase> &testcases, std::vector<double> &likelihoodArray,
+                                           unsigned long i);
 
-void computeLikelihoodsNative_concurrent_tiretree(std::vector<tiretree_testcase> *testcases, std::vector<std::vector<double>> *likelihoodArray);
+void computeLikelihoodsNative_concurrent_trie(std::vector<trie_testcase> &testcases,
+                                                  std::vector<std::vector<double>> &likelihoodArray);
+
+void computeLikelihoodsNative_concurrent_trie_i(std::vector<trie_testcase> &testcases,
+                                                    std::vector<std::vector<double>> &likelihoodArray, unsigned long i);
 
 void test_compute(std::vector<testcase> *testcases, std::vector<double> *likelihoodArray, unsigned long i);
 

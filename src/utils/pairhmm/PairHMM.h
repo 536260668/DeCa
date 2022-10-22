@@ -46,9 +46,13 @@ public:
                                  vector<shared_ptr<SAMRecord>>& processedReads,
                                          phmap::flat_hash_map<SAMRecord*, shared_ptr<char[]>>* gcp) = 0;
 
-    virtual void computeLog10Likelihoods_tiretree(SampleMatrix<SAMRecord, Haplotype>* logLikelihoods,
+    virtual void computeLog10Likelihoods_trie(SampleMatrix<SAMRecord, Haplotype>* logLikelihoods,
                                          vector<shared_ptr<SAMRecord>>& processedReads,
                                          phmap::flat_hash_map<SAMRecord*, shared_ptr<char[]>>* gcp) = 0;
+
+	virtual void computeLog10Likelihoods_trie_unique(SampleMatrix<SAMRecord, Haplotype> *logLikelihoods,
+	                                                     vector<shared_ptr<SAMRecord>> &processedReads,
+	                                                     phmap::flat_hash_map<SAMRecord *, shared_ptr<char[]>> *gcp) = 0;
 
 protected:
     bool constantsAreInitialized = false;
@@ -59,7 +63,8 @@ protected:
     int paddedReadLength, paddedHaplotypeLength;
     bool initialized = false;
 
-    vector<double> mLogLikelihoodArray;
+    vector<double> mLogLikelihoodArray_1D;
+	std::vector<std::vector<double>> mLogLikelihoodArray_2D;
 };
 
 

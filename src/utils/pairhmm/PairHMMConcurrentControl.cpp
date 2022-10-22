@@ -5,6 +5,7 @@
 #include "PairHMMConcurrentControl.h"
 
 std::queue<std::shared_ptr<LikelihoodsTask>> PairHMMConcurrentControl::pairHMMTaskQueue;
+std::queue<std::shared_ptr<LikelihoodsTask_trie>> PairHMMConcurrentControl::pairHMMTaskQueue_trie;
 bool PairHMMConcurrentControl::startPairHMMConcurrentMode;
 std::mutex PairHMMConcurrentControl::pairHMMMutex;
 //std::atomic<unsigned long long> PairHMMConcurrentControl::all_cases;
@@ -15,6 +16,7 @@ std::mutex PairHMMConcurrentControl::pairHMMMutex;
 
 void PairHMMConcurrentControl::initial() {
 	pairHMMTaskQueue = std::queue<std::shared_ptr<LikelihoodsTask>>();
+	pairHMMTaskQueue_trie = std::queue<std::shared_ptr<LikelihoodsTask_trie>>();
 	startPairHMMConcurrentMode = false;
 //	all_cases = 0;
 //	unique_cases = 0;
@@ -23,7 +25,15 @@ void PairHMMConcurrentControl::initial() {
 //	compute_double_cases = 0;
 }
 
-LikelihoodsTask::LikelihoodsTask(std::vector<testcase> *taskTestcases, std::vector<double> *taskLikelihoodArray,
+LikelihoodsTask::LikelihoodsTask(std::vector<testcase> &taskTestcases, std::vector<double> &taskLikelihoodArray,
                                  unsigned long index, unsigned long testcasesSize)
 		: taskTestcases(taskTestcases), taskLikelihoodArray(taskLikelihoodArray), index(index),
 		  count(index), testcasesSize(testcasesSize) {}
+
+LikelihoodsTask_trie::LikelihoodsTask_trie(std::vector<trie_testcase> &taskTestcases,
+                                           std::vector<std::vector<double>> &taskLikelihoodArray, unsigned long index,
+                                           unsigned long testcasesSize) : taskTestcases(taskTestcases),
+                                                                          taskLikelihoodArray(taskLikelihoodArray),
+                                                                          index(index), count(index),
+                                                                          testcasesSize(testcasesSize) {}
+

@@ -34,7 +34,7 @@
 #include <stdint.h>
 #include <utility>
 #include "haplotypecaller/ReadForPairHMM.h"
-#include "tiretree/tireTreeNode.h"
+#include "trie/trieNode.h"
 #include <vector>
 #include "haplotype/Haplotype.h"
 
@@ -58,12 +58,12 @@ struct testcase{
   };
 } ;
 
-struct tiretree_testcase{
+struct trie_testcase{
     std::vector<std::shared_ptr<Haplotype>> haps;
     std::shared_ptr<ReadForPairHMM> readForPairHmm;
-    tireTreeNode *root;
+	trieNode *root;
 
-    tiretree_testcase(std::vector<std::shared_ptr<Haplotype>> haplotypes, std::shared_ptr<ReadForPairHMM> _readForPairHmm, tireTreeNode *node)
+	trie_testcase(std::vector<std::shared_ptr<Haplotype>> haplotypes, std::shared_ptr<ReadForPairHMM> _readForPairHmm, trieNode *node)
     {
         haps = std::move(haplotypes);
         readForPairHmm = std::move(_readForPairHmm);

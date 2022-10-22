@@ -58,8 +58,8 @@ private:
 	// Avoid getting bases multiple times
 	struct chainWithBases {
 		Path<V, E> *path = nullptr;
-		int len = 0;
 		std::shared_ptr<uint8_t[]> bases = nullptr;
+		int len = 0;
 		bool alreadyGotBases = false;
 
 		explicit chainWithBases(Path<V, E> *path) : path(path) {}
@@ -69,21 +69,20 @@ private:
 		//according to JAVA version, chainLogOdds in descending order, if chainsLogOdds equal, length ascending order
 		friend bool operator<(chainWithBases &a, chainWithBases &b) {
 			if (a.path->getLogOdds() == b.path->getLogOdds()) {
-				if (!a.alreadyGotBases)
+				if (!a.alreadyGotBases) {
 					a.bases = a.path->getBases(a.len);
+					a.alreadyGotBases = true;
+				}
 
-				if (!b.alreadyGotBases)
+				if (!b.alreadyGotBases) {
 					b.bases = b.path->getBases(b.len);
+					b.alreadyGotBases = true;
+				}
 
 				if (a.len != b.len)
 					return a.len > b.len;
 
-				for (int i = 0; i < a.len; ++i) {
-					if (a.bases[i] == b.bases[i])
-						continue;
-					return a.bases[i] < b.bases[i];
-				}
-				return false;
+				return memcmp(a.bases.get(), b.bases.get(), a.len) < 0;
 			}
 			return a.path->getLogOdds() > b.path->getLogOdds();
 		}

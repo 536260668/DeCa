@@ -40,7 +40,7 @@
 #include <thread>
 #include "boost/utility.hpp"
 #include "utils/pairhmm/PairHMMConcurrentControl.h"
-#include "tiretree/buildTreeUtils.h"
+#include "trie/buildTreeUtils.h"
 
 bool g_use_double;
 int g_max_threads;
@@ -49,9 +49,9 @@ Context<float> g_ctxf;
 Context<double> g_ctxd;
 
 float (*g_compute_full_prob_float)(testcase *tc);
-std::vector<float> (*g_compute_full_prob_t_float)(tiretree_testcase *tc);
+std::vector<float> (*g_compute_full_prob_t_float)(trie_testcase *tc);
 double (*g_compute_full_prob_double)(testcase *tc);
-std::vector<double> (*g_compute_full_prob_t_double)(tiretree_testcase *tc);
+std::vector<double> (*g_compute_full_prob_t_double)(trie_testcase *tc);
 
 /*
  * Class:     com_intel_gkl_pairhmm_IntelPairHmm
@@ -296,9 +296,9 @@ void computeLikelihoodsNative(std::vector<testcase>& testcases, std::vector<doub
 void computeLikelihoodsNative_concurrent(std::vector<testcase>& testcases, std::vector<double>& likelihoodArray) {
 	for (int i = 0; i < testcases.size(); i++) {
 		if (BOOST_LIKELY((!PairHMMConcurrentControl::startPairHMMConcurrentMode) || testcases.size() - i < 1024)) {
-			computeLikelihoodsNative_concurrent_i(&testcases, &likelihoodArray, i);
+			computeLikelihoodsNative_concurrent_i(testcases, likelihoodArray, i);
 		} else {
-			std::shared_ptr<LikelihoodsTask> likelihoods = std::make_shared<LikelihoodsTask>(&testcases, &likelihoodArray, (unsigned long)i, testcases.size());
+			std::shared_ptr<LikelihoodsTask> likelihoods = std::make_shared<LikelihoodsTask>(testcases, likelihoodArray, (unsigned long)i, testcases.size());
 			PairHMMConcurrentControl::pairHMMMutex.lock();
 			PairHMMConcurrentControl::pairHMMTaskQueue.push(likelihoods);
 			//std::cout << "push " + std::to_string(PairHMMConcurrentControl::pairHMMTaskQueue.size()) + '\n';
@@ -329,7 +329,7 @@ void computeLikelihoodsNative_concurrent(std::vector<testcase>& testcases, std::
 	}
 }
 
-void computeLikelihoodsNative_concurrent_i(std::vector<testcase> *testcases, std::vector<double> *likelihoodArray, unsigned long i) {
+void computeLikelihoodsNative_concurrent_i(std::vector<testcase> &testcases, std::vector<double> &likelihoodArray, unsigned long i) {
 //	 if ((*testcases)[i].haplen > 64 && (*testcases)[i].rslen > 64)
 //		test_compute(testcases,likelihoodArray,i);
 
@@ -337,17 +337,17 @@ void computeLikelihoodsNative_concurrent_i(std::vector<testcase> *testcases, std
 //	std::cout << "float\t" << Context<float>::INITIAL_CONSTANT << '\t' << Context<float>::LOG10_INITIAL_CONSTANT << '\t' << (double)(log10f(compute_full_prob_float(&(*testcases)[i]))) - Context<float>::LOG10_INITIAL_CONSTANT << std::endl << std::endl;
 
 	double result_final;
-	float result_float = (BOOST_UNLIKELY(g_use_double)) ? 0.0f : g_compute_full_prob_float(&(*testcases)[i]);
+	float result_float = (BOOST_UNLIKELY(g_use_double)) ? 0.0f : g_compute_full_prob_float(&testcases[i]);
 
 	if (BOOST_UNLIKELY(result_float < MIN_ACCEPTED)) {
-		double result_double = g_compute_full_prob_double(&(*testcases)[i]);
+		double result_double = g_compute_full_prob_double(&testcases[i]);
 		result_final = log10(result_double) - Context<double>::LOG10_INITIAL_CONSTANT;
 //		PairHMMConcurrentControl::compute_double_cases++;
 	}
 	else {
 		result_final = (double)(log10f(result_float) - Context<float>::LOG10_INITIAL_CONSTANT);
 	}
-	(*likelihoodArray)[i] = result_final;
+	likelihoodArray[i] = result_final;
 }
 
 //void test_compute(std::vector<testcase> *testcases, std::vector<double> *likelihoodArray, unsigned long i){
@@ -656,33 +656,60 @@ double compute_full_prob_Fixed64(testcase *tc) {
 }
 */
 
-void computeLikelihoodsNative_concurrent_tiretree(std::vector<tiretree_testcase> *testcases, std::vector<std::vector<double>> *likelihoodArray) {
-    for(auto & tc : *testcases) {
-        std::vector<double> result_final;
-        std::vector<float> result_float = (BOOST_UNLIKELY(g_use_double)) ? std::vector<float>() : g_compute_full_prob_t_float(&tc);
-        bool flag = true;
-        for(float f : result_float) {
-            if(f < MIN_ACCEPTED) {
-                flag = false;
-                break;
-            }
-        }
-        if (BOOST_UNLIKELY(!flag || result_float.empty())) {
-            tireTreeNode *tmp = tc.root;
-            tc.root = buildTreeUtils::buildTreeWithHaplotype(tc.haps, false);
-            std::vector<double> result_double = g_compute_full_prob_t_double(&tc);
-            buildTreeUtils::deleteTree(tc.root);
-            tc.root = tmp;
-            for(double d : result_double) {
-                result_final.emplace_back(log10(d) - Context<double>::LOG10_INITIAL_CONSTANT);
-            }
-//		PairHMMConcurrentControl::compute_double_cases++;
-        }
-        else {
-            for(double d : result_float) {
-                result_final.emplace_back(log10(d) - Context<float>::LOG10_INITIAL_CONSTANT);
-            }
-        }
-        (*likelihoodArray).emplace_back(result_final);
-    }
+void computeLikelihoodsNative_concurrent_trie(std::vector<trie_testcase> &testcases,
+											  std::vector<std::vector<double>> &likelihoodArray) {
+	for (int i = 0; i < testcases.size(); i++) {
+		if (BOOST_LIKELY((!PairHMMConcurrentControl::startPairHMMConcurrentMode) || testcases.size() - i < 192)) {
+			computeLikelihoodsNative_concurrent_trie_i(testcases, likelihoodArray, i);
+		} else {
+			std::shared_ptr<LikelihoodsTask_trie> likelihoods = std::make_shared<LikelihoodsTask_trie>(testcases, likelihoodArray, (unsigned long)i, testcases.size());
+			PairHMMConcurrentControl::pairHMMMutex.lock();
+			PairHMMConcurrentControl::pairHMMTaskQueue_trie.push(likelihoods);
+			//std::cout << "push " + std::to_string(PairHMMConcurrentControl::pairHMMTaskQueue.size()) + '\n';
+			PairHMMConcurrentControl::pairHMMMutex.unlock();
+			//std::cout << std::to_string(testcases.size()) + " testcases\tpush [" + std::to_string(i) + ", " + std::to_string(testcases.size() - 1) + "] size: " +
+			//                                                                                                                                          std::to_string(testcases.size() - i ) + '\n';
+
+			for (unsigned long ind = likelihoods->index++; ind < likelihoods->testcasesSize; ind = likelihoods->index++) {
+				//std::cout << std::to_string(ind) + '\n';
+				computeLikelihoodsNative_concurrent_trie_i(likelihoods->taskTestcases, likelihoods->taskLikelihoodArray, ind);
+				likelihoods->count++;
+			}
+
+			// make sure all calculations have been completed
+			while (likelihoods->count != likelihoods->testcasesSize)
+				std::this_thread::yield();
+
+			//std::cout << std::to_string(testcases.size()) + " testcases done.\n";
+			return;
+		}
+	}
+}
+
+void computeLikelihoodsNative_concurrent_trie_i(std::vector<trie_testcase> &testcases,
+                                                std::vector<std::vector<double>> &likelihoodArray, unsigned long i) {
+	trie_testcase *cur_case = &testcases[i];
+	std::vector<float> result_float = (BOOST_UNLIKELY(g_use_double)) ? std::vector<float>() : g_compute_full_prob_t_float(cur_case);
+	bool flag = true;
+	for (float f : result_float) {
+		if (f < MIN_ACCEPTED) {
+			flag = false;
+			break;
+		}
+	}
+	if (BOOST_UNLIKELY(!flag || result_float.empty())) {
+		trieNode *tmp = cur_case->root;
+		cur_case->root = buildTreeUtils::buildTreeWithHaplotype(cur_case->haps, false);
+		std::vector<double> result_double = g_compute_full_prob_t_double(cur_case);
+		buildTreeUtils::deleteTree(cur_case->root);
+		cur_case->root = tmp;
+		for (double d : result_double) {
+			likelihoodArray[i].emplace_back(log10(d) - Context<double>::LOG10_INITIAL_CONSTANT);
+		}
+	}
+	else {
+		for (float f : result_float) {
+			likelihoodArray[i].emplace_back((double)(log10f(f) - Context<float>::LOG10_INITIAL_CONSTANT));
+		}
+	}
 }

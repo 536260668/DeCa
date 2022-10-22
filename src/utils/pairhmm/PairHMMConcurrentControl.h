@@ -13,24 +13,33 @@
 #include <condition_variable>
 
 struct LikelihoodsTask {
-	std::vector<testcase> *taskTestcases = nullptr;
-	std::vector<double> *taskLikelihoodArray = nullptr;
+	std::vector<testcase> &taskTestcases;
+	std::vector<double> &taskLikelihoodArray;
 	std::atomic<unsigned long> count = 0;
 	std::atomic<unsigned long> index = 0;
 	unsigned long testcasesSize = 0;
 
-	LikelihoodsTask(std::vector<testcase> *taskTestcases, std::vector<double> *taskLikelihoodArray, unsigned long index,
+	LikelihoodsTask(std::vector<testcase> &taskTestcases, std::vector<double> &taskLikelihoodArray, unsigned long index,
 	                unsigned long testcasesSize);
+};
 
-	friend bool operator < (const LikelihoodsTask& a, const LikelihoodsTask & b){
-		return a.testcasesSize < b.testcasesSize;
-	}
+struct LikelihoodsTask_trie {
+	std::vector<trie_testcase> &taskTestcases;
+	std::vector<std::vector<double>> &taskLikelihoodArray;
+	std::atomic<unsigned long> count = 0;
+	std::atomic<unsigned long> index = 0;
+	unsigned long testcasesSize = 0;
+
+	LikelihoodsTask_trie(std::vector<trie_testcase> &taskTestcases,
+	                     std::vector<std::vector<double>> &taskLikelihoodArray, unsigned long index,
+	                     unsigned long testcasesSize);
 };
 
 class PairHMMConcurrentControl {
 public:
 	static std::mutex pairHMMMutex;
 	static std::queue<std::shared_ptr<LikelihoodsTask>> pairHMMTaskQueue;
+	static std::queue<std::shared_ptr<LikelihoodsTask_trie>> pairHMMTaskQueue_trie;
 	static bool startPairHMMConcurrentMode;
 //	static std::atomic<unsigned long long> unique_reads;
 //	static std::atomic<unsigned long long> all_reads;

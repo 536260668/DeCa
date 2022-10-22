@@ -29,8 +29,8 @@
 
 float (*compute_fp_avx512s)(testcase*) = &compute_full_prob_avx512s;
 double (*compute_fp_avx512d)(testcase*) = &compute_full_prob_avx512d;
-std::vector<float> (*compute_fp_t_avx512s)(tiretree_testcase*) = &compute_full_prob_t_avx512s;
-std::vector<double> (*compute_fp_t_avx512d)(tiretree_testcase*) = &compute_full_prob_t_avx512d;
+std::vector<float> (*compute_fp_t_avx512s)(trie_testcase*) = &compute_full_prob_t_avx512s;
+std::vector<double> (*compute_fp_t_avx512d)(trie_testcase*) = &compute_full_prob_t_avx512d;
 
 #else
 
