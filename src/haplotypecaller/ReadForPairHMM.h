@@ -27,9 +27,6 @@ struct ReadForPairHMM {
 	template<typename NUMBER>
 	std::shared_ptr<NUMBER> getInitializedData();
 
-	template<typename NUMBER>
-	static void initializedDataDeleter(NUMBER *p);
-
 	void initializeFloatVector();
 };
 

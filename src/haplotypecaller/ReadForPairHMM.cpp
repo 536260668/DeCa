@@ -50,7 +50,13 @@ std::shared_ptr<NUMBER> ReadForPairHMM::initializeData() {
 	 * */
 
 	std::shared_ptr<NUMBER> ret(
-			use_avx512 ? (NUMBER *) new __m512[7 * SIMD_COUNT] : (NUMBER *) new __m256[7 * SIMD_COUNT]);
+			use_avx512 ? (NUMBER *) new __m512[7 * SIMD_COUNT] : (NUMBER *) new __m256[7 * SIMD_COUNT],
+			[](NUMBER *p) {
+				if (use_avx512)
+					delete[] (__m512*) p;
+				else
+					delete[] (__m256*) p;
+			});
 
 	NUMBER *p_MM = ret.get();
 	NUMBER *p_XX = ret.get() + NUMBER_COUNT;
