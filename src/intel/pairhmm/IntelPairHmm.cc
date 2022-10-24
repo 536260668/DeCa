@@ -690,26 +690,14 @@ void computeLikelihoodsNative_concurrent_trie_i(std::vector<trie_testcase> &test
                                                 std::vector<std::vector<double>> &likelihoodArray, unsigned long i) {
 	trie_testcase *cur_case = &testcases[i];
 	std::vector<float> result_float = (BOOST_UNLIKELY(g_use_double)) ? std::vector<float>() : g_compute_full_prob_t_float(cur_case);
-	bool flag = true;
-	for (float f : result_float) {
-		if (f < MIN_ACCEPTED) {
-			flag = false;
-			break;
-		}
-	}
-	if (BOOST_UNLIKELY(!flag || result_float.empty())) {
-		trieNode *tmp = cur_case->root;
-		cur_case->root = buildTreeUtils::buildTreeWithHaplotype(cur_case->haps, false);
-		std::vector<double> result_double = g_compute_full_prob_t_double(cur_case);
-		buildTreeUtils::deleteTree(cur_case->root);
-		cur_case->root = tmp;
-		for (double d : result_double) {
-			likelihoodArray[i].emplace_back(log10(d) - Context<double>::LOG10_INITIAL_CONSTANT);
-		}
-	}
-	else {
-		for (float f : result_float) {
-			likelihoodArray[i].emplace_back((double)(log10f(f) - Context<float>::LOG10_INITIAL_CONSTANT));
-		}
+	for (int k = 0; k < result_float.size(); k++) {
+		if (result_float[k] < MIN_ACCEPTED) {
+            std::vector<std::shared_ptr<Haplotype>> haps = cur_case->haps;
+            testcase ts = testcase(haps[k]->getBasesLength(), haps[k]->getBases().get(), cur_case->readForPairHmm);
+            double result = g_compute_full_prob_double(&ts);
+            likelihoodArray[i].emplace_back(log10(result) - Context<double>::LOG10_INITIAL_CONSTANT);
+		} else {
+            likelihoodArray[i].emplace_back((double)(log10f(result_float[k]) - Context<float>::LOG10_INITIAL_CONSTANT));
+        }
 	}
 }

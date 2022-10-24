@@ -53,6 +53,7 @@ public:
 	virtual void computeLog10Likelihoods_trie_unique(SampleMatrix<SAMRecord, Haplotype> *logLikelihoods,
 	                                                     vector<shared_ptr<SAMRecord>> &processedReads,
 	                                                     phmap::flat_hash_map<SAMRecord *, shared_ptr<char[]>> *gcp) = 0;
+    bool is_use_trietree_optimize;
 
 protected:
     bool constantsAreInitialized = false;

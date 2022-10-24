@@ -25,14 +25,20 @@ void VectorLoglessPairHMM::initialize(const std::vector<std::shared_ptr<Haplotyp
 	haplotypeToHaplotypeListIdxMap.clear();
 	haplotypeToHaplotypeListIdxMap.reserve(mHaplotypeDataArrayLength);
 	int idx = 0;
+    std::set<int> records;
 	for (const std::shared_ptr<Haplotype> &currHaplotype: haplotypes) {
-		mHaplotypeDataArray.emplace_back(currHaplotype->getBases().get(), currHaplotype->getBasesLength());
+        int len = currHaplotype->getBasesLength();
+        records.insert(len);
+		mHaplotypeDataArray.emplace_back(currHaplotype->getBases().get(), len);
 		haplotypeToHaplotypeListIdxMap.emplace(currHaplotype, idx++);
 	}
 	haps = haplotypes;
+    is_use_trietree_optimize = haplotypes.size()/records.size() > 3;
 
-	buildTreeUtils::deleteTree(root);
-	root = buildTreeUtils::buildTreeWithHaplotype_same_height(haplotypes, true);
+    if(is_use_trietree_optimize) {
+        buildTreeUtils::deleteTree(root);
+        root = buildTreeUtils::buildTreeWithHaplotype_same_height(haplotypes, true);
+    }
 }
 
 void VectorLoglessPairHMM::computeLog10Likelihoods(SampleMatrix<SAMRecord, Haplotype> *logLikelihoods,
@@ -131,13 +137,13 @@ void VectorLoglessPairHMM::computeLog10Likelihoods(SampleMatrix<SAMRecord, Haplo
 			//Since the order of haplotypes in the List<Haplotype> and alleleHaplotypeMap is different,
 			//get idx of current haplotype in the list and use this idx to get the right likelihoodValue
 			int idxInsideHaplotypeList = haplotypeToHaplotypeListIdxMap.at(haplotype);
-			std::cout << setprecision(5) << mLogLikelihoodArray_1D[readIdx + idxInsideHaplotypeList] << " ";
+			//std::cout << setprecision(5) << mLogLikelihoodArray_1D[readIdx + idxInsideHaplotypeList] << " ";
 			logLikelihoods->set(hapIdx, r, mLogLikelihoodArray_1D[readIdx + idxInsideHaplotypeList]);
 			hapIdx++;
 		}
 		readIdx += mHaplotypeDataArrayLength;
 	}
-	std::cout << std::endl;
+	//std::cout << std::endl;
 }
 
 void VectorLoglessPairHMM::computeLog10Likelihoods_trie(SampleMatrix<SAMRecord, Haplotype> *logLikelihoods,
