@@ -582,8 +582,6 @@ AlignmentUtils::calcFirstBaseMatchingReferenceInCigar(const std::shared_ptr<Ciga
 
 std::shared_ptr<Cigar> AlignmentUtils::applyCigarToCigar(const std::shared_ptr<Cigar> &firstToSecond,
                                                                 const std::shared_ptr<Cigar> &secondToThird) {
-    bool DEBUG = false;
-
     std::vector<CigarElement> newElements;
     int nElements12 = firstToSecond->numCigarElements();
     int nElements23 = secondToThird->numCigarElements();

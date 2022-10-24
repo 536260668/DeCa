@@ -601,6 +601,7 @@ int main(int argc, char *argv[])
 //	std::cout << "read:\t" << PairHMMConcurrentControl::unique_reads << " / " << PairHMMConcurrentControl::all_reads << std::endl;
 //	std::cout << "case:\t" << PairHMMConcurrentControl::unique_cases << " / " << PairHMMConcurrentControl::all_cases << std::endl;
 //	std::cout << "use double case(s):\t" << PairHMMConcurrentControl::compute_double_cases << std::endl;
+//	std::cout << "trie_nodes:\t" << PairHMMConcurrentControl::trie_nodes << " / " << PairHMMConcurrentControl::original_nodes << std::endl;
 
 	std::vector<std::shared_ptr<VariantContext>> MergedConcurrentResults;
 	for (const auto &results: sharedData.concurrentResults) {

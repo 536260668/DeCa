@@ -498,16 +498,6 @@ template<class NUMBER> void CONCAT(CONCAT(compute_full_prob_with_trie_,SIMD_ENGI
                 M_t_2 = M_t_1; M_t_1 = M_t; X_t_2 = X_t_1; X_t_1 = X_t;
                 Y_t_2 = Y_t_1; Y_t_1 = Y_t; M_t_1_y = M_t_y;
             }
-            for(int i = 1; i < indexs.size(); i++) {
-                memcpy((shiftOutM[indexs[i]]+begin_d), (shiftOutM[j]+begin_d), sizeof(NUMBER)*numMaskBitsToProcess);
-                memcpy((shiftOutX[indexs[i]]+begin_d), (shiftOutX[j]+begin_d), sizeof(NUMBER)*numMaskBitsToProcess);
-                memcpy((shiftOutY[indexs[i]]+begin_d), (shiftOutY[j]+begin_d), sizeof(NUMBER)*numMaskBitsToProcess);
-//                for(int k = 0; k < numMaskBitsToProcess; k++) {
-//                    shiftOutM[indexs[i]][begin_d+k] = shiftOutM[j][begin_d+k];
-//                    shiftOutX[indexs[i]][begin_d+k] = shiftOutX[j][begin_d+k];
-//                    shiftOutY[indexs[i]][begin_d+k] = shiftOutY[j][begin_d+k];
-//                }
-            }
             begin_d += MAIN_TYPE_SIZE;
             if(node->getChild().size() > 1) {
                 int size = node->getChild().size();
@@ -717,15 +707,15 @@ template<class NUMBER> std::vector<NUMBER> CONCAT(CONCAT(compute_full_prob_t_,SI
         }
     }
     for(int j = 0; j < haps_num; j++) {
-        delete shiftOutM[j];
-        delete shiftOutX[j];
-        delete shiftOutY[j];
+        delete[] shiftOutM[j];
+        delete[] shiftOutX[j];
+        delete[] shiftOutY[j];
     }
     for(int k = 0; k < haps_num; k++) {
         for(int j = 0; j < numMaskVecs[k]; j++) {
-            delete maskArr[k][j];
+            delete[] maskArr[k][j];
         }
-        delete maskArr[k];
+        delete[] maskArr[k];
     }
     delete[] maskArr;
     return result;

@@ -8,6 +8,8 @@ std::queue<std::shared_ptr<LikelihoodsTask>> PairHMMConcurrentControl::pairHMMTa
 std::queue<std::shared_ptr<LikelihoodsTask_trie>> PairHMMConcurrentControl::pairHMMTaskQueue_trie;
 bool PairHMMConcurrentControl::startPairHMMConcurrentMode;
 std::mutex PairHMMConcurrentControl::pairHMMMutex;
+//std::atomic<unsigned long long> PairHMMConcurrentControl::trie_nodes;
+//std::atomic<unsigned long long> PairHMMConcurrentControl::original_nodes;
 //std::atomic<unsigned long long> PairHMMConcurrentControl::all_cases;
 //std::atomic<unsigned long long> PairHMMConcurrentControl::unique_cases;
 //std::atomic<unsigned long long> PairHMMConcurrentControl::all_reads;
@@ -18,6 +20,8 @@ void PairHMMConcurrentControl::initial() {
 	pairHMMTaskQueue = std::queue<std::shared_ptr<LikelihoodsTask>>();
 	pairHMMTaskQueue_trie = std::queue<std::shared_ptr<LikelihoodsTask_trie>>();
 	startPairHMMConcurrentMode = false;
+//	trie_nodes =  0;
+//	original_nodes = 0;
 //	all_cases = 0;
 //	unique_cases = 0;
 //	all_reads = 0;

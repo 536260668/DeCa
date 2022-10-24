@@ -274,3 +274,13 @@ buildTreeUtils::buildTreeWithHaplotype_same_height(const std::vector<std::shared
 	}
 	return root;
 }
+
+unsigned long long buildTreeUtils::numberOfNodes(trieNode *root) {
+	if (root == nullptr)
+		return 0;
+	unsigned long long ret = 1;
+	for (const auto &node: root->getChild()) {
+		ret += numberOfNodes(node);
+	}
+	return ret;
+}

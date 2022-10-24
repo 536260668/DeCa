@@ -20,6 +20,8 @@ public:
 
 	static void deleteTree(trieNode *root);
 
+	static unsigned long long numberOfNodes(trieNode *root);
+
 private:
 	static size_t avxLength();
 

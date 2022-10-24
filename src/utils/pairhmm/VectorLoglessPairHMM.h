@@ -21,7 +21,7 @@ private:
 	phmap::flat_hash_map<std::shared_ptr<Haplotype>, int, hash_Haplotype, equal_Haplotype> haplotypeToHaplotypeListIdxMap;
 	unsigned mHaplotypeDataArrayLength;
 	vector<std::shared_ptr<Haplotype>> haps;
-	trieNode *root;
+	trieNode *root = nullptr;
 
 public:
 	explicit VectorLoglessPairHMM(PairHMMNativeArgumentCollection &args);

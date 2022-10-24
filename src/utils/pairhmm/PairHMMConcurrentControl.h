@@ -41,6 +41,8 @@ public:
 	static std::queue<std::shared_ptr<LikelihoodsTask>> pairHMMTaskQueue;
 	static std::queue<std::shared_ptr<LikelihoodsTask_trie>> pairHMMTaskQueue_trie;
 	static bool startPairHMMConcurrentMode;
+//	static std::atomic<unsigned long long> trie_nodes;
+//	static std::atomic<unsigned long long> original_nodes;
 //	static std::atomic<unsigned long long> unique_reads;
 //	static std::atomic<unsigned long long> all_reads;
 //	static std::atomic<unsigned long long> unique_cases;

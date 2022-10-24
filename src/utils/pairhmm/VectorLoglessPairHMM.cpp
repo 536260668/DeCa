@@ -252,6 +252,14 @@ void VectorLoglessPairHMM::computeLog10Likelihoods_trie_unique(SampleMatrix<SAMR
 		}
 	}
 
+	// Count the number of nodes to be calculated by trie and the number of nodes in the original version.
+//	PairHMMConcurrentControl::trie_nodes += (buildTreeUtils::numberOfNodes(root) - 1) * numReads;
+//	int cnt = 0;
+//	for (int h = 0; h < mHaplotypeDataArrayLength; ++h) {
+//		cnt += mHaplotypeDataArray[h].length / 32 + 1;
+//	}
+//	PairHMMConcurrentControl::original_nodes += cnt * numReads;
+
 	// Compute
 	mLogLikelihoodArray_2D.clear();
 	mLogLikelihoodArray_2D.resize(uniqueTestcases.size());
