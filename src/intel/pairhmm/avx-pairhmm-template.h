@@ -603,15 +603,9 @@ template<class NUMBER> std::vector<NUMBER> CONCAT(CONCAT(compute_full_prob_t_,SI
     auto* distm1D = (SIMD_TYPE*)initializedData + 6 * MAVX_COUNT;
 
     /* Carries the values from each stripe to the next stripe */
-    NUMBER* shiftOutM[haps_num];
-    NUMBER* shiftOutX[haps_num];
-    NUMBER* shiftOutY[haps_num];
-
-    for(int i = 0; i < haps_num; i++) {
-        shiftOutM[i] = new NUMBER[ROWS+COLS[i]+AVX_LENGTH];
-        shiftOutX[i] = new NUMBER[ROWS+COLS[i]+AVX_LENGTH];
-        shiftOutY[i] = new NUMBER[ROWS+COLS[i]+AVX_LENGTH];
-    }
+    NUMBER** shiftOutM = (NUMBER**)tc->shiftOutM;
+    NUMBER** shiftOutX = (NUMBER**)tc->shiftOutX;
+    NUMBER** shiftOutY = (NUMBER**)tc->shiftOutY;
 
     /* The vector to keep the anti-diagonals of M, X, Y*/
     /* Current: M_t, X_t, Y_t */
@@ -706,18 +700,6 @@ template<class NUMBER> std::vector<NUMBER> CONCAT(CONCAT(compute_full_prob_t_,SI
             }
         }
     }
-    for(int j = 0; j < haps_num; j++) {
-        delete[] shiftOutM[j];
-        delete[] shiftOutX[j];
-        delete[] shiftOutY[j];
-    }
-    for(int k = 0; k < haps_num; k++) {
-        for(int j = 0; j < numMaskVecs[k]; j++) {
-            delete[] maskArr[k][j];
-        }
-        delete[] maskArr[k];
-    }
-    delete[] maskArr;
     return result;
 }
 

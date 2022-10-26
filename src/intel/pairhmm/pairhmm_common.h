@@ -62,12 +62,18 @@ struct trie_testcase{
     std::vector<std::shared_ptr<Haplotype>> haps;
     std::shared_ptr<ReadForPairHMM> readForPairHmm;
 	trieNode *root;
+    float** shiftOutM;
+    float** shiftOutX;
+    float** shiftOutY;
 
-	trie_testcase(std::vector<std::shared_ptr<Haplotype>> haplotypes, std::shared_ptr<ReadForPairHMM> _readForPairHmm, trieNode *node)
+	trie_testcase(std::vector<std::shared_ptr<Haplotype>> haplotypes, std::shared_ptr<ReadForPairHMM> _readForPairHmm, trieNode *node, float** _shiftOutM, float** _shiftOutX, float** _shiftOutY)
     {
         haps = std::move(haplotypes);
         readForPairHmm = std::move(_readForPairHmm);
         root = node;
+        shiftOutM = _shiftOutM;
+        shiftOutY = _shiftOutY;
+        shiftOutX = _shiftOutX;
     };
 } ;
 
