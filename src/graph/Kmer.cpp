@@ -81,26 +81,13 @@ bool Kmer::operator<(const Kmer &other) const {
 		return false;
 	if (this->length < other.length)
 		return true;
-	uint8_t *bases_ = bases.get();
-	uint8_t *other_ = other.bases.get();
-	for (int i = 0; i < length; i++)
-		if (bases_[this->start + i] > other_[other.start + i])
-			return false;
-		else if (bases_[this->start + i] < other_[other.start + i])
-			return true;
-		else continue;
-	return false;
+	return memcmp(bases.get() + this->start, other.bases.get() + other.start, length) < 0;
 }
 
 bool Kmer::operator==(const Kmer &other) const {
 	if (this->hash != other.hash || this->length != other.length)
 		return false;
-	uint8_t *bases_ = bases.get();
-	uint8_t *other_ = other.bases.get();
-	for (int i = 0; i < length; i++)
-		if (bases_[this->start + i] != other_[other.start + i])
-			return false;
-	return true;
+	return memcmp(bases.get() + this->start, other.bases.get() + other.start, length) == 0;
 }
 
 bool equal_kmer::operator()(const std::shared_ptr<Kmer> &kmer1, const std::shared_ptr<Kmer> &kmer2) const {

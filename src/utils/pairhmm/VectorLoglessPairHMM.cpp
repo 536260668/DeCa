@@ -25,20 +25,19 @@ void VectorLoglessPairHMM::initialize(const std::vector<std::shared_ptr<Haplotyp
 	haplotypeToHaplotypeListIdxMap.clear();
 	haplotypeToHaplotypeListIdxMap.reserve(mHaplotypeDataArrayLength);
 	int idx = 0;
-    std::set<int> records;
+	phmap::flat_hash_set<int> length_count;
 	for (const std::shared_ptr<Haplotype> &currHaplotype: haplotypes) {
-        int len = currHaplotype->getBasesLength();
-        records.insert(len);
+		int len = currHaplotype->getBasesLength();
+		length_count.insert(len);
 		mHaplotypeDataArray.emplace_back(currHaplotype->getBases().get(), len);
 		haplotypeToHaplotypeListIdxMap.emplace(currHaplotype, idx++);
 	}
-	haps = haplotypes;
-    is_use_trietree_optimize = haplotypes.size()/records.size() > 3;
+	is_use_trietree_optimize = haplotypes.size() / length_count.size() > 3;
 
-    if(is_use_trietree_optimize) {
-        buildTreeUtils::deleteTree(root);
-        root = buildTreeUtils::buildTreeWithHaplotype_same_height(haplotypes, true);
-    }
+	if (is_use_trietree_optimize) {
+		buildTreeUtils::deleteTree(root);
+		root = buildTreeUtils::buildTreeWithHaplotype_same_height(haplotypes, true);
+	}
 }
 
 void VectorLoglessPairHMM::computeLog10Likelihoods(SampleMatrix<SAMRecord, Haplotype> *logLikelihoods,
@@ -116,7 +115,9 @@ void VectorLoglessPairHMM::computeLog10Likelihoods(SampleMatrix<SAMRecord, Haplo
 
 	// Compute
 	std::vector<double> uniqueLogLikelihoodArray(uniqueTestcases.size());
-	computeLikelihoodsNative_concurrent(uniqueTestcases, uniqueLogLikelihoodArray);
+	for (int i = 0; i < uniqueTestcases.size(); ++i)
+		computeLikelihoodsNative_concurrent_i(uniqueTestcases, uniqueLogLikelihoodArray, i);
+//	computeLikelihoodsNative_concurrent(uniqueTestcases, uniqueLogLikelihoodArray);
 
 	// Mapping results
 	mLogLikelihoodArray_1D.resize(mapAlltoUnique.size());
@@ -199,7 +200,7 @@ void VectorLoglessPairHMM::computeLog10Likelihoods_trie(SampleMatrix<SAMRecord, 
 		                                                                                  delGops[r].get(), gapConts,
 		                                                                                  reads);
 		readOfTestcase->initializeFloatVector();
-		uniqueTestcases.emplace_back(haps, readOfTestcase, root,  shiftOutM, shiftOutX, shiftOutY);
+		uniqueTestcases.emplace_back(mHaplotypeDataArray, readOfTestcase, root);
 	}
 
 	// Compute
@@ -305,7 +306,7 @@ void VectorLoglessPairHMM::computeLog10Likelihoods_trie_unique(SampleMatrix<SAMR
 			// Push testcases into uniqueTestcases and mark the index where the testcase appears
 			uniqueReadForPairHMM.emplace(readOfTestcase, uniqueTestcases.size());
 			mapAlltoUnique.emplace_back(uniqueTestcases.size());
-			uniqueTestcases.emplace_back(haps, readOfTestcase, root,shiftOutM, shiftOutX, shiftOutY);
+			uniqueTestcases.emplace_back(mHaplotypeDataArray, readOfTestcase, root);
 			readOfTestcase->initializeFloatVector();    // initialize probaility arrays and distm
 		} else {
 			// No element needs to be pushed into uniqueTestcases

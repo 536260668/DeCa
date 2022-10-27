@@ -30,13 +30,10 @@
   #include <x86intrin.h> // SIMD intrinsics for GCC
 #endif
 
-#include <assert.h>
-#include <stdint.h>
+#include "utils/pairhmm/HaplotypeDataHolder.h"
 #include <utility>
 #include "haplotypecaller/ReadForPairHMM.h"
 #include "trie/trieNode.h"
-#include <vector>
-#include "haplotype/Haplotype.h"
 
 #define CAT(X,Y) X##Y
 #define CONCAT(X,Y) CAT(X,Y)
@@ -59,22 +56,26 @@ struct testcase{
 } ;
 
 struct trie_testcase{
-    std::vector<std::shared_ptr<Haplotype>> haps;
-    std::shared_ptr<ReadForPairHMM> readForPairHmm;
+	std::vector<HaplotypeDataHolder>& haplotypeDataArray;
+	std::shared_ptr<ReadForPairHMM> readForPairHmm;
 	trieNode *root;
     float** shiftOutM;
     float** shiftOutX;
     float** shiftOutY;
 
+	trie_testcase(std::vector<HaplotypeDataHolder> &haplotypeDataArray, std::shared_ptr<ReadForPairHMM> readForPairHmm,
+	              trieNode *root) : haplotypeDataArray(haplotypeDataArray), readForPairHmm(std::move(readForPairHmm)),
+	                                root(root) {}
+
 	trie_testcase(std::vector<std::shared_ptr<Haplotype>> haplotypes, std::shared_ptr<ReadForPairHMM> _readForPairHmm, trieNode *node, float** _shiftOutM, float** _shiftOutX, float** _shiftOutY)
-    {
-        haps = std::move(haplotypes);
-        readForPairHmm = std::move(_readForPairHmm);
-        root = node;
-        shiftOutM = _shiftOutM;
-        shiftOutY = _shiftOutY;
-        shiftOutX = _shiftOutX;
-    };
+	{
+		haps = std::move(haplotypes);
+		readForPairHmm = std::move(_readForPairHmm);
+		root = node;
+		shiftOutM = _shiftOutM;
+		shiftOutY = _shiftOutY;
+		shiftOutX = _shiftOutX;
+	};
 } ;
 
 

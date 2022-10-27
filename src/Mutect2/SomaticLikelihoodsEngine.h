@@ -16,7 +16,7 @@ private:
 
     static double xLogx(double x);
 
-    static double likelihoodsContribution(std::shared_ptr<std::vector<double>> logLikelihoodsForRead, std::shared_ptr<std::vector<double>> responsibilities);
+    static double likelihoodsContribution(const std::shared_ptr<std::vector<double>>& logLikelihoodsForRead, const std::shared_ptr<std::vector<double>>& responsibilities);
 
 public:
     constexpr static double CONVERGENCE_THRESHOLD = 0.001;

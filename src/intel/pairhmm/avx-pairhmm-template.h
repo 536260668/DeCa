@@ -352,7 +352,7 @@ template<class NUMBER> NUMBER CONCAT(CONCAT(compute_full_prob_,SIMD_ENGINE), PRE
 void CONCAT(CONCAT(precompute_masks_,SIMD_ENGINE), PRECISION)(const trie_testcase& tc, const std::vector<int> &COLS, const std::vector<int> &numMaskVecs, MASK_TYPE ***maskArr) {
 
     const int maskBitCnt = MAIN_TYPE_SIZE ;
-    const int haps_size = tc.haps.size();
+    const int haps_size = tc.haplotypeDataArray.size();
 
     for(int i = 0; i < haps_size; i++) {
         for (int vi=0; vi < numMaskVecs[i]; ++vi) {
@@ -362,7 +362,7 @@ void CONCAT(CONCAT(precompute_masks_,SIMD_ENGINE), PRECISION)(const trie_testcas
             maskArr[i][vi][AMBIG_CHAR] = MASK_ALL_ONES ;
         }
 
-        uint8_t * hap = tc.haps[i]->getBases().get();
+        uint8_t * hap = tc.haplotypeDataArray[i].haplotypeBases;
         for (int col=1; col < COLS[i]; ++col) {
             int mIndex = (col-1) / maskBitCnt ;
             int mOffset = (col-1) % maskBitCnt ;
@@ -388,7 +388,7 @@ void CONCAT(CONCAT(precompute_masks_,SIMD_ENGINE), PRECISION)(const trie_testcas
 
 template<class NUMBER> void CONCAT(CONCAT(initializeVectors,SIMD_ENGINE), PRECISION)(int ROWS, const std::vector<int> &COLS, NUMBER** shiftOutM, NUMBER** shiftOutX, NUMBER** shiftOutY, Context<NUMBER> ctx, trie_testcase *tc)
 {
-    for(int i = 0; i < tc->haps.size(); i++) {
+    for(int i = 0; i < tc->haplotypeDataArray.size(); i++) {
         NUMBER zero = ctx._(0.0);
         // Casting is fine because the algorithm is intended to have limited precision.
         NUMBER init_Y = ctx.INITIAL_CONSTANT / (NUMBER)(COLS[i]-1);
@@ -417,7 +417,7 @@ template<class NUMBER> inline void CONCAT(CONCAT(stripeINITIALIZATION,SIMD_ENGIN
 
     NUMBER zero = ctx._(0.0);
     // Casting is fine because the algorithm is intended to have limited precision.
-    int tmp = tc->haps[node->getIndex()[0]]->getBasesLength();
+    int tmp = tc->haplotypeDataArray[node->getIndex()[0]].length;
     NUMBER init_Y = ctx.INITIAL_CONSTANT / ((NUMBER)tmp);
     UNION_TYPE packed1;  packed1.d = VEC_SET1_VAL(1.0);
     UNION_TYPE packed3;  packed3.d = VEC_SET1_VAL(3.0);
@@ -577,14 +577,13 @@ template<class NUMBER> void CONCAT(CONCAT(compute_full_prob_with_trie_,SIMD_ENGI
 template<class NUMBER> std::vector<NUMBER> CONCAT(CONCAT(compute_full_prob_t_,SIMD_ENGINE), PRECISION)(trie_testcase *tc) {
     int ROWS = tc->readForPairHmm->rslen + 1;
     std::vector<int> COLS;
-    std::vector<std::shared_ptr<Haplotype>> haps = tc->haps;
-    int haps_num = haps.size();
+    int haps_num = tc->haplotypeDataArray.size();
     std::vector<NUMBER> result = std::vector<NUMBER>(haps_num);
 	trieNode *root = tc->root;
 
-    for(int i = 0; i < haps.size(); i++) {
+    for(int i = 0; i < haps_num; i++) {
         // int tmp = haps[i]->getBasesLength();
-        COLS.template emplace_back(haps[i]->getBasesLength()+1);
+        COLS.template emplace_back(tc->haplotypeDataArray[i].length + 1);
     }
     int MAVX_COUNT = (ROWS+AVX_LENGTH-1)/AVX_LENGTH;
 

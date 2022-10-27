@@ -297,7 +297,7 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 
 				Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
 				if (BOOST_LIKELY(!PairHMMConcurrentControl::startPairHMMConcurrentMode)) {
-                    try{
+                    try {
                         std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext);
                         w->results[currentTask].insert(w->results[currentTask].end(), variant.begin(), variant.end());
                     }
@@ -336,7 +336,7 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 			Mutect2Engine::fillNextAssemblyRegionWithReads(nextRegion, cache);
 			// ReferenceContext is not needed for the time being
 			if (BOOST_LIKELY(!PairHMMConcurrentControl::startPairHMMConcurrentMode)) {
-                try{
+                try {
                     std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, defaultReferenceContext);    // TODO: callRegion() needs pileupRefContext
                     w->results[currentTask].insert(w->results[currentTask].end(), variant.begin(), variant.end());
                 }
@@ -373,7 +373,7 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
                     w->numOfFreeThread--;
                     int refInd = ContigMap::getContigInt(activeRegion.region->getContig());
                     m2Engine.setReferenceCache(w->refCaches[refInd].get());
-                    try{
+                    try {
                         std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(activeRegion.region, activeRegion.referenceContext);
                         w->concurrentResults[threadID].insert(w->concurrentResults[threadID].end(), variant.begin(), variant.end());
                     }
@@ -401,7 +401,7 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 
 				if (BOOST_LIKELY(likelihoods != nullptr)) {   // calcualte PairHMM
 					w->numOfFreeThread--;
-					for (unsigned long ind = likelihoods->index++; ind < likelihoods->testcasesSize; ind = likelihoods->index++) {
+					for (unsigned long ind = likelihoods->index++; ind < likelihoods->testcasesSize - 8; ind = likelihoods->index++) {
 						computeLikelihoodsNative_concurrent_trie_i(likelihoods->taskTestcases, likelihoods->taskLikelihoodArray, ind);
 						likelihoods->count++;
 					}

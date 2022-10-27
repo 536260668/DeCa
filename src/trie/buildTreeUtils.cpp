@@ -3,7 +3,6 @@
 //
 
 #include "buildTreeUtils.h"
-#include "intel/common/avx.h"
 #include <iostream>
 #include <deque>
 
@@ -30,9 +29,9 @@ buildTreeUtils::buildTreeWithHaplotype(const std::vector<std::shared_ptr<Haploty
 	}
 	int avxLen = isFloat ? sizeof(float) * 8 : sizeof(double) * 8;
 	int i = 0;
-	trieNode *root = new trieNode();
+	auto *root = new trieNode();
 	trieNode *father = root;
-	trieNode *child = new trieNode({record});
+	auto *child = new trieNode({record});
 	father->addChild(child);
 	father = child;
 	while (referenceLength - 1 > i * avxLen) {
@@ -52,7 +51,6 @@ buildTreeUtils::buildTreeWithHaplotype(const std::vector<std::shared_ptr<Haploty
 		bool flag = false;
 		for (const auto &node: father->getChild()) {
 			char *nodebases = reinterpret_cast<char *>(haplotypes[node->getIndex()[0]]->getBases().get());
-			int nodebaseLen = haplotypes[node->getIndex()[0]]->getBasesLength();
 			if (nodebases[0] == bases[0]) {
 				father = node;
 				node->addIndex(j);
@@ -90,7 +88,7 @@ buildTreeUtils::buildTreeWithHaplotype(const std::vector<std::shared_ptr<Haploty
 				}
 			}
 			if (!flag) {
-				trieNode *child = new trieNode({j});
+				auto *child = new trieNode({j});
 				father->addChild(child);
 				father = child;
 			} else {
@@ -114,22 +112,14 @@ buildTreeUtils::buildTreeWithHaplotype(const std::vector<std::shared_ptr<Haploty
 				}
 			}
 		}
-		trieNode *child = new trieNode({j});
+		auto *child = new trieNode({j});
 		father->addChild(child);
 	}
 	return root;
 }
 
-size_t buildTreeUtils::avxLength() {
-	return 32;
-}
-
 bool buildTreeUtils::isEqual(char *c1, char *c2, int len) {
-	if(memcmp(c1, c2, len) == 0) {
-        return true;
-    } else {
-        return false;
-    }
+	return memcmp(c1, c2, len) == 0;
 }
 
 void buildTreeUtils::deleteTree(trieNode *root) {
@@ -185,9 +175,9 @@ buildTreeUtils::buildTreeWithHaplotype_same_height(const std::vector<std::shared
 	}
 	int avxLen = isFloat ? sizeof(float) * 8 : sizeof(double) * 8;
 	int i = 0;
-	trieNode *root = new trieNode();
+	auto *root = new trieNode();
 	trieNode *father = root;
-	trieNode *child = new trieNode({record});
+	auto *child = new trieNode({record});
 	father->addChild(child);
 	father = child;
 	while (referenceLength - 1 > i * avxLen) {
@@ -245,7 +235,7 @@ buildTreeUtils::buildTreeWithHaplotype_same_height(const std::vector<std::shared
 				}
 			}
 			if (!flag) {
-				trieNode *child = new trieNode({j});
+				auto *child = new trieNode({j});
 				father->addChild(child);
 				father = child;
 			} else {
@@ -269,7 +259,7 @@ buildTreeUtils::buildTreeWithHaplotype_same_height(const std::vector<std::shared
 				}
 			}
 		}
-		trieNode *child = new trieNode({j});
+		auto *child = new trieNode({j});
 		father->addChild(child);
 	}
 	return root;

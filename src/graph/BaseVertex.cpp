@@ -24,10 +24,7 @@ bool BaseVertex::isEmpty() const {
 bool BaseVertex::operator==(const BaseVertex &other) const {
 	if (other.cashedHashCode != cashedHashCode || other.length != length)
 		return false;
-	for (int i = 0; i < length; i++)
-		if (sequence.get()[i] != other.sequence.get()[i])
-			return false;
-	return true;
+	return memcmp(sequence.get(), other.sequence.get(), length) == 0;
 }
 
 bool BaseVertex::operator<(const BaseVertex &other) const {

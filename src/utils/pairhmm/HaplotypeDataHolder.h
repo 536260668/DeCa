@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <memory>
 #include <utility>
+#include <cassert>
 
 struct HaplotypeDataHolder {
     uint8_t* haplotypeBases;

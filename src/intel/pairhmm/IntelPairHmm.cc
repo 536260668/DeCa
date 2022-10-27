@@ -659,7 +659,7 @@ double compute_full_prob_Fixed64(testcase *tc) {
 void computeLikelihoodsNative_concurrent_trie(std::vector<trie_testcase> &testcases,
 											  std::vector<std::vector<double>> &likelihoodArray) {
 	for (int i = 0; i < testcases.size(); i++) {
-		if (BOOST_LIKELY((!PairHMMConcurrentControl::startPairHMMConcurrentMode) || testcases.size() - i < 192)) {
+		if (BOOST_LIKELY((!PairHMMConcurrentControl::startPairHMMConcurrentMode) || testcases.size() - i < 96)) {
 			computeLikelihoodsNative_concurrent_trie_i(testcases, likelihoodArray, i);
 		} else {
 			std::shared_ptr<LikelihoodsTask_trie> likelihoods = std::make_shared<LikelihoodsTask_trie>(testcases, likelihoodArray, (unsigned long)i, testcases.size());
@@ -670,7 +670,13 @@ void computeLikelihoodsNative_concurrent_trie(std::vector<trie_testcase> &testca
 			//std::cout << std::to_string(testcases.size()) + " testcases\tpush [" + std::to_string(i) + ", " + std::to_string(testcases.size() - 1) + "] size: " +
 			//                                                                                                                                          std::to_string(testcases.size() - i ) + '\n';
 
-			for (unsigned long ind = likelihoods->index++; ind < likelihoods->testcasesSize; ind = likelihoods->index++) {
+			for (unsigned long ind = likelihoods->index++; ind < likelihoods->testcasesSize - 8; ind = likelihoods->index++) {
+				//std::cout << std::to_string(ind) + '\n';
+				computeLikelihoodsNative_concurrent_trie_i(likelihoods->taskTestcases, likelihoods->taskLikelihoodArray, ind);
+				likelihoods->count++;
+			}
+
+			for (unsigned long ind = likelihoods->testcasesSize - 8; ind < likelihoods->testcasesSize; ind++) {
 				//std::cout << std::to_string(ind) + '\n';
 				computeLikelihoodsNative_concurrent_trie_i(likelihoods->taskTestcases, likelihoods->taskLikelihoodArray, ind);
 				likelihoods->count++;
@@ -692,8 +698,7 @@ void computeLikelihoodsNative_concurrent_trie_i(std::vector<trie_testcase> &test
 	std::vector<float> result_float = (BOOST_UNLIKELY(g_use_double)) ? std::vector<float>() : g_compute_full_prob_t_float(cur_case);
 	for (int k = 0; k < result_float.size(); k++) {
 		if (result_float[k] < MIN_ACCEPTED) {
-            std::vector<std::shared_ptr<Haplotype>> haps = cur_case->haps;
-            testcase ts = testcase(haps[k]->getBasesLength(), haps[k]->getBases().get(), cur_case->readForPairHmm);
+            testcase ts(cur_case->haplotypeDataArray[k].length, cur_case->haplotypeDataArray[k].haplotypeBases, cur_case->readForPairHmm);
             double result = g_compute_full_prob_double(&ts);
             likelihoodArray[i].emplace_back(log10(result) - Context<double>::LOG10_INITIAL_CONSTANT);
 		} else {

@@ -23,8 +23,6 @@ public:
 	static unsigned long long numberOfNodes(trieNode *root);
 
 private:
-	static size_t avxLength();
-
 	static bool isEqual(char *c1, char *c2, int len);
 };
 

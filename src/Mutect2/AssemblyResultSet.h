@@ -16,14 +16,7 @@ public:
 	bool operator()(const std::shared_ptr<Haplotype> &left, const std::shared_ptr<Haplotype> &right) const {
 		if (left->getLength() != right->getLength())
 			return left->getLength() > right->getLength();
-		int len = left->getLength();
-		std::shared_ptr<uint8_t[]> bases1 = left->getBases();
-		std::shared_ptr<uint8_t[]> bases2 = right->getBases();
-		for (int i = 0; i < len; ++i) {
-			if (bases1[i] != bases2[i])
-				return bases1[i] < bases2[i];
-		}
-		return false;
+		return memcmp(left->getBases().get(), right->getBases().get(), left->getLength()) < 0;
 	}
 };
 
@@ -37,14 +30,7 @@ struct equal_Haplotype {
 	bool operator()(const std::shared_ptr<Haplotype> &left, const std::shared_ptr<Haplotype> &right) const {
 		if (left->getLength() != right->getLength())
 			return false;
-		int size = left->getLength();
-		uint8_t *left_bases = left->getBases().get();
-		uint8_t *right_bases = right->getBases().get();
-		for (int i = 0; i < size; i++) {
-			if (left_bases[i] != right_bases[i])
-				return false;
-		}
-		return true;
+		return memcmp(left->getBases().get(), right->getBases().get(), left->getLength()) == 0;
 	}
 };
 

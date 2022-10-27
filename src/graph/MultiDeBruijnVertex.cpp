@@ -13,10 +13,7 @@ MultiDeBruijnVertex::MultiDeBruijnVertex(const std::shared_ptr<uint8_t[]> &seque
 bool MultiDeBruijnVertex::operator==(const MultiDeBruijnVertex &other) const {
 	if (this->getLength() != other.getLength() || this->getHashCode() != other.getHashCode())
 		return false;
-	for (int i = 0; i < this->getLength(); i++)
-		if (sequence.get()[i] != other.sequence.get()[i])
-			return false;
-	return true;
+	return memcmp(sequence.get(), other.sequence.get(), this->getLength()) == 0;
 }
 
 bool MultiDeBruijnVertex::operator<(const MultiDeBruijnVertex &other) const {
@@ -24,10 +21,7 @@ bool MultiDeBruijnVertex::operator<(const MultiDeBruijnVertex &other) const {
 		return false;
 	if (this->getLength() < other.getLength())
 		return true;
-	for (int i = 0; i < this->getLength(); i++)
-		if (sequence.get()[i] > other.sequence.get()[i])
-			return false;
-	return true;
+	return memcmp(sequence.get(), other.sequence.get(), this->getLength()) <= 0;
 }
 
 std::shared_ptr<uint8_t[]> MultiDeBruijnVertex::getAdditionalSequence(bool source) {

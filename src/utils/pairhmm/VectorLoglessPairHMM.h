@@ -15,12 +15,9 @@
 
 class VectorLoglessPairHMM : public PairHMM {
 private:
-	//---two-dimensional array ?
-	//std::shared_ptr<std::shared_ptr<HaplotypeDataHolder>[]> mHaplotypeDataArray;
-	vector<HaplotypeDataHolder> mHaplotypeDataArray;
+	std::vector<HaplotypeDataHolder> mHaplotypeDataArray;
 	phmap::flat_hash_map<std::shared_ptr<Haplotype>, int, hash_Haplotype, equal_Haplotype> haplotypeToHaplotypeListIdxMap;
 	unsigned mHaplotypeDataArrayLength;
-	vector<std::shared_ptr<Haplotype>> haps;
 	trieNode *root = nullptr;
 
 public:

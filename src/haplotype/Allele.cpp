@@ -233,16 +233,7 @@ bool Allele::operator<(const Allele &other) const {
 		return true;
 	if (isNoCall < other.getIsNoCall())
 		return false;
-	uint8_t *bases_ = bases.get();
-	uint8_t *other_ = other.bases.get();
-	for (int i = 0; i < length; i++) {
-		if (bases_[i] < other_[i])
-			return true;
-		if (bases_[i] > other_[i])
-			return false;
-	}
-	return true;
-
+	return memcmp(bases.get(), other.bases.get(), length) <= 0;
 }
 
 int Allele::getLength() const {
@@ -258,13 +249,7 @@ bool Allele::operator==(const Allele &other) const {
 		return false;
 	if (this->bases == other.getBases())
 		return true;
-	uint8_t *bases_ = bases.get();
-	uint8_t *other_ = other.bases.get();
-	for (int i = 0; i < length; i++) {
-		if (bases_[i] != other_[i])
-			return false;
-	}
-	return true;
+	return memcmp(bases.get(), other.bases.get(), length) == 0;
 }
 
 std::string Allele::getBaseString() {
@@ -289,16 +274,7 @@ bool Allele::equals(Allele &other, bool ignoreRefState) {
 		return false;
 	if (bases == other.bases)
 		return true;
-	else {
-		if (length != other.length)
-			return false;
-		uint8_t *bases_ = bases.get();
-		uint8_t *other_ = other.bases.get();
-		for (int i = 0; i < length; i++) {
-			if (bases_[i] != other_[i]) {
-				return false;
-			}
-		}
-		return true;
-	}
+	if (length != other.length)
+		return false;
+	return memcmp(bases.get(), other.bases.get(), length) == 0;
 }
