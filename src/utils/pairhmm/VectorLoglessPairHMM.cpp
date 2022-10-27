@@ -165,28 +165,6 @@ void VectorLoglessPairHMM::computeLog10Likelihoods_trie(SampleMatrix<SAMRecord, 
 	std::vector<shared_ptr<uint8_t[]>> insGops, delGops;
 	insGops.reserve(numReads);
 	delGops.reserve(numReads);
-    int row = 0;
-    for(const auto & read : processedReads) {
-        row = read->getLength() > row ? read->getLength() : row;
-    }
-    int haps_num = haps.size();
-    vector<int> COLS = vector<int>(haps_num);
-    for(int i = 0; i < haps_num; ++i) {
-        COLS[i] = haps[i]->getBasesLength();
-    }
-    float ** shiftOutM;
-    float ** shiftOutX;
-    float ** shiftOutY;
-
-    shiftOutM = new float*[haps_num];
-    shiftOutY = new float*[haps_num];
-    shiftOutX = new float*[haps_num];
-
-    for(int i = 0; i < haps_num; i++) {
-        shiftOutM[i] = new float[row+COLS[i]+8];
-        shiftOutX[i] = new float[row+COLS[i]+8];
-        shiftOutY[i] = new float[row+COLS[i]+8];
-    }
 	for (int r = 0; r < numReads; ++r) {
 		_rslen = processedReads[r]->getLength();
 		insGops.emplace_back(ReadUtils::getBaseInsertionQualities(processedReads[r], _rslen));
@@ -211,7 +189,7 @@ void VectorLoglessPairHMM::computeLog10Likelihoods_trie(SampleMatrix<SAMRecord, 
 	}
 	computeLikelihoodsNative_concurrent_trie(uniqueTestcases, mLogLikelihoodArray_2D);
 
-	std::cout.setf(ios::fixed);
+	//std::cout.setf(ios::fixed);
 
 	for (int r = 0; r < numReads; ++r) {
 		int hapIdx = 0;
@@ -219,19 +197,11 @@ void VectorLoglessPairHMM::computeLog10Likelihoods_trie(SampleMatrix<SAMRecord, 
 			//Since the order of haplotypes in the List<Haplotype> and alleleHaplotypeMap is different,
 			//get idx of current haplotype in the list and use this idx to get the right likelihoodValue
 			int idxInsideHaplotypeList = haplotypeToHaplotypeListIdxMap.at(haplotype);
-			std::cout << setprecision(5) << mLogLikelihoodArray_2D[r][idxInsideHaplotypeList] << " ";
+			//std::cout << setprecision(5) << mLogLikelihoodArray_2D[r][idxInsideHaplotypeList] << " ";
 			logLikelihoods->set(hapIdx++, r, mLogLikelihoodArray_2D[r][idxInsideHaplotypeList]);
 		}
 	}
-	std::cout << std::endl;
-    for(int j = 0; j < haps_num; j++) {
-        delete[] shiftOutM[j];
-        delete[] shiftOutX[j];
-        delete[] shiftOutY[j];
-    }
-    delete[] shiftOutM;
-    delete[] shiftOutY;
-    delete[] shiftOutX;
+	//std::cout << std::endl;
 }
 
 void VectorLoglessPairHMM::computeLog10Likelihoods_trie_unique(SampleMatrix<SAMRecord, Haplotype> *logLikelihoods,
@@ -258,37 +228,6 @@ void VectorLoglessPairHMM::computeLog10Likelihoods_trie_unique(SampleMatrix<SAMR
 	std::vector<shared_ptr<uint8_t[]>> insGops, delGops;
 	insGops.reserve(numReads);
 	delGops.reserve(numReads);
-    int row = 0;
-    for(const auto & read : processedReads) {
-        row = read->getLength() > row ? read->getLength() : row;
-    }
-    int haps_num = haps.size();
-    vector<int> COLS = vector<int>(haps_num);
-    for(int i = 0; i < haps_num; ++i) {
-        COLS[i] = haps[i]->getBasesLength();
-    }
-    const int maskBitCnt = 32 ;
-    std::vector<int> numMaskVecs;
-    for(int i = 0; i < haps_num; i++) {
-        numMaskVecs.template emplace_back((COLS[i]+row+maskBitCnt-1)/maskBitCnt);
-    }
-    for(int i = 0; i < haps_num; i++) {
-        numMaskVecs.template emplace_back((COLS[i]+row+maskBitCnt-1)/maskBitCnt);
-    }
-//    uint32_t ***maskArr = precompute_mask(haps, COLS, numMaskVecs,row);
-    float ** shiftOutM;
-    float ** shiftOutX;
-    float ** shiftOutY;
-
-    shiftOutM = new float*[haps_num];
-    shiftOutY = new float*[haps_num];
-    shiftOutX = new float*[haps_num];
-
-    for(int i = 0; i < haps_num; i++) {
-        shiftOutM[i] = new(align_val_t(16)) float[row+COLS[i]+8];
-        shiftOutX[i] = new(align_val_t(16)) float[row+COLS[i]+8];
-        shiftOutY[i] = new(align_val_t(16)) float[row+COLS[i]+8];
-    }
 	for (int r = 0; r < numReads; ++r) {
 		_rslen = processedReads[r]->getLength();
 		insGops.emplace_back(ReadUtils::getBaseInsertionQualities(processedReads[r], _rslen));
@@ -344,14 +283,6 @@ void VectorLoglessPairHMM::computeLog10Likelihoods_trie_unique(SampleMatrix<SAMR
 		}
 	}
 	//std::cout << std::endl;
-    for(int j = 0; j < haps_num; j++) {
-        delete[] shiftOutM[j];
-        delete[] shiftOutX[j];
-        delete[] shiftOutY[j];
-    }
-    delete[] shiftOutM;
-    delete[] shiftOutY;
-    delete[] shiftOutX;
 }
 
 VectorLoglessPairHMM::~VectorLoglessPairHMM() {

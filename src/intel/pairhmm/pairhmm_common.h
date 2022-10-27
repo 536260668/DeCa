@@ -59,23 +59,9 @@ struct trie_testcase{
 	std::vector<HaplotypeDataHolder>& haplotypeDataArray;
 	std::shared_ptr<ReadForPairHMM> readForPairHmm;
 	trieNode *root;
-    float** shiftOutM;
-    float** shiftOutX;
-    float** shiftOutY;
 
 	trie_testcase(std::vector<HaplotypeDataHolder> &haplotypeDataArray, std::shared_ptr<ReadForPairHMM> readForPairHmm,
-	              trieNode *root) : haplotypeDataArray(haplotypeDataArray), readForPairHmm(std::move(readForPairHmm)),
-	                                root(root) {}
-
-	trie_testcase(std::vector<std::shared_ptr<Haplotype>> haplotypes, std::shared_ptr<ReadForPairHMM> _readForPairHmm, trieNode *node, float** _shiftOutM, float** _shiftOutX, float** _shiftOutY)
-	{
-		haps = std::move(haplotypes);
-		readForPairHmm = std::move(_readForPairHmm);
-		root = node;
-		shiftOutM = _shiftOutM;
-		shiftOutY = _shiftOutY;
-		shiftOutX = _shiftOutX;
-	};
+	              trieNode *root) : haplotypeDataArray(haplotypeDataArray), readForPairHmm(std::move(readForPairHmm)), root(root) {}
 } ;
 
 
@@ -83,18 +69,18 @@ struct trie_testcase{
 class ConvertChar {
   static uint8_t conversionTable[255] ;
 
- public:  
+ public:
   static void init() {
     assert (NUM_DISTINCT_CHARS == 5) ;
     assert (AMBIG_CHAR == 4) ;
-    
+
     conversionTable['A'] = 0 ;
     conversionTable['C'] = 1 ;
     conversionTable['T'] = 2 ;
     conversionTable['G'] = 3 ;
     conversionTable['N'] = 4 ;
   }
-  
+
   static inline uint8_t get(uint8_t input) {
     return conversionTable[input] ;
   }
