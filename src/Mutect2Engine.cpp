@@ -228,7 +228,7 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion> &originalAssembl
 
 	CalledHaplotypes calledHaplotypes
 			= genotypingEngine.callMutations(readLikelihoods, *assemblyResult, referenceContext,
-			                                 *regionForGenotyping->getSpan(), header);
+ 			                                 *regionForGenotyping->getSpan(), header);
 
 	//---print the called variant
 	std::shared_ptr<std::vector<std::shared_ptr<VariantContext>>> calls = calledHaplotypes.getCalls();

@@ -99,3 +99,13 @@ AttributeValue::~AttributeValue(){
 AttributeValue AttributeValue::empty_value() {
     return AttributeValue(nullptr, NULL_);
 }
+
+double AttributeValue::getAttributeAsDouble() {
+    assert(type == DOUBLE);
+    return *((double*)value);
+}
+
+std::vector<double> AttributeValue::getAttributeAsDoubleVector() {
+    assert(type == VECTOR_DOUBLE);
+    return *((std::vector<double>*)value);
+}

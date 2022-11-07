@@ -35,6 +35,12 @@ shared_ptr<VariantContext> VariantAnnotatorEngine::annotateContext(shared_ptr<Va
             }
         }
     }
+
+    for(auto& atr : vc->getAttributes()) {
+        infoAnnotMap->emplace(atr);
+    }
+    builder.setGenotypes(vc->getGenotypes());
+
     auto annotated = builder.setAttributes(infoAnnotMap)->make();
 
     return annotated;

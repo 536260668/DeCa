@@ -36,6 +36,7 @@ include_directories("${PROJECT_SOURCE_DIR}/src/smithwaterman")
 include_directories("${PROJECT_SOURCE_DIR}/src/Mutect2")
 include_directories("${PROJECT_SOURCE_DIR}/src/variantcontext")
 include_directories("${PROJECT_SOURCE_DIR}/src/annotator")
+include_directories("${PROJECT_SOURCE_DIR}/src/Mutect2FilteringEngine")
 
 add_subdirectory(./src/cache)
 add_subdirectory(./src/cigar)
@@ -55,8 +56,10 @@ add_subdirectory(./src/tools)
 add_subdirectory(./src/samtools)
 add_subdirectory(./src/clipping)
 add_subdirectory(./src/annotator)
+add_subdirectory(./src/Mutect2FilteringEngine)
 
-add_executable(Mutect2Cpp_master ${DIR_SRCS} src/model/model.cpp src/model/model.h src/engine/ReferenceContext.cpp src/engine/ReferenceContext.h src/engine/AlignmentContext.cpp src/engine/AlignmentContext.h src/pileRead.h src/trie/trieNode.cpp src/trie/trieNode.h src/trie/buildTreeUtils.cpp src/trie/buildTreeUtils.h)
+add_executable(Mutect2Cpp_master ${DIR_SRCS} src/model/model.cpp src/model/model.h src/engine/ReferenceContext.cpp src/engine/ReferenceContext.h src/engine/AlignmentContext.cpp src/engine/AlignmentContext.h src/pileRead.h
+        src/trie/trieNode.cpp src/trie/trieNode.h src/trie/buildTreeUtils.cpp src/trie/buildTreeUtils.h)
 
 # Add this flag to turn on the sort mode for comparison with GATK
 # add_definitions(-DSORT_MODE)
@@ -85,5 +88,6 @@ target_link_libraries(Mutect2Cpp_master ClippingFunctions)
 target_link_libraries(Mutect2Cpp_master gkl_pairhmm)
 target_link_libraries(Mutect2Cpp_master "${TORCH_LIBRARIES}")
 target_link_libraries(Mutect2Cpp_master AnnotatorFunctions)
+target_link_libraries(Mutect2Cpp_master Mutect2FilteringEngineFunctions)
 
 

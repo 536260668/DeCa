@@ -48,6 +48,10 @@ public:
 
     int getAttributeAsInt();
 
+    double getAttributeAsDouble();
+
+    std::vector<double> getAttributeAsDoubleVector();
+
     static AttributeValue empty_value();
 };
 

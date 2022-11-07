@@ -616,17 +616,19 @@ int main(int argc, char *argv[])
 			return ind1 < ind2;
 		return a->getStart() < b->getStart();
 	});
-
+    std::vector<std::shared_ptr<VariantContext>> vc_results;
 	auto sortedVC = MergedConcurrentResults.begin();
 	for (int i = 0; i < sharedData.regions.size(); ++i) {
 		for (const auto &vc: sharedData.results[i]) {
 			//Mutect2Engine::printVariationContext(vc);
+            vc_results.emplace_back(vc);
 		}
 		int regionEnd = sharedData.regions[i].getEnd(), regionIndex = sharedData.regions[i].getK();
 		for (; sortedVC != MergedConcurrentResults.end(); ++sortedVC) {
 			if ((*sortedVC)->getContigInt() != regionIndex || (*sortedVC)->getStart() > regionEnd)
 				break;
 			//Mutect2Engine::printVariationContext(*sortedVC);
+            vc_results.emplace_back(*sortedVC);
 		}
 	}
 
