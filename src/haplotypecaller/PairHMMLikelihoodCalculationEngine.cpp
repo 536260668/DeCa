@@ -66,28 +66,11 @@ void PairHMMLikelihoodCalculationEngine::computeReadLikelihoods(SampleMatrix<SAM
     auto gapContinuationPenalties = buildGapContinuationPenalties(*processedReads, constantGCP);
 
     // Run the PairHMM to calculate the log10 likelihood of each (processed) reads' arising from each haplotype
-	auto startTime = std::chrono::system_clock::now(), endTime = std::chrono::system_clock::now();
-    if(BOOST_UNLIKELY(pairHMM->is_use_trietree_optimize)) {
-        startTime = std::chrono::system_clock::now();
+    if(BOOST_UNLIKELY(pairHMM->is_use_trietree_optimize))
         pairHMM->computeLog10Likelihoods_trie_unique(likelihoods, *processedReads, gapContinuationPenalties);
-        endTime = std::chrono::system_clock::now();
-        std::cout << "trie + unique\t" << std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << std::endl;
-    }
-
-//
-//	startTime = std::chrono::system_clock::now();
-//	pairHMM->computeLog10Likelihoods_trie(likelihoods, *processedReads, gapContinuationPenalties);
-//	endTime = std::chrono::system_clock::now();
-//	std::cout << "trie\t" << std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << std::endl;
-//
-    else {
-        startTime = std::chrono::system_clock::now();
+    else
         pairHMM->computeLog10Likelihoods(likelihoods, *processedReads, gapContinuationPenalties);
-        endTime = std::chrono::system_clock::now();
-        std::cout << "original\t" << std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << std::endl;
-    }
 
-//	std::cout << "-----------------------------\n";
     delete gapContinuationPenalties;
 }
 
