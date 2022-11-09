@@ -39,7 +39,7 @@ shared_ptr<VariantContext> VariantAnnotatorEngine::annotateContext(shared_ptr<Va
     for(auto& atr : vc->getAttributes()) {
         infoAnnotMap->emplace(atr);
     }
-    builder.setGenotypes(vc->getGenotypes());
+    //builder.setGenotypes(vc->getGenotypes());
 
     auto annotated = builder.setAttributes(infoAnnotMap)->make();
 
@@ -52,9 +52,9 @@ shared_ptr<GenoTypesContext> VariantAnnotatorEngine::annotateGenotypes(Reference
         return vc->getGenotypes();
 
     auto genotypes = make_shared<GenoTypesContext>(vc->getNSamples());
-    for(int i=0; i<genotypes->getSize(); i++)
+    for(int i=0; i< vc->getGenotypes()->getSize(); i++)
     {
-        auto genotype = genotypes->get(i);
+        auto genotype = vc->getGenotypes()->get(i);
         GenotypeBuilder gb(genotype);
         for(auto& annotation  : genotypeAnnotations)
         {

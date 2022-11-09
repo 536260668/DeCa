@@ -40,7 +40,7 @@ double BetaBinomialCluster::logLikelihood(int totalCount, int altCount) {
     return BetaBinomialDistribution(betaDistributionShape.getAlpha(), betaDistributionShape.getBeta(), totalCount, 0).logProbability(altCount);
 }
 
-double BetaBinomialCluster::logLikelihood(Datum datum) {
+double BetaBinomialCluster::logLikelihood(const Datum& datum) {
     return logLikelihood(datum, betaDistributionShape);
 }
 
@@ -71,3 +71,5 @@ std::string BetaBinomialCluster::toString() {
     buffer << "alpha =" << betaDistributionShape.getAlpha() << "beta = " << betaDistributionShape.getBeta();
     return buffer.str();
 }
+
+BetaBinomialCluster::~BetaBinomialCluster() = default;

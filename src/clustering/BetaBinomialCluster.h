@@ -9,7 +9,7 @@
 #include "BetaDistributionShape.h"
 
 
-class BetaBinomialCluster : AlleleFractionCluster{
+class BetaBinomialCluster : public AlleleFractionCluster{
 private:
     static const double RATE;
     static const int NUM_EPOCHS;
@@ -18,11 +18,13 @@ private:
     static double logOddsCorrection(const BetaDistributionShape& originalBeta, const BetaDistributionShape& newBeta, int altCount, int refCount);
 
 public:
-    BetaBinomialCluster(const BetaDistributionShape& betaDistributionShape);
+    explicit BetaBinomialCluster(const BetaDistributionShape& betaDistributionShape);
+
+    virtual ~BetaBinomialCluster();
 
     static double logLikelihood(const Datum& datum, const BetaDistributionShape& betaDistributionShape);
 
-    double logLikelihood(Datum datum) override;
+    double logLikelihood(const Datum& datum) override;
 
     double logLikelihood(int totalCount, int altCount) override;
 

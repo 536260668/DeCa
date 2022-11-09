@@ -5,7 +5,7 @@
 #include "SequencingError.h"
 #include <stdexcept>
 
-double SequencingError::logLikelihood(Datum datum) {
+double SequencingError::logLikelihood(const Datum& datum) {
     return 0;
 }
 
@@ -20,3 +20,7 @@ void SequencingError::learn(std::vector<Datum> data) {
 std::string SequencingError::toString() {
     return ("sequencing error");
 }
+
+SequencingError::SequencingError() = default;
+
+SequencingError::~SequencingError() = default;

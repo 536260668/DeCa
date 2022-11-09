@@ -7,15 +7,19 @@
 
 #include "AlleleFractionCluster.h"
 
-class SequencingError : AlleleFractionCluster{
+class SequencingError : public AlleleFractionCluster{
 public:
-    double logLikelihood(Datum datum) override;
+    double logLikelihood(const Datum& datum) override;
 
     double logLikelihood(int totalCount, int altCount) override;
 
     void learn(std::vector<Datum> data) override;
 
     std::string toString() override;
+
+    SequencingError();
+
+    virtual ~SequencingError();
 };
 
 

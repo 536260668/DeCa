@@ -17,10 +17,14 @@ double TumorEvidenceFilter::calculateErrorProbability(const std::shared_ptr<Vari
             maxIndex = i;
         }
     }
-    int altCont = ADs[maxIndex+1];
+    int altCount = ADs[maxIndex+1];
     int totalCount = 0;
     for(int i = 0; i < ADs.size(); i++) {
         totalCount += ADs[i];
     }
-    return 0;
+    return filteringEngine.getSomaticClusteringModel().probabilityOfSequencingError(Datum(tumorLods[maxIndex],0, 0, altCount, totalCount, SomaticClusteringModel::indelLength(vc, maxIndex)));
+}
+
+std::vector<std::string> TumorEvidenceFilter::requiredAnnotations() {
+    return {"TLOD"};
 }

@@ -11,13 +11,17 @@
 #include <string>
 
 class AlleleFractionCluster {
-    virtual double logLikelihood(Datum datum) = 0;
+public:
 
     virtual double logLikelihood(int totalCount, int altCount) = 0;
 
     virtual void learn(std::vector<Datum> data) = 0;
 
     virtual std::string toString() = 0;
+
+    virtual double logLikelihood(const Datum& datum) = 0;
+
+    virtual ~AlleleFractionCluster() = 0;
 };
 
 

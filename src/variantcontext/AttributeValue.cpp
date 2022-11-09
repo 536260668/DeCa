@@ -109,3 +109,8 @@ std::vector<double> AttributeValue::getAttributeAsDoubleVector() {
     assert(type == VECTOR_DOUBLE);
     return *((std::vector<double>*)value);
 }
+
+std::vector<int> AttributeValue::getAttributeAsIntVector() {
+    assert(type == VECTOR_INT);
+    return *((std::vector<int>*)value);
+}

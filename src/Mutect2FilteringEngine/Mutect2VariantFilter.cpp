@@ -17,3 +17,22 @@ double Mutect2VariantFilter::errorProbability(const std::shared_ptr<VariantConte
     double result = flag ? calculateErrorProbability(vc, filteringEngine, referenceContext): 0;
     return Mutect2FilteringEngine::roundFinitePrecisionErrors(result);
 }
+
+void Mutect2VariantFilter::learnParameters() {
+
+}
+
+void Mutect2VariantFilter::learnParametersAndClearAccumulatedData() {
+    learnParameters();
+    clearAccumulatedData();
+}
+
+void Mutect2VariantFilter::clearAccumulatedData() {
+
+}
+
+void Mutect2VariantFilter::accumulateDataForLearning(const std::shared_ptr<VariantContext> &vc,
+                                                     ErrorProbabilities errorProbabilities,
+                                                     const Mutect2FilteringEngine& filteringEngine) {
+
+}

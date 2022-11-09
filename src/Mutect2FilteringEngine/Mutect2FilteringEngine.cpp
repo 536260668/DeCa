@@ -3,6 +3,8 @@
 //
 
 #include "Mutect2FilteringEngine.h"
+#include "TumorEvidenceFilter.h"
+#include "StrandArtifactFilter.h"
 
 double Mutect2FilteringEngine::roundFinitePrecisionErrors(double probability) {
     return std::max(std::min(probability, 1.0), 0.0);
@@ -46,3 +48,40 @@ bool Mutect2FilteringEngine::isNormal(Genotype *genotype) {
 bool Mutect2FilteringEngine::isTumor(Genotype *genotype) {
     return !isNormal(genotype);
 }
+
+SomaticClusteringModel Mutect2FilteringEngine::getSomaticClusteringModel() {
+    return somaticClusteringModel;
+}
+
+Mutect2FilteringEngine::Mutect2FilteringEngine(M2FiltersArgumentCollection &MTFAC, const std::string& normal) : somaticClusteringModel(MTFAC), normalSample(normal){
+    Mutect2VariantFilter * tmp = new TumorEvidenceFilter();
+    filters.emplace_back(tmp);
+    tmp = new StrandArtifactFilter();
+    filters.emplace_back(tmp);
+}
+
+std::vector<int>
+Mutect2FilteringEngine::sumStrandCountsOverSamples(const std::shared_ptr<VariantContext> &vc, bool includeTumor,
+                                                   bool includeNormal) {
+    std::vector<int> result = std::vector<int>(4, 0);
+    std::shared_ptr<GenoTypesContext> genotype = vc->getGenotypes();
+    std::vector<std::shared_ptr<Genotype>> * genotypes = genotype->getGenotypes();
+    for(auto &gt : *genotypes) {
+        if((includeTumor) && isTumor(gt.get()) || (includeNormal && isNormal(gt.get()))) {
+            if(gt->hasExtendedAttribute(VCFConstants::STRAND_BIAS_BY_SAMPLE_KEY)) {
+                std::vector<int> tmp = gt->getExtendedAttribute(VCFConstants::STRAND_BIAS_BY_SAMPLE_KEY).getAttributeAsIntVector();
+                for(int i = 0; i < 4; i++) {
+                    result[i] += tmp[i];
+                }
+            }
+        }
+    }
+    return result;
+}
+
+Mutect2FilteringEngine::~Mutect2FilteringEngine() {
+    for(auto filter : filters) {
+        delete filter;
+    }
+}
+

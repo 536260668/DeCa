@@ -5,6 +5,7 @@
 #include <cassert>
 #include "MathUtils.h"
 #include <cmath>
+#include <cfloat>
 using namespace std;
 
 
@@ -189,4 +190,46 @@ int MathUtils::median(std::vector<int> &values) {
         return values[size/2];
     double median = (values[(size-1)/2] + values[size/2]) / 2.0;
     return round(median);
+}
+
+std::vector<double> MathUtils::normalizeLog10(const vector<double> &array, bool normalizeLog10, bool inPlace) {
+    double log10Sum = log10SumLog10(array);
+}
+
+double MathUtils::log10SumLog10(const std::vector<double>& log10Values, int start, int finish) {
+    if (start >= finish) {
+        return -DBL_MAX;
+    }
+    int maxIndex = maxElementIndex(log10Values, start, finish);
+    double maxValue = log10Values[maxIndex];
+    if(maxValue == -DBL_MAX) {
+        return maxValue;
+    }
+    double sum = 1.0;
+    for (int i = start; i < finish; i++) {
+        double curVal = log10Values[i];
+        if (i == maxIndex || curVal == -DBL_MAX) {
+            continue;
+        } else {
+            double scaled_val = curVal - maxValue;
+            sum += std::pow(10.0, scaled_val);
+        }
+    }
+    if ( isinf(sum) || sum == DBL_MAX ) {
+        throw std::invalid_argument("log10 p: Values must be non-infinite and non-NAN");
+    }
+    return maxValue + (sum != 1.0 ? std::log10(sum) : 0.0);
+}
+
+int MathUtils::maxElementIndex(const vector<double> &array, int start, int endIndex) {
+    int maxI = start;
+    for (int i = (start+1); i < endIndex; i++) {
+        if (array[i] > array[maxI])
+            maxI = i;
+    }
+    return maxI;
+}
+
+double MathUtils::log10SumLog10(const vector<double> &log10Values) {
+    return log10SumLog10(log10Values, 0, log10Values.size());
 }

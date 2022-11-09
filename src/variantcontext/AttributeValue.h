@@ -52,6 +52,8 @@ public:
 
     std::vector<double> getAttributeAsDoubleVector();
 
+    std::vector<int> getAttributeAsIntVector();
+
     static AttributeValue empty_value();
 };
 

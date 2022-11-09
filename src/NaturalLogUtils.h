@@ -28,6 +28,7 @@ public:
     static double qualToLogProb(uint8_t qual);
 
     static std::shared_ptr<std::vector<double>> normalizeLog(std::shared_ptr<std::vector<double>> array, bool takeLogOfOutput, bool inPlace);
+    static std::vector<double> normalizeLog(std::vector<double> array, bool takeLogOfOutput, bool inPlace);
 
     /**
      * Computes $\log(\sum_i e^{a_i})$ trying to avoid underflow issues by using the log-sum-exp trick.

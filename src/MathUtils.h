@@ -101,6 +101,16 @@ public:
     static shared_ptr<vector<double>> normalizeSumToOne(shared_ptr<vector<double>> array);
 
     static int median(std::vector<int> &values);
+
+    constexpr static double LOG10_OF_E = 0.4342944819032518;
+
+    static std::vector<double> normalizeLog10(const std::vector<double>& array, bool normalizeLog10, bool inPlace);
+
+    static double log10SumLog10(const std::vector<double> &log10Values, int start, int finish);
+
+    static double log10SumLog10(const std::vector<double> &log10Values);
+
+    static int maxElementIndex(const std::vector<double> & array, int start, int endIndex);
 };
 
 

@@ -92,3 +92,18 @@ std::shared_ptr<std::vector<double>> NaturalLogUtils::posteriors(const std::vect
     }
     return normalizeFromLogToLinearSpace(addedArray);
 }
+
+std::vector<double> NaturalLogUtils::normalizeLog(std::vector<double> array, bool takeLogOfOutput, bool inPlace) {
+    double logSum = logSumExp(array);
+    std::vector<double> result = inPlace ? array :std::vector<double>(array.size());
+    for(int m=0; m<array.size(); m++)
+    {
+        result[m] = array[m] - logSum;
+    }
+    if(!takeLogOfOutput) {
+       MathUtils::applyToArrayInPlace(result, [](double x){return exp(x);});
+    }
+    return result;
+}
+
+
