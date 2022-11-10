@@ -120,3 +120,8 @@ void StrandArtifactFilter::accumulateDataForLearning(const shared_ptr<VariantCon
     EStep eStep = calculateArtifactProbabilities(vc, filteringEngine);
     eSteps.emplace_back(eStep);
 }
+
+ErrorType StrandArtifactFilter::errorType() {
+    return ARTIFACT;
+}
+

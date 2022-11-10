@@ -38,6 +38,7 @@ public:
     virtual void accumulateDataForLearning(const std::shared_ptr<VariantContext> & vc, ErrorProbabilities errorProbabilities, const Mutect2FilteringEngine& filteringEngine);
     virtual void learnParameters();
     virtual void clearAccumulatedData();
+    virtual ErrorType errorType();
 };
 
 

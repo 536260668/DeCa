@@ -8,15 +8,16 @@
 #include "variantcontext/VariantContext.h"
 #include "Mutect2FilteringEngine.h"
 #include "engine/ReferenceContext.h"
-#include "ErrorProbabilities.h"
+#include "ErrorType.h"
 
-class Mutect2FilteringEngine;
 class ErrorProbabilities;
+class Mutect2FilteringEngine;
 
 class Mutect2VariantFilter {
 public:
     Mutect2VariantFilter() = default;
     double errorProbability(const std::shared_ptr<VariantContext> & vc, Mutect2FilteringEngine filteringEngine, const std::shared_ptr<ReferenceContext>& referenceContext);
+    virtual ErrorType errorType() = 0;
     virtual ~Mutect2VariantFilter() {}
 
 protected:

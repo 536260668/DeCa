@@ -7,6 +7,7 @@
 
 #include "Mutect2VariantFilter.h"
 #include "SomaticClusteringModel.h"
+#include "ErrorProbabilities.h"
 
 class SomaticClusteringModel;
 class Mutect2VariantFilter;

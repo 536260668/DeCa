@@ -6,15 +6,12 @@
 #define MUTECT2CPP_MASTER_ERRORPROBABILITIES_H
 
 #include "Mutect2VariantFilter.h"
+#include "ReferenceContext.h"
 #include <unordered_map>
+#include "ErrorType.h"
 
 class Mutect2VariantFilter;
 class Mutect2FilteringEngine;
-
-enum ErrorType {
-    ARTIFACT, NON_SOMATIC, SEQUENCING
-};
-
 
 class ErrorProbabilities {
 private:
@@ -23,7 +20,7 @@ private:
     double errorProbability;
 
 public:
-    ErrorProbabilities(std::vector<Mutect2VariantFilter *> filters, const std::shared_ptr<VariantContext> & vc, Mutect2FilteringEngine filteringEngine, ReferenceContext referenceContext);
+    ErrorProbabilities(std::vector<Mutect2VariantFilter *> filters, const std::shared_ptr<VariantContext> & vc, Mutect2FilteringEngine filteringEngine, const std::shared_ptr<ReferenceContext>&);
     double getErrorProbability() const { return errorProbability; }
     double getTechnicalArtifactProbability() { return probabilitiesByType.at(ARTIFACT); }
     double getNonSomaticProbability() { return probabilitiesByType.at(NON_SOMATIC); }

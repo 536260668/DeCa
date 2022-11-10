@@ -28,3 +28,7 @@ double TumorEvidenceFilter::calculateErrorProbability(const std::shared_ptr<Vari
 std::vector<std::string> TumorEvidenceFilter::requiredAnnotations() {
     return {"TLOD"};
 }
+
+ErrorType TumorEvidenceFilter::errorType() {
+    return SEQUENCING;
+}
