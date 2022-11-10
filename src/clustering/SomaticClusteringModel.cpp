@@ -13,8 +13,8 @@ std::vector<double> SomaticClusteringModel::clusterProbabilities(Datum datum) {
     double logVariantPrior = getLogPriorOfSomaticVariant(datum.getIndelLength());
     double logNoVariantPrior = NaturalLogUtils::log1mexp(logVariantPrior);
 
-    std::vector<double> logClusterPosteriors = std::vector<double>(clusters.size() + 1, 0);
-    for(int i = 0; i < clusters.size() + 1; i++) {
+    std::vector<double> logClusterPosteriors = std::vector<double>(clusters.size(), 0);
+    for(int i = 0; i < clusters.size(); i++) {
         double logLikelihood = i < clusters.size() ? clusters[i]->logLikelihood(datum) : NEW_CLUSTER.logLikelihood(datum);
         if(i == SEQUENCING_ERROR_INDEX) {
             logClusterPosteriors[i] = logNoVariantPrior + logLikelihood;
@@ -83,5 +83,18 @@ int SomaticClusteringModel::indelLength(const std::shared_ptr<VariantContext> &v
 SomaticClusteringModel::~SomaticClusteringModel() {
     for(auto c : clusters) {
         delete c;
+    }
+}
+
+void SomaticClusteringModel::record(const std::vector<int> &tumorADs, const std::vector<double> &tumorLogOdds,
+                                    double artifactProbability, double nonSomaticProbability,
+                                    const std::shared_ptr<VariantContext> &vc) {
+    int totalAD = 0;
+    for(int i = 0; i < tumorADs.size(); i++) {
+        totalAD += tumorADs[i];
+    }
+    for(int i = 0; i < tumorLogOdds.size(); i++) {
+        data.emplace_back(tumorLogOdds[i], artifactProbability, nonSomaticProbability, tumorADs[i+1], totalAD,
+                           indelLength(vc, i));
     }
 }

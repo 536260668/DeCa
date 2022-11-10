@@ -29,6 +29,7 @@
 #include "ContigMap.h"
 #include "utils/pairhmm/PairHMMConcurrentControl.h"
 #include "intel/pairhmm/IntelPairHmm.h"
+#include "filtering/FilterMutectCalls.h"
 
 // TODO: finish this method
 std::vector<shared_ptr<InfoFieldAnnotation>> makeInfoFieldAnnotation()
@@ -631,6 +632,17 @@ int main(int argc, char *argv[])
             vc_results.emplace_back(*sortedVC);
 		}
 	}
+
+    FilterMutectCalls filterMutectCalls(sharedData.MTAC.normalSample);
+    ReferenceCache referenceCache(ref, sharedData.header, 1);
+    for(auto & vc : vc_results) {
+        std::shared_ptr<SimpleInterval> interval = std::make_shared<SimpleInterval>(vc->getContig(), vc->getStart(), vc->getEnd());
+        int contig = sharedData.header->getSequenceIndex(vc->getContig());
+        int len;
+        std::shared_ptr<uint8_t[]> bases = referenceCache.getSubsequenceAt(contig, vc->getStart(), vc->getEnd(), len);
+        std::shared_ptr<ReferenceContext> referenceContext = std::make_shared<ReferenceContext>(interval, bases[0]);
+        filterMutectCalls.nthPassApply(vc, referenceContext);
+    }
 
     // free the space
     fai_destroy(refPoint);

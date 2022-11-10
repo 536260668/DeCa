@@ -8,6 +8,8 @@
 #include "Mutect2VariantFilter.h"
 #include "SomaticClusteringModel.h"
 #include "ErrorProbabilities.h"
+#include "engine/ReferenceContext.h"
+#include "ThresholdCalculator.h"
 
 class SomaticClusteringModel;
 class Mutect2VariantFilter;
@@ -16,7 +18,9 @@ class Mutect2FilteringEngine {
 private:
     std::string normalSample;
     SomaticClusteringModel somaticClusteringModel;
+    ThresholdCalculator thresholdCalculator;
     std::vector<Mutect2VariantFilter *> filters;
+
 public:
     Mutect2FilteringEngine(M2FiltersArgumentCollection& MTFAC, const std::string& normal);
     bool isNormal(Genotype* genotype);
@@ -27,6 +31,7 @@ public:
     SomaticClusteringModel getSomaticClusteringModel();
     std::vector<int> sumStrandCountsOverSamples(const std::shared_ptr<VariantContext> & vc, bool includeTumor, bool includeNormal);
     ~Mutect2FilteringEngine();
+    void accumulateData(const std::shared_ptr<VariantContext> & vc, std::shared_ptr<ReferenceContext> referenceContext);
 };
 
 

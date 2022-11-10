@@ -278,3 +278,7 @@ bool Allele::equals(Allele &other, bool ignoreRefState) {
 		return false;
 	return memcmp(bases.get(), other.bases.get(), length) == 0;
 }
+
+bool Allele::getIsNonRefAllele() const{
+    return this == NON_REF_ALLELE.get() || this == UNSPECIFIED_ALTERNATE_ALLELE.get();
+}

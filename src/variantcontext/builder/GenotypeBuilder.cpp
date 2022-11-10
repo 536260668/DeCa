@@ -5,14 +5,18 @@
 #include "GenotypeBuilder.h"
 #include <utility>
 
-GenotypeBuilder::GenotypeBuilder(std::shared_ptr<Genotype> g): sampleName(g->getSampleName()), alleles(g->getAlleles()), isPhased(g->isPhased()), GQ(g->getGQ()),  DP(g->getDP()), AD(g->getAD(ADLength)), PL(g->getPL(PLLength)), filters(g->getFilters())
+GenotypeBuilder::GenotypeBuilder(std::shared_ptr<Genotype> g): sampleName(g->getSampleName()), alleles(g->getAlleles()), isPhased(g->isPhased()), GQ(g->getGQ()),  DP(g->getDP()), filters(g->getFilters())
 {
+    AD = g->getAD(ADLength);
+    PL = g->getPL(PLLength);
     attributes(g->getExtendedAttributes());
 }
 
 GenotypeBuilder::GenotypeBuilder(std::shared_ptr<Genotype> g, std::string name, std::vector<std::shared_ptr<Allele>> &alleles):
-    sampleName(name), alleles(alleles), isPhased(g->isPhased()), GQ(g->getGQ()), DP(g->getDP()), AD(g->getAD(ADLength)), PL(g->getPL(PLLength)), filters(g->getFilters())
+    sampleName(name), alleles(alleles), isPhased(g->isPhased()), GQ(g->getGQ()), DP(g->getDP()), filters(g->getFilters())
 {
+    AD = g->getAD(ADLength);
+    PL = g->getPL(PLLength);
     attributes(g->getExtendedAttributes());
 }
 

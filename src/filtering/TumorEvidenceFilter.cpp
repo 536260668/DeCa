@@ -5,10 +5,10 @@
 #include "TumorEvidenceFilter.h"
 
 double TumorEvidenceFilter::calculateErrorProbability(const std::shared_ptr<VariantContext> &vc,
-                                                      Mutect2FilteringEngine filteringEngine,
+                                                      Mutect2FilteringEngine *filteringEngine,
                                                       std::shared_ptr<ReferenceContext>) {
     std::vector<double> tumorLods = Mutect2FilteringEngine::getTumorLogOdds(vc);
-    std::vector<int> ADs = filteringEngine.sumADsOverSamples(vc, true, false);
+    std::vector<int> ADs = filteringEngine->sumADsOverSamples(vc, true, false);
     int maxIndex = 0;
     int tmp = tumorLods[0];
     for(int i = 0; i < tumorLods.size(); i++) {
@@ -22,7 +22,7 @@ double TumorEvidenceFilter::calculateErrorProbability(const std::shared_ptr<Vari
     for(int i = 0; i < ADs.size(); i++) {
         totalCount += ADs[i];
     }
-    return filteringEngine.getSomaticClusteringModel().probabilityOfSequencingError(Datum(tumorLods[maxIndex],0, 0, altCount, totalCount, SomaticClusteringModel::indelLength(vc, maxIndex)));
+    return filteringEngine->getSomaticClusteringModel().probabilityOfSequencingError(Datum(tumorLods[maxIndex],0, 0, altCount, totalCount, SomaticClusteringModel::indelLength(vc, maxIndex)));
 }
 
 std::vector<std::string> TumorEvidenceFilter::requiredAnnotations() {

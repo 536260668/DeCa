@@ -56,7 +56,7 @@ int GenoTypesContext::getSize() {
 std::shared_ptr<Genotype> GenoTypesContext::get(int i) {
     assert(notToBeDirectlyAccessedGenotypes != nullptr);
     assert(i >= 0 && i < notToBeDirectlyAccessedGenotypes->size());
-    return notToBeDirectlyAccessedGenotypes->at(i);
+    return (*notToBeDirectlyAccessedGenotypes)[i];
 }
 
 void GenoTypesContext::ensureSampleNameMap() {

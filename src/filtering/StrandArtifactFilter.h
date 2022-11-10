@@ -33,9 +33,9 @@ private:
 public:
     StrandArtifactFilter();
     virtual std::vector<std::string> requiredAnnotations();
-    virtual double calculateErrorProbability(const std::shared_ptr<VariantContext> & vc, Mutect2FilteringEngine filteringEngine, std::shared_ptr<ReferenceContext>);
-    EStep calculateArtifactProbabilities(const std::shared_ptr<VariantContext> & vc, Mutect2FilteringEngine filteringEngine);
-    virtual void accumulateDataForLearning(const std::shared_ptr<VariantContext> & vc, ErrorProbabilities errorProbabilities, const Mutect2FilteringEngine& filteringEngine);
+    virtual double calculateErrorProbability(const std::shared_ptr<VariantContext> & vc, Mutect2FilteringEngine* filteringEngine, std::shared_ptr<ReferenceContext>);
+    EStep calculateArtifactProbabilities(const std::shared_ptr<VariantContext> & vc, Mutect2FilteringEngine* filteringEngine);
+    virtual void accumulateDataForLearning(const std::shared_ptr<VariantContext> & vc, ErrorProbabilities errorProbabilities, Mutect2FilteringEngine* filteringEngine);
     virtual void learnParameters();
     virtual void clearAccumulatedData();
     virtual ErrorType errorType();

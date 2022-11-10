@@ -53,7 +53,8 @@ SomaticClusteringModel Mutect2FilteringEngine::getSomaticClusteringModel() {
     return somaticClusteringModel;
 }
 
-Mutect2FilteringEngine::Mutect2FilteringEngine(M2FiltersArgumentCollection &MTFAC, const std::string& normal) : somaticClusteringModel(MTFAC), normalSample(normal){
+Mutect2FilteringEngine::Mutect2FilteringEngine(M2FiltersArgumentCollection &MTFAC, const std::string& normal) : somaticClusteringModel(MTFAC), normalSample(normal),
+                                                                                                                thresholdCalculator(MTFAC.initialPosteriorThreshold, MTFAC.maxFalsePositiveRate, MTFAC.fScoreBeta){
     Mutect2VariantFilter * tmp = new TumorEvidenceFilter();
     filters.emplace_back(tmp);
     tmp = new StrandArtifactFilter();
@@ -83,5 +84,26 @@ Mutect2FilteringEngine::~Mutect2FilteringEngine() {
     for(auto filter : filters) {
         delete filter;
     }
+}
+
+void Mutect2FilteringEngine::accumulateData(const std::shared_ptr<VariantContext> &vc,
+                                            std::shared_ptr<ReferenceContext> referenceContext) {
+    bool flag = false;
+    for(auto & allele : vc->getAlleles()) {
+        if(allele->getIsNonReference() && !allele->getIsNonRefAllele()) {
+            flag = true;
+        }
+    }
+    if(!flag) {
+        return;
+    }
+    ErrorProbabilities errorProbabilities = ErrorProbabilities(filters, vc, this, referenceContext);
+    for(auto filter : filters) {
+        filter->accumulateDataForLearning(vc, errorProbabilities, this);
+    }
+    std::vector<int> tumorADs = sumADsOverSamples(vc, true, false);
+    std::vector<double> tumorLogOdds = Mutect2FilteringEngine::getTumorLogOdds(vc);
+    somaticClusteringModel.record(tumorADs, tumorLogOdds, errorProbabilities.getTechnicalArtifactProbability(), errorProbabilities.getNonSomaticProbability(), vc);
+    thresholdCalculator.addArtifactProbability(errorProbabilities.getErrorProbability());
 }
 

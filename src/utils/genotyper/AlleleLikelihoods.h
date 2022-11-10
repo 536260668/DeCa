@@ -803,7 +803,7 @@ public:
          auto newLikelihoodValues = marginalLikelihoods(oldAlleleCount, newAlleleCount, *_oldToNewAlleleIndexMap, nullptr);
          int sampleCount = samples.size();
 
-         auto newEvidenceBySampleIndex = make_shared<vector<vector<shared_ptr<E>>>>(sampleCount, vector<shared_ptr<E>>());
+         auto newEvidenceBySampleIndex = make_shared<vector<vector<shared_ptr<E>>>>();
 
          for (int s = 0; s < sampleCount; s++) {
              newEvidenceBySampleIndex->template emplace_back(evidenceBySampleIndex->operator[](s));

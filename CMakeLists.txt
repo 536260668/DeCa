@@ -36,7 +36,7 @@ include_directories("${PROJECT_SOURCE_DIR}/src/smithwaterman")
 include_directories("${PROJECT_SOURCE_DIR}/src/Mutect2")
 include_directories("${PROJECT_SOURCE_DIR}/src/variantcontext")
 include_directories("${PROJECT_SOURCE_DIR}/src/annotator")
-include_directories("${PROJECT_SOURCE_DIR}/src/Mutect2FilteringEngine")
+include_directories("${PROJECT_SOURCE_DIR}/src/filtering")
 include_directories("${PROJECT_SOURCE_DIR}/src/clustering")
 include_directories("${PROJECT_SOURCE_DIR}/src/basicshortmutpileup")
 
@@ -58,7 +58,7 @@ add_subdirectory(./src/tools)
 add_subdirectory(./src/samtools)
 add_subdirectory(./src/clipping)
 add_subdirectory(./src/annotator)
-add_subdirectory(./src/Mutect2FilteringEngine)
+add_subdirectory(src/filtering)
 add_subdirectory(./src/clustering)
 add_subdirectory(./src/basicshortmutpileup)
 
@@ -66,7 +66,7 @@ add_executable(Mutect2Cpp_master ${DIR_SRCS} src/model/model.cpp src/model/model
         src/trie/trieNode.cpp src/trie/trieNode.h src/trie/buildTreeUtils.cpp src/trie/buildTreeUtils.h)
 
 # Add this flag to turn on the sort mode for comparison with GATK
-# add_definitions(-DSORT_MODE)
+ add_definitions(-DSORT_MODE)
 
 # counterpart of gcc -L
 if (CMAKE_SYSTEM_NAME MATCHES "Linux")

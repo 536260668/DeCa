@@ -1,5 +1,5 @@
 include_directories("${PROJECT_SOURCE_DIR}/src")
-include_directories("${PROJECT_SOURCE_DIR}/src/Mutect2FilteringEngine")
+include_directories("${PROJECT_SOURCE_DIR}/src/filtering")
 include_directories("${PROJECT_SOURCE_DIR}/src/variantcontext")
 include_directories("${PROJECT_SOURCE_DIR}/src/Mutect2")
 

@@ -9,15 +9,15 @@
 #include "tools/BrentOptimizer.h"
 
 double StrandArtifactFilter::calculateErrorProbability(const std::shared_ptr<VariantContext> &vc,
-                                                       Mutect2FilteringEngine filteringEngine,
+                                                       Mutect2FilteringEngine* filteringEngine,
                                                        std::shared_ptr<ReferenceContext>) {
     EStep probabilities = calculateArtifactProbabilities(vc, filteringEngine);
     return probabilities.getForwardArtifactResponsibility() + probabilities.getReverseArtifactResponsibility();
 }
 
 EStep StrandArtifactFilter::calculateArtifactProbabilities(const std::shared_ptr<VariantContext> &vc,
-                                                           Mutect2FilteringEngine filteringEngine) {
-    std::vector<int> counts = filteringEngine.sumStrandCountsOverSamples(vc, true, false);
+                                                           Mutect2FilteringEngine* filteringEngine) {
+    std::vector<int> counts = filteringEngine->sumStrandCountsOverSamples(vc, true, false);
 
     int indelSize = std::abs(vc->getReference()->getLength() - vc->getAlternateAllele(0)->getLength());
     if (counts[2] + counts[3] == 0 || indelSize > LONGEST_STRAND_ARTIFACT_INDEL_SIZE) {
@@ -116,7 +116,7 @@ void StrandArtifactFilter::clearAccumulatedData() {
 
 void StrandArtifactFilter::accumulateDataForLearning(const shared_ptr<VariantContext> &vc,
                                                      ErrorProbabilities errorProbabilities,
-                                                     const Mutect2FilteringEngine& filteringEngine) {
+                                                     Mutect2FilteringEngine* filteringEngine) {
     EStep eStep = calculateArtifactProbabilities(vc, filteringEngine);
     eSteps.emplace_back(eStep);
 }

@@ -6,7 +6,7 @@
 
 ErrorProbabilities::ErrorProbabilities(std::vector<Mutect2VariantFilter *> filters,
                                        const std::shared_ptr<VariantContext> &vc,
-                                       Mutect2FilteringEngine filteringEngine, const std::shared_ptr<ReferenceContext>& referenceContext) {
+                                       Mutect2FilteringEngine* filteringEngine, const std::shared_ptr<ReferenceContext>& referenceContext) {
     for(auto filter : filters){
         probabilitiesByFilter.insert({filter, filter->errorProbability(vc, filteringEngine, referenceContext)});
     }

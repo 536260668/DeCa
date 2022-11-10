@@ -65,6 +65,7 @@ public:
     bool getIsCalled() const {return !isNoCall;}
     bool getIsReference() const {return isRef;}
     bool getIsNonReference() const {return !isRef;}
+    bool getIsNonRefAllele() const;
     bool getIsSymbolic() const {return isSymbolic;}
     bool getIsBreakpoint() const {return wouldBeBreakpoint(bases, length);}
     bool getIsSingleBreakend() const {return wouldBeSingleBreakend(bases, length);}

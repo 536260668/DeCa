@@ -5,7 +5,7 @@
 #include "Mutect2VariantFilter.h"
 
 double Mutect2VariantFilter::errorProbability(const std::shared_ptr<VariantContext> &vc,
-                                              Mutect2FilteringEngine filteringEngine,
+                                              Mutect2FilteringEngine* filteringEngine,
                                               const std::shared_ptr<ReferenceContext> &referenceContext) {
     bool flag = true;
     for(const auto & str : requiredAnnotations()) {
@@ -33,6 +33,6 @@ void Mutect2VariantFilter::clearAccumulatedData() {
 
 void Mutect2VariantFilter::accumulateDataForLearning(const std::shared_ptr<VariantContext> &vc,
                                                      ErrorProbabilities errorProbabilities,
-                                                     const Mutect2FilteringEngine& filteringEngine) {
+                                                     Mutect2FilteringEngine* filteringEngine) {
 
 }

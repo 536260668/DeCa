@@ -21,7 +21,7 @@ public:
 
     virtual double logLikelihood(const Datum& datum) = 0;
 
-    virtual ~AlleleFractionCluster() = 0;
+    virtual ~AlleleFractionCluster() = default;
 };
 
 

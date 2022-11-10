@@ -10,7 +10,7 @@
 #include "AlleleFractionCluster.h"
 #include "BetaBinomialCluster.h"
 #include "SequencingError.h"
-#include "Mutect2FilteringEngine/M2FiltersArgumentCollection.h"
+#include "filtering/M2FiltersArgumentCollection.h"
 
 
 class SomaticClusteringModel {
@@ -34,6 +34,7 @@ private:
 
     std::vector<double > clusterProbabilities(Datum datum);
     std::vector<int> clusterCounts;
+    std::vector<Datum> data;
     double getLogPriorOfSomaticVariant(int indelLength);
     double logCRPWeight(int clusterIndex);
     int totalSparseClusterCount;
@@ -42,6 +43,7 @@ public:
     double probabilityOfSequencingError(const Datum& datum);
     static int indelLength(const std::shared_ptr<VariantContext>& vc, int altIndex);
     virtual ~SomaticClusteringModel();
+    void record(const std::vector<int> & tumorADs, const std::vector<double> & tumorLogOdds, double artifactProbability, double nonSomaticProbability, const std::shared_ptr<VariantContext> & vc);
 };
 
 
