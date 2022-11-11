@@ -104,7 +104,7 @@ public:
 
     constexpr static double LOG10_OF_E = 0.4342944819032518;
 
-    static std::vector<double> normalizeLog10(const std::vector<double>& array, bool normalizeLog10, bool inPlace);
+    static std::vector<double> normalizeLog10(std::vector<double>& array, bool normalizeLog10, bool inPlace);
 
     static double log10SumLog10(const std::vector<double> &log10Values, int start, int finish);
 

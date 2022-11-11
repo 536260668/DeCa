@@ -51,9 +51,10 @@ EStep StrandArtifactFilter::strandArtifactProbability(double strandArtifactPrior
     double forwardLogPrior = std::log(strandArtifactPrior/2);
     double reverseLogPrior = std::log(strandArtifactPrior/2);
     double noneLogPrior = std::log(1 - strandArtifactPrior);
+    std::vector<double> tmp = {(forwardLogLikelihood + forwardLogPrior) * MathUtils::LOG10_OF_E,
+                               (reverseLogLikelihood + reverseLogPrior)* MathUtils::LOG10_OF_E, (noneLogLikelihood + noneLogPrior) * MathUtils::LOG10_OF_E};
 
-    std::vector<double> forwardReverseNoneProbs = MathUtils::normalizeLog10({(forwardLogLikelihood + forwardLogPrior) * MathUtils::LOG10_OF_E,
-                                                                                    (reverseLogLikelihood + reverseLogPrior)* MathUtils::LOG10_OF_E, (noneLogLikelihood + noneLogPrior) * MathUtils::LOG10_OF_E}, false, true);
+    std::vector<double> forwardReverseNoneProbs = MathUtils::normalizeLog10(tmp, false, true);
 
     return {forwardReverseNoneProbs[0], forwardReverseNoneProbs[1], forwardCount, reverseCount, forwardAltCount, reverseAltCount};
 }

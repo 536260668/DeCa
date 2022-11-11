@@ -12,9 +12,10 @@ private:
     double beta;
 
 public:
-    static const BetaDistributionShape FLAT_BETA;
+    static BetaDistributionShape FLAT_BETA;
 
-    BetaDistributionShape(double alpha, double beta);
+    explicit BetaDistributionShape(double alpha, double beta);
+    static void initial();
     double getAlpha() const;
     double getBeta() const;
 };

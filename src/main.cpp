@@ -433,6 +433,7 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 int main(int argc, char *argv[])
 {
     CigarOperatorUtils::initial();
+    BetaDistributionShape::initial();
     int c, n = 0;
 	char *reg, *ref = nullptr;
 	std::string output;

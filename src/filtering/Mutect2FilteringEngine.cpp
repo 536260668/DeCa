@@ -49,8 +49,8 @@ bool Mutect2FilteringEngine::isTumor(Genotype *genotype) {
     return !isNormal(genotype);
 }
 
-SomaticClusteringModel Mutect2FilteringEngine::getSomaticClusteringModel() {
-    return somaticClusteringModel;
+SomaticClusteringModel* Mutect2FilteringEngine::getSomaticClusteringModel() {
+    return &somaticClusteringModel;
 }
 
 Mutect2FilteringEngine::Mutect2FilteringEngine(M2FiltersArgumentCollection &MTFAC, const std::string& normal) : somaticClusteringModel(MTFAC), normalSample(normal),

@@ -6,8 +6,8 @@
 #include "NaturalLogUtils.h"
 
 BetaBinomialCluster SomaticClusteringModel::NEW_CLUSTER(BetaDistributionShape::FLAT_BETA);
-const BetaDistributionShape SomaticClusteringModel::INITIAL_HIGH_AF_BETA = BetaDistributionShape(10, 1);
-const BetaDistributionShape SomaticClusteringModel::INITIAL_BACKGROUND_BETA = BetaDistributionShape::FLAT_BETA;
+BetaDistributionShape SomaticClusteringModel::INITIAL_HIGH_AF_BETA = BetaDistributionShape(10, 1);
+BetaDistributionShape SomaticClusteringModel::INITIAL_BACKGROUND_BETA = BetaDistributionShape::FLAT_BETA;
 
 std::vector<double> SomaticClusteringModel::clusterProbabilities(Datum datum) {
     double logVariantPrior = getLogPriorOfSomaticVariant(datum.getIndelLength());

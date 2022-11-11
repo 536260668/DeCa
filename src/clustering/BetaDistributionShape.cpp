@@ -5,7 +5,7 @@
 #include "BetaDistributionShape.h"
 #include <stdexcept>
 
-const BetaDistributionShape BetaDistributionShape::FLAT_BETA(1,1);
+BetaDistributionShape BetaDistributionShape::FLAT_BETA = BetaDistributionShape(1, 1);
 
 BetaDistributionShape::BetaDistributionShape(double alpha, double beta) : alpha(alpha), beta(beta) {
     if(alpha < 0 || beta < 0) {
@@ -20,4 +20,8 @@ double BetaDistributionShape::getAlpha() const{
 
 double BetaDistributionShape::getBeta() const{
     return beta;
+}
+
+void BetaDistributionShape::initial() {
+    BetaDistributionShape(1, 1);
 }

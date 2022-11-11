@@ -29,14 +29,16 @@ private:
     double logHighAFWeight;
     double logBackgroundWeight;
     double logSparseClustersWeight;
-    static const BetaDistributionShape INITIAL_HIGH_AF_BETA;
-    static const BetaDistributionShape INITIAL_BACKGROUND_BETA;
+    static BetaDistributionShape INITIAL_HIGH_AF_BETA;
+    static BetaDistributionShape INITIAL_BACKGROUND_BETA;
 
     std::vector<double > clusterProbabilities(Datum datum);
     std::vector<int> clusterCounts;
     std::vector<Datum> data;
     double getLogPriorOfSomaticVariant(int indelLength);
     double logCRPWeight(int clusterIndex);
+    SomaticClusteringModel(const SomaticClusteringModel& engine) = default;
+    SomaticClusteringModel &operator=(const SomaticClusteringModel& engine) = default;
     int totalSparseClusterCount;
 public:
     SomaticClusteringModel(M2FiltersArgumentCollection &MTFAC);

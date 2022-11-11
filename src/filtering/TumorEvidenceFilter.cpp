@@ -22,7 +22,7 @@ double TumorEvidenceFilter::calculateErrorProbability(const std::shared_ptr<Vari
     for(int i = 0; i < ADs.size(); i++) {
         totalCount += ADs[i];
     }
-    return filteringEngine->getSomaticClusteringModel().probabilityOfSequencingError(Datum(tumorLods[maxIndex],0, 0, altCount, totalCount, SomaticClusteringModel::indelLength(vc, maxIndex)));
+    return filteringEngine->getSomaticClusteringModel()->probabilityOfSequencingError(Datum(tumorLods[maxIndex],0, 0, altCount, totalCount, SomaticClusteringModel::indelLength(vc, maxIndex)));
 }
 
 std::vector<std::string> TumorEvidenceFilter::requiredAnnotations() {

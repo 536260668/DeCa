@@ -192,8 +192,27 @@ int MathUtils::median(std::vector<int> &values) {
     return round(median);
 }
 
-std::vector<double> MathUtils::normalizeLog10(const vector<double> &array, bool normalizeLog10, bool inPlace) {
+std::vector<double> MathUtils::normalizeLog10(vector<double> &array, bool normalizeLog10, bool inPlace) {
     double log10Sum = log10SumLog10(array);
+    std::vector<double> res = std::vector<double>(array.size());
+    if(inPlace) {
+        for(int i = 0; i < array.size(); i++) {
+            array[i] = array[i] - log10Sum;
+            res[i] = array[i] - log10Sum;
+        }
+    } else {
+        for(int i = 0; i < array.size(); i++) {
+            res[i] = array[i] - log10Sum;
+        }
+    }
+    if(normalizeLog10) {
+        return res;
+    } else {
+        applyToArrayInPlace(res, [](double x){
+            return std::pow(10.0, x);
+        });
+        return res;
+    }
 }
 
 double MathUtils::log10SumLog10(const std::vector<double>& log10Values, int start, int finish) {
