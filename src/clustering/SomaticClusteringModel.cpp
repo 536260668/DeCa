@@ -4,10 +4,15 @@
 
 #include "SomaticClusteringModel.h"
 #include "NaturalLogUtils.h"
+#include "boost/math/distributions.hpp"
+#include "BinomialCluster.h"
+
+
 
 BetaBinomialCluster SomaticClusteringModel::NEW_CLUSTER(BetaDistributionShape::FLAT_BETA);
 BetaDistributionShape SomaticClusteringModel::INITIAL_HIGH_AF_BETA = BetaDistributionShape(10, 1);
 BetaDistributionShape SomaticClusteringModel::INITIAL_BACKGROUND_BETA = BetaDistributionShape::FLAT_BETA;
+thread_local boost::random::mt19937 SomaticClusteringModel::seed(47382911);
 
 std::vector<double> SomaticClusteringModel::clusterProbabilities(Datum datum) {
     double logVariantPrior = getLogPriorOfSomaticVariant(datum.getIndelLength());
@@ -47,8 +52,10 @@ double SomaticClusteringModel::getLogPriorOfSomaticVariant(int indelLength) {
     return logVariantPriors[indelLength] + (indelLength == 0 ? std::log(3.0) : 0);
 }
 
-SomaticClusteringModel::SomaticClusteringModel(M2FiltersArgumentCollection &MTFAC) {
+SomaticClusteringModel::SomaticClusteringModel(M2FiltersArgumentCollection &MTFAC) : rng(0.0, 1.0){
     totalSparseClusterCount = 0;
+    REGULARIZING_PSEUDOCOUNT = 1;
+    firstPass = true;
     logHighAFWeight = std::log(INITIAL_HIGH_AF_WEIGHT);
     logBackgroundWeight = std::log(INITIAL_BACKGROUND_WEIGHT);
     std::vector<double> inputs = {logHighAFWeight, logBackgroundWeight};
@@ -96,5 +103,119 @@ void SomaticClusteringModel::record(const std::vector<int> &tumorADs, const std:
     for(int i = 0; i < tumorLogOdds.size(); i++) {
         data.emplace_back(tumorLogOdds[i], artifactProbability, nonSomaticProbability, tumorADs[i+1], totalAD,
                            indelLength(vc, i));
+    }
+}
+
+void SomaticClusteringModel::learnAndClearAccumulatedData() {
+    if(firstPass) {
+        clusterAssignments = std::vector<std::optional<int>>(data.size(), std::nullopt);
+        for(int i = 0; i < clusters.size(); i++) {
+            clusterCounts.emplace_back(0);
+        }
+    }
+    for(int iteration = 0; iteration < NUM_ITERATIONS; iteration++) {
+        for (int datumIndex = 0; datumIndex < data.size(); datumIndex++) {
+            Datum datum = popDatum(datumIndex);
+            if(rng(seed) < datum.getNonSequencingErrorProb()) {
+                continue;
+            }
+            std::vector<double> clusterPosteriors = clusterProbabilities(datum);
+            std::uniform_int_distribution<int> urd(0, clusters.size());
+            int clusterIndex = urd(seed);
+            assignDatum(datumIndex, clusterIndex);
+        }
+        pruneEmptyClusters();
+        std::vector<std::vector<Datum>> dataByCluster = std::vector<std::vector<Datum>>(clusters.size());
+        for(int i = 0; i < clusterAssignments.size(); i++) {
+            if(clusterAssignments[i].has_value()) {
+                dataByCluster[clusterAssignments[i].value()].emplace_back(data[i]);
+            }
+        }
+        for(int i = 0; i < clusters.size(); i++) {
+            clusters[i]->learn(dataByCluster[i]);
+        }
+        learnWeightsAndPriors();
+    }
+
+    firstPass = false;
+    data.clear();
+}
+
+Datum SomaticClusteringModel::popDatum(int datumIndex) {
+    if(clusterAssignments[datumIndex].has_value()) {
+        int c = clusterAssignments[datumIndex].value();
+        clusterCounts[c]--;
+        if(OFFSET <= c) {
+            totalSparseClusterCount--;
+        }
+    }
+    clusterAssignments[datumIndex].reset();
+    return data[datumIndex];
+}
+
+void SomaticClusteringModel::assignDatum(int datumIndex, int clusterIndex) {
+    Datum datum = data[datumIndex];
+    if(clusterIndex == clusters.size()) {
+        float rand_uniform = rng(seed);
+
+        boost::math::beta_distribution<> beta_dist(datum.getAltCount()+1, datum.getTotalCount()-datum.getAltCount()+1);
+        auto newClusterAlleleFraction = boost::math::quantile(beta_dist, rand_uniform);
+        clusters.emplace_back(new BinomialCluster(newClusterAlleleFraction));
+        clusterCounts.emplace_back(0);
+    }
+
+    if(OFFSET <= clusterIndex) {
+        totalSparseClusterCount++;
+    }
+
+    clusterAssignments[datumIndex].value() = clusterIndex;
+    clusterCounts[clusterIndex]++;
+}
+
+void SomaticClusteringModel::pruneEmptyClusters() {
+    std::map<int, int> oldToNewClusterIndices;
+    for(int i = 0; i < OFFSET; i++) {
+        oldToNewClusterIndices.insert({i, i});
+    }
+    int newIndex = OFFSET;
+    for (int oldIndex = OFFSET; oldIndex < clusters.size(); oldIndex++) {
+        if (clusterCounts[oldIndex] > 0) {
+            oldToNewClusterIndices.insert({oldIndex, newIndex});
+
+            if (newIndex != oldIndex) {
+                AlleleFractionCluster* tmp = clusters[newIndex];
+                clusters[newIndex] = clusters[oldIndex];
+                clusterCounts[newIndex] = clusterCounts[oldIndex];
+                delete tmp;
+            }
+            newIndex++;
+        }
+    }
+    int iter = std::min(newIndex, (int)clusters.size());
+    std::copy(clusters.begin(), clusters.begin() + iter, clusters.begin());
+    iter = std::min(newIndex, (int)clusterCounts.size());
+    std::copy(clusterCounts.begin(), clusterCounts.begin() + iter, clusterCounts.begin());
+    std::vector<std::optional<int>> tmp;
+    for(auto & k : clusterAssignments) {
+        if(k.has_value()) {
+            tmp.emplace_back(oldToNewClusterIndices[k.value()]);
+        } else {
+            tmp.emplace_back(k);
+        }
+    }
+}
+
+void SomaticClusteringModel::learnWeightsAndPriors() {
+    double totalVariants = clusterCounts[HIGH_AF_INDEX] + clusterCounts[BACKGROUND_INDEX] + totalSparseClusterCount
+            + REGULARIZING_PSEUDOCOUNT;
+    logHighAFWeight = std::log(REGULARIZING_PSEUDOCOUNT + clusterCounts[HIGH_AF_INDEX] / totalVariants);
+    logBackgroundWeight = std::log((REGULARIZING_PSEUDOCOUNT + clusterCounts[BACKGROUND_INDEX]) / totalVariants);
+    logSparseClustersWeight = std::log((REGULARIZING_PSEUDOCOUNT + totalSparseClusterCount) /totalVariants);
+
+    std::vector<int> range;
+    for(int i = 0; i < data.size(); i++) {
+        if(clusterAssignments[i].value_or(SEQUENCING_ERROR_INDEX) != SEQUENCING_ERROR_INDEX) {
+            range.emplace_back(i);
+        }
     }
 }
