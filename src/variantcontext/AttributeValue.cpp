@@ -114,3 +114,8 @@ std::vector<int> AttributeValue::getAttributeAsIntVector() {
     assert(type == VECTOR_INT);
     return *((std::vector<int>*)value);
 }
+
+std::string AttributeValue::getAttributeAsString() {
+    assert(type == STRING);
+    return *((std::string*)value);
+}

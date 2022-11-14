@@ -644,6 +644,7 @@ int main(int argc, char *argv[])
         std::shared_ptr<ReferenceContext> referenceContext = std::make_shared<ReferenceContext>(interval, bases[0]);
         filterMutectCalls.nthPassApply(vc, referenceContext);
     }
+    filterMutectCalls.afterNthPass();
 
     // free the space
     fai_destroy(refPoint);

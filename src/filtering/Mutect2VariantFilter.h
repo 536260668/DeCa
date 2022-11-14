@@ -21,6 +21,7 @@ public:
     virtual ErrorType errorType() = 0;
     virtual void learnParametersAndClearAccumulatedData();
     virtual ~Mutect2VariantFilter() {}
+    virtual std::string filterName() = 0;
 
 protected:
     virtual std::vector<std::string> requiredAnnotations() = 0;

@@ -12,6 +12,7 @@ const double M2FiltersArgumentCollection:: DEFAULT_LOG_SNV_PRIOR_FOR_MITO = Math
 const double M2FiltersArgumentCollection:: DEFAULT_INITIAL_POSTERIOR_THRESHOLD = 0.1;
 const double M2FiltersArgumentCollection:: DEFAULT_MAX_FALSE_DISCOVERY_RATE = 0.05;
 const double M2FiltersArgumentCollection:: DEFAULT_F_SCORE_BETA = 1.0;
+const double M2FiltersArgumentCollection:: DEFAULT_INITIAL_LOG_PRIOR_OF_VARIANT_VERSUS_ARTIFACT = MathUtils::log10ToLog(-1);
 
 double M2FiltersArgumentCollection::getLogIndelPrior() {
     return mitochondria && logIndelPrior == DEFAULT_LOG_INDEL_PRIOR ? DEFAULT_LOG_INDEL_PRIOR_FOR_MITO : logIndelPrior;
@@ -24,6 +25,7 @@ M2FiltersArgumentCollection::M2FiltersArgumentCollection() {
     fScoreBeta = DEFAULT_F_SCORE_BETA;
     maxFalsePositiveRate = DEFAULT_MAX_FALSE_DISCOVERY_RATE;
     initialPosteriorThreshold = DEFAULT_INITIAL_POSTERIOR_THRESHOLD;
+    initialLogPriorOfVariantVersusArtifact = DEFAULT_INITIAL_LOG_PRIOR_OF_VARIANT_VERSUS_ARTIFACT;
 }
 
 double M2FiltersArgumentCollection::getLogSnvPrior() {

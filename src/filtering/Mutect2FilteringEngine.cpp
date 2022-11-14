@@ -107,3 +107,11 @@ void Mutect2FilteringEngine::accumulateData(const std::shared_ptr<VariantContext
     thresholdCalculator.addArtifactProbability(errorProbabilities.getErrorProbability());
 }
 
+void Mutect2FilteringEngine::learnParameters() {
+    for(auto & filter : filters) {
+        filter->learnParametersAndClearAccumulatedData();
+    }
+    somaticClusteringModel.learnAndClearAccumulatedData();
+    thresholdCalculator.relearnThresholdAndClearAcumulatedProbabilities();
+}
+

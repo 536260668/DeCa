@@ -10,6 +10,7 @@
 class ThresholdCalculator {
 private:
     std::vector<double> artifactProbabilities;
+    static double calculateThresholdBasedOnOptimalFScore(std::vector<double> posteriors, double beta);
     double maxFalseDiscoveryRate;
     double fScoreBeta;
     double threshold;
@@ -17,6 +18,7 @@ private:
 public:
     void addArtifactProbability(double artifactProbability);
     ThresholdCalculator(double initialThreshold, double maxFalseDiscoveryRate, double fScoreBeta);
+    void relearnThresholdAndClearAcumulatedProbabilities();
 };
 
 

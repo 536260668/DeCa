@@ -17,7 +17,7 @@
 class SomaticClusteringModel {
 private:
     std::map<int, double> logVariantPriors;
-    std::vector<AlleleFractionCluster *> clusters;
+    std::vector<std::shared_ptr<AlleleFractionCluster>> clusters;
     std::uniform_real_distribution<float> rng;
     static thread_local boost::random::mt19937 seed;
     static BetaBinomialCluster NEW_CLUSTER;
@@ -33,8 +33,10 @@ private:
     double logHighAFWeight;
     double logBackgroundWeight;
     double logSparseClustersWeight;
+    double logVariantVsArtifactPrior;
     static BetaDistributionShape INITIAL_HIGH_AF_BETA;
     static BetaDistributionShape INITIAL_BACKGROUND_BETA;
+    std::optional<double> callableSites;
     bool firstPass;
 
     std::vector<double > clusterProbabilities(Datum datum);

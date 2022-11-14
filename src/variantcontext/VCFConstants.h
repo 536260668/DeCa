@@ -76,6 +76,10 @@ public:
 	inline const static std::string EVENT_COUNT_IN_HAPLOTYPE_KEY = "ECNT"; //M2
 	inline const static std::string F1R2_KEY = "F1R2";
 	inline const static std::string F2R1_KEY = "F2R1";
+
+    inline const static std::string BAD_HAPLOTYPE_FILTER_NAME = "haplotype";
+    inline const static std::string TUMOR_EVIDENCE_FILTER_NAME = "weak_evidence";
+    inline const static std::string STRAND_ARTIFACT_FILTER_NAME = "strand_bias";
 };
 
 

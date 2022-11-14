@@ -19,6 +19,9 @@ StrandBiasTest::getContingencyTable(AlleleLikelihoods<SAMRecord, Allele> *likeli
     for(string sample : samples)
     {
         int * sampleTable = new int[ARRAY_SIZE];
+        for(int i = 0; i < ARRAY_SIZE; i++) {
+            sampleTable[i] = 0;
+        }
         auto bestAlleles = likelihoods->bestAllelesBreakingTies(sample);
         for(auto ba : *bestAlleles)
         {

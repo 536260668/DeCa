@@ -32,3 +32,7 @@ std::vector<std::string> TumorEvidenceFilter::requiredAnnotations() {
 ErrorType TumorEvidenceFilter::errorType() {
     return SEQUENCING;
 }
+
+std::string TumorEvidenceFilter::filterName() {
+    return VCFConstants::TUMOR_EVIDENCE_FILTER_NAME;
+}

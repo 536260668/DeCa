@@ -16,6 +16,7 @@ private:
 public:
     FilterMutectCalls(const std::string & normalSample);
     void nthPassApply(const std::shared_ptr<VariantContext> & vc, const std::shared_ptr<ReferenceContext> & referenceContext);
+    void afterNthPass();
 };
 
 

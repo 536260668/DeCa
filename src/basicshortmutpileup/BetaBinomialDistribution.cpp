@@ -9,7 +9,7 @@
 #include <cfloat>
 
 BetaBinomialDistribution::BetaBinomialDistribution(double alpha, double beta, int n, int rng) : alpha(alpha), beta(beta), n(n), rng(rng){
-    if(alpha < 0 || beta < 0 || n <= 0) {
+    if(alpha < 0 || beta < 0 || n < 0) {
         std::string param = ("alpha, beta and n must be greater than zero.");
         throw std::invalid_argument(param);
     }

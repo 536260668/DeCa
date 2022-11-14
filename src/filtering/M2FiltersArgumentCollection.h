@@ -16,6 +16,7 @@ public:
     double initialPosteriorThreshold;
     double fScoreBeta;
     double maxFalsePositiveRate;
+    double initialLogPriorOfVariantVersusArtifact;
 
     M2FiltersArgumentCollection();
 
@@ -27,6 +28,7 @@ private:
     static const double  DEFAULT_INITIAL_POSTERIOR_THRESHOLD;
     static const double  DEFAULT_F_SCORE_BETA;
     static const double  DEFAULT_MAX_FALSE_DISCOVERY_RATE;
+    static const double  DEFAULT_INITIAL_LOG_PRIOR_OF_VARIANT_VERSUS_ARTIFACT;
 };
 
 

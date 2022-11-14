@@ -54,6 +54,8 @@ public:
 
     std::vector<int> getAttributeAsIntVector();
 
+    std::string getAttributeAsString();;
+
     static AttributeValue empty_value();
 };
 

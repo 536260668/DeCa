@@ -39,6 +39,7 @@ public:
     virtual void learnParameters();
     virtual void clearAccumulatedData();
     virtual ErrorType errorType();
+    virtual std::string filterName();
 };
 
 

@@ -18,8 +18,8 @@ std::vector<double> SomaticClusteringModel::clusterProbabilities(Datum datum) {
     double logVariantPrior = getLogPriorOfSomaticVariant(datum.getIndelLength());
     double logNoVariantPrior = NaturalLogUtils::log1mexp(logVariantPrior);
 
-    std::vector<double> logClusterPosteriors = std::vector<double>(clusters.size(), 0);
-    for(int i = 0; i < clusters.size(); i++) {
+    std::vector<double> logClusterPosteriors = std::vector<double>(clusters.size()+1, 0);
+    for(int i = 0; i < clusters.size() + 1; i++) {
         double logLikelihood = i < clusters.size() ? clusters[i]->logLikelihood(datum) : NEW_CLUSTER.logLikelihood(datum);
         if(i == SEQUENCING_ERROR_INDEX) {
             logClusterPosteriors[i] = logNoVariantPrior + logLikelihood;
@@ -53,6 +53,7 @@ double SomaticClusteringModel::getLogPriorOfSomaticVariant(int indelLength) {
 }
 
 SomaticClusteringModel::SomaticClusteringModel(M2FiltersArgumentCollection &MTFAC) : rng(0.0, 1.0){
+    logVariantVsArtifactPrior = MTFAC.initialLogPriorOfVariantVersusArtifact;
     totalSparseClusterCount = 0;
     REGULARIZING_PSEUDOCOUNT = 1;
     firstPass = true;
@@ -64,14 +65,14 @@ SomaticClusteringModel::SomaticClusteringModel(M2FiltersArgumentCollection &MTFA
         logVariantPriors.insert({i, MTFAC.getLogIndelPrior()});
     }
     logVariantPriors[0] = MTFAC.getLogSnvPrior();
-    clusters = std::vector<AlleleFractionCluster *>(3);
-    clusters[SEQUENCING_ERROR_INDEX] = new SequencingError();
-    clusters[HIGH_AF_INDEX] = new BetaBinomialCluster(INITIAL_HIGH_AF_BETA);
-    clusters[BACKGROUND_INDEX] = new BetaBinomialCluster(INITIAL_BACKGROUND_BETA);
+    clusters = std::vector<std::shared_ptr<AlleleFractionCluster>>(3);
+    clusters[SEQUENCING_ERROR_INDEX] = std::shared_ptr<AlleleFractionCluster>(new SequencingError()) ;
+    clusters[HIGH_AF_INDEX] = std::shared_ptr<AlleleFractionCluster>(new BetaBinomialCluster(INITIAL_HIGH_AF_BETA));
+    clusters[BACKGROUND_INDEX] = std::shared_ptr<AlleleFractionCluster>(new BetaBinomialCluster(INITIAL_BACKGROUND_BETA));
 }
 
 double SomaticClusteringModel::logCRPWeight(int clusterIndex) {
-    if(clusterIndex >= OFFSET) {
+    if(clusterIndex < OFFSET) {
         throw std::invalid_argument("Chinese restaurant process does not apply to error, high-AF, and backgorund clusters");
     }
     double numerator = clusterIndex == clusters.size() ? CONCENTRATION : clusterCounts[clusterIndex];
@@ -88,9 +89,7 @@ int SomaticClusteringModel::indelLength(const std::shared_ptr<VariantContext> &v
 }
 
 SomaticClusteringModel::~SomaticClusteringModel() {
-    for(auto c : clusters) {
-        delete c;
-    }
+
 }
 
 void SomaticClusteringModel::record(const std::vector<int> &tumorADs, const std::vector<double> &tumorLogOdds,
@@ -168,7 +167,7 @@ void SomaticClusteringModel::assignDatum(int datumIndex, int clusterIndex) {
         totalSparseClusterCount++;
     }
 
-    clusterAssignments[datumIndex].value() = clusterIndex;
+    clusterAssignments[datumIndex] = clusterIndex;
     clusterCounts[clusterIndex]++;
 }
 
@@ -180,17 +179,16 @@ void SomaticClusteringModel::pruneEmptyClusters() {
     int newIndex = OFFSET;
     for (int oldIndex = OFFSET; oldIndex < clusters.size(); oldIndex++) {
         if (clusterCounts[oldIndex] > 0) {
-            oldToNewClusterIndices.insert({oldIndex, newIndex});
+            oldToNewClusterIndices[oldIndex] = newIndex;
 
             if (newIndex != oldIndex) {
-                AlleleFractionCluster* tmp = clusters[newIndex];
                 clusters[newIndex] = clusters[oldIndex];
                 clusterCounts[newIndex] = clusterCounts[oldIndex];
-                delete tmp;
             }
             newIndex++;
         }
     }
+
     int iter = std::min(newIndex, (int)clusters.size());
     std::copy(clusters.begin(), clusters.begin() + iter, clusters.begin());
     iter = std::min(newIndex, (int)clusterCounts.size());
@@ -214,8 +212,32 @@ void SomaticClusteringModel::learnWeightsAndPriors() {
 
     std::vector<int> range;
     for(int i = 0; i < data.size(); i++) {
-        if(clusterAssignments[i].value_or(SEQUENCING_ERROR_INDEX) != SEQUENCING_ERROR_INDEX) {
+        if(clusterAssignments[i].value_or(0) != 0) {
             range.emplace_back(i);
         }
     }
+    std::vector<int> tmp;
+    for(int i : range) {
+        tmp.emplace_back(data[i].getIndelLength());
+    }
+    std::map<int, long> variantCountsByIndelLength;
+    for(int i : tmp) {
+        variantCountsByIndelLength[tmp[i]]++;
+    }
+    double technicalArtifactCount = 0;
+    for(auto & da : data) {
+        technicalArtifactCount += da.getArtifactProb();
+    }
+    if(callableSites.has_value()) {
+        for(int i = -MAX_INDEL_SIZE_IN_PRIOR_MAP; i <= MAX_INDEL_SIZE_IN_PRIOR_MAP; i++) {
+            long value = variantCountsByIndelLength.find(i) != variantCountsByIndelLength.end() ? variantCountsByIndelLength[i] : 0;
+            double empiricalRatio = value / callableSites.value();
+            logVariantPriors[i] = std::log(std::max(empiricalRatio, i == 0 ? 1.0e-8 : 1.0e-9));
+        }
+    }
+    long variantCount = 0;
+    for(auto & k : variantCountsByIndelLength) {
+        variantCount += k.second;
+    }
+    logVariantVsArtifactPrior = std::log((variantCount + REGULARIZING_PSEUDOCOUNT) / (variantCount + technicalArtifactCount + REGULARIZING_PSEUDOCOUNT * 2));
 }

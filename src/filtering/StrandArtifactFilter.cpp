@@ -126,3 +126,7 @@ ErrorType StrandArtifactFilter::errorType() {
     return ARTIFACT;
 }
 
+std::string StrandArtifactFilter::filterName() {
+    return VCFConstants::STRAND_ARTIFACT_FILTER_NAME;
+}
+

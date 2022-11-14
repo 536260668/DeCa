@@ -34,6 +34,7 @@ public:
     std::vector<int> sumStrandCountsOverSamples(const std::shared_ptr<VariantContext> & vc, bool includeTumor, bool includeNormal);
     ~Mutect2FilteringEngine();
     void accumulateData(const std::shared_ptr<VariantContext> & vc, std::shared_ptr<ReferenceContext> referenceContext);
+    void learnParameters();
 };
 
 

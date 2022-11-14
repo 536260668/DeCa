@@ -12,6 +12,7 @@ public:
     virtual double calculateErrorProbability(const std::shared_ptr<VariantContext> & vc, Mutect2FilteringEngine* filteringEngine, std::shared_ptr<ReferenceContext>);
     virtual std::vector<std::string> requiredAnnotations();
     virtual ErrorType errorType();
+    virtual std::string filterName();
 };
 
 
