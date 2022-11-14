@@ -17,6 +17,9 @@ public:
     double fScoreBeta;
     double maxFalsePositiveRate;
     double initialLogPriorOfVariantVersusArtifact;
+    int minMedianBaseQuality;
+    int minMedianMappingQuality = DEFAULT_MIN_MEDIAN_MAPPING_QUALITY;
+    int longIndelLength = DEFAULT_LONG_INDEL_SIZE;
 
     M2FiltersArgumentCollection();
 
@@ -29,6 +32,9 @@ private:
     static const double  DEFAULT_F_SCORE_BETA;
     static const double  DEFAULT_MAX_FALSE_DISCOVERY_RATE;
     static const double  DEFAULT_INITIAL_LOG_PRIOR_OF_VARIANT_VERSUS_ARTIFACT;
+    static const int DEFAULT_MIN_MEDIAN_BASE_QUALITY = 20;
+    static const int DEFAULT_MIN_MEDIAN_MAPPING_QUALITY = 30;
+    static const int DEFAULT_LONG_INDEL_SIZE = 5;
 };
 
 

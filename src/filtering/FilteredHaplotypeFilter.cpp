@@ -55,9 +55,14 @@ double FilteredHaplotypeFilter::calculateErrorProbability(const std::shared_ptr<
 }
 
 std::optional<std::string> FilteredHaplotypeFilter::makePhasingString(std::shared_ptr<Genotype> &genotype) {
-    std::string tmp = "";
-    std::string pgt = genotype->getExtendedAttribute(VCFConstants::HAPLOTYPE_CALLER_PHASING_GT_KEY, &tmp).getAttributeAsString();
-    std::string pid = genotype->getExtendedAttribute(VCFConstants::HAPLOTYPE_CALLER_PHASING_ID_KEY, &tmp).getAttributeAsString();
+    std::string pgt;
+    std::string pid;
+    if(genotype->hasExtendedAttribute(VCFConstants::HAPLOTYPE_CALLER_PHASING_GT_KEY)) {
+        pgt = genotype->getExtendedAttribute(VCFConstants::HAPLOTYPE_CALLER_PHASING_GT_KEY, nullptr).getAttributeAsString();
+    }
+    if(genotype->hasExtendedAttribute(VCFConstants::HAPLOTYPE_CALLER_PHASING_ID_KEY)) {
+        pid = genotype->getExtendedAttribute(VCFConstants::HAPLOTYPE_CALLER_PHASING_ID_KEY, nullptr).getAttributeAsString();
+    }
     return (pgt.size() == 0 && pid.size() == 0) ? std::optional<std::string>() : std::optional<std::string>(pgt+pid);
 }
 
@@ -106,5 +111,13 @@ void FilteredHaplotypeFilter::clearAccumulatedData() {
 
 std::string FilteredHaplotypeFilter::filterName() {
     return VCFConstants::BAD_HAPLOTYPE_FILTER_NAME;
+}
+
+ErrorType FilteredHaplotypeFilter::errorType() {
+    return ARTIFACT;
+}
+
+std::vector<std::string> FilteredHaplotypeFilter::requiredAnnotations() {
+    return {};
 }
 

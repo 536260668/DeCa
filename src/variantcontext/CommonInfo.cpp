@@ -39,7 +39,7 @@ bool CommonInfo::hasAttribute(const std::string & key) {
 }
 
 int CommonInfo::getAttributeAsInt(std::string &key, int defaultValue) {
-    return attributes->at(key).getAttributeAsInt();
+    return attributes->find(key) != attributes->end() ? attributes->at(key).getAttributeAsInt() : defaultValue;
 }
 
 AttributeValue CommonInfo::getAttribute(std::string &key) {
@@ -76,4 +76,12 @@ double CommonInfo::getLog10PError() const {
 
 std::string & CommonInfo::getName() {
     return name;
+}
+
+std::vector<int> CommonInfo::getAttributeAsIntVector(const std::string &key, std::vector<int> defaultValue) {
+    if(attributes->find(key) != attributes->end()) {
+        return attributes->at(key).getAttributeAsIntVector();
+    } else {
+        return defaultValue;
+    }
 }

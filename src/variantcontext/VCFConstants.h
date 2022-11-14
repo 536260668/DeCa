@@ -80,6 +80,8 @@ public:
     inline const static std::string BAD_HAPLOTYPE_FILTER_NAME = "haplotype";
     inline const static std::string TUMOR_EVIDENCE_FILTER_NAME = "weak_evidence";
     inline const static std::string STRAND_ARTIFACT_FILTER_NAME = "strand_bias";
+    inline const static std::string MEDIAN_BASE_QUALITY_FILTER_NAME = "base_qual";
+    inline const static std::string MEDIAN_MAPPING_QUALITY_FILTER_NAME = "map_qual";
 };
 
 

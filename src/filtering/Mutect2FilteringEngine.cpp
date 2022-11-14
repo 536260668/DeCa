@@ -3,8 +3,13 @@
 //
 
 #include "Mutect2FilteringEngine.h"
+
+#include <utility>
 #include "TumorEvidenceFilter.h"
 #include "StrandArtifactFilter.h"
+#include "FilteredHaplotypeFilter.h"
+#include "BaseQualityFilter.h"
+#include "MappingQualityFilter.h"
 
 double Mutect2FilteringEngine::roundFinitePrecisionErrors(double probability) {
     return std::max(std::min(probability, 1.0), 0.0);
@@ -53,12 +58,13 @@ SomaticClusteringModel* Mutect2FilteringEngine::getSomaticClusteringModel() {
     return &somaticClusteringModel;
 }
 
-Mutect2FilteringEngine::Mutect2FilteringEngine(M2FiltersArgumentCollection &MTFAC, const std::string& normal) : somaticClusteringModel(MTFAC), normalSample(normal),
+Mutect2FilteringEngine::Mutect2FilteringEngine(M2FiltersArgumentCollection &MTFAC, std::string  normal) : somaticClusteringModel(MTFAC), normalSample(std::move(normal)),
                                                                                                                 thresholdCalculator(MTFAC.initialPosteriorThreshold, MTFAC.maxFalsePositiveRate, MTFAC.fScoreBeta){
-    Mutect2VariantFilter * tmp = new TumorEvidenceFilter();
-    filters.emplace_back(tmp);
-    tmp = new StrandArtifactFilter();
-    filters.emplace_back(tmp);
+    filters.emplace_back(new TumorEvidenceFilter());
+    filters.emplace_back(new StrandArtifactFilter());
+    filters.emplace_back(new FilteredHaplotypeFilter(100));
+    filters.emplace_back(new BaseQualityFilter(MTFAC.minMedianBaseQuality));
+    filters.emplace_back(new MappingQualityFilter(MTFAC.minMedianMappingQuality, MTFAC.longIndelLength));
 }
 
 std::vector<int>

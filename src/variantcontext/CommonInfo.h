@@ -49,6 +49,8 @@ public:
 
     int getAttributeAsInt(std::string &key, int defaultValue);
 
+    std::vector<int> getAttributeAsIntVector(const std::string &key, std::vector<int> defaultValue);
+
     AttributeValue getAttribute(std::string &key);
 
     const std::map<std::string, AttributeValue> & getAttributes();

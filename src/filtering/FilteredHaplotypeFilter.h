@@ -21,6 +21,8 @@ public:
     virtual void learnParameters();
     virtual void clearAccumulatedData();
     virtual std::string filterName();
+    virtual ErrorType errorType();
+    virtual std::vector<std::string> requiredAnnotations();
 };
 
 

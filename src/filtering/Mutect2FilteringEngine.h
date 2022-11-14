@@ -24,7 +24,7 @@ private:
     Mutect2FilteringEngine &operator=(const Mutect2FilteringEngine& engine) = default;
 
 public:
-    Mutect2FilteringEngine(M2FiltersArgumentCollection& MTFAC, const std::string& normal);
+    Mutect2FilteringEngine(M2FiltersArgumentCollection& MTFAC, std::string  normal);
     bool isNormal(Genotype* genotype);
     bool isTumor(Genotype* genotype);
     static double roundFinitePrecisionErrors(double roundFinitePrecisionErrors);

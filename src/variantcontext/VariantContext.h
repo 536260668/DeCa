@@ -104,6 +104,8 @@ public:
 
 	int getAttributeAsInt(const std::string &key, int defaultValue);
 
+	std::vector<int> getAttributeAsIntVector(const std::string &key, std::vector<int> defaultValue);
+
 	int getEnd() const;
 
 	int getStart();
@@ -205,6 +207,8 @@ public:
    * @return the number of samples in the context
    */
    int getNSamples();
+
+   std::vector<int> getIndelLengths();
 };
 
 

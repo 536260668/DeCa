@@ -26,6 +26,7 @@ M2FiltersArgumentCollection::M2FiltersArgumentCollection() {
     maxFalsePositiveRate = DEFAULT_MAX_FALSE_DISCOVERY_RATE;
     initialPosteriorThreshold = DEFAULT_INITIAL_POSTERIOR_THRESHOLD;
     initialLogPriorOfVariantVersusArtifact = DEFAULT_INITIAL_LOG_PRIOR_OF_VARIANT_VERSUS_ARTIFACT;
+    minMedianBaseQuality = DEFAULT_MIN_MEDIAN_BASE_QUALITY;
 }
 
 double M2FiltersArgumentCollection::getLogSnvPrior() {

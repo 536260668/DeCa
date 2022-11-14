@@ -421,3 +421,19 @@ std::string VariantContext::getTypeString() {
 			return "NULL";
 	}
 }
+
+std::vector<int> VariantContext::getAttributeAsIntVector(const std::string &key, std::vector<int> defaultValue) {
+    return commonInfo.getAttributeAsIntVector(key, defaultValue);
+}
+
+std::vector<int> VariantContext::getIndelLengths() {
+    if(getType() != VariantContext_INDEL && getType() != VariantContext_MIXED) {
+        return {};
+    } else {
+        std::vector<int> lengths;
+        for(auto & k : getAlternateAlleles()) {
+            lengths.emplace_back(k->getLength() - REF->getLength());
+        }
+        return lengths;
+    }
+}

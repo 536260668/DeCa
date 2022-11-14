@@ -171,7 +171,7 @@ bool Genotype::hasExtendedAttribute(const std::string &key) {
 }
 
 AttributeValue Genotype::getExtendedAttribute(const std::string& key, void *defaultValue) {
-    return hasExtendedAttribute(key) ? getExtendedAttributes().at(key) : defaultValue;
+    return hasExtendedAttribute(key) ? getExtendedAttributes().at(key) : *(AttributeValue *)defaultValue;
 }
 
 AttributeValue Genotype::getExtendedAttribute(const std::string & key) {
