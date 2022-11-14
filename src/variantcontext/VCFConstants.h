@@ -82,6 +82,14 @@ public:
     inline const static std::string STRAND_ARTIFACT_FILTER_NAME = "strand_bias";
     inline const static std::string MEDIAN_BASE_QUALITY_FILTER_NAME = "base_qual";
     inline const static std::string MEDIAN_MAPPING_QUALITY_FILTER_NAME = "map_qual";
+    inline const static std::string DUPLICATED_EVIDENCE_FILTER_NAME = "duplicate";
+    inline const static std::string ARTIFACT_IN_NORMAL_FILTER_NAME = "normal_artifact";
+    inline const static std::string GERMLINE_RISK_FILTER_NAME = "germline";
+    inline const static std::string CLUSTERED_EVENTS_FILTER_NAME = "clustered_events";
+    inline const static std::string LOW_QUAL_FILTER_NAME = "LowQual";
+    inline const static std::string ALIGNMENT_ARTIFACT_FILTER_NAME = "alignment";
+    inline const static std::string PON_FILTER_NAME = "panel_of_normals";
+    inline const static std::string N_RATIO_FILTER_NAME = "n_ratio";
 };
 
 

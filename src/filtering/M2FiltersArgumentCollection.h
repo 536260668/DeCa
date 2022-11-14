@@ -6,7 +6,8 @@
 #define MUTECT2CPP_MASTER_M2FILTERSARGUMENTCOLLECTION_H
 
 
-class M2FiltersArgumentCollection {
+class
+M2FiltersArgumentCollection {
 public:
     double getLogIndelPrior();
     double getLogSnvPrior();
@@ -17,9 +18,12 @@ public:
     double fScoreBeta;
     double maxFalsePositiveRate;
     double initialLogPriorOfVariantVersusArtifact;
+    double nRatio;
     int minMedianBaseQuality;
     int minMedianMappingQuality = DEFAULT_MIN_MEDIAN_MAPPING_QUALITY;
     int longIndelLength = DEFAULT_LONG_INDEL_SIZE;
+    int uniqueAltReadCount = DEFAULT_MIN_UNIQUE_ALT_READS;
+    constexpr static double normalPileupPValueThreshold = 0.0001;
 
     M2FiltersArgumentCollection();
 
@@ -35,6 +39,8 @@ private:
     static const int DEFAULT_MIN_MEDIAN_BASE_QUALITY = 20;
     static const int DEFAULT_MIN_MEDIAN_MAPPING_QUALITY = 30;
     static const int DEFAULT_LONG_INDEL_SIZE = 5;
+    static const int DEFAULT_MIN_UNIQUE_ALT_READS = 0;
+    static const double DEFAULT_MAX_N_RATIO;
 };
 
 

@@ -22,6 +22,7 @@ private:
     std::vector<Mutect2VariantFilter *> filters;
     Mutect2FilteringEngine(const Mutect2FilteringEngine& engine) = default;
     Mutect2FilteringEngine &operator=(const Mutect2FilteringEngine& engine) = default;
+    static double posteriorProbabilityOfError(double logOddsOfRealVersusError, double logPriorOfReal);
 
 public:
     Mutect2FilteringEngine(M2FiltersArgumentCollection& MTFAC, std::string  normal);
@@ -35,6 +36,7 @@ public:
     ~Mutect2FilteringEngine();
     void accumulateData(const std::shared_ptr<VariantContext> & vc, std::shared_ptr<ReferenceContext> referenceContext);
     void learnParameters();
+    double posteriorProbabilityOfNormalArtifact(double negativeLogOddsOfNormalArtifact);
 };
 
 

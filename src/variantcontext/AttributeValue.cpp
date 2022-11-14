@@ -105,12 +105,12 @@ double AttributeValue::getAttributeAsDouble() {
     return *((double*)value);
 }
 
-std::vector<double> AttributeValue::getAttributeAsDoubleVector() {
+std::vector<double> AttributeValue::getAttributeAsDoubleVector() const {
     assert(type == VECTOR_DOUBLE);
     return *((std::vector<double>*)value);
 }
 
-std::vector<int> AttributeValue::getAttributeAsIntVector() {
+std::vector<int> AttributeValue::getAttributeAsIntVector() const {
     assert(type == VECTOR_INT);
     return *((std::vector<int>*)value);
 }

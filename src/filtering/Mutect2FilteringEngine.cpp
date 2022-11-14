@@ -3,6 +3,7 @@
 //
 
 #include "Mutect2FilteringEngine.h"
+#include "NaturalLogUtils.h"
 
 #include <utility>
 #include "TumorEvidenceFilter.h"
@@ -10,6 +11,11 @@
 #include "FilteredHaplotypeFilter.h"
 #include "BaseQualityFilter.h"
 #include "MappingQualityFilter.h"
+#include "DuplicatedAltReadFilter.h"
+#include "PanelOfNormalsFilter.h"
+#include "NormalArtifactFilter.h"
+#include "NRatioFilter.h"
+
 
 double Mutect2FilteringEngine::roundFinitePrecisionErrors(double probability) {
     return std::max(std::min(probability, 1.0), 0.0);
@@ -65,6 +71,10 @@ Mutect2FilteringEngine::Mutect2FilteringEngine(M2FiltersArgumentCollection &MTFA
     filters.emplace_back(new FilteredHaplotypeFilter(100));
     filters.emplace_back(new BaseQualityFilter(MTFAC.minMedianBaseQuality));
     filters.emplace_back(new MappingQualityFilter(MTFAC.minMedianMappingQuality, MTFAC.longIndelLength));
+    filters.emplace_back(new DuplicatedAltReadFilter(MTFAC.uniqueAltReadCount));
+    filters.emplace_back(new PanelOfNormalsFilter());
+    filters.emplace_back(new NormalArtifactFilter());
+    filters.emplace_back(new NRatioFilter(MTFAC.nRatio));
 }
 
 std::vector<int>
@@ -119,5 +129,16 @@ void Mutect2FilteringEngine::learnParameters() {
     }
     somaticClusteringModel.learnAndClearAccumulatedData();
     thresholdCalculator.relearnThresholdAndClearAcumulatedProbabilities();
+}
+
+double Mutect2FilteringEngine::posteriorProbabilityOfNormalArtifact(double negativeLogOddsOfNormalArtifact) {
+    return posteriorProbabilityOfError(negativeLogOddsOfNormalArtifact, somaticClusteringModel.getLogPriorOfVariantVersusArtifact());
+}
+
+double Mutect2FilteringEngine::posteriorProbabilityOfError(double logOddsOfRealVersusError, double logPriorOfReal) {
+    std::vector<double> unweightedPosteriorOfRealAndError = {logOddsOfRealVersusError + logPriorOfReal,
+                                                             NaturalLogUtils::log1mexp(logPriorOfReal)};
+    auto posteriorOfRealAndError = NaturalLogUtils::normalizeFromLogToLinearSpace(std::make_shared<std::vector<double>>(unweightedPosteriorOfRealAndError));
+    return posteriorOfRealAndError->operator[](1);
 }
 

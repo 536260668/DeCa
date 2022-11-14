@@ -50,9 +50,9 @@ public:
 
     double getAttributeAsDouble();
 
-    std::vector<double> getAttributeAsDoubleVector();
+    std::vector<double> getAttributeAsDoubleVector() const;
 
-    std::vector<int> getAttributeAsIntVector();
+    std::vector<int> getAttributeAsIntVector() const;
 
     std::string getAttributeAsString();;
 

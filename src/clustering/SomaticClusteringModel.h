@@ -60,6 +60,7 @@ public:
     virtual ~SomaticClusteringModel();
     void record(const std::vector<int> & tumorADs, const std::vector<double> & tumorLogOdds, double artifactProbability, double nonSomaticProbability, const std::shared_ptr<VariantContext> & vc);
     void learnAndClearAccumulatedData();
+    double getLogPriorOfVariantVersusArtifact() const {return logVariantVsArtifactPrior;}
 };
 
 
