@@ -4,7 +4,7 @@ include_directories("${PROJECT_SOURCE_DIR}/src/tools")
 include_directories("${PROJECT_SOURCE_DIR}/src/variantcontext")
 
 aux_source_directory(. DIR_LIB_SRCS)
-add_library(Mutect2FilteringEngineFunctions ${DIR_LIB_SRCS} ThresholdCalculator.cpp ThresholdCalculator.h FilterMutectCalls.cpp FilterMutectCalls.h FilteredHaplotypeFilter.cpp FilteredHaplotypeFilter.h BaseQualityFilter.cpp BaseQualityFilter.h MappingQualityFilter.cpp MappingQualityFilter.h DuplicatedAltReadFilter.cpp DuplicatedAltReadFilter.h PanelOfNormalsFilter.cpp PanelOfNormalsFilter.h NormalArtifactFilter.cpp NormalArtifactFilter.h NRatioFilter.cpp NRatioFilter.h)
+add_library(Mutect2FilteringEngineFunctions ${DIR_LIB_SRCS} ReadPositionFilter.cpp ReadPositionFilter.h MinAlleleFractionFilter.cpp MinAlleleFractionFilter.h ClusteredEventsFilter.cpp ClusteredEventsFilter.h GermlineFilter.cpp GermlineFilter.h MultiallelicFilter.cpp MultiallelicFilter.h)
 
 target_link_libraries(Mutect2FilteringEngineFunctions ToolsFunctions)
 

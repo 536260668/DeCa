@@ -19,7 +19,9 @@ public:
     double maxFalsePositiveRate;
     double initialLogPriorOfVariantVersusArtifact;
     double nRatio;
+    double minAf = 0;
     int minMedianBaseQuality;
+    int minMedianReadPosition;
     int minMedianMappingQuality = DEFAULT_MIN_MEDIAN_MAPPING_QUALITY;
     int longIndelLength = DEFAULT_LONG_INDEL_SIZE;
     int uniqueAltReadCount = DEFAULT_MIN_UNIQUE_ALT_READS;
@@ -41,6 +43,7 @@ private:
     static const int DEFAULT_LONG_INDEL_SIZE = 5;
     static const int DEFAULT_MIN_UNIQUE_ALT_READS = 0;
     static const double DEFAULT_MAX_N_RATIO;
+    static const int DEFAULT_MIN_MEDIAN_READ_POSITION = 1;
 };
 
 

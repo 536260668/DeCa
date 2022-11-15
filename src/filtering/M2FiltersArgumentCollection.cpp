@@ -30,6 +30,7 @@ M2FiltersArgumentCollection::M2FiltersArgumentCollection() {
     initialLogPriorOfVariantVersusArtifact = DEFAULT_INITIAL_LOG_PRIOR_OF_VARIANT_VERSUS_ARTIFACT;
     minMedianBaseQuality = DEFAULT_MIN_MEDIAN_BASE_QUALITY;
     nRatio = DEFAULT_MAX_N_RATIO;
+    minMedianReadPosition = DEFAULT_MIN_MEDIAN_READ_POSITION;
 }
 
 double M2FiltersArgumentCollection::getLogSnvPrior() {

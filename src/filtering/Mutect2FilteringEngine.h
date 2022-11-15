@@ -37,6 +37,8 @@ public:
     void accumulateData(const std::shared_ptr<VariantContext> & vc, std::shared_ptr<ReferenceContext> referenceContext);
     void learnParameters();
     double posteriorProbabilityOfNormalArtifact(double negativeLogOddsOfNormalArtifact);
+    std::vector<double> weightedAverageOfTumorAFs(const std::shared_ptr<VariantContext>& vc);
+    double getLogSomaticPrior(const std::shared_ptr<VariantContext> & vc, int altIndex);
 };
 
 

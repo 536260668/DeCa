@@ -90,6 +90,9 @@ public:
     inline const static std::string ALIGNMENT_ARTIFACT_FILTER_NAME = "alignment";
     inline const static std::string PON_FILTER_NAME = "panel_of_normals";
     inline const static std::string N_RATIO_FILTER_NAME = "n_ratio";
+    inline const static std::string READ_POSITION_FILTER_NAME = "position";
+    inline const static std::string ALLELE_FRACTION_FILTER_NAME = "low_allele_frac";
+    inline const static std::string MULTIALLELIC_FILTER_NAME = "multiallelic";
 };
 
 

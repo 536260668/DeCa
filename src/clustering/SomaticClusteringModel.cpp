@@ -241,3 +241,25 @@ void SomaticClusteringModel::learnWeightsAndPriors() {
     }
     logVariantVsArtifactPrior = std::log((variantCount + REGULARIZING_PSEUDOCOUNT) / (variantCount + technicalArtifactCount + REGULARIZING_PSEUDOCOUNT * 2));
 }
+
+double SomaticClusteringModel::logLikelihoodGivenSomatic(int totalCount, int altCount) {
+    std::vector<double> logClusterLikelihoods;
+    for(int i = 0; i < clusters.size(); i++) {
+        if(i != SEQUENCING_ERROR_INDEX) {
+            double logLikelihood = clusters[i]->logLikelihood(totalCount, altCount);
+            if (i == HIGH_AF_INDEX) {
+                logClusterLikelihoods.emplace_back(logHighAFWeight + logLikelihood);
+            } else if (i == BACKGROUND_INDEX) {
+                logClusterLikelihoods.emplace_back(logBackgroundWeight + logLikelihood);
+            } else {   // sparse cluster
+                logClusterLikelihoods.emplace_back(logSparseClustersWeight + logCRPWeight(i) + logLikelihood);
+            }
+        }
+    }
+    return NaturalLogUtils::logSumExp(logClusterLikelihoods);
+}
+
+double SomaticClusteringModel::getLogPriorOfSomaticVariant(const std::shared_ptr<VariantContext> &vc, int altIndex) {
+    int indellen = indelLength(vc, altIndex);
+    return getLogPriorOfSomaticVariant(indellen);
+}

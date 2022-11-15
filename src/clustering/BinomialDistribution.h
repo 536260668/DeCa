@@ -5,6 +5,7 @@
 #ifndef MUTECT2CPP_MASTER_BINOMIALDISTRIBUTION_H
 #define MUTECT2CPP_MASTER_BINOMIALDISTRIBUTION_H
 
+#include <vector>
 
 class BinomialDistribution {
 private:
@@ -15,6 +16,10 @@ private:
     static double getA(int n, double x) {
         return 1.0;
     }
+    double logBinomialProbability(int x, int n, double p, double q);
+    static double getDeviancePart(double x, double mu);
+    static double getStirlingError(double z);
+    const static std::vector<double> EXACT_STIRLING_ERRORS;
 
 public:
     BinomialDistribution(int trails, double p);
@@ -24,6 +29,7 @@ public:
                                   double a, double b,
                                   double epsilon, int maxIterations);
     static double evaluate(double x, double epsilon, int maxIterations, double a, double b);
+    double logProbability(int x);
 };
 
 

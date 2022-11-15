@@ -61,6 +61,8 @@ public:
     void record(const std::vector<int> & tumorADs, const std::vector<double> & tumorLogOdds, double artifactProbability, double nonSomaticProbability, const std::shared_ptr<VariantContext> & vc);
     void learnAndClearAccumulatedData();
     double getLogPriorOfVariantVersusArtifact() const {return logVariantVsArtifactPrior;}
+    double logLikelihoodGivenSomatic(int totalCount, int altCount);
+    double getLogPriorOfSomaticVariant(const std::shared_ptr<VariantContext>& vc, int indelLength);
 };
 
 

@@ -15,6 +15,11 @@
 #include "PanelOfNormalsFilter.h"
 #include "NormalArtifactFilter.h"
 #include "NRatioFilter.h"
+#include "ReadPositionFilter.h"
+#include "MinAlleleFractionFilter.h"
+#include "ClusteredEventsFilter.h"
+#include "GermlineFilter.h"
+#include "MultiallelicFilter.h"
 
 
 double Mutect2FilteringEngine::roundFinitePrecisionErrors(double probability) {
@@ -75,6 +80,11 @@ Mutect2FilteringEngine::Mutect2FilteringEngine(M2FiltersArgumentCollection &MTFA
     filters.emplace_back(new PanelOfNormalsFilter());
     filters.emplace_back(new NormalArtifactFilter());
     filters.emplace_back(new NRatioFilter(MTFAC.nRatio));
+    filters.emplace_back(new ReadPositionFilter(MTFAC.minMedianReadPosition));
+    filters.emplace_back(new MinAlleleFractionFilter(MTFAC.minAf));
+    filters.emplace_back(new ClusteredEventsFilter(2));
+    filters.emplace_back(new GermlineFilter());
+    filters.emplace_back(new MultiallelicFilter(1));
 }
 
 std::vector<int>
@@ -140,5 +150,39 @@ double Mutect2FilteringEngine::posteriorProbabilityOfError(double logOddsOfRealV
                                                              NaturalLogUtils::log1mexp(logPriorOfReal)};
     auto posteriorOfRealAndError = NaturalLogUtils::normalizeFromLogToLinearSpace(std::make_shared<std::vector<double>>(unweightedPosteriorOfRealAndError));
     return posteriorOfRealAndError->operator[](1);
+}
+
+std::vector<double> Mutect2FilteringEngine::weightedAverageOfTumorAFs(const std::shared_ptr<VariantContext> &vc) {
+    double totalWeight = 0;
+    std::vector<double> AFs = std::vector<double>(vc->getNAlleles() - 1, 0);
+    for(auto & k : *vc->getGenotypes()->getGenotypes()) {
+        if(isTumor(k.get())) {
+            double weight = 0;
+            int len;
+            int * ADs = k->getAD(len);
+            for(int i = 0; i < len; i++) {
+                weight += ADs[i];
+            }
+            totalWeight += weight;
+            std::vector<double> sampleAFs = {0.0};
+            if(k->hasExtendedAttribute(VCFConstants::ALLELE_FREQUENCY_KEY)) {
+                sampleAFs = k->getExtendedAttribute(VCFConstants::ALLELE_FREQUENCY_KEY).getAttributeAsDoubleVector();
+            }
+            for(int i = 0; i < sampleAFs.size(); i++) {
+                sampleAFs[i] = sampleAFs[i] * weight;
+            }
+            for(int i = 0; i < AFs.size(); i++) {
+                AFs[i] = sampleAFs[i] + AFs[i];
+            }
+        }
+    }
+    for(int i = 0; i < AFs.size(); i++) {
+        AFs[i] = AFs[i] / totalWeight;
+    }
+    return AFs;
+}
+
+double Mutect2FilteringEngine::getLogSomaticPrior(const std::shared_ptr<VariantContext> & vc, int altIndex) {
+    return somaticClusteringModel.getLogPriorOfSomaticVariant(vc, altIndex);
 }
 
