@@ -16,3 +16,9 @@ void FilterMutectCalls::nthPassApply(const std::shared_ptr<VariantContext> &vc,
 void FilterMutectCalls::afterNthPass() {
     filteringEngine.learnParameters();
 }
+
+bool FilterMutectCalls::applyFilters(const std::shared_ptr<VariantContext> &vc,
+                                     const std::shared_ptr<ReferenceContext> &referenceContext) {
+    return filteringEngine.applyFiltersAndAccumulateOutputStats(vc, referenceContext);
+}
+

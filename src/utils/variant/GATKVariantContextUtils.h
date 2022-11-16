@@ -201,6 +201,13 @@ public:
     static std::shared_ptr<VariantContext> trimAlleles(std::shared_ptr<VariantContext> inputVC, int fwdTrimEnd, int revTrim);
 
     static std::shared_ptr<GenoTypesContext> updateGenotypesWithMappedAlleles(std::shared_ptr<GenoTypesContext> originalGenotypes, AlleleMapper& alleleMapper);
+
+    static std::pair<std::vector<int>, std::shared_ptr<uint8_t[]>> getNumTandemRepeatUnits(const std::shared_ptr<VariantContext>& vc, std::shared_ptr<uint8_t[]> refBasesStartingAtVCWithPad, int len);
+
+    static std::pair<std::vector<int>, std::shared_ptr<uint8_t[]>> getNumTandemRepeatUnits(const std::shared_ptr<uint8_t[]> & refBases, int refLen, const std::shared_ptr<uint8_t[]> & altBases, int altLen,
+                                                                                     const std::shared_ptr<uint8_t[]> & remainingRefContext, int remainLen);
+
+    static int findRepeatedSubstring(uint8_t * bases, int basesLen);
 };
 
 

@@ -137,6 +137,14 @@ public:
     static double logGamma1p(double x);
 
     static double lanczos(double x);
+
+    static double gamma(double x);
+
+    constexpr static double LANCZOS_G = 607.0 / 128.0;
+
+    constexpr static double SQRT_TWO_PI = 2.506628274631000502;
+
+    constexpr static double PI = 105414357.0 / 33554432.0 + 1.984187159361080883e-9;
 };
 
 

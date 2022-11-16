@@ -12,6 +12,7 @@ public:
     std::vector<std::string> getKeyNames();
 
     std::shared_ptr<std::map<std::string, AttributeValue>> annotate(shared_ptr<ReferenceContext> ref, shared_ptr<VariantContext> vc, AlleleLikelihoods<SAMRecord, Allele>* likelihoods);
+
 };
 
 

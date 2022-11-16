@@ -636,15 +636,29 @@ int main(int argc, char *argv[])
 
     FilterMutectCalls filterMutectCalls(sharedData.MTAC.normalSample);
     ReferenceCache referenceCache(ref, sharedData.header, 1);
+    for(int i = 0; i < 2; i++) {
+        for(auto & vc : vc_results) {
+            std::shared_ptr<SimpleInterval> interval = std::make_shared<SimpleInterval>(vc->getContig(), vc->getStart(), vc->getEnd());
+            int contig = sharedData.header->getSequenceIndex(vc->getContig());
+            int len;
+            std::shared_ptr<uint8_t[]> bases = referenceCache.getSubsequenceAt(contig, vc->getStart(), vc->getEnd(), len);
+            std::shared_ptr<ReferenceContext> referenceContext = std::make_shared<ReferenceContext>(interval, bases[0]);
+            filterMutectCalls.nthPassApply(vc, referenceContext);
+        }
+        filterMutectCalls.afterNthPass();
+    }
+
+    std::vector<std::shared_ptr<VariantContext>> filter_results;
     for(auto & vc : vc_results) {
         std::shared_ptr<SimpleInterval> interval = std::make_shared<SimpleInterval>(vc->getContig(), vc->getStart(), vc->getEnd());
         int contig = sharedData.header->getSequenceIndex(vc->getContig());
         int len;
         std::shared_ptr<uint8_t[]> bases = referenceCache.getSubsequenceAt(contig, vc->getStart(), vc->getEnd(), len);
         std::shared_ptr<ReferenceContext> referenceContext = std::make_shared<ReferenceContext>(interval, bases[0]);
-        filterMutectCalls.nthPassApply(vc, referenceContext);
+        if(filterMutectCalls.applyFilters(vc, referenceContext)) {
+            filter_results.emplace_back(vc);
+        }
     }
-    filterMutectCalls.afterNthPass();
 
     // free the space
     fai_destroy(refPoint);

@@ -19,6 +19,7 @@ public:
     void addArtifactProbability(double artifactProbability);
     ThresholdCalculator(double initialThreshold, double maxFalseDiscoveryRate, double fScoreBeta);
     void relearnThresholdAndClearAcumulatedProbabilities();
+    double getThredshold();
 };
 
 

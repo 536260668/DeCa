@@ -119,9 +119,15 @@ void SomaticClusteringModel::learnAndClearAccumulatedData() {
                 continue;
             }
             std::vector<double> clusterPosteriors = clusterProbabilities(datum);
-            std::uniform_int_distribution<int> urd(0, clusters.size());
-            int clusterIndex = urd(seed);
-            assignDatum(datumIndex, clusterIndex);
+            std::uniform_real_distribution<double> urd(0, 1);
+            double tmp = urd(seed);
+            int clusterIndex = 0;
+            double sum = 0;
+            while(sum < tmp) {
+                sum += clusterPosteriors[clusterIndex];
+                clusterIndex++;
+            }
+            assignDatum(datumIndex, --clusterIndex);
         }
         pruneEmptyClusters();
         std::vector<std::vector<Datum>> dataByCluster = std::vector<std::vector<Datum>>(clusters.size());
@@ -144,11 +150,14 @@ Datum SomaticClusteringModel::popDatum(int datumIndex) {
     if(clusterAssignments[datumIndex].has_value()) {
         int c = clusterAssignments[datumIndex].value();
         clusterCounts[c]--;
+        if(clusterCounts[c] < 0) {
+            std::cout << "hello" << std::endl;
+        }
         if(OFFSET <= c) {
             totalSparseClusterCount--;
         }
     }
-    clusterAssignments[datumIndex].reset();
+    clusterAssignments[datumIndex] = std::nullopt;
     return data[datumIndex];
 }
 
@@ -190,9 +199,16 @@ void SomaticClusteringModel::pruneEmptyClusters() {
     }
 
     int iter = std::min(newIndex, (int)clusters.size());
-    std::copy(clusters.begin(), clusters.begin() + iter, clusters.begin());
-    iter = std::min(newIndex, (int)clusterCounts.size());
-    std::copy(clusterCounts.begin(), clusterCounts.begin() + iter, clusterCounts.begin());
+    std::vector<std::shared_ptr<AlleleFractionCluster>> tmp1;
+    for(int i = 0; i < newIndex; i++) {
+        tmp1.emplace_back(clusters[i]);
+    }
+    std::swap(tmp1, clusters);
+    std::vector<int> tmp2;
+    for(int i = 0; i < newIndex; i++) {
+        tmp2.emplace_back(clusterCounts[i]);
+    }
+    std::swap(tmp2, clusterCounts);
     std::vector<std::optional<int>> tmp;
     for(auto & k : clusterAssignments) {
         if(k.has_value()) {
@@ -201,6 +217,7 @@ void SomaticClusteringModel::pruneEmptyClusters() {
             tmp.emplace_back(k);
         }
     }
+    std::swap(clusterAssignments, tmp);
 }
 
 void SomaticClusteringModel::learnWeightsAndPriors() {

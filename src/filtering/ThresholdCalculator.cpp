@@ -44,3 +44,7 @@ double ThresholdCalculator::calculateThresholdBasedOnOptimalFScore(std::vector<d
 
     return optimalIndexInclusive == -1 ? 0 : (optimalIndexInclusive == N - 1 ? 1 : posteriors[optimalIndexInclusive]);
 }
+
+double ThresholdCalculator::getThredshold() {
+    return threshold;
+}

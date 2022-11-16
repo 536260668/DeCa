@@ -93,6 +93,7 @@ public:
     inline const static std::string READ_POSITION_FILTER_NAME = "position";
     inline const static std::string ALLELE_FRACTION_FILTER_NAME = "low_allele_frac";
     inline const static std::string MULTIALLELIC_FILTER_NAME = "multiallelic";
+    inline const static std::string MEDIAN_FRAGMENT_LENGTH_DIFFERENCE_FILTER_NAME = "fragment";
 };
 
 

@@ -25,6 +25,7 @@ private:
     static double posteriorProbabilityOfError(double logOddsOfRealVersusError, double logPriorOfReal);
 
 public:
+    constexpr static double EPSILON = 1.0e-10;
     Mutect2FilteringEngine(M2FiltersArgumentCollection& MTFAC, std::string  normal);
     bool isNormal(Genotype* genotype);
     bool isTumor(Genotype* genotype);
@@ -39,6 +40,7 @@ public:
     double posteriorProbabilityOfNormalArtifact(double negativeLogOddsOfNormalArtifact);
     std::vector<double> weightedAverageOfTumorAFs(const std::shared_ptr<VariantContext>& vc);
     double getLogSomaticPrior(const std::shared_ptr<VariantContext> & vc, int altIndex);
+    bool applyFiltersAndAccumulateOutputStats(const std::shared_ptr<VariantContext> &vc, const std::shared_ptr<ReferenceContext>& referenceContext);
 };
 
 

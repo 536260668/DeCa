@@ -11,6 +11,7 @@
 #include "VariantContextUtils.h"
 #include "variantcontext/builder/GenotypeBuilder.h"
 #include "variantcontext/builder/VariantContextBuilder.h"
+#include "Mutect2Utils.h"
 
 AlleleMapper::AlleleMapper(std::shared_ptr<VariantContext> vc): vc(vc) {
 
@@ -594,4 +595,92 @@ std::shared_ptr<GenoTypesContext> GATKVariantContextUtils::updateGenotypesWithMa
     }
 
     return updatedGenotypes;
+}
+
+std::pair<std::vector<int>, std::shared_ptr<uint8_t[]>>
+GATKVariantContextUtils::getNumTandemRepeatUnits(const std::shared_ptr<VariantContext> &vc,
+                                                 const std::shared_ptr<uint8_t[]> refBasesStartingAtVCWithPad, int len) {
+    if(! vc->isIndel()) {
+        return {};
+    }
+    bool VERBOSE = false;
+    int newLen;
+    auto refBasesStartingAtVCWithoutPad = Mutect2Utils::copyOfRange(refBasesStartingAtVCWithPad, len, 1, len, newLen);
+    auto refAllele = vc->getReference();
+    int refLen;
+    auto refAlleleBases = Mutect2Utils::copyOfRange(refAllele->getBases(), refAllele->getBasesLength(), 1, refAllele->getBasesLength(), refLen);
+    std::shared_ptr<uint8_t[]> repeatUnit;
+    std::vector<int> lengths;
+    for(auto & allele : vc->getAlternateAlleles()) {
+        int alleleLen;
+        auto alleleBases = Mutect2Utils::copyOfRange(allele->getBases(), allele->getBasesLength(), 1, allele->getBasesLength(), alleleLen);
+        auto result = getNumTandemRepeatUnits(refAlleleBases, refLen, alleleBases, alleleLen, refBasesStartingAtVCWithoutPad, newLen);
+        std::vector<int> repetitionCount = result.first;
+        if (repetitionCount[0] == 0 || repetitionCount[1] == 0)
+            return {};
+
+        if (lengths.empty()) {
+            lengths.emplace_back(repetitionCount[0]); // add ref allele length only once
+        }
+        lengths.emplace_back(repetitionCount[1]);  // add this alt allele's length
+
+        repeatUnit = result.second;
+    }
+    return {lengths, repeatUnit};
+}
+
+std::pair<std::vector<int>, std::shared_ptr<uint8_t[]>>
+GATKVariantContextUtils::getNumTandemRepeatUnits(const std::shared_ptr<uint8_t[]> &refBases, int refLen,
+                                                 const std::shared_ptr<uint8_t[]> &altBases, int altLen,
+                                                 const std::shared_ptr<uint8_t[]> &remainingRefContext, int remainLen) {
+    uint8_t * longB;
+    int len;
+    if(altLen > refLen) {
+        longB = altBases.get();
+        len = altLen;
+    } else {
+        longB = refBases.get();
+        len = refLen;
+    }
+
+    int repeatUnitLength = findRepeatedSubstring(longB, refLen);
+    std::shared_ptr<uint8_t[]> repeatUnit = std::shared_ptr<uint8_t[]>(new uint8_t[repeatUnitLength]);
+    memcpy(repeatUnit.get(), longB, repeatUnitLength);
+    std::vector<int> repetitionCount(2);
+    int repetitionsInRef = findNumberOfRepetitions(repeatUnit.get(), repeatUnitLength, refBases.get(), refLen, true);
+    uint8_t * tmp1 = new uint8_t [refLen+remainLen];
+    memcpy(tmp1, refBases.get(), refLen);
+    memcpy(tmp1+refLen, remainingRefContext.get(), remainLen);
+    uint8_t * tmp2 = new uint8_t [altLen+remainLen];
+    memcpy(tmp2, altBases.get(), altLen);
+    memcpy(tmp2+altLen, remainingRefContext.get(), remainLen);
+    repetitionCount[0] = findNumberOfRepetitions(repeatUnit.get(), repeatUnitLength, tmp1, refLen+remainLen,true)-repetitionsInRef;
+    repetitionCount[1] = findNumberOfRepetitions(repeatUnit.get(), repeatUnitLength, tmp2, altLen+remainLen, true)-repetitionsInRef;
+    delete[] tmp1;
+    delete[] tmp2;
+    return {repetitionCount, repeatUnit};
+}
+
+int GATKVariantContextUtils::findRepeatedSubstring(uint8_t *bases, int basesLen) {
+    int repLength;
+    for (repLength=1; repLength <= basesLen; repLength++) {
+        uint8_t * candidateRepeatUnit = new uint8_t[repLength];
+        memcpy(candidateRepeatUnit, bases, repLength);
+        bool allBasesMatch = true;
+        for (int start = repLength; start < basesLen; start += repLength ) {
+            // check that remaining of string is exactly equal to repeat unit
+            uint8_t * basePiece = new uint8_t[repLength];
+            memcpy(basePiece, bases+start, repLength);
+            if (!memcpy(candidateRepeatUnit, basePiece, repLength)) {
+                allBasesMatch = false;
+                break;
+            }
+            delete[] basePiece;
+        }
+        delete[] candidateRepeatUnit;
+        if (allBasesMatch)
+            return repLength;
+    }
+
+    return repLength;
 }

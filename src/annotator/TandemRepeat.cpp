@@ -4,6 +4,7 @@
 
 #include "TandemRepeat.h"
 #include "VCFConstants.h"
+#include "utils/variant/GATKVariantContextUtils.h"
 
 std::vector<std::string> TandemRepeat::getKeyNames() {
     return {VCFConstants::STR_PRESENT_KEY,
@@ -19,6 +20,6 @@ TandemRepeat::annotate(shared_ptr<ReferenceContext> ref, shared_ptr<VariantConte
         return nullptr;
     }
 
-    // TODO: finish this method
     return nullptr;
 }
+

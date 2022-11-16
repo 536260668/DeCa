@@ -24,7 +24,7 @@ protected:
     virtual std::string getDescription() = 0;
 
     // this is false by default but implementations may wish to override
-    bool includeRefAllele() { return false; }
+    virtual bool includeRefAllele() { return false; }
 
 
 public:

@@ -21,7 +21,7 @@ protected:
 
     std::string getVcfKey();
 
-    bool includeRefAllele();
+    bool includeRefAllele() override;
 
     std::optional<int> getValueForRead(std::shared_ptr<SAMRecord> read, shared_ptr<VariantContext> vc);
 

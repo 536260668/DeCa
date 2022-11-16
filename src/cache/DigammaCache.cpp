@@ -165,3 +165,66 @@ double DigammaCache::lanczos(double x) {
     }
     return sum + LANCZOS[0];
 }
+
+double DigammaCache::gamma(double x) {
+    if ((x == std::rint(x)) && (x <= 0.0)) {
+        return nan("");
+    }
+
+    double ret;
+    double absX = std::abs(x);
+    if (absX <= 20.0) {
+        if (x >= 1.0) {
+            /*
+             * From the recurrence relation
+             * Gamma(x) = (x - 1) * ... * (x - n) * Gamma(x - n),
+             * then
+             * Gamma(t) = 1 / [1 + invGamma1pm1(t - 1)],
+             * where t = x - n. This means that t must satisfy
+             * -0.5 <= t - 1 <= 1.5.
+             */
+            double prod = 1.0;
+            double t = x;
+            while (t > 2.5) {
+                t -= 1.0;
+                prod *= t;
+            }
+            ret = prod / (1.0 + invGamma1pm1(t - 1.0));
+        } else {
+            /*
+             * From the recurrence relation
+             * Gamma(x) = Gamma(x + n + 1) / [x * (x + 1) * ... * (x + n)]
+             * then
+             * Gamma(x + n + 1) = 1 / [1 + invGamma1pm1(x + n)],
+             * which requires -0.5 <= x + n <= 1.5.
+             */
+            double prod = x;
+            double t = x;
+            while (t < -0.5) {
+                t += 1.0;
+                prod *= t;
+            }
+            ret = 1.0 / (prod * (1.0 + invGamma1pm1(t)));
+        }
+    } else {
+        double y = absX + LANCZOS_G + 0.5;
+        double gammaAbs = SQRT_TWO_PI / x *
+                                std::pow(y, absX + 0.5) *
+                std::exp(-y) * lanczos(absX);
+        if (x > 0.0) {
+            ret = gammaAbs;
+        } else {
+            /*
+             * From the reflection formula
+             * Gamma(x) * Gamma(1 - x) * sin(pi * x) = pi,
+             * and the recurrence relation
+             * Gamma(1 - x) = -x * Gamma(-x),
+             * it is found
+             * Gamma(x) = -pi / [x * sin(pi * x) * Gamma(-x)].
+             */
+            ret = -PI /
+                  (x * std::sin(PI * x) * gammaAbs);
+        }
+    }
+    return ret;
+}

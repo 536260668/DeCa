@@ -20,6 +20,7 @@
 #include "ClusteredEventsFilter.h"
 #include "GermlineFilter.h"
 #include "MultiallelicFilter.h"
+#include "FragmentLengthFilter.h"
 
 
 double Mutect2FilteringEngine::roundFinitePrecisionErrors(double probability) {
@@ -85,6 +86,7 @@ Mutect2FilteringEngine::Mutect2FilteringEngine(M2FiltersArgumentCollection &MTFA
     filters.emplace_back(new ClusteredEventsFilter(2));
     filters.emplace_back(new GermlineFilter());
     filters.emplace_back(new MultiallelicFilter(1));
+    filters.emplace_back(new FragmentLengthFilter(10000));
 }
 
 std::vector<int>
@@ -184,5 +186,17 @@ std::vector<double> Mutect2FilteringEngine::weightedAverageOfTumorAFs(const std:
 
 double Mutect2FilteringEngine::getLogSomaticPrior(const std::shared_ptr<VariantContext> & vc, int altIndex) {
     return somaticClusteringModel.getLogPriorOfSomaticVariant(vc, altIndex);
+}
+
+bool
+Mutect2FilteringEngine::applyFiltersAndAccumulateOutputStats(const std::shared_ptr<VariantContext> &vc, const std::shared_ptr<ReferenceContext>& referenceContext) {
+    bool flag = true;
+    ErrorProbabilities errorProbabilities = ErrorProbabilities(filters, vc, this, referenceContext);
+    for(auto k : errorProbabilities.getProbabilitiesByFilter()) {
+        if(k.second > EPSILON && k.second > thresholdCalculator.getThredshold() - EPSILON) {
+            flag = false;
+        }
+    }
+    return flag;
 }
 
