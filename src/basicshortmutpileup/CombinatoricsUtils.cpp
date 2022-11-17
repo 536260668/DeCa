@@ -4,6 +4,7 @@
 
 #include "CombinatoricsUtils.h"
 #include "ArithmeticUtils.h"
+#include <iostream>
 #include <cmath>
 
 double CombinatoricsUtils::binomialCoefficientLog(int n, int k) {
@@ -99,6 +100,7 @@ long CombinatoricsUtils::binomialCoefficient(int n, int k) {
         int i = n - k + 1;
         for (int j = 1; j <= k; j++) {
             long d = ArithmeticUtils::gcd(i, j);
+            std::cout << n << " " << k << " " << d;
             result = ArithmeticUtils::mulAndCheck(result / (j / d), i / d);
             i++;
         }

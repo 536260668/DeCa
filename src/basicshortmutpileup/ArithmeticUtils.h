@@ -15,7 +15,7 @@ public:
 private:
     static int gcdPositive(int a, int b);
 
-    static int numberOfTrailingZeros(int a);
+    static int numberOfTrailingZeros(unsigned int a);
 };
 
 

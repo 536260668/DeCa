@@ -30,6 +30,7 @@
 #include "utils/pairhmm/PairHMMConcurrentControl.h"
 #include "intel/pairhmm/IntelPairHmm.h"
 #include "filtering/FilterMutectCalls.h"
+#include "ArithmeticUtils.h"
 
 // TODO: finish this method
 std::vector<shared_ptr<InfoFieldAnnotation>> makeInfoFieldAnnotation()
@@ -658,6 +659,10 @@ int main(int argc, char *argv[])
         if(filterMutectCalls.applyFilters(vc, referenceContext)) {
             filter_results.emplace_back(vc);
         }
+    }
+
+    for(auto & vc : filter_results) {
+        Mutect2Engine::printVariationContext(vc);
     }
 
     // free the space
