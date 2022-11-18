@@ -150,9 +150,6 @@ Datum SomaticClusteringModel::popDatum(int datumIndex) {
     if(clusterAssignments[datumIndex].has_value()) {
         int c = clusterAssignments[datumIndex].value();
         clusterCounts[c]--;
-        if(clusterCounts[c] < 0) {
-            std::cout << "hello" << std::endl;
-        }
         if(OFFSET <= c) {
             totalSparseClusterCount--;
         }
