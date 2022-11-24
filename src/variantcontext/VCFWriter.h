@@ -79,7 +79,7 @@ public:
 	void
 	writeHeader(const std::string &cmdLine, const std::vector<SAMReadGroupRecord> &readGroup, const std::string& normalSample);
 
-	void add(VariantContext vc);
+	void add(std::shared_ptr<VariantContext>& vc);
 
 	void close();
 

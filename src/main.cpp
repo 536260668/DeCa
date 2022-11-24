@@ -661,7 +661,7 @@ int main(int argc, char *argv[])
     }
 
     for(auto & vc : filter_results) {
-        Mutect2Engine::printVariationContext(vc);
+        vcfWriter.add(vc);
     }
     std::cout << "f : " << filter_results.size() << "o :" << vc_results.size() << std::endl;
 

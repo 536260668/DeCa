@@ -15,6 +15,7 @@ std::vector<std::string> TandemRepeat::getKeyNames() {
 std::shared_ptr<std::map<std::string, AttributeValue>>
 TandemRepeat::annotate(shared_ptr<ReferenceContext> ref, shared_ptr<VariantContext> vc,
                        AlleleLikelihoods<SAMRecord, Allele> *likelihoods) {
+    //todo::filter
     assert(vc != nullptr);
     if ( !vc->isIndel()) {
         return nullptr;

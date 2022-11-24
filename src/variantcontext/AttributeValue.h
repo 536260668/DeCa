@@ -46,7 +46,7 @@ public:
 
     ~AttributeValue();
 
-    int getAttributeAsInt();
+    int getAttributeAsInt() const;
 
     double getAttributeAsDouble();
 

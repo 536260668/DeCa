@@ -18,7 +18,7 @@ void AbstractSAMHeaderRecord::setAttribute(std::string &key, std::string &value)
     if(value.empty()) {
         mAttributes.erase(key);
     } else {
-        mAttributes.insert(std::pair<std::string, std::string>(key, value));
+        mAttributes[key] = value;
     }
 }
 

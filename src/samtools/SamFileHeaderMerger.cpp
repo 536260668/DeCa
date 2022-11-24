@@ -54,7 +54,7 @@ bool SamFileHeaderMerger::mergeHeaderRecords(std::vector<HeaderRecordAndFileHead
                     idTranslationTable.insert(std::pair<SAMFileHeader*, std::map<std::string, std::string>>(fileHeader, std::map<std::string, std::string>()));
                 }
                 std::map<std::string, std::string> & readerTranslationTable = idTranslationTable.at(fileHeader);
-                readerTranslationTable.insert(std::pair<std::string, std::string>(newId, recordId));
+                readerTranslationTable.insert(std::pair<std::string, std::string>(recordId, newId));
             }
             AbstractSAMHeaderRecord* toAdd = headerRecordFactory->createRecord(newId, record);
             toDelete.emplace_back(toAdd);
@@ -127,7 +127,7 @@ std::vector<SAMProgramRecord> SamFileHeaderMerger::mergeProgramGroups(std::vecto
                 std::string idJustProcessed = justProcessedPair.getHeaderRecord()->getId();
                 if(programGroupsLeftToProcessIterator->getFileHeader() == justProcessedPair.getFileHeader() && ppIdOfRecordLeftToProcess == idJustProcessed) {
                     programGroupsToProcessNext.emplace_back(*programGroupsLeftToProcessIterator);
-                    programGroupsLeftToProcess.erase(programGroupsLeftToProcessIterator);
+                    programGroupsLeftToProcessIterator = programGroupsLeftToProcess.erase(programGroupsLeftToProcessIterator);
                     flag = false;
                     break;
                 }

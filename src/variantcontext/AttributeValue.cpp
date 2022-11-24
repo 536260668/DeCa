@@ -65,7 +65,7 @@ AttributeValue::AttributeValue(const AttributeValue &other) {
     }
 }
 
-int AttributeValue::getAttributeAsInt() {
+int AttributeValue::getAttributeAsInt() const {
     assert(type == INT);
     return *((int*)value);
 }

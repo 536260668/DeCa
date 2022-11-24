@@ -4,6 +4,7 @@
 
 #include "VCFWriter.h"
 #include <utility>
+#include "VCFConstants.h"
 
 VCFWriter::VCFWriter(const std::string &outPath, SAMSequenceDictionary sequenceDictionary) : outPath(outPath),
                                                                                              refDict(sequenceDictionary) {
@@ -118,8 +119,43 @@ void VCFWriter::writeHeader(const std::string &cmdLine, const std::vector<SAMRea
 		throw std::invalid_argument("something wrong when write vcf header.");
 }
 
-void VCFWriter::add(VariantContext vc) {
+void VCFWriter::add(std::shared_ptr<VariantContext>& vc) {
+    bcf1_t * hts_vc = bcf_init();
+    hts_vc->pos = vc->getStart();
+    hts_vc->rid = vc->getContigInt();
+    hts_vc->n_sample = bcf_hdr_nsamples(hdr);
+    bcf_float_set_missing(hts_vc->qual);
+    hts_vc->rlen = vc->getReference()->getLength();
+    int len = 0;
+    len += (vc->getReference()->getLength()+1);
+    for(auto allele : vc->getAlternateAlleles()) {
+        len += (allele->getLength()+1);
+    }
+    char * tmp = new char [len]{0};
+    int sum = 0;
+    memcpy(tmp, vc->getReference()->getBases().get(), vc->getReference()->getLength());
+    sum += vc->getReference()->getLength();
+    tmp[sum] = ',';
+    sum++;
+    for(auto allele : vc->getAlternateAlleles()) {
+        memcpy(tmp + sum, allele->getBases().get(), allele->getLength());
+        sum += allele->getLength();
+        tmp[sum] = ',';
+        sum++;
+    }
+    tmp[sum-1] = '\0';
+    bcf_update_alleles_str(hdr, hts_vc, tmp);
 
+//    bcf_info_t *info = new bcf_info_t;
+//    std::string c = "DP";
+//    if(vc->hasAttribute(VCFConstants::DEPTH_KEY)) {
+//        int i =  vc->getAttributes().at(VCFConstants::DEPTH_KEY).getAttributeAsInt();
+//        bcf_update_info_int32(hdr, hts_vc, c.c_str(), &i, 1);
+//    }
+
+    bcf_write(outFile, hdr, hts_vc);
+    bcf_destroy(hts_vc);
+    delete[] tmp;
 }
 
 void VCFWriter::close() {
