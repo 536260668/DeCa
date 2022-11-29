@@ -49,7 +49,7 @@ double SomaticClusteringModel::getLogPriorOfSomaticVariant(int indelLength) {
         }
         logVariantPriors.insert({indelLength, input});
     }
-    return logVariantPriors[indelLength] + (indelLength == 0 ? std::log(3.0) : 0);
+    return logVariantPriors[indelLength] + (indelLength == 0 ? std::log(1.0/3) : 0);
 }
 
 SomaticClusteringModel::SomaticClusteringModel(M2FiltersArgumentCollection &MTFAC) : rng(0.0, 1.0){

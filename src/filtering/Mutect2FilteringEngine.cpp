@@ -4,6 +4,7 @@
 
 #include "Mutect2FilteringEngine.h"
 #include "NaturalLogUtils.h"
+#include "MathUtils.h"
 
 #include <utility>
 #include "TumorEvidenceFilter.h"
@@ -31,7 +32,11 @@ std::vector<double> Mutect2FilteringEngine::getTumorLogOdds(const std::shared_pt
     if(vc->hasAttribute(VCFConstants::TUMOR_LOG_10_ODDS_KEY)) {
         auto atrs = vc->getAttributes();
         AttributeValue atr = atrs.at(VCFConstants::TUMOR_LOG_10_ODDS_KEY);
-        return atr.getAttributeAsDoubleVector();
+        std::vector<double> result = atr.getAttributeAsDoubleVector();
+        for(int i = 0; i < result.size(); i++) {
+            result[i] = MathUtils::log10ToLog(result[i]);
+        }
+        return result;
     } else {
         return {};
     }

@@ -111,6 +111,8 @@ public:
     static double log10SumLog10(const std::vector<double> &log10Values);
 
     static int maxElementIndex(const std::vector<double> & array, int start, int endIndex);
+
+    static double logToLog10(const double ln);
 };
 
 

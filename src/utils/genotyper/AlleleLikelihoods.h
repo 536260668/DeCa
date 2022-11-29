@@ -735,7 +735,7 @@ public:
              } else {
                  for(int i=0; i<sampleEvidenceToKeep.size(); i++)
                  {
-                     newSampleEvidence.emplace_back(oldSampleEvidence[i]);
+                     newSampleEvidence.emplace_back(oldSampleEvidence[sampleEvidenceToKeep[i]]);
                  }
                  newEvidenceBySampleIndex->template emplace_back(newSampleEvidence);
              }

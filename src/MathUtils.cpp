@@ -198,7 +198,7 @@ std::vector<double> MathUtils::normalizeLog10(vector<double> &array, bool normal
     if(inPlace) {
         for(int i = 0; i < array.size(); i++) {
             array[i] = array[i] - log10Sum;
-            res[i] = array[i] - log10Sum;
+            res[i] = array[i];
         }
     } else {
         for(int i = 0; i < array.size(); i++) {
@@ -251,4 +251,8 @@ int MathUtils::maxElementIndex(const vector<double> &array, int start, int endIn
 
 double MathUtils::log10SumLog10(const vector<double> &log10Values) {
     return log10SumLog10(log10Values, 0, log10Values.size());
+}
+
+double MathUtils::logToLog10(const double ln) {
+    return ln * 0.4342944819032518;
 }

@@ -107,14 +107,14 @@ CalledHaplotypes SomaticGenotypeEngine::callMutations(AlleleLikelihoods<SAMRecor
         vector<double> attributeValue;
         for(const auto& a : tumorAltAlleles)
         {
-            attributeValue.push_back(MathUtils::log10ToLog(tumorLogOdds->getAlt(a)));
+            attributeValue.push_back(MathUtils::logToLog10(tumorLogOdds->getAlt(a)));
         }
         callVcb.setAttribute(VCFConstants::TUMOR_LOG_10_ODDS_KEY, attributeValue);
 
         if(hasNormal)
         {
-            callVcb.setAttribute(VCFConstants::NORMAL_ARTIFACT_LOG_10_ODDS_KEY, MathUtils::applyToArrayInPlace(normalArtifactLogOdds->asDoubleArray(tumorAltAlleles), [](double x){return -MathUtils::log10ToLog(x);}));
-            callVcb.setAttribute(VCFConstants::NORMAL_LOG_10_ODDS_KEY, MathUtils::applyToArrayInPlace(normalLogOdds->asDoubleArray(tumorAltAlleles), [](double x){return MathUtils::log10ToLog(x);} ));
+            callVcb.setAttribute(VCFConstants::NORMAL_ARTIFACT_LOG_10_ODDS_KEY, MathUtils::applyToArrayInPlace(normalArtifactLogOdds->asDoubleArray(tumorAltAlleles), [](double x){return -MathUtils::logToLog10(x);}));
+            callVcb.setAttribute(VCFConstants::NORMAL_LOG_10_ODDS_KEY, MathUtils::applyToArrayInPlace(normalLogOdds->asDoubleArray(tumorAltAlleles), [](double x){return MathUtils::logToLog10(x);} ));
         }
 
 
@@ -367,7 +367,7 @@ void SomaticGenotypeEngine::addGenotypes(const shared_ptr<AlleleLikelihoods<Frag
             AD[i] = (int) round(alleleCounts->operator[](i));
         }
 
-        tumorAlleleFractionsMean->erase(tumorAlleleFractionsMean->begin());
+        tumorAlleleFractionsMean->erase((tumorAlleleFractionsMean->end()-1));
         genotypes.emplace_back(GenotypeBuilder(sample, alleles).setAD(AD, alleleCounts->size()).attribute(VCFConstants::ALLELE_FRACTION_KEY, *tumorAlleleFractionsMean).make());   // TODO: validate it
     }
     callVcb.setGenotypes(genotypes);

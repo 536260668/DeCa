@@ -12,7 +12,10 @@ double GermlineFilter::calculateErrorProbability(const std::shared_ptr<VariantCo
                                                  std::shared_ptr<ReferenceContext>) {
     std::vector<double> somaticLogOdds = Mutect2FilteringEngine::getTumorLogOdds(vc);
     int maxLodIndex = MathUtils::maxElementIndex(somaticLogOdds);
-    std::vector<double> tmp = vc->getAttributes().at(VCFConstants::NORMAL_LOG_10_ODDS_KEY).getAttributeAsDoubleVector();
+    std::vector<double> tmp;
+    if(vc->hasAttribute(VCFConstants::NORMAL_LOG_10_ODDS_KEY)) {
+       tmp = vc->getAttributes().at(VCFConstants::NORMAL_LOG_10_ODDS_KEY).getAttributeAsDoubleVector();
+    }
     MathUtils::applyToArrayInPlace(tmp, MathUtils::log10ToLog);
     std::optional<std::vector<double>> normalLogOdds = vc->hasAttribute(VCFConstants::NORMAL_LOG_10_ODDS_KEY) ? tmp : std::optional<std::vector<double>>();
     std::vector<double> negativeLog10AlleleFrequencies;
