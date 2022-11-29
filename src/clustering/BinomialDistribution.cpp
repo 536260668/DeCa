@@ -7,6 +7,7 @@
 #include "BinomialDistribution.h"
 #include <stdexcept>
 #include "DigammaCache.h"
+#include "BetaBinomialDistribution.h"
 
 const std::vector<double > BinomialDistribution::EXACT_STIRLING_ERRORS = {0.0, /* 0.0 */
                                                                           0.1534264097200273452913848, /* 0.5 */
@@ -76,12 +77,13 @@ double BinomialDistribution::regularizedBeta(double x, double a, double b, doubl
                1 - x <= (b + 1) / (2 + b + a)) {
         ret = 1 - regularizedBeta(1 - x, b, a, epsilon, maxIterations);
     } else {
-
+        ret = std::exp(a * std::log(x) + b * std::log1p(-x) - std::log(a) - BetaBinomialDistribution::logBeta(a, b)) * 1.0 / evaluate(x, epsilon, maxIterations);
     }
+    return ret;
 }
 
 
-double BinomialDistribution::evaluate(double x, double epsilon, int maxIterations, double a, double b) {
+double BinomialDistribution::evaluate(double x, double epsilon, int maxIterations) {
     double small = 1e-50;
     double hPrev = getA(0, x);
 

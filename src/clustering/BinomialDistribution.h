@@ -28,7 +28,7 @@ public:
     static double regularizedBeta(double x,
                                   double a, double b,
                                   double epsilon, int maxIterations);
-    static double evaluate(double x, double epsilon, int maxIterations, double a, double b);
+    static double evaluate(double x, double epsilon, int maxIterations);
     double logProbability(int x);
 };
 

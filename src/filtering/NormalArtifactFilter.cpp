@@ -23,12 +23,12 @@ double NormalArtifactFilter::calculateErrorProbability(const std::shared_ptr<Var
     }
     int tumorAltDepth = tumorAlleleDepths[indexOfMaxTumorLod + 1];
 
-    std::vector<int> normalAlleleDepths = filteringEngine->sumADsOverSamples(vc, true, false);
+    std::vector<int> normalAlleleDepths = filteringEngine->sumADsOverSamples(vc, false, true);
     int normalDepth = 0;
-    for(auto i : tumorAlleleDepths) {
-        tumorDepth += i;
+    for(auto i : normalAlleleDepths) {
+        normalDepth += i;
     }
-    int normalAltDepth = tumorAlleleDepths[indexOfMaxTumorLod + 1];
+    int normalAltDepth = normalAlleleDepths[indexOfMaxTumorLod + 1];
 
     double tumorAlleleFraction = (double) tumorAltDepth / tumorDepth;
     double normalAlleleFraction = normalDepth == 0 ? 0 : (double) normalAltDepth / normalDepth;
