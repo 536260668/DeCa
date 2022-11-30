@@ -10,7 +10,7 @@
 #include "variantcontext/builder/GenotypeBuilder.h"
 #include "variantcontext/VCFConstants.h"
 
-SomaticGenotypeEngine::SomaticGenotypeEngine(M2ArgumentCollection& MTAC, const string& normalSample, VariantAnnotatorEngine& annotationEngine) : MTAC(MTAC), normalSample(normalSample), annotationEngine(annotationEngine), hasNormal(!normalSample.empty())
+SomaticGenotypeEngine::SomaticGenotypeEngine(M2ArgumentCollection& MTAC, const string& normalSample, VariantAnnotatorEngine& annotationEngine, ReferenceCache * cache) : MTAC(MTAC), normalSample(normalSample), annotationEngine(annotationEngine), hasNormal(!normalSample.empty()), cache(cache)
 {
 
 }
@@ -140,6 +140,9 @@ CalledHaplotypes SomaticGenotypeEngine::callMutations(AlleleLikelihoods<SAMRecor
 
         AlleleLikelihoods<SAMRecord, Allele>* trimmedLikelihoodsForAnnotation = logReadAlleleLikelihoods->marginalize(trimmedToUntrimmedAlleleMap);
 
+        int len;
+        auto refcache = cache->getSubsequenceAt(trimmedCall->getContigInt(), trimmedCall->getStart(), trimmedCall->getEnd()+150, len);
+        referenceContext.setCache(refcache, len);
         auto annotatedCall = annotationEngine.annotateContext(trimmedCall, referenceContext, trimmedLikelihoodsForAnnotation);
 
         for(const auto& allele : call->getAlleles())

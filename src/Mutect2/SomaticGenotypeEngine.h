@@ -18,6 +18,7 @@ private:
     M2ArgumentCollection& MTAC;
     string normalSample;
     bool hasNormal;
+    ReferenceCache * cache;
 
     static shared_ptr<map<string, vector<double>>> getNegativeLogPopulationAFAnnotation(vector<shared_ptr<VariantContext>>& germlineResourceVariants, vector<shared_ptr<Allele>>& altAlleles, double afOfAllelesNotInGermlineResource);
 
@@ -30,7 +31,7 @@ protected:
 public:
     const static int ALLELE_EXTENSION = 2;
 
-    SomaticGenotypeEngine(M2ArgumentCollection& MTAC, const string& normalSample, VariantAnnotatorEngine& annotationEngine);
+    SomaticGenotypeEngine(M2ArgumentCollection& MTAC, const string& normalSample, VariantAnnotatorEngine& annotationEngine, ReferenceCache * cache);
 
     /**
     * Main entry point of class - given a particular set of haplotypes, samples and reference context, compute
@@ -68,7 +69,9 @@ public:
 
     void addGenotypes(const shared_ptr<AlleleLikelihoods<Fragment, Allele>>& logLikelihoods, const shared_ptr<vector<shared_ptr<Allele>>>& allelesToEmit, VariantContextBuilder& callVcb);
 
-
+    void setReferenceCache(ReferenceCache * cache) {
+        this->cache = cache;
+    }
 };
 
 

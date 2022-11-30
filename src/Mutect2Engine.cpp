@@ -33,7 +33,7 @@ Mutect2Engine::Mutect2Engine(M2ArgumentCollection &MTAC, SAMFileHeader *samFileH
                                                                         aligner(SmithWatermanAligner::getAligner(
 		                                                                        SmithWatermanAligner::FASTEST_AVAILABLE)),
                                                                         genotypingEngine(MTAC, MTAC.normalSample,
-                                                                                         annotatorEngine){
+                                                                                         annotatorEngine, nullptr){
 	std::vector<SAMReadGroupRecord> &mReadGroups = samFileHeader->getReadGroupRecord();
 	for (auto &readGroup: mReadGroups) {
 		samplesList.emplace_back(readGroup.getAttribute(SAMReadGroupRecord::READ_GROUP_SAMPLE_TAG));
@@ -226,6 +226,7 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion> &originalAssembl
 			                                                             aligner);
 	readLikelihoods->changeEvidence(readRealignments);
 
+    genotypingEngine.setReferenceCache(refCache);
 	CalledHaplotypes calledHaplotypes
 			= genotypingEngine.callMutations(readLikelihoods, *assemblyResult, referenceContext,
  			                                 *regionForGenotyping->getSpan(), header);

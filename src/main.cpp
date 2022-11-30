@@ -30,6 +30,7 @@
 #include "utils/pairhmm/PairHMMConcurrentControl.h"
 #include "intel/pairhmm/IntelPairHmm.h"
 #include "filtering/FilterMutectCalls.h"
+#include "TandemRepeat.h"
 
 // TODO: finish this method
 std::vector<shared_ptr<InfoFieldAnnotation>> makeInfoFieldAnnotation()
@@ -40,6 +41,7 @@ std::vector<shared_ptr<InfoFieldAnnotation>> makeInfoFieldAnnotation()
 	InfoFieldAnnotationList.emplace_back(new ReadPosition);
 	InfoFieldAnnotationList.emplace_back(new Coverage);
 	InfoFieldAnnotationList.emplace_back(new MappingQuality);
+    InfoFieldAnnotationList.emplace_back(new TandemRepeat);
 
 	return InfoFieldAnnotationList;
 }
