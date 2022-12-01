@@ -41,6 +41,7 @@ public:
     std::vector<double> weightedAverageOfTumorAFs(const std::shared_ptr<VariantContext>& vc);
     double getLogSomaticPrior(const std::shared_ptr<VariantContext> & vc, int altIndex);
     bool applyFiltersAndAccumulateOutputStats(const std::shared_ptr<VariantContext> &vc, const std::shared_ptr<ReferenceContext>& referenceContext);
+    double posteriorProbabilityOfError(const std::shared_ptr<VariantContext> &vc, double logOddsOfRealVersusError, int altIndex);
 };
 
 

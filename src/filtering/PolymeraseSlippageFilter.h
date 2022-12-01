@@ -16,6 +16,8 @@ public:
     PolymeraseSlippageFilter(int minSlippageLength, double slippageRate);
     ErrorType errorType() override;
     double calculateErrorProbability(const std::shared_ptr<VariantContext> & vc, Mutect2FilteringEngine* filteringEngine, std::shared_ptr<ReferenceContext>) override;
+    std::string filterName() override;
+    std::vector<std::string> requiredAnnotations() override;
 };
 
 

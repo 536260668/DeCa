@@ -22,6 +22,7 @@
 #include "GermlineFilter.h"
 #include "MultiallelicFilter.h"
 #include "FragmentLengthFilter.h"
+#include "PolymeraseSlippageFilter.h"
 
 
 double Mutect2FilteringEngine::roundFinitePrecisionErrors(double probability) {
@@ -92,6 +93,7 @@ Mutect2FilteringEngine::Mutect2FilteringEngine(M2FiltersArgumentCollection &MTFA
     filters.emplace_back(new GermlineFilter());
     filters.emplace_back(new MultiallelicFilter(1));
     filters.emplace_back(new FragmentLengthFilter(10000));
+    filters.emplace_back(new PolymeraseSlippageFilter(MTFAC.minSlippageLength, MTFAC.slippageRate));
 }
 
 std::vector<int>
@@ -203,5 +205,10 @@ Mutect2FilteringEngine::applyFiltersAndAccumulateOutputStats(const std::shared_p
         }
     }
     return flag;
+}
+
+double Mutect2FilteringEngine::posteriorProbabilityOfError(const std::shared_ptr<VariantContext> &vc, double logOddsOfRealVersusError,
+                                                           int altIndex) {
+    return posteriorProbabilityOfError(logOddsOfRealVersusError, getLogSomaticPrior(vc, altIndex));
 }
 

@@ -48,76 +48,6 @@ std::string VCFWriter::getCommandLine(int argc, char *argv[]) {
 	return commandLine;
 }
 
-void VCFWriter::writeHeader(const std::string &cmdLine, const std::vector<SAMReadGroupRecord> &readGroup,
-                            const std::string &normalSample) {
-	mOtherMetaData.insert(std::make_pair("source", "Mutect2"));
-	if (!cmdLine.empty()) {
-		mOtherMetaData.insert(std::make_pair("Mutect2CommandLine", cmdLine));
-	}
-
-	// remove default filter and add a warning
-	// TODO:filter not removed
-	bcf1_t *rec = bcf_init();
-	rec->rid = bcf_hdr_name2id(hdr, "1");
-	bcf_remove_filter(hdr, rec, bcf_hdr_id2int(hdr, BCF_DT_ID, "PASS"), 1);
-
-	mOtherMetaData.insert(std::make_pair("filtering_status",
-	                                     "Warning: unfiltered Mutect 2 calls.  Please run FilterMutectCalls to remove false positives."));
-
-	// process sample names
-	for (const auto &rg: readGroup) {
-		std::string sampleName = rg.getAttributesNochange()[SAMReadGroupRecord::READ_GROUP_SAMPLE_TAG];
-		if (sampleName == normalSample) {
-			mOtherMetaData.insert(std::make_pair("normal_sample", sampleName));
-		} else {
-			mOtherMetaData.insert(std::make_pair("tumor_sample", sampleName));
-		}
-		sampleNamesInOrder.push_back(sampleName);
-	}
-	std::sort(sampleNamesInOrder.begin(), sampleNamesInOrder.end());
-	for (const std::string &sampleName: sampleNamesInOrder) {
-		char c_str[sampleName.length() + 1];
-		strcpy(c_str, sampleName.c_str());
-		bcf_hdr_add_sample(hdr, c_str);
-	}
-	if (bcf_hdr_sync(hdr) < 0)
-		throw std::invalid_argument("something wrong when bcf_hdr_sync.");
-
-	// process reference dictionary
-	for (auto &sequence: refDict.getSequences()) {
-		contigMetaData.push_back(
-				"contig=<ID=" + sequence.getSequenceName() + ",length=" + std::to_string(sequence.getSequenceLength()) +
-				">");
-	}
-
-	// merge and sort all meta date
-	//TODO : use bcf_update_info_string()
-	for (const auto &infoData: mInfoMetaData) {
-		metaDataInSortedOrder.push_back("##" + infoData.second);
-	}
-	for (const auto &formatData: mFormatMetaData) {
-		metaDataInSortedOrder.push_back("##" + formatData.second);
-	}
-	for (const auto &otherData: mOtherMetaData) {
-		metaDataInSortedOrder.push_back("##" + otherData.first + "=" + otherData.second);
-	}
-	metaDataInSortedOrder.emplace_back("##contig"); // represent all contigs
-	std::sort(metaDataInSortedOrder.begin(), metaDataInSortedOrder.end());
-
-	for (const auto &data: metaDataInSortedOrder) {
-		if (data != "##contig") {
-			appendHeader(data);
-			continue;
-		}
-		for (const auto &contigData: contigMetaData) {
-			appendHeader("##" + contigData);
-		}
-	}
-
-
-	if (vcf_hdr_write(outFile, hdr) < 0)
-		throw std::invalid_argument("something wrong when write vcf header.");
-}
 
 void VCFWriter::add(std::shared_ptr<VariantContext>& vc) {
     bcf1_t * hts_vc = bcf_init();
@@ -146,12 +76,52 @@ void VCFWriter::add(std::shared_ptr<VariantContext>& vc) {
     tmp[sum-1] = '\0';
     bcf_update_alleles_str(hdr, hts_vc, tmp);
 
-//    bcf_info_t *info = new bcf_info_t;
-//    std::string c = "DP";
-//    if(vc->hasAttribute(VCFConstants::DEPTH_KEY)) {
-//        int i =  vc->getAttributes().at(VCFConstants::DEPTH_KEY).getAttributeAsInt();
-//        bcf_update_info_int32(hdr, hts_vc, c.c_str(), &i, 1);
-//    }
+    //
+    for(auto & kv : vc->getAttributes()) {
+        if(kv.first == VCFConstants::DEPTH_KEY) {
+            int x = kv.second.getAttributeAsInt();
+            bcf_update_info_int32(hdr, hts_vc, VCFConstants::DEPTH_KEY.c_str(), &x, 1);
+            continue;
+        }
+        if(kv.first == VCFConstants::EVENT_COUNT_IN_HAPLOTYPE_KEY) {
+            int x = kv.second.getAttributeAsInt();
+            bcf_update_info_int32(hdr, hts_vc, VCFConstants::EVENT_COUNT_IN_HAPLOTYPE_KEY.c_str(), &x, 1);
+            continue;
+        }
+        if(kv.first == VCFConstants::MEDIAN_READ_POSITON_KEY) {
+            int x = kv.second.getAttributeAsInt();
+            bcf_update_info_int32(hdr, hts_vc, VCFConstants::MEDIAN_READ_POSITON_KEY.c_str(), &x, 1);
+            continue;
+        }
+        if(kv.first == VCFConstants::MEDIAN_BASE_QUALITY_KEY) {
+            std::vector<int> x = kv.second.getAttributeAsIntVector();
+            int list[x.size()];
+            for(int i = 0; i < x.size(); i++) {
+                list[i] = x[i];
+            }
+            bcf_update_info_int32(hdr, hts_vc, VCFConstants::MEDIAN_BASE_QUALITY_KEY.c_str(), list, x.size());
+            continue;
+        }
+        if(kv.first == VCFConstants::MEDIAN_FRAGMENT_LENGTH_KEY) {
+            std::vector<int> x = kv.second.getAttributeAsIntVector();
+            int list[x.size()];
+            for(int i = 0; i < x.size(); i++) {
+                list[i] = x[i];
+            }
+            bcf_update_info_int32(hdr, hts_vc, VCFConstants::MEDIAN_FRAGMENT_LENGTH_KEY.c_str(), list, x.size());
+            continue;
+        }
+        if(kv.first == VCFConstants::MEDIAN_MAPPING_QUALITY_KEY) {
+            std::vector<int> x = kv.second.getAttributeAsIntVector();
+            int list[x.size()];
+            for(int i = 0; i < x.size(); i++) {
+                list[i] = x[i];
+            }
+            bcf_update_info_int32(hdr, hts_vc, VCFConstants::MEDIAN_MAPPING_QUALITY_KEY.c_str(), list, x.size());
+            continue;
+        }
+    }
+    bcf_add_filter(hdr, hts_vc, 0);
 
     bcf_write(outFile, hdr, hts_vc);
     bcf_destroy(hts_vc);
@@ -161,4 +131,63 @@ void VCFWriter::add(std::shared_ptr<VariantContext>& vc) {
 void VCFWriter::close() {
 	bcf_hdr_destroy(hdr);
 	hts_close(outFile);
+}
+
+void
+VCFWriter::writeHeader(const string &cmdLine, const vector<SAMReadGroupRecord> &readGroup, const string &normalSample) {
+    //version
+    std::string version = "VCFv4.2";
+    bcf_hdr_set_version(hdr, version.c_str());
+
+    //format
+    for(auto & val : mFormatMetaData) {
+        string format = "##" + val.second;
+        int len = format.size();
+        bcf_hrec_t * bht = bcf_hdr_parse_line(hdr, format.c_str(), &len);
+        bcf_hdr_add_hrec(hdr, bht);
+    }
+
+    //info
+    for(auto & val : mInfoMetaData) {
+        string info = "##" + val.second;
+        int len = info.size();
+        bcf_hrec_t * bht = bcf_hdr_parse_line(hdr, info.c_str(), &len);
+        bcf_hdr_add_hrec(hdr, bht);
+    }
+
+    //contig
+    for (auto &sequence: refDict.getSequences()) {
+        contigMetaData.push_back("contig=<ID=" + sequence.getSequenceName() + ",length=" + std::to_string(sequence.getSequenceLength()) +">");
+	}
+    for(auto & val : contigMetaData) {
+        string contig = "##" + val;
+        int len = contig.size();
+        bcf_hrec_t * bht = bcf_hdr_parse_line(hdr, contig.c_str(), &len);
+        bcf_hdr_add_hrec(hdr, bht);
+    }
+
+    for (const auto &rg: readGroup) {
+        std::string sampleName = rg.getAttributesNochange()[SAMReadGroupRecord::READ_GROUP_SAMPLE_TAG];
+        if (sampleName == normalSample) {
+            mOtherMetaData.insert(std::make_pair("normal_sample", sampleName));
+        } else {
+            mOtherMetaData.insert(std::make_pair("tumor_sample", sampleName));
+        }
+        sampleNamesInOrder.push_back(sampleName);
+    }
+    std::sort(sampleNamesInOrder.begin(), sampleNamesInOrder.end());
+	for (const std::string &sampleName: sampleNamesInOrder) {
+		char c_str[sampleName.length() + 1];
+		strcpy(c_str, sampleName.c_str());
+		bcf_hdr_add_sample(hdr, c_str);
+	}
+    for(auto & k : mOtherMetaData) {
+        std::string sample = "##" + k.first + "=" + k.second;
+        int len = sample.size();
+        bcf_hrec_t * bht = bcf_hdr_parse_line(hdr, sample.c_str(), &len);
+        bcf_hdr_add_hrec(hdr, bht);
+    }
+
+    bcf_hdr_sync(hdr);
+    vcf_hdr_write(outFile, hdr);
 }

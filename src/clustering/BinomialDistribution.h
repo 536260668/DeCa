@@ -30,6 +30,8 @@ public:
                                   double epsilon, int maxIterations);
     static double evaluate(double x, double epsilon, int maxIterations);
     double logProbability(int x);
+
+    double probability(int i);
 };
 
 

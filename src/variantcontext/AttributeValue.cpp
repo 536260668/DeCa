@@ -115,7 +115,7 @@ std::vector<int> AttributeValue::getAttributeAsIntVector() const {
     return *((std::vector<int>*)value);
 }
 
-std::string AttributeValue::getAttributeAsString() {
+std::string AttributeValue::getAttributeAsString() const{
     assert(type == STRING);
     return *((std::string*)value);
 }

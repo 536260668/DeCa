@@ -35,9 +35,13 @@ Mutect2Engine::Mutect2Engine(M2ArgumentCollection &MTAC, SAMFileHeader *samFileH
                                                                         genotypingEngine(MTAC, MTAC.normalSample,
                                                                                          annotatorEngine, nullptr){
 	std::vector<SAMReadGroupRecord> &mReadGroups = samFileHeader->getReadGroupRecord();
+    std::set<std::string> tmp;
 	for (auto &readGroup: mReadGroups) {
-		samplesList.emplace_back(readGroup.getAttribute(SAMReadGroupRecord::READ_GROUP_SAMPLE_TAG));
+        tmp.insert(readGroup.getAttribute(SAMReadGroupRecord::READ_GROUP_SAMPLE_TAG));
 	}
+    for(auto &s : tmp) {
+        samplesList.emplace_back(s);
+    }
 	NaturalLogUtils::initial();
 	assert(aligner != nullptr);
 	if (!modelPath.empty()) {
@@ -175,8 +179,8 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion> &originalAssembl
 
 	std::shared_ptr<AssemblyRegion> assemblyActiveRegion = AssemblyBasedCallerUtils::assemblyRegionWithWellMappedReads(
 			originalAssemblyRegion, READ_QUALITY_FILTER_THRESHOLD, header);
-	//if (assemblyActiveRegion->getEnd() + 1 < 10481666 || assemblyActiveRegion->getStart() + 1 > 10481771) return {};
-	//assemblyActiveRegion->printRegionInfo();
+//	if (assemblyActiveRegion->getEnd() + 1 < 1174847 || assemblyActiveRegion->getStart() + 1 > 1175447) return {};
+//	assemblyActiveRegion->printRegionInfo();
 	std::shared_ptr<AssemblyResultSet> untrimmedAssemblyResult
 			= AssemblyBasedCallerUtils::assembleReads(assemblyActiveRegion, MTAC, header, *refCache, assemblyEngine);
 	std::set<std::shared_ptr<VariantContext>, VariantContextComparator> &allVariationEvents

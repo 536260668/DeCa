@@ -240,3 +240,8 @@ double BinomialDistribution::getStirlingError(double z){
     return ret;
 }
 
+double BinomialDistribution::probability(int i) {
+    double l = logProbability(i);
+    return std::isinf(l) ? 0.0 : std::exp(l);
+}
+

@@ -25,6 +25,8 @@ public:
     int minMedianMappingQuality = DEFAULT_MIN_MEDIAN_MAPPING_QUALITY;
     int longIndelLength = DEFAULT_LONG_INDEL_SIZE;
     int uniqueAltReadCount = DEFAULT_MIN_UNIQUE_ALT_READS;
+    int minSlippageLength = DEFAULT_MIN_SLIPPAGE_LENGTH;
+    double slippageRate = DEFAULT_SLIPPAGE_RATE;
     constexpr static double normalPileupPValueThreshold = 0.0001;
 
     M2FiltersArgumentCollection();
@@ -43,7 +45,9 @@ private:
     static const int DEFAULT_LONG_INDEL_SIZE = 5;
     static const int DEFAULT_MIN_UNIQUE_ALT_READS = 0;
     static const double DEFAULT_MAX_N_RATIO;
+    constexpr static double DEFAULT_SLIPPAGE_RATE = 0.1;
     static const int DEFAULT_MIN_MEDIAN_READ_POSITION = 1;
+    static const int DEFAULT_MIN_SLIPPAGE_LENGTH = 8;
 };
 
 
