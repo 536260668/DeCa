@@ -119,3 +119,8 @@ std::string AttributeValue::getAttributeAsString() const{
     assert(type == STRING);
     return *((std::string*)value);
 }
+
+bool AttributeValue::getAttributeAsBool() const {
+    assert(type == BOOL);
+    return *((bool*)value);
+}

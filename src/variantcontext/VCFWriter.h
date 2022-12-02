@@ -61,6 +61,32 @@ class VCFWriter {
 	                                                                {VCFConstants::HAPLOTYPE_CALLER_PHASING_GT_KEY, "FORMAT=<ID=PGT,Number=1,Type=String,Description=\"Physical phasing haplotype information, describing how the alternate alleles are phased in relation to one another; will always be heterozygous and is not intended to describe called alleles\">"},
 	                                                                {VCFConstants::PHASE_SET_KEY,                   "FORMAT=<ID=PS,Number=1,Type=Integer,Description=\"Phasing set (typically the position of the first variant in the set)\">"}};
 
+    phmap::flat_hash_set<std::string> mFilterMetaData = {"##FILTER=<ID=base_qual,Description=\"alt median base quality\">",
+    "##FILTER=<ID=clustered_events,Description=\"Clustered events observed in the tumor\">",
+    "##FILTER=<ID=contamination,Description=\"contamination\">",
+    "##FILTER=<ID=duplicate,Description=\"evidence for alt allele is overrepresented by apparent duplicates\">",
+    "##FILTER=<ID=fragment,Description=\"abs(ref - alt) median fragment length\">",
+    "##FILTER=<ID=germline,Description=\"Evidence indicates this site is germline, not somatic\">",
+    "##FILTER=<ID=haplotype,Description=\"Variant near filtered variant on same haplotype.\">",
+    "##FILTER=<ID=low_allele_frac,Description=\"Allele fraction is below specified threshold\">",
+    "##FILTER=<ID=map_qual,Description=\"ref - alt median mapping quality\">",
+    "##FILTER=<ID=multiallelic,Description=\"Site filtered because too many alt alleles pass tumor LOD\">",
+    "##FILTER=<ID=n_ratio,Description=\"Ratio of N to alt exceeds specified ratio\">",
+    "##FILTER=<ID=normal_artifact,Description=\"artifact_in_normal\">",
+    "##FILTER=<ID=numt_chimera,Description=\"NuMT variant with too many ALT reads originally from autosome\">",
+    "##FILTER=<ID=numt_novel,Description=\"Alt depth is below expected coverage of NuMT in autosome\">",
+    "##FILTER=<ID=orientation,Description=\"orientation bias detected by the orientation bias mixture model\">",
+    "##FILTER=<ID=panel_of_normals,Description=\"Blacklisted site in panel of normals\">",
+    "##FILTER=<ID=position,Description=\"median distance of alt variants from end of reads\">",
+    "##FILTER=<ID=slippage,Description=\"Site filtered due to contraction of short tandem repeat region\">",
+    "##FILTER=<ID=strand_bias,Description=\"Evidence for alt allele comes from one read direction only\">",
+    "##FILTER=<ID=strict_strand,Description=\"Evidence for alt allele is not represented in both directions\">",
+    "##FILTER=<ID=weak_evidence,Description=\"Mutation does not meet likelihood threshold\">"};
+
+    std::vector<std::string> index2filter = {"PASS", "low_allele_frac", "panel_of_normals", "strand_bias", "germline", "n_ratio", "strict_strand",
+                                             "numt_chimera", "slippage", "weak_evidence", "position", "contamination", "multiallelic", "fragment",
+                                             "base_qual", "clustered_events", "numt_novel", "duplicate", "map_qual", "orientation", "normal_artifact"};
+
 	std::vector<std::string> contigMetaData;
     phmap::flat_hash_map<std::string, std::string> mOtherMetaData;
 	std::vector<std::string> sampleNamesInOrder;

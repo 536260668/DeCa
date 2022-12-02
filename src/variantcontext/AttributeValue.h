@@ -57,6 +57,8 @@ public:
     std::string getAttributeAsString() const;
 
     static AttributeValue empty_value();
+
+    bool getAttributeAsBool() const;
 };
 
 

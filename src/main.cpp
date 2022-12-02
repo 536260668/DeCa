@@ -666,7 +666,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    for(auto & vc : filter_results) {
+    for(auto & vc : vc_results) {
         vcfWriter.add(vc);
     }
     std::cout << "f : " << filter_results.size() << "o :" << vc_results.size() << std::endl;
