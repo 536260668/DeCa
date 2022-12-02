@@ -35,3 +35,7 @@ std::string NRatioFilter::filterName() {
 std::vector<std::string> NRatioFilter::requiredAnnotations() {
     return {VCFConstants::N_COUNT_KEY};
 }
+
+int NRatioFilter::filterIndex() {
+    return 5;
+}

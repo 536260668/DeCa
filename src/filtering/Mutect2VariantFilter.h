@@ -23,8 +23,11 @@ public:
     virtual ~Mutect2VariantFilter() {}
     virtual std::string filterName() = 0;
 
+    virtual int filterIndex() = 0;
+
 protected:
     virtual std::vector<std::string> requiredAnnotations() = 0;
+
     virtual double calculateErrorProbability(const std::shared_ptr<VariantContext> & vc, Mutect2FilteringEngine* filteringEngine, std::shared_ptr<ReferenceContext>) = 0;
     virtual void learnParameters();
     virtual void clearAccumulatedData();

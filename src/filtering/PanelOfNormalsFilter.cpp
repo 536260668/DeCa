@@ -20,3 +20,7 @@ std::string PanelOfNormalsFilter::filterName() {
 std::vector<std::string> PanelOfNormalsFilter::requiredAnnotations() {
     return {};
 }
+
+int PanelOfNormalsFilter::filterIndex() {
+    return 2;
+}

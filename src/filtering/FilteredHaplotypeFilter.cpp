@@ -121,3 +121,7 @@ std::vector<std::string> FilteredHaplotypeFilter::requiredAnnotations() {
     return {};
 }
 
+int FilteredHaplotypeFilter::filterIndex() {
+    return 15;
+}
+

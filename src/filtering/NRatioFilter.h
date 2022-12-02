@@ -21,6 +21,8 @@ public:
     std::string filterName() override;
 
     std::vector<std::string> requiredAnnotations() override;
+
+    int filterIndex() override;
 };
 
 

@@ -28,3 +28,7 @@ std::string FragmentLengthFilter::filterName() {
 std::vector<std::string> FragmentLengthFilter::requiredAnnotations() {
     return {VCFConstants::MEDIAN_FRAGMENT_LENGTH_KEY};
 }
+
+int FragmentLengthFilter::filterIndex() {
+    return 13;
+}

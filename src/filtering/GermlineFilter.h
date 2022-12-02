@@ -24,6 +24,8 @@ public:
     std::vector<std::string> requiredAnnotations() override;
 
     ErrorType errorType() override;
+
+    int filterIndex() override;
 };
 
 

@@ -18,6 +18,7 @@ public:
     bool isArtifact(const std::shared_ptr<VariantContext> & vc, Mutect2FilteringEngine* filteringEngine) override;
     std::vector<std::string> requiredAnnotations() override;
     std::string filterName() override;
+    int filterIndex() override;
 };
 
 

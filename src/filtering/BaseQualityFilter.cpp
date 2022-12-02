@@ -29,3 +29,7 @@ std::vector<std::string> BaseQualityFilter::requiredAnnotations() {
 std::string BaseQualityFilter::filterName() {
     return VCFConstants::MEDIAN_BASE_QUALITY_FILTER_NAME;
 }
+
+int BaseQualityFilter::filterIndex() {
+    return 14;
+}

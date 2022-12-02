@@ -64,3 +64,7 @@ std::string PolymeraseSlippageFilter::filterName() {
 std::vector<std::string> PolymeraseSlippageFilter::requiredAnnotations() {
     return {VCFConstants::REPEATS_PER_ALLELE_KEY, VCFConstants::REPEAT_UNIT_KEY};
 }
+
+int PolymeraseSlippageFilter::filterIndex() {
+    return 8;
+}

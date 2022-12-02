@@ -34,3 +34,7 @@ std::string MappingQualityFilter::filterName() {
 std::vector<std::string> MappingQualityFilter::requiredAnnotations() {
     return {VCFConstants::MEDIAN_MAPPING_QUALITY_KEY};
 }
+
+int MappingQualityFilter::filterIndex() {
+    return 19;
+}

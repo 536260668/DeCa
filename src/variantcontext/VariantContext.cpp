@@ -437,3 +437,11 @@ std::vector<int> VariantContext::getIndelLengths() {
         return lengths;
     }
 }
+
+void VariantContext::addFilter(int index) {
+    filters.emplace_back(index);
+}
+
+std::vector<int> VariantContext::getFilters() {
+    return filters;
+}

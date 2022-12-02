@@ -130,3 +130,7 @@ std::string StrandArtifactFilter::filterName() {
     return VCFConstants::STRAND_ARTIFACT_FILTER_NAME;
 }
 
+int StrandArtifactFilter::filterIndex() {
+    return 3;
+}
+

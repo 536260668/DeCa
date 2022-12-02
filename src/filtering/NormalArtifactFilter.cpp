@@ -56,3 +56,7 @@ std::string NormalArtifactFilter::filterName() {
 std::vector<std::string> NormalArtifactFilter::requiredAnnotations() {
     return {VCFConstants::NORMAL_ARTIFACT_LOG_10_ODDS_KEY, VCFConstants::TUMOR_LOG_10_ODDS_KEY};
 }
+
+int NormalArtifactFilter::filterIndex() {
+    return 21;
+}

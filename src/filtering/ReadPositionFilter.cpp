@@ -29,3 +29,7 @@ std::vector<std::string> ReadPositionFilter::requiredAnnotations() {
     return {VCFConstants::MEDIAN_READ_POSITON_KEY};
 }
 
+int ReadPositionFilter::filterIndex() {
+    return 10;
+}
+

@@ -41,6 +41,7 @@ private:
 	std::string ID;
 	std::shared_ptr<Allele> REF;
 	std::shared_ptr<Allele> ALT;
+    std::vector<int> filters;
 	CommonInfo commonInfo;
 	bool fullyDecoded;
 
@@ -209,6 +210,10 @@ public:
    int getNSamples();
 
    std::vector<int> getIndelLengths();
+
+   void addFilter(int index);
+
+   std::vector<int> getFilters();
 };
 
 

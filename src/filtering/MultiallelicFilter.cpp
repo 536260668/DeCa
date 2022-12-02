@@ -31,3 +31,7 @@ std::vector<std::string> MultiallelicFilter::requiredAnnotations() {
 std::string MultiallelicFilter::filterName() {
     return VCFConstants::MULTIALLELIC_FILTER_NAME;
 }
+
+int MultiallelicFilter::filterIndex() {
+    return 12;
+}

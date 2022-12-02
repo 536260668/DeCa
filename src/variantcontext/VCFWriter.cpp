@@ -346,8 +346,15 @@ void VCFWriter::add(std::shared_ptr<VariantContext>& vc) {
     int gt[2] = {bcf_gt_missing, bcf_gt_missing};
     bcf_update_format_int32(hdr, hts_vc, VCFConstants::GENOTYPE_KEY.c_str(), gt, 2);
 
+    //filter
+    if(vc->getFilters().empty()) {
+        bcf_add_filter(hdr, hts_vc, 0);
+    } else {
+        for(int i : vc->getFilters()) {
+            bcf_add_filter(hdr, hts_vc, i);
+        }
+    }
 
-    bcf_add_filter(hdr, hts_vc, 2);
     bcf_write(outFile, hdr, hts_vc);
     bcf_destroy(hts_vc);
     delete[] tmp;

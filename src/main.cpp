@@ -442,10 +442,6 @@ int main(int argc, char *argv[])
 	aux_t **data;
 	Shared sharedData;
 
-    //test
-    htsFile *inFile = hts_open("/home/cluster/Storage4/lxy/jilu/somatic.vcf", "r");
-    bcf_hdr_t *hd = bcf_hdr_read(inFile);
-
 	sharedData.MTAC = {10, 50, 0.002, 100, 50, 300, ""};
 
     static struct option loptions[] =

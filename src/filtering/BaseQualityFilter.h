@@ -14,10 +14,12 @@ private:
 
 public:
     BaseQualityFilter(double minMedianBaseQuality);
-    virtual ErrorType errorType();
-    virtual bool isArtifact(const std::shared_ptr<VariantContext> & vc, Mutect2FilteringEngine* filteringEngine);
-    virtual std::vector<std::string> requiredAnnotations();
-    virtual std::string filterName();
+    ErrorType errorType() override;
+    bool isArtifact(const std::shared_ptr<VariantContext> & vc, Mutect2FilteringEngine* filteringEngine) override;
+    std::vector<std::string> requiredAnnotations() override;
+    std::string filterName() override;
+    int filterIndex() override;
+
 };
 
 

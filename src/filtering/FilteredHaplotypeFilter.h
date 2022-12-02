@@ -23,6 +23,7 @@ public:
     virtual std::string filterName();
     virtual ErrorType errorType();
     virtual std::vector<std::string> requiredAnnotations();
+    int filterIndex() override;
 };
 
 

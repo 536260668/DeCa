@@ -40,6 +40,7 @@ public:
     virtual void clearAccumulatedData();
     virtual ErrorType errorType();
     virtual std::string filterName();
+    int filterIndex() override;
 };
 
 

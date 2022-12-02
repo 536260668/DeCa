@@ -202,6 +202,7 @@ Mutect2FilteringEngine::applyFiltersAndAccumulateOutputStats(const std::shared_p
     for(auto k : errorProbabilities.getProbabilitiesByFilter()) {
         if(k.second > EPSILON && k.second > thresholdCalculator.getThredshold() - EPSILON) {
             flag = false;
+            vc->addFilter(k.first->filterIndex());
         }
     }
     return flag;

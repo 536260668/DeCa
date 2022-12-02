@@ -36,3 +36,7 @@ ErrorType TumorEvidenceFilter::errorType() {
 std::string TumorEvidenceFilter::filterName() {
     return VCFConstants::TUMOR_EVIDENCE_FILTER_NAME;
 }
+
+int TumorEvidenceFilter::filterIndex() {
+    return 9;
+}

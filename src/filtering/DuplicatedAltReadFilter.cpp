@@ -24,3 +24,7 @@ std::string DuplicatedAltReadFilter::filterName() {
 std::vector<std::string> DuplicatedAltReadFilter::requiredAnnotations() {
     return {VCFConstants::UNIQUE_ALT_READ_SET_COUNT_KEY};
 }
+
+int DuplicatedAltReadFilter::filterIndex() {
+    return 18;
+}

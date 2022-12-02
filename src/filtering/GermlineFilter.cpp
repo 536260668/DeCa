@@ -90,3 +90,7 @@ std::vector<std::string> GermlineFilter::requiredAnnotations() {
 ErrorType GermlineFilter::errorType() {
     return NON_SOMATIC;
 }
+
+int GermlineFilter::filterIndex() {
+    return 4;
+}

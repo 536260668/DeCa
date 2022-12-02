@@ -25,3 +25,7 @@ std::string ClusteredEventsFilter::filterName() {
 std::vector<std::string> ClusteredEventsFilter::requiredAnnotations() {
     return {VCFConstants::EVENT_COUNT_IN_HAPLOTYPE_KEY};
 }
+
+int ClusteredEventsFilter::filterIndex() {
+    return 16;
+}

@@ -18,6 +18,7 @@ public:
     virtual std::vector<std::string> requiredAnnotations();
     ErrorType errorType() override;
     virtual bool isArtifact(const std::shared_ptr<VariantContext> & vc, Mutect2FilteringEngine* filteringEngine);
+    int filterIndex() override;
 };
 
 

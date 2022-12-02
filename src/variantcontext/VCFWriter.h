@@ -85,7 +85,7 @@ class VCFWriter {
 
     std::vector<std::string> index2filter = {"PASS", "low_allele_frac", "panel_of_normals", "strand_bias", "germline", "n_ratio", "strict_strand",
                                              "numt_chimera", "slippage", "weak_evidence", "position", "contamination", "multiallelic", "fragment",
-                                             "base_qual", "clustered_events", "numt_novel", "duplicate", "map_qual", "orientation", "normal_artifact"};
+                                             "base_qual", "haplotype", "clustered_events", "numt_novel", "duplicate", "map_qual", "orientation", "normal_artifact"};
 
 	std::vector<std::string> contigMetaData;
     phmap::flat_hash_map<std::string, std::string> mOtherMetaData;

@@ -45,3 +45,7 @@ std::string MinAlleleFractionFilter::filterName() {
 std::vector<std::string> MinAlleleFractionFilter::requiredAnnotations() {
     return {};
 }
+
+int MinAlleleFractionFilter::filterIndex() {
+    return 1;
+}
