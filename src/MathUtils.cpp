@@ -52,7 +52,7 @@ std::vector<double> * MathUtils::normalizeSumToZero( std::vector<double> * array
 }
 
 DigammaCache &MathUtils::DIGAMMA_CACHE() {
-    static DigammaCache digamma;
+    static thread_local DigammaCache digamma;
     return digamma;
 }
 

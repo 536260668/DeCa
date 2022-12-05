@@ -11,7 +11,7 @@ class BinomialDistribution {
 private:
     int numberOfTrials;
     double probabilityOfSuccess;
-    constexpr static double DEFAULT_EPSILON = 1E-14;
+    constexpr static double DEFAULT_EPSILON = 0.001;
     static double getB(int n, double x, double a, double b);
     static double getA(int n, double x) {
         return 1.0;

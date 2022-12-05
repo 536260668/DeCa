@@ -208,18 +208,18 @@ template<class NUMBER> NUMBER CONCAT(CONCAT(compute_full_prob_,SIMD_ENGINE), PRE
     int MAVX_COUNT = (ROWS+AVX_LENGTH-1)/AVX_LENGTH;
 
 	/* Get initialized data */
-	NUMBER* initializedData = tc->readForPairHmm->getInitializedData<NUMBER>().get();
+	std::shared_ptr<NUMBER> initializedData = tc->readForPairHmm->getInitializedData<NUMBER>();
 
 	/* Probaility arrays */
-	auto* p_MM = (SIMD_TYPE*)initializedData;
-	auto* p_XX = (SIMD_TYPE*)initializedData + MAVX_COUNT;
-	auto* p_YY = (SIMD_TYPE*)initializedData + 2 * MAVX_COUNT;
-	auto* p_MX = (SIMD_TYPE*)initializedData + 3 * MAVX_COUNT;
-	auto* p_MY = (SIMD_TYPE*)initializedData + 4 * MAVX_COUNT;
-	auto* p_GAPM = (SIMD_TYPE*)initializedData + 5 * MAVX_COUNT;
+	auto* p_MM = (SIMD_TYPE*)(initializedData.get());
+	auto* p_XX = (SIMD_TYPE*)(initializedData.get()) + MAVX_COUNT;
+	auto* p_YY = (SIMD_TYPE*)(initializedData.get()) + 2 * MAVX_COUNT;
+	auto* p_MX = (SIMD_TYPE*)(initializedData.get()) + 3 * MAVX_COUNT;
+	auto* p_MY = (SIMD_TYPE*)(initializedData.get()) + 4 * MAVX_COUNT;
+	auto* p_GAPM = (SIMD_TYPE*)(initializedData.get()) + 5 * MAVX_COUNT;
 
 	/* For distm precomputation */
-	auto* distm1D = (SIMD_TYPE*)initializedData + 6 * MAVX_COUNT;
+	auto* distm1D = (SIMD_TYPE*)(initializedData.get()) + 6 * MAVX_COUNT;
 
     /* Carries the values from each stripe to the next stripe */
     NUMBER shiftOutM[ROWS+COLS+AVX_LENGTH], shiftOutX[ROWS+COLS+AVX_LENGTH], shiftOutY[ROWS+COLS+AVX_LENGTH];

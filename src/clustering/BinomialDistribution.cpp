@@ -120,7 +120,6 @@ double BinomialDistribution::evaluate(double x, double epsilon, int maxIteration
         if (std::isinf(hN)) {
             throw std::invalid_argument("");
         }
-
         if (std::abs(deltaN - 1.0) < epsilon) {
             break;
         }
@@ -131,7 +130,7 @@ double BinomialDistribution::evaluate(double x, double epsilon, int maxIteration
         n++;
     }
 
-    if (n >= maxIterations) {
+    if (n > maxIterations) {
         throw std::invalid_argument("");
     }
 
@@ -163,9 +162,7 @@ double BinomialDistribution::logProbability(int x) {
     if (x < 0 || x > numberOfTrials) {
         ret = (-1.0 / 0.0);
     } else {
-        ret = logBinomialProbability(x,
-                                                          numberOfTrials, probabilityOfSuccess,
-                                                          1.0 - probabilityOfSuccess);
+        ret = logBinomialProbability(x,numberOfTrials, probabilityOfSuccess,1.0 - probabilityOfSuccess);
     }
     return ret;
 }

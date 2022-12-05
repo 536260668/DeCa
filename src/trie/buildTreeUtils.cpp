@@ -244,20 +244,12 @@ buildTreeUtils::buildTreeWithHaplotype_same_height(const std::vector<std::shared
 			}
 		}
 		for (const auto &node: father->getChild()) {
-			if (1 + i * avxLen < baseLen) {
-				char *nodebases = reinterpret_cast<char *>(haplotypes[node->getIndex()[0]]->getBases().get());
-				int nodebaseLen = haplotypes[node->getIndex()[0]]->getBasesLength();
-				if (i * avxLen < nodebaseLen && isEqual(nodebases + i * avxLen + 1, bases + i * avxLen + 1, avxLen)) {
-					break;
-				}
-			} else {
-				char *nodebases = reinterpret_cast<char *>(haplotypes[node->getIndex()[0]]->getBases().get());
-				int nodebaseLen = haplotypes[node->getIndex()[0]]->getBasesLength();
-				if (baseLen == nodebaseLen &&
-				    isEqual(nodebases + i * avxLen + 1, bases + i * avxLen + 1, baseLen - avxLen * i - 1)) {
-					throw std::invalid_argument("there are two same haplotypes");
-				}
-			}
+            char *nodebases = reinterpret_cast<char *>(haplotypes[node->getIndex()[0]]->getBases().get());
+            int nodebaseLen = haplotypes[node->getIndex()[0]]->getBasesLength();
+            if (baseLen == nodebaseLen &&
+            isEqual(nodebases + i * avxLen + 1, bases + i * avxLen + 1, baseLen - avxLen * i - 1)) {
+                throw std::invalid_argument("there are two same haplotypes");
+            }
 		}
 		auto *child = new trieNode({j});
 		father->addChild(child);

@@ -118,6 +118,10 @@ int TandemRepeat::findRepeatedSubstring(uint8_t *bases, int basesLen) {
         bool allBasesMatch = true;
         for (int start = repLength; start < basesLen; start += repLength ) {
             // check that remaining of string is exactly equal to repeat unit
+            if(basesLen < start + repLength) {
+                allBasesMatch = false;
+                break;
+            }
             uint8_t * basePiece = new uint8_t[repLength];
             memcpy(basePiece, bases+start, repLength);
             if (memcmp(candidateRepeatUnit, basePiece, repLength) != 0) {
