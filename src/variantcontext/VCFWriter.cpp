@@ -405,6 +405,7 @@ VCFWriter::writeHeader(const string &cmdLine, const vector<SAMReadGroupRecord> &
         bcf_hdr_add_hrec(hdr, bht);
     }
 
+    std::set<std::string> samples;
     for (const auto &rg: readGroup) {
         std::string sampleName = rg.getAttributesNochange()[SAMReadGroupRecord::READ_GROUP_SAMPLE_TAG];
         if (sampleName == normalSample) {
@@ -412,7 +413,10 @@ VCFWriter::writeHeader(const string &cmdLine, const vector<SAMReadGroupRecord> &
         } else {
             mOtherMetaData.insert(std::make_pair("tumor_sample", sampleName));
         }
-        sampleNamesInOrder.push_back(sampleName);
+        samples.insert(sampleName);
+    }
+    for(auto & tmp : samples) {
+        sampleNamesInOrder.emplace_back(tmp);
     }
     std::sort(sampleNamesInOrder.begin(), sampleNamesInOrder.end());
 	for (const std::string &sampleName: sampleNamesInOrder) {
