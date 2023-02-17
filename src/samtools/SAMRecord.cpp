@@ -508,7 +508,8 @@ SAMRecord::SAMRecord(bam1_t *read, sam_hdr_t * hdr, bool load) {
     mAlignmentStart = read->core.pos;
     mAlignmentEnd = mAlignmentStart + static_cast<int>(bam_cigar2rlen(n, res)) - 1;
     mReferenceName = std::string(sam_hdr_tid2name(hdr, read->core.tid));
-    mMateReferenceName = std::string(sam_hdr_tid2name(hdr, read->core.mtid));
+    auto matepointer = sam_hdr_tid2name(hdr, read->core.mtid);
+    mMateReferenceName = matepointer != nullptr ? std::string(matepointer) : "";
     mReadName = std::string(bam_get_qname(read));
     baseLength = read->core.l_qseq;
     baseQualitiesLength = read->core.l_qseq;
