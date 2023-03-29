@@ -12,7 +12,6 @@
 #include "read/AlignmentUtils.h"
 #include "SeqVertex.h"
 #include "boost/dynamic_bitset.hpp"
-#include "parallel_hashmap/phmap_fwd_decl.h"
 
 void ReadThreadingGraph::addRead(std::shared_ptr<SAMRecord> &read) {
 	std::shared_ptr<uint8_t[]> sequence_ = read->getBasesNoCopy();

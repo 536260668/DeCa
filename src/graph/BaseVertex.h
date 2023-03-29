@@ -12,6 +12,8 @@
 #include <memory>
 #include "xxhash.hpp"
 
+static char plusSign = '+';
+
 class BaseVertex {
 private:
 	xxh::hash64_t cashedHashCode;

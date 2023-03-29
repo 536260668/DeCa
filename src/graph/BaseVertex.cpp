@@ -49,7 +49,7 @@ void BaseVertex::setAdditionalInfo(const std::string &info) {
 }
 
 void BaseVertex::additionalInfoAppendPlusSign() {
-	additionalInfo += '+';
+	additionalInfo += plusSign;
 }
 
 
@@ -75,10 +75,5 @@ bool BaseVertex::seqEquals(const std::shared_ptr<BaseVertex> &other) {
 	if (length != other->getLength() || cashedHashCode != other->getHashCode())
 		return false;
 
-	std::shared_ptr<uint8_t[]> otherSeq = other->getSequence();
-	for (int i = 0; i < length; i++) {
-		if (otherSeq.get()[i] != sequence.get()[i])
-			return false;
-	}
-	return true;
+	return memcmp(sequence.get(), other->getSequence().get(), length) == 0;
 }

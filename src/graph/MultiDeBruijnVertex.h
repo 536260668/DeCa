@@ -10,7 +10,6 @@
 
 class MultiDeBruijnVertex : public BaseVertex {
 private:
-    std::vector<std::string> read;
     long hashCode;
     bool mergeIdenticalNodes;
 

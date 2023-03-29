@@ -33,6 +33,7 @@ public:
 	    phmap::flat_hash_set<std::shared_ptr<E>> edges2 = g2->getEdgeSet();
         if(vertices1.size() != vertices2.size() || edges1.size() != edges2.size())
             return false;
+        // TODO: for every vertex in g1 there is a vertex in g2 with an equal getSequenceString
         for(std::shared_ptr<BaseVertex> v1 : vertices1) {
             bool flag = false;
             for(std::shared_ptr<BaseVertex> v2 : vertices2) {
@@ -57,6 +58,7 @@ public:
                 return false;
             }
         }
+        // TODO: for every edge in g2 there is an equal edge in g1
         return true;
     };
 };
