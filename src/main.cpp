@@ -665,7 +665,7 @@ int main(int argc, char *argv[])
     for(auto & vc : vc_results) {
         vcfWriter.add(vc);
     }
-    std::cout << "f : " << filter_results.size() << "o :" << vc_results.size() << std::endl;
+    std::cout << "f : " << filter_results.size() << "\to :" << vc_results.size() << std::endl;
 
     // free the space
     fai_destroy(refPoint);
