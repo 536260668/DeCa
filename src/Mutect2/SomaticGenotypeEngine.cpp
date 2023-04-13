@@ -18,7 +18,7 @@ SomaticGenotypeEngine::SomaticGenotypeEngine(M2ArgumentCollection& MTAC, const s
 CalledHaplotypes SomaticGenotypeEngine::callMutations(AlleleLikelihoods<SAMRecord, Haplotype> *logReadLikelihoods,
                                                       AssemblyResultSet &assemblyResultSet,
                                                       ReferenceContext &referenceContext,
-                                                      SimpleInterval &activeRegionWindow, SAMFileHeader *header) {
+                                                      SimpleInterval &activeRegionWindow, SAMFileHeader *header, std::map<int, double> & scoreMonitor) {
 
     auto haplotypes =  logReadLikelihoods->getAlleles();
 
@@ -76,15 +76,19 @@ CalledHaplotypes SomaticGenotypeEngine::callMutations(AlleleLikelihoods<SAMRecor
         set<shared_ptr<Allele>> forcedAlleles;
         vector<shared_ptr<Allele>> tumorAltAlleles;
         long somaticAltCount = 0;
+        double dp = 0.5;
+        if(!scoreMonitor.empty()) {
+            dp = scoreMonitor[loc];
+        }
         for(auto & alternateAllele: mergedVC->getAlternateAlleles())
         {
-            if(forcedAlleles.find(alternateAllele) != forcedAlleles.end() || tumorLogOdds->getAlt(alternateAllele) > MTAC.getEmissionLogOdds())
+            if(forcedAlleles.find(alternateAllele) != forcedAlleles.end() || tumorLogOdds->getAlt(alternateAllele) > MTAC.getEmissionLogOdds() - 2 * (dp - 0.5))
                 tumorAltAlleles.emplace_back(alternateAllele);
         }
 
         for(auto& allele : tumorAltAlleles)
         {
-            if(forcedAlleles.find(allele) != forcedAlleles.end() || !hasNormal || MTAC.genotypeGermlineSites || normalLogOdds->getAlt(allele) > MathUtils::log10ToLog(MTAC.normalLog10Odds))
+            if(forcedAlleles.find(allele) != forcedAlleles.end() || !hasNormal || MTAC.genotypeGermlineSites || normalLogOdds->getAlt(allele) > MathUtils::log10ToLog(MTAC.normalLog10Odds) - 2 * (dp - 0.5))
                 somaticAltCount++;
         }
 

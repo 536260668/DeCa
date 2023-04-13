@@ -44,6 +44,7 @@ private:
     std::vector<int> filters;
 	CommonInfo commonInfo;
 	bool fullyDecoded;
+    double cnnScore;
 
 	/** A set of the alleles segregating in this context */
 

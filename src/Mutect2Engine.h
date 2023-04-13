@@ -40,6 +40,7 @@ private:
 	SmithWatermanAligner *aligner;
 	SomaticGenotypeEngine genotypingEngine;
 	model mymodel;
+    std::map<int, double> scoreMonitor;
 
 	static std::shared_ptr<std::vector<char>> altQuals(ReadPileup &pileup, char refBase, int pcrErrorQual);
 

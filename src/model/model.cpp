@@ -408,7 +408,7 @@ bool model::isOverlap(int start, int end, const std::shared_ptr<VariantContext> 
 
 bool model::modelRefer(const std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>> &reads,
                        std::set<std::shared_ptr<VariantContext>, VariantContextComparator> &allVariantsWithinExtendedRegion,
-                       const std::shared_ptr<AssemblyRegion> &regionForGenotyping, ReferenceCache *cache, std::vector<std::string> samplesList, std::string normalSample) {
+                       const std::shared_ptr<AssemblyRegion> &regionForGenotyping, ReferenceCache *cache, std::vector<std::string> samplesList, std::string normalSample, std::map<int, double> & scoreMonitor) {
 	if (allVariantsWithinExtendedRegion.empty()) // no variants,
 		return false;
 
@@ -432,9 +432,12 @@ bool model::modelRefer(const std::shared_ptr<std::map<std::string, std::vector<s
 			withinActiveRegion.emplace_back(vc);
 	}
 	int position = 0;
+    double score;
+    bool hasSomaticMutation = false;
 	for (const std::shared_ptr <VariantContext> &vc: withinActiveRegion) {
-		if (position > vc->getEnd())
-			continue;
+		if (position > vc->getEnd()) {
+            continue;
+        }
 		int vcStart = vc->getStart() - 15;
 		int vcEnd = vc->getStart() + 15;
 		if (vcStart < 0) {
@@ -494,11 +497,12 @@ bool model::modelRefer(const std::shared_ptr<std::map<std::string, std::vector<s
 				}
 			}
 		}
-
-		if (classify(inputs))
-			return true;
+		hasSomaticMutation = hasSomaticMutation || classify(inputs, score);
+        for(int i = vc->getStart(); i <= position; i++) {
+            scoreMonitor.insert({i, score});
+        }
 	}
-	return false;
+	return hasSomaticMutation;
 }
 
 void model::Initial(const std::string &modelPath) {
@@ -513,19 +517,29 @@ void model::Initial(const std::string &modelPath) {
 	}
 }
 
-bool model::classify(float (*fre)[6][31]) {
+bool model::classify(float (*fre)[6][31], double & score) {
 	try {
 		n_model.eval();
 		torch::Tensor inputs = torch::from_blob(fre, {1, 30, 31}, torch::kFloat);
 		inputs = inputs.transpose(1, 2);
 		torch::Tensor out_tensor = n_model.forward({inputs}).toTensor();
-		bool output = out_tensor[0][0].item().toFloat() > 0.9999999995;
+        score = out_tensor[0][0].item().toFloat();
+        bool output =  score > 0.9999999995;
 		//std::cout << output << std::endl;
 		return output;
 	}
-	catch (const c10::Error &e) {
+//    try {
+//        n_model.eval();
+//        torch::Tensor inputs = torch::from_blob(fre, {1, 5, 6, 31}, torch::kFloat);
+//        torch::Tensor out_tensor = n_model.forward({inputs}).toTensor();
+////        bool output = out_tensor[0][0].item().toFloat() > out_tensor[0][1].item().toFloat() ? true : false;
+//        bool output = out_tensor[0][0].item().toFloat() > 0.99995f ? true : false;
+//        return output;
+//    }
+        catch (const c10::Error &e) {
 		std::cerr << "error loading the model\n";
 		initialized = false;
+        score = 0.5;
 		return false;
 	}
 }

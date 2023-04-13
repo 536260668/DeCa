@@ -18,7 +18,7 @@ class model {
 public:
 	bool modelRefer(const std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>> &reads,
 	                std::set<std::shared_ptr<VariantContext>, VariantContextComparator> &allVariantsWithinExtendedRegion,
-	                const std::shared_ptr<AssemblyRegion> &regionForGenotyping, ReferenceCache *cache, std::vector<std::string> samplesList, std::string normalSample);
+	                const std::shared_ptr<AssemblyRegion> &regionForGenotyping, ReferenceCache *cache, std::vector<std::string> samplesList, std::string normalSample, std::map<int, double> & scoreMonitor);
 
 	void Initial(const std::string &modelPath);
 
@@ -41,7 +41,7 @@ private:
 	             const uint8_t *referenceBases, int referenceBasesLength,
 	             int vcStart, int vcEnd, const std::shared_ptr<VariantContext> &vc);
 
-	bool classify(float (*inputs)[6][31]);
+	bool classify(float (*inputs)[6][31], double & score);
 };
 
 

@@ -16,6 +16,8 @@
 #include "haplotypecaller/AssemblyBasedCallerUtils.h"
 #include "parallel_hashmap/phmap.h"
 
+
+
 Mutect2Engine::Mutect2Engine(M2ArgumentCollection &MTAC, SAMFileHeader *samFileHeader, const std::string &modelPath,
                              VariantAnnotatorEngine &annotatorEngine) : MTAC(MTAC),
                                                                         minCallableDepth(MTAC.callableDepth),
@@ -210,10 +212,11 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion> &originalAssembl
 	std::shared_ptr<std::map<std::string, std::vector<std::shared_ptr<SAMRecord>>>> reads
 			= splitReadsBySample(regionForGenotyping->getReads());
 	//printReadsMap(reads);
+    scoreMonitor.clear();
 	if (mymodel.isInitialized() && regionForGenotyping->getReads().size() > 100) {
 		std::set<std::shared_ptr<VariantContext>, VariantContextComparator> &VariationEvents
 				= assemblyResult->getVariationEvents(1);
-		if (!mymodel.modelRefer(reads, VariationEvents, regionForGenotyping, refCache, samplesList, normalSample)) {
+		if (!mymodel.modelRefer(reads, VariationEvents, regionForGenotyping, refCache, samplesList, normalSample, scoreMonitor)) {
 			untrimmedAssemblyResult->deleteEventMap();
 			assemblyResult->deleteEventMap();
 			return {};
@@ -233,7 +236,7 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion> &originalAssembl
     genotypingEngine.setReferenceCache(refCache);
 	CalledHaplotypes calledHaplotypes
 			= genotypingEngine.callMutations(readLikelihoods, *assemblyResult, referenceContext,
- 			                                 *regionForGenotyping->getSpan(), header);
+ 			                                 *regionForGenotyping->getSpan(), header, scoreMonitor);
 
 	//---print the called variant
 	std::shared_ptr<std::vector<std::shared_ptr<VariantContext>>> calls = calledHaplotypes.getCalls();

@@ -44,7 +44,7 @@ public:
     * @param emitRefConf                           generate reference confidence (GVCF) data?
     * @return                                       A CalledHaplotypes object containing a list of VC's with genotyped events and called haplotypes
     */
-    CalledHaplotypes callMutations(AlleleLikelihoods<SAMRecord, Haplotype>* logReadLikelihoods, AssemblyResultSet& assemblyResultSet, ReferenceContext& referenceContext, SimpleInterval& activeRegionWindow, SAMFileHeader * header);
+    CalledHaplotypes callMutations(AlleleLikelihoods<SAMRecord, Haplotype>* logReadLikelihoods, AssemblyResultSet& assemblyResultSet, ReferenceContext& referenceContext, SimpleInterval& activeRegionWindow, SAMFileHeader * header, std::map<int, double> & scoreMonitor);
 
     static SampleMatrix<Fragment, Allele>* combinedLikelihoodMatrix(vector<SampleMatrix<Fragment, Allele>*> matrices, SampleMatrix<Fragment, Allele>* alleleList);
 
