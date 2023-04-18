@@ -13,6 +13,7 @@
 #include "utils/MergeTails.h"
 #include "utils/SplitCommonSuffices.h"
 #include "utils/GraphUtils.h"
+#include "graph/utils/GraphObjectPool.h"
 
 bool SeqGraph::zipLinearChains() {
 	std::vector<std::shared_ptr<SeqVertex>> zipStarts;
@@ -83,12 +84,12 @@ bool SeqGraph::mergeLinearChain(std::list<std::shared_ptr<SeqVertex>> &linearCha
 
 	for (auto &edge: outgoingEdgesOf(last)) {
 		addEdge(addedVertex, getEdgeTarget(edge),
-		        std::make_shared<BaseEdge>(edge->getIsRef(), edge->getMultiplicity()));
+		        GraphObjectPool::createSeqEdge(edge->getIsRef(), edge->getMultiplicity()));
 	}
 
 	for (auto &edge: incomingEdgesOf(first)) {
 		addEdge(getEdgeSource(edge), addedVertex,
-		        std::make_shared<BaseEdge>(edge->getIsRef(), edge->getMultiplicity()));
+		        GraphObjectPool::createSeqEdge(edge->getIsRef(), edge->getMultiplicity()));
 	}
 	removeAllVertices(linearChain);
 	return true;
@@ -110,7 +111,7 @@ std::shared_ptr<SeqVertex> SeqGraph::mergeLinearChainVertices(std::list<std::sha
 		memcpy(tmp.get() + start, v->getSequence().get(), seqLength);
 		start += seqLength;
 	}
-	return std::make_shared<SeqVertex>(tmp, start);
+	return GraphObjectPool::createSeqVertex(tmp, start);
 }
 
 void SeqGraph::simplifyGraph() {

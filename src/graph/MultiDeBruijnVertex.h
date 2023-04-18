@@ -10,10 +10,12 @@
 
 class MultiDeBruijnVertex : public BaseVertex {
 private:
-    long hashCode;
-    bool mergeIdenticalNodes;
+    long hashCode{};
+    bool mergeIdenticalNodes{};
 
 public:
+	MultiDeBruijnVertex() = default;
+
 	/**
 	* Create a new MultiDeBruijnVertex with kmer sequence
 	* @param mergeIdenticalNodes should nodes with the same sequence be treated as equal?

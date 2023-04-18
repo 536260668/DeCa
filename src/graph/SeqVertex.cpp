@@ -5,6 +5,7 @@
 #include <cstring>
 #include <memory>
 #include "SeqVertex.h"
+#include "graph/utils/GraphObjectPool.h"
 
 long SeqVertex::hashCode() const {
 	return (long) this;
@@ -20,7 +21,7 @@ std::shared_ptr<SeqVertex> SeqVertex::withoutSuffix(const std::shared_ptr<uint8_
 	if (prefixSize > 0) {
 		std::shared_ptr<uint8_t[]> newSequence(new uint8_t[newLength]);
 		memcpy(newSequence.get(), sequence.get(), newLength);
-		return std::make_shared<SeqVertex>(newSequence, newLength);
+		return GraphObjectPool::createSeqVertex(newSequence, newLength);
 	}
 	return nullptr;
 }
@@ -34,7 +35,7 @@ std::shared_ptr<SeqVertex> SeqVertex::withoutPrefixAndSuffix(const std::shared_p
 	if (length > 0) {
 		std::shared_ptr<uint8_t[]> newSequence(new uint8_t[newLength]);
 		memcpy(newSequence.get(), sequence.get() + start, newLength);
-		return std::make_shared<SeqVertex>(newSequence, newLength);
+		return GraphObjectPool::createSeqVertex(newSequence, newLength);
 	}
 	return nullptr;
 }

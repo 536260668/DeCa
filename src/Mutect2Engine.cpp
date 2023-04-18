@@ -33,15 +33,15 @@ Mutect2Engine::Mutect2Engine(M2ArgumentCollection &MTAC, SAMFileHeader *samFileH
                                                                         aligner(SmithWatermanAligner::getAligner(
 		                                                                        SmithWatermanAligner::FASTEST_AVAILABLE)),
                                                                         genotypingEngine(MTAC, MTAC.normalSample,
-                                                                                         annotatorEngine, nullptr){
+                                                                                         annotatorEngine, nullptr) {
 	std::vector<SAMReadGroupRecord> &mReadGroups = samFileHeader->getReadGroupRecord();
-    std::set<std::string> tmp;
+	std::set<std::string> tmp;
 	for (auto &readGroup: mReadGroups) {
-        tmp.insert(readGroup.getAttribute(SAMReadGroupRecord::READ_GROUP_SAMPLE_TAG));
+		tmp.insert(readGroup.getAttribute(SAMReadGroupRecord::READ_GROUP_SAMPLE_TAG));
 	}
-    for(auto &s : tmp) {
-        samplesList.emplace_back(s);
-    }
+	for (auto &s: tmp) {
+		samplesList.emplace_back(s);
+	}
 	NaturalLogUtils::initial();
 	assert(aligner != nullptr);
 	if (!modelPath.empty()) {
@@ -230,10 +230,10 @@ Mutect2Engine::callRegion(const std::shared_ptr<AssemblyRegion> &originalAssembl
 			                                                             aligner);
 	readLikelihoods->changeEvidence(readRealignments);
 
-    genotypingEngine.setReferenceCache(refCache);
+	genotypingEngine.setReferenceCache(refCache);
 	CalledHaplotypes calledHaplotypes
 			= genotypingEngine.callMutations(readLikelihoods, *assemblyResult, referenceContext,
- 			                                 *regionForGenotyping->getSpan(), header);
+			                                 *regionForGenotyping->getSpan(), header);
 
 	//---print the called variant
 	std::shared_ptr<std::vector<std::shared_ptr<VariantContext>>> calls = calledHaplotypes.getCalls();
@@ -338,7 +338,7 @@ void Mutect2Engine::printVariationContext(const shared_ptr<VariantContext> &vc) 
 	for (const auto &alt: vc->getAlternateAlleles()) {
 		sortedAlleles.push_back(alt->getBaseString());
 	}
-	std::sort(sortedAlleles.begin(), sortedAlleles.end(), [](const std::string& s1, const std::string& s2) -> bool {
+	std::sort(sortedAlleles.begin(), sortedAlleles.end(), [](const std::string &s1, const std::string &s2) -> bool {
 		if (s1.length() != s2.length())
 			return s1.length() < s2.length();
 		return s1 < s2;

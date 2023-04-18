@@ -8,19 +8,22 @@
 
 class IntToDoubleFunctionCache {
 private:
-    double* cache;
-    int length;
+	double *cache;
+	int length;
 
 protected:
-    virtual int maxSize() = 0;
-    virtual double compute(int n) = 0;
+	virtual int maxSize() = 0;
+
+	virtual double compute(int n) = 0;
 
 public:
-    IntToDoubleFunctionCache() : length(0), cache(nullptr){}
+	IntToDoubleFunctionCache() : length(0), cache(nullptr) {}
 
-    double get(int i);
+	double get(int i);
 
-    void expandCache(int newCapacity);
+	void expandCache(int newCapacity);
+
+	~IntToDoubleFunctionCache();
 };
 
 

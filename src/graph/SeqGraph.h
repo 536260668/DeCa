@@ -59,7 +59,7 @@ private:
 public:
 	int getKmerSize() const { return kmerSize; }
 
-	static std::shared_ptr<BaseEdge>
+	std::shared_ptr<BaseEdge>
 	createEdge(std::shared_ptr<SeqVertex> sourceVertex, std::shared_ptr<SeqVertex> targetVertrx);
 
 	SeqGraph(int kmer) : kmerSize(kmer), DirectedSpecifics<SeqVertex, BaseEdge>() {}

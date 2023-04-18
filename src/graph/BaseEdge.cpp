@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include "BaseEdge.h"
 #include "Mutect2Utils.h"
+#include "graph/utils/GraphObjectPool.h"
 
 BaseEdge::BaseEdge(bool isRef, int multiplicity) : isRef(isRef), multiplicity(multiplicity) {
 	if (multiplicity < 0)
@@ -43,7 +44,7 @@ std::shared_ptr<BaseEdge> BaseEdge::makeOREdge(const std::vector<std::shared_ptr
 			break;
 		}
 	}
-	return std::make_shared<BaseEdge>(anyRef, multiplicity);
+	return GraphObjectPool::createSeqEdge(anyRef, multiplicity);
 }
 
 std::shared_ptr<BaseEdge>
@@ -57,6 +58,6 @@ BaseEdge::makeOREdge(const phmap::flat_hash_set<std::shared_ptr<BaseEdge>> &edge
 			break;
 		}
 	}
-	return std::make_shared<BaseEdge>(anyRef, multiplicity);
+	return GraphObjectPool::createSeqEdge(anyRef, multiplicity);
 }
 

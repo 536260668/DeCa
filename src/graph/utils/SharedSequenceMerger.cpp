@@ -5,6 +5,7 @@
 #include <cstring>
 #include <memory>
 #include "SharedSequenceMerger.h"
+#include "graph/utils/GraphObjectPool.h"
 
 bool SharedSequenceMerger::canMerge(SeqGraph *graph, const std::shared_ptr<SeqVertex> &v,
                                     phmap::flat_hash_set<std::shared_ptr<SeqVertex>> incomingVertices) {
@@ -57,13 +58,13 @@ bool SharedSequenceMerger::merge(SeqGraph *graph, const std::shared_ptr<SeqVerte
 #endif
 			for (const std::shared_ptr<BaseEdge> &prevIn: graph->incomingEdgesOf(prev)) {
 				graph->addEdge(graph->getEdgeSource(prevIn), newV,
-				               std::make_shared<BaseEdge>(prevIn->getIsRef(), prevIn->getMultiplicity()));
+				               GraphObjectPool::createSeqEdge(prevIn->getIsRef(), prevIn->getMultiplicity()));
 				edgesToRemove.emplace_back(prevIn);
 			}
 		}
 		for (const std::shared_ptr<BaseEdge> &e: graph->outgoingEdgesOf(v)) {
 			graph->addEdge(newV, graph->getEdgeTarget(e),
-			               std::make_shared<BaseEdge>(e->getIsRef(), e->getMultiplicity()));
+			               GraphObjectPool::createSeqEdge(e->getIsRef(), e->getMultiplicity()));
 		}
 		graph->removeAllVertices(prevs);
 		graph->removeVertex(v);

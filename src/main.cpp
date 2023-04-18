@@ -31,6 +31,7 @@
 #include "intel/pairhmm/IntelPairHmm.h"
 #include "filtering/FilterMutectCalls.h"
 #include "TandemRepeat.h"
+#include "graph/utils/GraphObjectPool.h"
 
 // TODO: finish this method
 std::vector<shared_ptr<InfoFieldAnnotation>> makeInfoFieldAnnotation()
@@ -302,6 +303,7 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 				if (BOOST_LIKELY(!PairHMMConcurrentControl::startPairHMMConcurrentMode)) {
                     try {
                         std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, pileupRefContext);
+	                    GraphObjectPool::reset(threadID);
                         w->results[currentTask].insert(w->results[currentTask].end(), variant.begin(), variant.end());
                     }
                     catch (exception &e) {
@@ -341,7 +343,8 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 			if (BOOST_LIKELY(!PairHMMConcurrentControl::startPairHMMConcurrentMode)) {
                 try {
                     std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, defaultReferenceContext);    // TODO: callRegion() needs pileupRefContext
-                    w->results[currentTask].insert(w->results[currentTask].end(), variant.begin(), variant.end());
+	                GraphObjectPool::reset(threadID);
+	                w->results[currentTask].insert(w->results[currentTask].end(), variant.begin(), variant.end());
                 }
                 catch (exception &e) {
                     std::cout << e.what() << std::endl;
@@ -378,7 +381,8 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
                     m2Engine.setReferenceCache(w->refCaches[refInd].get());
                     try {
                         std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(activeRegion.region, activeRegion.referenceContext);
-                        w->concurrentResults[threadID].insert(w->concurrentResults[threadID].end(), variant.begin(), variant.end());
+	                    GraphObjectPool::reset(threadID);
+						w->concurrentResults[threadID].insert(w->concurrentResults[threadID].end(), variant.begin(), variant.end());
                     }
                     catch (exception &e) {
                         std::cout << e.what() << std::endl;

@@ -36,6 +36,8 @@ public:
 	 */
 	BaseVertex(const std::shared_ptr<uint8_t[]> &sequence, int length);
 
+	BaseVertex() = default;
+
 	virtual ~BaseVertex() = default;
 
 	/**

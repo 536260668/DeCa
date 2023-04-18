@@ -11,6 +11,7 @@
 #include "read/CigarUtils.h"
 #include "AdaptiveChainPruner.h"
 #include "boost/dynamic_bitset.hpp"
+#include "graph/utils/GraphObjectPool.h"
 
 
 std::shared_ptr<AssemblyResult>
@@ -65,7 +66,7 @@ std::shared_ptr<AssemblyResult> ReadThreadingAssembler::cleanupSeqGraph(const st
 		std::shared_ptr<SeqVertex> complete = *(seqGraph->getVertexSet().begin());
 		std::shared_ptr<SeqVertex> dummy(new SeqVertex(nullptr, 0));
 		seqGraph->addVertex(dummy);
-		seqGraph->addEdge(complete, dummy, std::make_shared<BaseEdge>(true, 0));
+		seqGraph->addEdge(complete, dummy, GraphObjectPool::createSeqEdge(true, 0));
 		//seqGraph->printGraphSize("dummy");
 	}
 	return std::make_shared<AssemblyResult>(ASSEMBLED_SOME_VARIATION, seqGraph, nullptr);

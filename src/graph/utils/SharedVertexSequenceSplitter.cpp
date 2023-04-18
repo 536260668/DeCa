@@ -6,6 +6,7 @@
 #include <memory>
 #include <utility>
 #include "GraphUtils.h"
+#include "graph/utils/GraphObjectPool.h"
 
 std::pair<std::shared_ptr<SeqVertex>, std::shared_ptr<SeqVertex>>
 SharedVertexSequenceSplitter::commonPrefixAndSuffixOfVertices(
@@ -103,10 +104,10 @@ void SharedVertexSequenceSplitter::split() {
 std::shared_ptr<BaseEdge>
 SharedVertexSequenceSplitter::processEdgeToRemove(std::shared_ptr<SeqVertex> v, std::shared_ptr<BaseEdge> e) {
 	if (e == nullptr) {
-		return std::make_shared<BaseEdge>(outer->isReferenceNode(v), 0);
+		return GraphObjectPool::createSeqEdge(outer->isReferenceNode(v), 0);
 	} else {
 		edgesToRemove.emplace_back(e);
-		return std::make_shared<BaseEdge>(e->getIsRef(), e->getMultiplicity());
+		return GraphObjectPool::createSeqEdge(e->getIsRef(), e->getMultiplicity());
 	}
 }
 

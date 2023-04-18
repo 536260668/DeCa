@@ -6,6 +6,7 @@
 #include <memory>
 #include "parallel_hashmap/phmap.h"
 #include "GraphUtils.h"
+#include "GraphObjectPool.h"
 
 bool CommonSuffixSplitter::split(SeqGraph *graph, std::shared_ptr<SeqVertex> v) {
 	Mutect2Utils::validateArg(graph, "graph cannot be null");
@@ -23,7 +24,7 @@ bool CommonSuffixSplitter::split(SeqGraph *graph, std::shared_ptr<SeqVertex> v) 
 #else
 	for (const std::shared_ptr<SeqVertex> &mid: toSplit) {
 #endif
-		std::shared_ptr<SeqVertex> suffixV = std::make_shared<SeqVertex>(suffixVTemplate->getSequence(),
+		std::shared_ptr<SeqVertex> suffixV = GraphObjectPool::createSeqVertex(suffixVTemplate->getSequence(),
 		                                                                 suffixVTemplate->getLength());
 		graph->addVertex(suffixV);
 		std::shared_ptr<SeqVertex> prefixV = mid->withoutSuffix(suffixV->getSequence(), suffixV->getLength());
@@ -34,14 +35,14 @@ bool CommonSuffixSplitter::split(SeqGraph *graph, std::shared_ptr<SeqVertex> v) 
 		} else {
 			incomingTarget = prefixV;
 			graph->addVertex(prefixV);
-			graph->addEdge(prefixV, suffixV, std::make_shared<BaseEdge>(out->getIsRef(), 1));
+			graph->addEdge(prefixV, suffixV, GraphObjectPool::createSeqEdge(out->getIsRef(), 1));
 			edgesToRemove.emplace_back(out);
 		}
 		graph->addEdge(suffixV, graph->getEdgeTarget(out),
-		               std::make_shared<BaseEdge>(out->getIsRef(), out->getMultiplicity()));
+		               GraphObjectPool::createSeqEdge(out->getIsRef(), out->getMultiplicity()));
 		for (const std::shared_ptr<BaseEdge> &in: graph->incomingEdgesOf(mid)) {
 			graph->addEdge(graph->getEdgeSource(in), incomingTarget,
-			               std::make_shared<BaseEdge>(in->getIsRef(), in->getMultiplicity()));
+			               GraphObjectPool::createSeqEdge(in->getIsRef(), in->getMultiplicity()));
 			edgesToRemove.emplace_back(in);
 		}
 	}
@@ -99,7 +100,7 @@ CommonSuffixSplitter::commonSuffix(const phmap::flat_hash_set<std::shared_ptr<Se
 	int suffixLength;
 	std::shared_ptr<uint8_t[]> suffix = Mutect2Utils::copyOfRange(kmer, kmerLength, kmerLength - suffixLen, kmerLength,
 	                                                              suffixLength);
-	return std::make_shared<SeqVertex>(suffix, suffixLength);
+	return GraphObjectPool::createSeqVertex(suffix, suffixLength);
 }
 
 bool

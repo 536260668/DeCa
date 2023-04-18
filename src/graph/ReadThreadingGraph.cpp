@@ -12,6 +12,7 @@
 #include "read/AlignmentUtils.h"
 #include "SeqVertex.h"
 #include "boost/dynamic_bitset.hpp"
+#include "graph/utils/GraphObjectPool.h"
 
 void ReadThreadingGraph::addRead(std::shared_ptr<SAMRecord> &read) {
 	std::shared_ptr<uint8_t[]> sequence_ = read->getBasesNoCopy();
@@ -92,7 +93,7 @@ void ReadThreadingGraph::determineNonUniques() {
 	if (justACGT) {
 		if (kmerSize <= 30) {  //when kmerSize_ <= 30, use Bit Operation (long long)
 			phmap::flat_hash_set<long long> nonUniquesFromSeqSet;
-            phmap::flat_hash_set<long long> seqAllKmers;
+			phmap::flat_hash_set<long long> seqAllKmers;
 
 			for (auto &iter: pending) {
 				for (auto &withNonUnique: iter.second) {
@@ -134,7 +135,7 @@ void ReadThreadingGraph::determineNonUniques() {
 			}
 		} else {    //when kmerSize_ > 30, use dynamic bitset
 			phmap::flat_hash_set<boost::dynamic_bitset<>> nonUniquesFromSeqSet;
-            phmap::flat_hash_set<boost::dynamic_bitset<>> seqAllKmers;
+			phmap::flat_hash_set<boost::dynamic_bitset<>> seqAllKmers;
 
 			for (auto &iter: pending) {
 				for (auto &withNonUnique: iter.second) {
@@ -180,7 +181,7 @@ void ReadThreadingGraph::determineNonUniques() {
 		}
 	} else {   // not justACGT, use 4 bits to solve
 		phmap::flat_hash_set<boost::dynamic_bitset<>> nonUniquesFromSeqSet;
-        phmap::flat_hash_set<boost::dynamic_bitset<>> seqAllKmers;
+		phmap::flat_hash_set<boost::dynamic_bitset<>> seqAllKmers;
 
 		for (auto &iter: pending) {
 			for (auto &withNonUnique: iter.second) {
@@ -242,9 +243,9 @@ void ReadThreadingGraph::determineNonUniques() {
 }
 
 std::shared_ptr<MultiDeBruijnVertex> ReadThreadingGraph::createVertex(const std::shared_ptr<Kmer> &kmer) {
-	std::shared_ptr<MultiDeBruijnVertex> newVertex = std::make_shared<MultiDeBruijnVertex>(kmer->getBases(),
-	                                                                                       kmer->getLength(),
-	                                                                                       false);
+	std::shared_ptr<MultiDeBruijnVertex> newVertex = GraphObjectPool::createMultiVertex(kmer->getBases(),
+	                                                                                   kmer->getLength(), false);
+
 	unsigned prevSize = getVertexSet().size();
 	addVertex(newVertex);
 	if (getVertexSet().size() != prevSize + 1)
@@ -281,7 +282,7 @@ ReadThreadingGraph::extendChainByOne(const std::shared_ptr<MultiDeBruijnVertex> 
 			throw std::invalid_argument("Found a unique vertex to merge into the reference graph");
 	}
 
-	addEdge(prevVertex, nextVertex, std::make_shared<MultiSampleEdge>(isRef, count, numPruningSamples));
+	addEdge(prevVertex, nextVertex, GraphObjectPool::createMultiEdge(isRef, count, numPruningSamples));
 	return nextVertex;
 }
 
@@ -374,17 +375,17 @@ void ReadThreadingGraph::buildGraphIfNecessary() {
 
 #ifdef SORT_MODE
 	for (const auto &key: pendingKeys) {
-			if (pending.find(key) != pending.end()) {
-				for (auto &viter: pending[key]) {
-					threadSequence(viter);
-					//outputDotFile("./CPP_" + std::to_string(cnt) + ".dot");
-					//printGraphSize();
-				}
-				for (auto &eiter: edgeMap) {
-					eiter.first->flushSingleSampleMultiplicity();
-				}
+		if (pending.find(key) != pending.end()) {
+			for (auto &viter: pending[key]) {
+				threadSequence(viter);
+				//outputDotFile("./CPP_" + std::to_string(cnt) + ".dot");
+				//printGraphSize();
+			}
+			for (auto &eiter: edgeMap) {
+				eiter.first->flushSingleSampleMultiplicity();
 			}
 		}
+	}
 #else
 	for (auto &item: pending) {
 		for (auto &viter: item.second) {
@@ -441,8 +442,8 @@ void ReadThreadingGraph::recoverDanglingTails(int pruneFactor, int minDanglingBr
 #else
 	phmap::flat_hash_set<std::shared_ptr<MultiDeBruijnVertex>> vertexSet = getVertexSet();
 #endif
-		for (const std::shared_ptr<MultiDeBruijnVertex> &v: vertexSet) {
-			if (outDegreeOf(v) == 0 && !isRefSink(v)) {
+	for (const std::shared_ptr<MultiDeBruijnVertex> &v: vertexSet) {
+		if (outDegreeOf(v) == 0 && !isRefSink(v)) {
 			danglingTailMergeResult = generateCigarAgainstDownwardsReferencePath(v, pruneFactor,
 			                                                                     minDanglingBranchLength,
 			                                                                     recoverAll);
@@ -638,7 +639,7 @@ int ReadThreadingGraph::mergeDanglingTail(DanglingChainMergeHelper *danglingTail
 		return 0;
 	}
 	addEdge(danglingTailMergeResult->danglingPath.at(altIndexToMerge),
-	        danglingTailMergeResult->referencePath.at(refIndexToMerge), std::make_shared<MultiSampleEdge>(
+	        danglingTailMergeResult->referencePath.at(refIndexToMerge), GraphObjectPool::createMultiEdge(
 					false, 1, numPruningSamples));
 	return 1;
 }
@@ -768,8 +769,7 @@ int ReadThreadingGraph::mergeDanglingHead(DanglingChainMergeHelper *danglingHead
 
 	addEdge(danglingHeadMergeResult->referencePath.at(indexesToMerge + 1),
 	        danglingHeadMergeResult->danglingPath.at(indexesToMerge),
-	        std::make_shared<MultiSampleEdge>(
-			        false, 1, numPruningSamples));
+	        GraphObjectPool::createMultiEdge(false, 1, numPruningSamples));
 
 	return 1;
 }
@@ -831,7 +831,7 @@ bool ReadThreadingGraph::extendDanglingPathAgainstReference(DanglingChainMergeHe
 	for (int i = numNodesToExtend; i > 0; i--) {
 		std::shared_ptr<uint8_t[]> tmp(new uint8_t[kmerSize]);
 		memcpy(tmp.get(), sequenceToExtend.get() + i, kmerSize);
-		std::shared_ptr<MultiDeBruijnVertex> newV = std::make_shared<MultiDeBruijnVertex>(tmp, kmerSize);
+		std::shared_ptr<MultiDeBruijnVertex> newV = GraphObjectPool::createMultiVertex(tmp, kmerSize);
 		addVertex(newV);
 		std::shared_ptr<MultiSampleEdge> newE = addEdge(newV, prevV);
 		newE->setMultiplicity(sourceEdge->getMultiplicity());
@@ -843,7 +843,7 @@ bool ReadThreadingGraph::extendDanglingPathAgainstReference(DanglingChainMergeHe
 
 std::shared_ptr<MultiSampleEdge> ReadThreadingGraph::createEdge(const std::shared_ptr<MultiDeBruijnVertex> &,
                                                                 const std::shared_ptr<MultiDeBruijnVertex> &) {
-	return std::make_shared<MultiSampleEdge>(false, 1, numPruningSamples);
+	return GraphObjectPool::createMultiEdge(false, 1, numPruningSamples);
 }
 
 std::shared_ptr<SeqGraph> ReadThreadingGraph::toSequenceGraph() {
@@ -865,7 +865,7 @@ std::shared_ptr<SeqGraph> ReadThreadingGraph::toSequenceGraph() {
 
 	for (auto &eiter: edgeMap) {
 		seqGraph->addEdge(vertexMap.at(getEdgeSource(eiter.first)), vertexMap.at(getEdgeTarget(eiter.first)),
-		                  std::make_shared<BaseEdge>(eiter.first->getIsRef(), eiter.first->getMultiplicity()));
+		                  GraphObjectPool::createSeqEdge(eiter.first->getIsRef(), eiter.first->getMultiplicity()));
 	}
 	return seqGraph;
 }

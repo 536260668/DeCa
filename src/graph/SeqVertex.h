@@ -17,6 +17,8 @@ public:
 	 */
 	SeqVertex(const std::shared_ptr<uint8_t[]> &sequence, int length) : BaseVertex(sequence, length) {}
 
+	SeqVertex() = default;
+
 	[[nodiscard]] int getId() const { return (int) hashCode(); }
 
 	[[nodiscard]] long hashCode() const;
