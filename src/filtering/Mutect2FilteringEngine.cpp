@@ -50,8 +50,7 @@ Mutect2FilteringEngine::sumADsOverSamples(const std::shared_ptr<VariantContext> 
     std::vector<std::shared_ptr<Genotype>> * genotypes = genotype->getGenotypes();
     for(auto &gt : *genotypes) {
         if((includeTumor) && isTumor(gt.get()) || (includeNormal && isNormal(gt.get()))) {
-            int len;
-            int * ads = gt->getAD(len);
+			vector<int> ads = gt->getAD();
             for(int i = 0; i < vc->getNAlleles(); i++) {
                 ADs[i] += ads[i];
             }
@@ -167,9 +166,8 @@ std::vector<double> Mutect2FilteringEngine::weightedAverageOfTumorAFs(const std:
     for(auto & k : *vc->getGenotypes()->getGenotypes()) {
         if(isTumor(k.get())) {
             double weight = 0;
-            int len;
-            int * ADs = k->getAD(len);
-            for(int i = 0; i < len; i++) {
+            vector<int> ADs = k->getAD();
+            for(int i = 0; i < ADs.size(); i++) {
                 weight += ADs[i];
             }
             totalWeight += weight;

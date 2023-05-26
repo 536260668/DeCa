@@ -7,16 +7,16 @@
 
 GenotypeBuilder::GenotypeBuilder(std::shared_ptr<Genotype> g): sampleName(g->getSampleName()), alleles(g->getAlleles()), isPhased(g->isPhased()), GQ(g->getGQ()),  DP(g->getDP()), filters(g->getFilters())
 {
-    AD = g->getAD(ADLength);
-    PL = g->getPL(PLLength);
+    AD = g->getAD();
+    PL = g->getPL();
     attributes(g->getExtendedAttributes());
 }
 
 GenotypeBuilder::GenotypeBuilder(std::shared_ptr<Genotype> g, std::string name, std::vector<std::shared_ptr<Allele>> &alleles):
     sampleName(name), alleles(alleles), isPhased(g->isPhased()), GQ(g->getGQ()), DP(g->getDP()), filters(g->getFilters())
 {
-    AD = g->getAD(ADLength);
-    PL = g->getPL(PLLength);
+    AD = g->getAD();
+    PL = g->getPL();
     attributes(g->getExtendedAttributes());
 }
 
@@ -25,7 +25,7 @@ std::shared_ptr<Genotype> GenotypeBuilder::create(std::string sampleName, std::v
 }
 
 std::shared_ptr<Genotype> GenotypeBuilder::make() {
-    return std::make_shared<FastGenotype>(sampleName, alleles, isPhased, GQ, DP, AD, ADLength, PL, PLLength, filters, extendedAttributes);
+    return std::make_shared<FastGenotype>(sampleName, alleles, isPhased, GQ, DP, AD, PL, filters, extendedAttributes);
 }
 
 std::shared_ptr<Genotype> GenotypeBuilder::create(std::string sampleName, std::vector<std::shared_ptr<Allele>> alleles,
@@ -65,18 +65,17 @@ GenotypeBuilder& GenotypeBuilder::attribute(const std::string &key, std::vector<
     return *this;
 }
 
-std::shared_ptr<Genotype> GenotypeBuilder::create(const std::string& sampleName, const std::vector<std::shared_ptr<Allele>>& alleles, double *gls, int length) {
-    return GenotypeBuilder(sampleName, alleles).buildPL(gls, length).make();
+std::shared_ptr<Genotype> GenotypeBuilder::create(const std::string& sampleName, const std::vector<std::shared_ptr<Allele>>& alleles, std::vector<double> gls) {
+    return GenotypeBuilder(sampleName, alleles).buildPL(gls).make();
 }
 
-GenotypeBuilder GenotypeBuilder::buildPL(double *GLs , int length) {
-    PL = GenotypeLikelihoods::fromLog10Likelihoods(GLs, length)->getAsPLs();
+GenotypeBuilder GenotypeBuilder::buildPL(std::vector<double> GLs) {
+    PL = GenotypeLikelihoods::fromLog10Likelihoods(GLs)->getAsPLs();
     return *this;
 }
 
-GenotypeBuilder&  GenotypeBuilder::setAD(int *AD, int ADLength) {
-    this->AD = AD;
-    this->ADLength = ADLength;
+GenotypeBuilder&  GenotypeBuilder::setAD(std::vector<int> AD) {
+    this->AD = std::move(AD);
     return *this;
 }
 

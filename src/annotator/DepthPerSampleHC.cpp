@@ -34,6 +34,7 @@ void DepthPerSampleHC::annotate(ReferenceContext &ref, shared_ptr<VariantContext
     }
     auto subsettedLikelihoods = likelihoods->marginalize(alleleSubset);
     auto bestAlleles = subsettedLikelihoods->bestAllelesBreakingTies(sample);
+	delete subsettedLikelihoods;
     int depth = 0;
 
     for(auto ba : *bestAlleles)

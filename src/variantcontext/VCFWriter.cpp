@@ -191,28 +191,24 @@ void VCFWriter::add(std::shared_ptr<VariantContext>& vc) {
     }
 
     //format:AD
-    int max = -1;
+    int maxSize = -1;
     for(string & str : sampleNamesInOrder) {
-        int ADslen;
-        int* AD = sample2genotype.at(str)->getAD(ADslen);
-        if(ADslen > max) {
-            max = ADslen;
-        }
+		std::vector<int> AD = sample2genotype.at(str)->getAD();
+        maxSize = max(maxSize, (int) AD.size());
     }
-    int ADs[max * sample2genotype.size()];
+    int ADs[maxSize * sample2genotype.size()];
     int j = 0;
-    for(string & str : sampleNamesInOrder) {
-        int ADslen;
-        int* AD = sample2genotype.at(str)->getAD(ADslen);
-        for(int i = 0; i < ADslen; i++) {
+    for(string &str : sampleNamesInOrder) {
+	    std::vector<int> AD = sample2genotype.at(str)->getAD();
+        for(int i = 0; i < AD.size(); i++) {
             ADs[i+j] = AD[i];
         }
-        for(int i = ADslen; i < max; i++) {
+        for(int i = (int) AD.size(); i < maxSize; i++) {
             ADs[i+j] = bcf_int32_missing;
         }
-        j+=max;
+        j+=maxSize;
     }
-    bcf_update_format_int32(hdr, hts_vc, VCFConstants::GENOTYPE_ALLELE_DEPTHS.c_str(), ADs, max * sample2genotype.size());
+    bcf_update_format_int32(hdr, hts_vc, VCFConstants::GENOTYPE_ALLELE_DEPTHS.c_str(), ADs, maxSize * sample2genotype.size());
 
     //format:DP
     int Dps[sample2genotype.size()];
@@ -224,122 +220,114 @@ void VCFWriter::add(std::shared_ptr<VariantContext>& vc) {
     bcf_update_format_int32(hdr, hts_vc, VCFConstants::DEPTH_KEY.c_str(), Dps, sample2genotype.size());
 
     //format:AF
-    max = -1;
+    maxSize = -1;
     for(string & str : sampleNamesInOrder) {
         int l;
         if(sample2genotype.at(str)->hasExtendedAttribute(VCFConstants::ALLELE_FRACTION_KEY)) {
-            l = sample2genotype.at(str)->getExtendedAttribute(VCFConstants::ALLELE_FRACTION_KEY).getAttributeAsDoubleVector().size();
+            l = (int) sample2genotype.at(str)->getExtendedAttribute(VCFConstants::ALLELE_FRACTION_KEY).getAttributeAsDoubleVector().size();
         }
-        if(l > max) {
-            max = l;
-        }
+        maxSize = max(maxSize, l);
     }
-    float fdata[max * sample2genotype.size()];
+    float fdata[maxSize * sample2genotype.size()];
     j = 0;
     for(string & str : sampleNamesInOrder) {
         std::vector<double> x;
         if(sample2genotype.at(str)->hasExtendedAttribute(VCFConstants::ALLELE_FRACTION_KEY)) {
             x = sample2genotype.at(str)->getExtendedAttribute(VCFConstants::ALLELE_FRACTION_KEY).getAttributeAsDoubleVector();
         }
-        int l = x.size();
+        int l = (int) x.size();
         for(int i = 0; i < l; i++) {
             fdata[i+j] = x[i];
         }
-        for(int i = l; i < max; i++) {
+        for(int i = l; i < maxSize; i++) {
             fdata[i+j] = bcf_float_missing;
         }
-        j+=max;
+        j+=maxSize;
     }
-    bcf_update_format_float(hdr, hts_vc, VCFConstants::ALLELE_FRACTION_KEY.c_str(), fdata, max * sample2genotype.size());
+    bcf_update_format_float(hdr, hts_vc, VCFConstants::ALLELE_FRACTION_KEY.c_str(), fdata, maxSize * sample2genotype.size());
 
     //format:F1R2
-    max = -1;
+    maxSize = -1;
     for(string & str : sampleNamesInOrder) {
         int l;
         if(sample2genotype.at(str)->hasExtendedAttribute(VCFConstants::F1R2_KEY)) {
-            l = sample2genotype.at(str)->getExtendedAttribute(VCFConstants::F1R2_KEY).getAttributeAsIntVector().size();
+            l = (int) sample2genotype.at(str)->getExtendedAttribute(VCFConstants::F1R2_KEY).getAttributeAsIntVector().size();
         }
-        if(l > max) {
-            max = l;
-        }
+        maxSize = max(maxSize, l);
     }
-    int* idata = new int[max * sample2genotype.size()];
+    int* idata = new int[maxSize * sample2genotype.size()];
     j = 0;
     for(string & str : sampleNamesInOrder) {
         std::vector<int> x;
         if(sample2genotype.at(str)->hasExtendedAttribute(VCFConstants::F1R2_KEY)) {
             x = sample2genotype.at(str)->getExtendedAttribute(VCFConstants::F1R2_KEY).getAttributeAsIntVector();
         }
-        int l = x.size();
+        int l = (int) x.size();
         for(int i = 0; i < l; i++) {
             idata[i+j] = x[i];
         }
-        for(int i = l; i < max; i++) {
+        for(int i = l; i < maxSize; i++) {
             idata[i+j] = bcf_int32_missing;
         }
-        j+=max;
+        j+=maxSize;
     }
-    bcf_update_format_int32(hdr, hts_vc, VCFConstants::F1R2_KEY.c_str(), idata, max * sample2genotype.size());
+    bcf_update_format_int32(hdr, hts_vc, VCFConstants::F1R2_KEY.c_str(), idata, maxSize * sample2genotype.size());
     delete[] idata;
 
     //format:F2R1
-    max = -1;
+    maxSize = -1;
     for(string & str : sampleNamesInOrder) {
-        int l;
+        size_t l;
         if(sample2genotype.at(str)->hasExtendedAttribute(VCFConstants::F2R1_KEY)) {
             l = sample2genotype.at(str)->getExtendedAttribute(VCFConstants::F2R1_KEY).getAttributeAsIntVector().size();
         }
-        if(l > max) {
-            max = l;
-        }
+        maxSize = max(maxSize, (int) l);
     }
-    idata = new int[max * sample2genotype.size()];
+    idata = new int[maxSize * sample2genotype.size()];
     j = 0;
     for(string & str : sampleNamesInOrder) {
         std::vector<int> x;
         if(sample2genotype.at(str)->hasExtendedAttribute(VCFConstants::F2R1_KEY)) {
             x = sample2genotype.at(str)->getExtendedAttribute(VCFConstants::F2R1_KEY).getAttributeAsIntVector();
         }
-        int l = x.size();
+        int l = (int) x.size();
         for(int i = 0; i < l; i++) {
             idata[i+j] = x[i];
         }
-        for(int i = l; i < max; i++) {
+        for(int i = l; i < maxSize; i++) {
             idata[i+j] = bcf_int32_missing;
         }
-        j+=max;
+        j+=maxSize;
     }
-    bcf_update_format_int32(hdr, hts_vc, VCFConstants::F2R1_KEY.c_str(), idata, max * sample2genotype.size());
+    bcf_update_format_int32(hdr, hts_vc, VCFConstants::F2R1_KEY.c_str(), idata, maxSize * sample2genotype.size());
     delete[] idata;
 
     //format:SB
-    max = -1;
+    maxSize = -1;
     for(string & str : sampleNamesInOrder) {
         int l;
         if(sample2genotype.at(str)->hasExtendedAttribute(VCFConstants::STRAND_BIAS_BY_SAMPLE_KEY)) {
-            l = sample2genotype.at(str)->getExtendedAttribute(VCFConstants::STRAND_BIAS_BY_SAMPLE_KEY).getAttributeAsIntVector().size();
+            l = (int) sample2genotype.at(str)->getExtendedAttribute(VCFConstants::STRAND_BIAS_BY_SAMPLE_KEY).getAttributeAsIntVector().size();
         }
-        if(l > max) {
-            max = l;
-        }
+        maxSize = max(maxSize, l);
     }
-    idata = new int[max * sample2genotype.size()];
+    idata = new int[maxSize * sample2genotype.size()];
     j = 0;
     for(string & str : sampleNamesInOrder) {
         std::vector<int> x;
         if(sample2genotype.at(str)->hasExtendedAttribute(VCFConstants::STRAND_BIAS_BY_SAMPLE_KEY)) {
             x = sample2genotype.at(str)->getExtendedAttribute(VCFConstants::STRAND_BIAS_BY_SAMPLE_KEY).getAttributeAsIntVector();
         }
-        int l = x.size();
+        int l = (int) x.size();
         for(int i = 0; i < l; i++) {
             idata[i+j] = x[i];
         }
-        for(int i = l; i < max; i++) {
+        for(int i = l; i < maxSize; i++) {
             idata[i+j] = bcf_int32_missing;
         }
-        j+=max;
+        j+=maxSize;
     }
-    bcf_update_format_int32(hdr, hts_vc, VCFConstants::STRAND_BIAS_BY_SAMPLE_KEY.c_str(), idata, max * sample2genotype.size());
+    bcf_update_format_int32(hdr, hts_vc, VCFConstants::STRAND_BIAS_BY_SAMPLE_KEY.c_str(), idata, maxSize * sample2genotype.size());
     delete[] idata;
 
     //format:GT

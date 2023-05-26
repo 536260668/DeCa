@@ -77,13 +77,13 @@ double BinomialDistribution::regularizedBeta(double x, double a, double b, doubl
                1 - x <= (b + 1) / (2 + b + a)) {
         ret = 1 - regularizedBeta(1 - x, b, a, epsilon, maxIterations);
     } else {
-        ret = std::exp(a * std::log(x) + b * std::log1p(-x) - std::log(a) - BetaBinomialDistribution::logBeta(a, b)) * 1.0 / evaluate(x, epsilon, maxIterations);
+        ret = std::exp(a * std::log(x) + b * std::log1p(-x) - std::log(a) - BetaBinomialDistribution::logBeta(a, b)) * 1.0 / evaluate(x, epsilon, maxIterations, a, b);
     }
     return ret;
 }
 
 
-double BinomialDistribution::evaluate(double x, double epsilon, int maxIterations) {
+double BinomialDistribution::evaluate(double x, double epsilon, int maxIterations, double _a, double _b) {
     double small = 1e-50;
     double hPrev = getA(0, x);
 
@@ -99,7 +99,7 @@ double BinomialDistribution::evaluate(double x, double epsilon, int maxIteration
 
     while (n < maxIterations) {
         double a = getA(n, x);
-        double b = getB(n, x, a, b);
+        double b = getB(n, x, _a, _b);
 
         double dN = a + b * dPrev;
         if (std::abs(dN) < small) {

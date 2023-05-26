@@ -272,8 +272,7 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 			if(!activityProfile->isEmpty()){
 				bool forceConversion = pileup.getPosition() != activityProfile->getEnd() + 1;
 				vector<std::shared_ptr<AssemblyRegion>> * ReadyAssemblyRegions = activityProfile->popReadyAssemblyRegions(w->MTAC.assemblyRegionPadding, w->MTAC.minAssemblyRegionSize, w->MTAC.maxAssemblyRegionSize, forceConversion);
-				for(const std::shared_ptr<AssemblyRegion>& newRegion : *ReadyAssemblyRegions)
-				{
+				for(const std::shared_ptr<AssemblyRegion>& newRegion : *ReadyAssemblyRegions) {
 					if(newRegion->getStart() >= start && newRegion->getStart() < end)
 						pendingRegions.emplace(newRegion);
 				}
@@ -309,7 +308,6 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
                     catch (exception &e) {
                         std::cout << e.what() << std::endl;
                     }
-
 				} else {
 					w->queueMutex.lock();
 					w->activeRegionQueue.emplace(nextRegion, pileupRefContext);
@@ -342,7 +340,7 @@ void threadFunc(Shared *w, int threadID, char *ref, int n, int nref) {
 			// ReferenceContext is not needed for the time being
 			if (BOOST_LIKELY(!PairHMMConcurrentControl::startPairHMMConcurrentMode)) {
                 try {
-                    std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, defaultReferenceContext);    // TODO: callRegion() needs pileupRefContext
+                    std::vector<std::shared_ptr<VariantContext>> variant = m2Engine.callRegion(nextRegion, defaultReferenceContext);
 	                GraphObjectPool::reset(threadID);
 	                w->results[currentTask].insert(w->results[currentTask].end(), variant.begin(), variant.end());
                 }

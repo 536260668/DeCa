@@ -30,9 +30,9 @@ TandemRepeat::annotate(shared_ptr<ReferenceContext> ref, shared_ptr<VariantConte
     }
     std::shared_ptr<uint8_t[]> repeatUnit = result.second;
     std::vector<int> numUnits = result.first;
-    std::string s = "";
+    std::string s;
     for(int i = 0; i < repeatLen; i++) {
-        s = s + (char)repeatUnit.get()[i];
+        s += (char)repeatUnit.get()[i];
     }
     map->insert({VCFConstants::STR_PRESENT_KEY, AttributeValue(true)});
     map->insert({VCFConstants::REPEAT_UNIT_KEY, AttributeValue(s)});
@@ -41,28 +41,48 @@ TandemRepeat::annotate(shared_ptr<ReferenceContext> ref, shared_ptr<VariantConte
 }
 
 std::pair<std::vector<int>, std::shared_ptr<uint8_t[]>> TandemRepeat::getNumTandemRepeatUnits(const std::shared_ptr<VariantContext> & vc, const std::shared_ptr<uint8_t[]> & refBasesStartingAtVCWithPad, int refLen, int& len) {
-    uint8_t * refBasesStartingAtVCWithoutPad = new uint8_t[refLen-1];
+    auto * refBasesStartingAtVCWithoutPad = new uint8_t[refLen-1];
     memcpy(refBasesStartingAtVCWithoutPad, refBasesStartingAtVCWithPad.get()+1, refLen-1);
     std::shared_ptr<Allele> ref = vc->getReference();
     int refAlleleBasesLen = std::max(0, ref->getLength()-1);
-    uint8_t * refAlleleBases = new uint8_t[refAlleleBasesLen];
+    auto * refAlleleBases = new uint8_t[refAlleleBasesLen];
     memcpy(refAlleleBases, ref->getBases().get()+1, refAlleleBasesLen);
+//    cout << "refBasesStartingAtVCWithPad " << refLen << " ";
+//    for (int i = 0; i < refLen; ++i) cout << refBasesStartingAtVCWithPad.get()[i];
+//    cout << endl;
+//    cout << "refBasesStartingAtVCWithoutPad " << refLen-1 << " ";
+//    for (int i = 0; i < refLen-1; ++i) cout << refBasesStartingAtVCWithoutPad[i];
+//    cout << endl;
+//    cout << "ref " << ref->getLength() << " ";
+//    for (int i = 0; i < ref->getLength(); ++i) cout << ref->getBases().get()[i];
+//    cout << endl;
+//    cout << "refAlleleBases " << refAlleleBasesLen << " ";
+//    for (int i = 0; i < refAlleleBasesLen; ++i) cout << refAlleleBases[i];
+//    cout << endl;
+
     std::shared_ptr<uint8_t[]> repeatUnit;
     std::vector<int> lengths(2, 0);
     bool flag = true;
 
     for(const auto & allele : vc->getAlternateAlleles()) {
+//        cout << "allele " << allele->getBasesLength() << " ";
+//        for (int i = 0; i <  allele->getBasesLength(); ++i) cout << allele->getBases()[i];
+//        cout << endl;
         int rightLen;
-        uint8_t * tmp = nullptr;
-        if(allele->getBasesLength() > 1) {
-            tmp = new uint8_t[allele->getBasesLength()-1];
-        }
+        // make sure that tmp != nullptr, allocate at least 1 uint8_t.
+        int allocate_size = max(allele->getBasesLength()-1, 1);
+        auto * tmp = new uint8_t[allocate_size];
         memcpy(tmp, allele->getBases().get()+1, allele->getBasesLength()-1);
+//        cout << "tmp " << allele->getBasesLength()-1 << " ";
+//        for (int i = 0; i <  allele->getBasesLength()-1; ++i) cout << tmp[i];
+//        cout << endl;
         std::pair<std::vector<int>, std::shared_ptr<uint8_t[]>> result = getNumTandemRepeatUnits(refAlleleBases, refAlleleBasesLen, tmp, allele->getBasesLength()-1, refBasesStartingAtVCWithoutPad, refLen-1, rightLen);
         delete[] tmp;
 
         std::vector<int> repetitionCount = result.first;
         if(repetitionCount[0] == 0 || repetitionCount[1] == 0) {
+            delete[] refAlleleBases;
+            delete[] refBasesStartingAtVCWithoutPad;
             return {};
         }
         if(flag) {
@@ -91,12 +111,12 @@ TandemRepeat::getNumTandemRepeatUnits(uint8_t * refBases, int refLen, uint8_t * 
     }
 
     repeatUnitLength = findRepeatedSubstring(longB, longBLen);
-    uint8_t * repeatUnit = new uint8_t[repeatUnitLength];
+    auto * repeatUnit = new uint8_t[repeatUnitLength];
     memcpy(repeatUnit, longB, repeatUnitLength);
 
     std::vector<int> repetitionCount = std::vector<int>(2);
     int repetitionsInRef = findNumberOfRepetitions(repeatUnit, repeatUnitLength,refBases, refLen, true);
-    uint8_t * tmp = new uint8_t[refLen+remainingLen];
+    auto * tmp = new uint8_t[refLen+remainingLen];
     memcpy(tmp, refBases, refLen);
     memcpy(tmp+refLen, remainingRefContext, remainingLen);
     repetitionCount[0] = findNumberOfRepetitions(repeatUnit, repeatUnitLength, tmp, refLen+remainingLen, true)-repetitionsInRef;
@@ -113,7 +133,7 @@ TandemRepeat::getNumTandemRepeatUnits(uint8_t * refBases, int refLen, uint8_t * 
 int TandemRepeat::findRepeatedSubstring(uint8_t *bases, int basesLen) {
     int repLength;
     for (repLength=1; repLength <=basesLen; repLength++) {
-        uint8_t * candidateRepeatUnit = new uint8_t[repLength];
+        auto * candidateRepeatUnit = new uint8_t[repLength];
         memcpy(candidateRepeatUnit, bases, repLength);
         bool allBasesMatch = true;
         for (int start = repLength; start < basesLen; start += repLength ) {
@@ -122,7 +142,7 @@ int TandemRepeat::findRepeatedSubstring(uint8_t *bases, int basesLen) {
                 allBasesMatch = false;
                 break;
             }
-            uint8_t * basePiece = new uint8_t[repLength];
+            auto * basePiece = new uint8_t[repLength];
             memcpy(basePiece, bases+start, repLength);
             if (memcmp(candidateRepeatUnit, basePiece, repLength) != 0) {
                 allBasesMatch = false;

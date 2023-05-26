@@ -57,7 +57,7 @@ DigammaCache &MathUtils::DIGAMMA_CACHE() {
 }
 
 Log10FactorialCache &MathUtils::LOG_10_FACTORIAL_CACHE() {
-    static Log10FactorialCache log10Factorial;
+    static thread_local Log10FactorialCache log10Factorial;
     return log10Factorial;
 }
 

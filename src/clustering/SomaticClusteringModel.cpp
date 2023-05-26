@@ -224,19 +224,15 @@ void SomaticClusteringModel::learnWeightsAndPriors() {
     logBackgroundWeight = std::log((REGULARIZING_PSEUDOCOUNT + clusterCounts[BACKGROUND_INDEX]) / totalVariants);
     logSparseClustersWeight = std::log((REGULARIZING_PSEUDOCOUNT + totalSparseClusterCount) /totalVariants);
 
-    std::vector<int> range;
+    std::vector<int> tmpLength;
     for(int i = 0; i < data.size(); i++) {
         if(clusterAssignments[i].value_or(0) != 0) {
-            range.emplace_back(i);
+            tmpLength.emplace_back(data[i].getIndelLength());
         }
     }
-    std::vector<int> tmp;
-    for(int i : range) {
-        tmp.emplace_back(data[i].getIndelLength());
-    }
     std::map<int, long> variantCountsByIndelLength;
-    for(int i : tmp) {
-        variantCountsByIndelLength[tmp[i]]++;
+    for(int length : tmpLength) {
+        variantCountsByIndelLength[length]++;
     }
     double technicalArtifactCount = 0;
     for(auto & da : data) {

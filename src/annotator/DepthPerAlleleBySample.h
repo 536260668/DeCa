@@ -11,7 +11,7 @@ class DepthPerAlleleBySample : public GenotypeAnnotation {
 public:
     void annotate(ReferenceContext& ref, shared_ptr<VariantContext> vc, std::shared_ptr<Genotype> g, GenotypeBuilder& gb, AlleleLikelihoods<SAMRecord, Allele>* likelihoods);
 
-    pair<int*, int> annotateWithLikelihoods(shared_ptr<VariantContext> vc, std::shared_ptr<Genotype> g, vector<shared_ptr<Allele>>& alleles, AlleleLikelihoods<SAMRecord, Allele>* likelihoods);
+	std::vector<int> annotateWithLikelihoods(shared_ptr<VariantContext> vc, std::shared_ptr<Genotype> g, vector<shared_ptr<Allele>>& alleles, AlleleLikelihoods<SAMRecord, Allele>* likelihoods);
 
     std::vector<std::string> getKeyNames();
 };

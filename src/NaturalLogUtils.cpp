@@ -67,7 +67,7 @@ double NaturalLogUtils::logSumExp(std::vector<double>& logValues) {
         }
     }
     if(isnan(sum) || isinf(sum))
-        throw "log10 p: Values must be non-infinite and non-NAN";
+        throw std::invalid_argument("log10 p: Values must be non-infinite and non-NAN");
 
     return maxValue + (sum != 1.0 ? log(sum) : 0.0);
 }

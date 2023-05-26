@@ -6,6 +6,7 @@
 #define MUTECT2CPP_MASTER_GENOTYPEBUILDER_H
 
 #include <utility>
+#include <vector>
 #include "AttributeValue.h"
 #include "FastGenotype.h"
 
@@ -18,10 +19,8 @@ private:
     bool isPhased = false;
     int GQ = -1;
     int DP = -1;
-    int* AD = nullptr;
-    int ADLength = 0;
-    int* PL = nullptr;
-    int PLLength = 0;
+	std::vector<int> AD;
+	std::vector<int> PL;
     std::map<std::string, AttributeValue> extendedAttributes;
     std::string filters;
     int initialAttributeMapSize = 5;
@@ -30,13 +29,13 @@ private:
 public:
     static std::shared_ptr<Genotype> create(std::string sampleName, std::vector<std::shared_ptr<Allele>> alleles);
     static std::shared_ptr<Genotype> create(std::string sampleName, std::vector<std::shared_ptr<Allele>> alleles, const std::map<std::string, AttributeValue>& attributes);
-    static std::shared_ptr<Genotype> create(const std::string& sampleName, const std::vector<std::shared_ptr<Allele>>& alleles, double * gls, int length);
+    static std::shared_ptr<Genotype> create(const std::string& sampleName, const std::vector<std::shared_ptr<Allele>>& alleles, std::vector<double> gls);
 
 
     GenotypeBuilder(std::string sampleName, std::vector<std::shared_ptr<Allele>> alleles) : sampleName(std::move(sampleName)), alleles(std::move(alleles)){}
     GenotypeBuilder(std::shared_ptr<Genotype> g, std::string name, std::vector<std::shared_ptr<Allele>>& alleles);
     explicit GenotypeBuilder(std::shared_ptr<Genotype> g);
-    GenotypeBuilder& setAD(int* AD, int ADLength);
+    GenotypeBuilder& setAD(std::vector<int> AD);
 
     GenotypeBuilder& setDP(int DP);
 
@@ -52,7 +51,7 @@ public:
 
     GenotypeBuilder& attribute(const std::string& key, std::vector<int>&& value);
 
-    GenotypeBuilder buildPL(double * GLs, int length);
+    GenotypeBuilder buildPL(std::vector<double> GLs);
     std::shared_ptr<Genotype> make();
 
     /**

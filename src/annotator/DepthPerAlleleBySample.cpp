@@ -10,11 +10,10 @@ DepthPerAlleleBySample::annotate(ReferenceContext &ref, shared_ptr<VariantContex
     if(g == nullptr || !g->isCalled() || likelihoods == nullptr)
         return;
 
-    pair<int*, int> AD = annotateWithLikelihoods(vc, g, vc->getAlleles(), likelihoods);
-    gb.setAD(AD.first, AD.second);
+    gb.setAD(annotateWithLikelihoods(vc, g, vc->getAlleles(), likelihoods));
 }
 
-pair<int *, int> DepthPerAlleleBySample::annotateWithLikelihoods(shared_ptr<VariantContext> vc, std::shared_ptr<Genotype> g,
+std::vector<int> DepthPerAlleleBySample::annotateWithLikelihoods(shared_ptr<VariantContext> vc, std::shared_ptr<Genotype> g,
                                                                  vector<shared_ptr<Allele>> &alleles,
                                                                  AlleleLikelihoods<SAMRecord, Allele> *likelihoods) {
     phmap::flat_hash_map<Allele*, int> alleleCounts;
@@ -30,7 +29,8 @@ pair<int *, int> DepthPerAlleleBySample::annotateWithLikelihoods(shared_ptr<Vari
     }
     auto subsettedLikelihoods = likelihoods->marginalize(alleleSubset);
     auto bestAllels = subsettedLikelihoods->bestAllelesBreakingTies(g->getSampleName());
-    for(const auto& ba : *bestAllels)
+	delete subsettedLikelihoods;
+	for(const auto& ba : *bestAllels)
     {
         if(ba->isInformative())
         {
@@ -38,13 +38,13 @@ pair<int *, int> DepthPerAlleleBySample::annotateWithLikelihoods(shared_ptr<Vari
         }
     }
 
-    int * counts = new int[alleleCounts.size()];
+	std::vector<int> counts(alleleCounts.size());
     counts[0] = alleleCounts[vc->getReference().get()];
     for (int i = 0; i < vc->getNAlleles() -1; i++) {
         counts[i + 1] = alleleCounts[vc->getAlternateAllele(i).get()];
     }
 
-    return {counts, alleleCounts.size()};
+    return counts;
 }
 
 std::vector<std::string> DepthPerAlleleBySample::getKeyNames() {

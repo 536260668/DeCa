@@ -74,21 +74,16 @@ bool Genotype::isHetNonRef() {
 }
 
 GenotypeLikelihoods *Genotype::getLikelihoods() {
-    int length;
-    return hasLikelihoods() ? GenotypeLikelihoods::fromPLs(getPL(length), length) : nullptr;
+    return hasLikelihoods() ? GenotypeLikelihoods::fromPLs(getPL()) : nullptr;
 }
 
 bool Genotype::isNonInformative() {
-    int length;
-    if(getPL(length) == nullptr) {
+    if(getPL().empty()) {
         return true;
     } else {
-        int* var1 = getPL(length);
-        int var2 = length;
-
-        for(int var3 = 0; var3 < var2; ++var3) {
-            int PL = var1[var3];
-            if (PL != 0) {
+        std::vector<int> var1 = getPL();
+        for(int i = 0; i < var1.size(); ++i) {
+            if (var1[i] != 0) {
                 return false;
             }
         }
@@ -98,18 +93,15 @@ bool Genotype::isNonInformative() {
 }
 
 bool Genotype::hasPL() {
-    int length;
-    return getPL(length) != nullptr;
+    return !getPL().empty();
 }
 
 bool Genotype::hasAD() {
-    int length;
-    return getAD(length) != nullptr;
+    return !getAD().empty();
 }
 
 bool Genotype::hasLikelihoods() {
-    int length;
-    return getPL(length) != nullptr;
+	return !getPL().empty();
 }
 
 std::string Genotype::getGenotypeString(bool ignoreRefState) {
@@ -178,55 +170,6 @@ AttributeValue Genotype::getExtendedAttribute(const std::string & key) {
     return getExtendedAttribute(key, nullptr);
 }
 
-//需要delete
-AttributeValue Genotype::getAnyAttribute(const std::string& key) {
-    if(key == "GT") {
-        std::vector<std::shared_ptr<Allele>> ret = getAlleles();
-        return (new std::vector<std::shared_ptr<Allele>>(ret.begin(), ret.end()));
-    } else if (key == "GQ") {
-        int* ret = new int(getGQ());
-        return ret;
-    }  else {
-        int* var3;
-        int var4;
-        int var5;
-        int i;
-        if(key == "AD") {
-            if(!hasAD()) {
-                return AttributeValue::empty_value();
-            } else {
-                int length;
-                var3 = getAD(length);
-                std::vector<int>* ret = new std::vector<int>(length);
-                var4 = length;
-                for(var5 = 0; var5 < var4; ++var5) {
-                    i = var3[var5];
-                    ret->emplace_back(i);
-                }
-                return ret;
-            }
-        } else if (key != "PL") {
-            if(key == "DP") {
-                return new int(getDP());
-            } else {
-                return key == "FT" ? new std::string(getFilters()) : getExtendedAttribute(key);
-            }
-        }else if (!hasPL()) {
-            return AttributeValue::empty_value();;
-        } else {
-            int length;
-            var3 = getPL(length);
-            std::vector<int>* ret = new std::vector<int>(length);
-            var4 = length;
-            for(var5 = 0; var5 < var4; ++var5) {
-                i = var3[var5];
-                ret->emplace_back(i);
-            }
-            return ret;
-        }
-    }
-}
-
 bool Genotype::hasAnyAttribute(std::string key) {
     if(key == "GT") {
         return isAvailable();
@@ -242,7 +185,4 @@ bool Genotype::hasAnyAttribute(std::string key) {
         return key == "FT" || hasExtendedAttribute(key);
     }
 }
-
-Genotype::~Genotype() = default;
-
 

@@ -17,7 +17,6 @@
 std::shared_ptr<AssemblyResult>
 ReadThreadingAssembler::getAssemblyResult(std::shared_ptr<Haplotype> &refHaplotype,
                                           const std::shared_ptr<ReadThreadingGraph> &rtgraph) const {
-	//std::cout << rtgraph->getVertexSet().size() << rtgraph->getEdgeSet().size() << std::endl;
 	if (recoverDanglingBranches) {
 		if (pruneFactor < 0)
 			throw std::invalid_argument("pruneFactor must be non-negative");
@@ -30,7 +29,6 @@ ReadThreadingAssembler::getAssemblyResult(std::shared_ptr<Haplotype> &refHaploty
 		rtgraph->recoverDanglingHeads(pruneFactor, minDanglingBranchLength, recoverAllDanglingBranches);
 		//rtgraph->printGraphSize("recoverDanglingHeads");
 	}
-	//std::cout << rtgraph->getVertexSet().size() << rtgraph->getEdgeSet().size() << std::endl;
 	if (removePathsNotConnectedToRef) {
 		rtgraph->removePathsNotConnectedToRef(rtgraph->getVertexSet().size());
 		//rtgraph->printGraphSize("removePathsNotConnectedToRef");
