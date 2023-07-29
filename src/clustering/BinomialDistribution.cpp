@@ -65,9 +65,9 @@ double BinomialDistribution::regularizedBeta(double x, double a, double b) {
 double BinomialDistribution::regularizedBeta(double x, double a, double b, double epsilon, int maxIterations) {
     double ret;
 
-    if (isinf(x) ||
-            isinf(a) ||
-            isinf(b) ||
+    if (std::isinf(x) ||
+            std::isinf(a) ||
+            std::isinf(b) ||
         x < 0 ||
         x > 1 ||
         a <= 0 ||

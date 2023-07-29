@@ -20,7 +20,7 @@ include_directories(../common)
 set(TARGET smithwatermanFunctions)
 
 
-add_library(${TARGET} SHARED
+add_library(${TARGET} STATIC
     IntelSmithWaterman.cc avx2_impl.cc avx512_impl.cc smithwaterman_common.cc)
 
 #install(TARGETS ${TARGET} DESTINATION ${CMAKE_BINARY_DIR})

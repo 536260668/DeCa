@@ -16,7 +16,7 @@ include_directories(../common)
 # pairhmm
 #---------------------------------------------------------------------
 set(TARGET gkl_pairhmm)
-add_library(${TARGET} SHARED IntelPairHmm.cc avx_impl.cc avx512_impl.cc pairhmm_common.cc)
+add_library(${TARGET} STATIC IntelPairHmm.cc avx_impl.cc avx512_impl.cc pairhmm_common.cc)
 install(TARGETS ${TARGET} DESTINATION ${CMAKE_BINARY_DIR})
 
 #---------------------------------------------------------------------
@@ -26,7 +26,7 @@ find_package(OpenMP)
 
 if(OPENMP_FOUND)
   set(TARGET gkl_pairhmm_omp)
-  add_library(${TARGET} SHARED IntelPairHmm.cc avx_impl.cc avx512_impl.cc pairhmm_common.cc)
+  add_library(${TARGET} STATIC IntelPairHmm.cc avx_impl.cc avx512_impl.cc pairhmm_common.cc)
   set_target_properties(${TARGET} PROPERTIES COMPILE_OPTIONS ${OpenMP_CXX_FLAGS})
   target_link_libraries(${TARGET} ${OpenMP_CXX_FLAGS})
   install(TARGETS ${TARGET} DESTINATION ${CMAKE_BINARY_DIR})

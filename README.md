@@ -16,3 +16,4 @@ requires extra steps:
 ```
 
 By default, this will build against an HTSlib source tree in `../htslib`.
+this program need libtorch in `/usr/libtorch` to run.
