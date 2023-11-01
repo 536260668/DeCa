@@ -222,6 +222,9 @@ std::set<int> EventMap::buildEventMapsForHaplotypes(std::vector<std::shared_ptr<
 	int hapNumber = 0;
 	for (auto &h: haplotypes) {
 		auto *newEventMap = new EventMap(h, ref, refLength, refLoc, "HC" + std::to_string(hapNumber), maxMnpDistance);
+        // deal with memory leak
+        if (h->getEventMap() != nullptr)
+            delete h->getEventMap();
 		h->setEventMap(newEventMap);
 		/*if (h->getIsNonReference()) {
 			std::cout.precision(10);
