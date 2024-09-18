@@ -65,6 +65,8 @@ add_subdirectory(./src/basicshortmutpileup)
 add_executable(Mutect2Cpp_master ${DIR_SRCS} src/model/model.cpp src/model/model.h src/engine/ReferenceContext.cpp src/engine/ReferenceContext.h src/engine/AlignmentContext.cpp src/engine/AlignmentContext.h src/pileRead.h
         src/trie/trieNode.cpp src/trie/trieNode.h src/trie/buildTreeUtils.cpp src/trie/buildTreeUtils.h)
 
+set_target_properties(Mutect2Cpp_master PROPERTIES OUTPUT_NAME "DeCa")
+
 # export MALLOC_CONF=background_thread:true,dirty_decay_ms:40000,metadata_thp:always,tcache_max:65536
 target_link_libraries(Mutect2Cpp_master libjemalloc.a -ldl)
 
