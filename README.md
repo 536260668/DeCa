@@ -1,5 +1,5 @@
-# Mutect2Cpp-master
-This is the c++ version of GATK4 Mutect2 based on htslib.
+# DeCa
+DeCa is a high-performance, attention-based tool designed for the rapid and accurate detection of somatic variants. 
 
 ### Prerequisite
 * [htslib](https://github.com/samtools/htslib) : The library to read hts files.
@@ -8,11 +8,14 @@ This is the c++ version of GATK4 Mutect2 based on htslib.
 
 ### Building Mutect2Cpp-master
 
-build the code from a Git repository
-requires extra steps:
+build the code from a Git repository requires following steps:
 
 ```sh
-
+git clone https://github.com/536260668/DeCa
+cd Deca
+mkdir release
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_MAKE_PROGRAM=ninja -G Ninja -S /your/path/to/DeCa -B /your/path/to/DeCa/release
+cmake --build /your/path/to/DeCa/release -j <threads>
 ```
 
 By default, this will build against an HTSlib source tree in `../htslib`.
